@@ -19,7 +19,8 @@ import { ProjectBasedTraceability } from './features/private/project-based-trace
 export const routes: Routes = [
     {
         path: '', 
-        component: Home
+        redirectTo: 'dashboard', 
+        pathMatch: 'full'
     },
     {
         path: 'dashboard', 
