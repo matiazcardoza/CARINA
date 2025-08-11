@@ -1,0 +1,15 @@
+.profile_container{
+    /* background: red; */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-content: center;
+    gap: 0.5rem;
+
+}
+    .third-icon {
+        margin-top: 4px;
+        /* background: blue; */
+        font-size: 22px; /* Puedes ajustar a 48px, 24px, etc. */
+        /* color: #3f51b5;   Opcional: cambia el color */
+    }
