@@ -12,7 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('orders_silucia', function (Blueprint $table) {
-            $table->id();
+            $table->id('id');
+            $table->unsignedBigInteger('silucia_id');
+            $table->string('order_type')->nullable();
+            $table->date('issue_date')->nullable();
+            $table->string('goal_project')->nullable();
+            $table->integer('state')->default(1);;
             $table->timestamps();
         });
     }

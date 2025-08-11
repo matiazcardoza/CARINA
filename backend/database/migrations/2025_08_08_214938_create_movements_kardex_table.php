@@ -12,7 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('movements_kardex', function (Blueprint $table) {
-            $table->id();
+            $table->id('id');
+            $table->unsignedBigInteger('product_id');
+            $table->string('movement_type')->nullable();
+            $table->date('movement_date')->nullable();
+            $table->decimal('amount')->nullable();
+            $table->decimal('final_balance')->nullable();
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
         });
     }

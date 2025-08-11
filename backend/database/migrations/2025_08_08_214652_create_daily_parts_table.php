@@ -12,7 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('daily_parts', function (Blueprint $table) {
-            $table->id();
+            $table->id('id');
+            $table->unsignedBigInteger('service_id');
+            $table->date('work_date')->nullable();
+            $table->time('start_time')->nullable();
+            $table->time('end_time')->nullable();
+            $table->decimal('initial_fuel', 8, 2)->nullable();
+            $table->decimal('final_fuel', 8, 2)->nullable();
+            $table->time('time_worked')->nullable();
+            $table->decimal('fuel_consumed', 8, 2)->nullable();
+            $table->integer('state')->default(1);
+            $table->foreign('service_id')->references('id')->on('services')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
         });
     }

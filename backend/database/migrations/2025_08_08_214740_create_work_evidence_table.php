@@ -12,7 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('work_evidence', function (Blueprint $table) {
-            $table->id();
+            $table->id('id');
+            $table->unsignedBigInteger('daily_part_id');
+            $table->string('evidence_path')->nullable();
+            $table->foreign('daily_part_id')->references('id')->on('daily_parts')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
         });
     }
