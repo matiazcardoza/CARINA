@@ -40,25 +40,119 @@ export const routes: Routes = [
     },
     // Rutas protegidas que requieren autenticación (dashboard y sus hijos)
     {
-        path: 'dashboard',
+        path: 'dashboard', 
         component: Dashboard,
         children: [
             {
-                path: '',
-                redirectTo: 'home',
-                pathMatch: 'full'
+                path: '',              
+                redirectTo: 'home',    
+                pathMatch: 'full'       
             },
             {
                 path: 'home',
                 component: Home
             },
-            // ... el resto de tus rutas del dashboard
+            {
+                path: 'daily-parts',
+                children: [
+                    {
+                        path: '',              
+                        redirectTo: 'daily-work-log',    
+                        pathMatch: 'full'       
+                    },
+                    {
+                        path: 'daily-work-log',
+                        component: DailyWorkLog
+                    },
+                    {
+                        path: 'fuel-control',
+                        component: FuelControl
+                    },
+                    {
+                        path: 'evidence-management',
+                        component: EvidenceManagement
+                    },
+                    {
+                        path: 'digital-signature-workflow',
+                        component: DigitalSignatureWorkflow
+                    },
+                    {
+                        path: 'reports-and-dashboards',
+                        component: ReportsAndDashboards
+                    },
+                ]
+            },
+            {
+                path: 'warehouse',
+                children: [
+                    {
+                        path: '',              
+                        redirectTo: 'valued-kardex',    
+                        pathMatch: 'full'       
+                    },
+                    {
+                        path: 'valued-kardex',
+                        component: ValuedKardex
+                    },
+                    {
+                        path: 'physical-bincard',
+                        component: PhysicalBincard
+                    },
+                    {
+                        path: 'warranty-control',
+                        component: WarrantyControl
+                    },
+                    {
+                        path: 'inventory-reports',
+                        component: InventoryReports
+                    },
+                    {
+                        path: 'project-based-traveability',
+                        component: ProjectBasedTraceability
+                    },
+
+                ]
+            },
+            {
+                path: 'first-feature',
+                component: MyFirtsFeature
+            },
+            {
+                path: 'second-feature',
+                component: MySecondFeature
+            },
+            {
+                path: 'third-feature',
+                component: MyThirdFeature
+            },
+            {
+                path: 'conformity',
+                component: Conformity
+            }
         ]
     },
-    // Manejo de rutas no encontradas
     {
-        path: '**',
-        redirectTo: 'login'
+        // This section is to prove new functionalities
+        path: 'draft',
+        children:[
+            {
+                path: '',              
+                redirectTo: 'how-send-values',    
+                pathMatch: 'full'       
+            },
+            {
+                path: 'how-send-values',
+                component: MyFirstComponent
+            },
+            {
+                path: 'first-feature',
+                component: MyFirtsFeature
+            },
+        ]
+    },
+    {
+        path: '**', 
+        redirectTo: ''
     }
 ];
 
