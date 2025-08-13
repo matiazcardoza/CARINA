@@ -20,7 +20,7 @@ import { PhysicalBincard } from './features/private/physical-bincard/physical-bi
 import { WarrantyControl } from './features/private/warranty-control/warranty-control';
 import { InventoryReports } from './features/private/inventory-reports/inventory-reports';
 import { ProjectBasedTraceability } from './features/private/project-based-traceability/project-based-traceability';
-
+import { NotFound } from './layouts/not-found/not-found';
 
 export const routes: Routes = [
     // Redirige la ruta raíz a la página de login
@@ -40,7 +40,7 @@ export const routes: Routes = [
     },
     // Rutas protegidas que requieren autenticación (dashboard y sus hijos)
     {
-        path: 'dashboard', 
+        path: 'carina', 
         component: Dashboard,
         children: [
             {
@@ -53,77 +53,44 @@ export const routes: Routes = [
                 component: Home
             },
             {
-                path: 'daily-parts',
-                children: [
-                    {
-                        path: '',              
-                        redirectTo: 'daily-work-log',    
-                        pathMatch: 'full'       
-                    },
-                    {
-                        path: 'daily-work-log',
-                        component: DailyWorkLog
-                    },
-                    {
-                        path: 'fuel-control',
-                        component: FuelControl
-                    },
-                    {
-                        path: 'evidence-management',
-                        component: EvidenceManagement
-                    },
-                    {
-                        path: 'digital-signature-workflow',
-                        component: DigitalSignatureWorkflow
-                    },
-                    {
-                        path: 'reports-and-dashboards',
-                        component: ReportsAndDashboards
-                    },
-                ]
+                path: 'daily-work-log',
+                component: DailyWorkLog
             },
             {
-                path: 'warehouse',
-                children: [
-                    {
-                        path: '',              
-                        redirectTo: 'valued-kardex',    
-                        pathMatch: 'full'       
-                    },
-                    {
-                        path: 'valued-kardex',
-                        component: ValuedKardex
-                    },
-                    {
-                        path: 'physical-bincard',
-                        component: PhysicalBincard
-                    },
-                    {
-                        path: 'warranty-control',
-                        component: WarrantyControl
-                    },
-                    {
-                        path: 'inventory-reports',
-                        component: InventoryReports
-                    },
-                    {
-                        path: 'project-based-traveability',
-                        component: ProjectBasedTraceability
-                    },
-
-                ]
+                path: 'fuel-control',
+                component: FuelControl
             },
             {
-                path: 'first-feature',
-                component: MyFirtsFeature
+                path: 'evidence-management',
+                component: EvidenceManagement
             },
             {
-                path: 'second-feature',
-                component: MySecondFeature
+                path: 'digital-signature-workflow',
+                component: DigitalSignatureWorkflow
             },
             {
-                path: 'third-feature',
-                component: MyThirdFeature
+                path: 'reports-and-dashboards',
+                component: ReportsAndDashboards
+            },
+            {
+                path: 'valued-kardex',
+                component: ValuedKardex
+            },
+            {
+                path: 'physical-bincard',
+                component: PhysicalBincard
+            },
+            {
+                path: 'warranty-control',
+                component: WarrantyControl
+            },
+            {
+                path: 'inventory-reports',
+                component: InventoryReports
+            },
+            {
+                path: 'project-based-traveability',
+                component: ProjectBasedTraceability
             },
             {
                 path: 'conformity',
@@ -151,132 +118,7 @@ export const routes: Routes = [
         ]
     },
     {
-        path: '**', 
-        redirectTo: ''
+        path: '**',   
+        component: NotFound
     }
 ];
-
-/*export const routes: Routes = [
-    { path: 'login', component: LoginComponent },
-    {
-        path: '', 
-        redirectTo: 'dashboard', 
-        pathMatch: 'full'
-    },
-    
-    {
-        path: 'dashboard', 
-        component: Dashboard,
-        children: [
-            {
-                path: '',              
-                redirectTo: 'home',    
-                pathMatch: 'full'       
-            },
-            {
-                path: 'home',
-                component: Home
-            },
-            {
-                path: 'daily-parts',
-                children: [
-                    {
-                        path: '',              
-                        redirectTo: 'daily-work-log',    
-                        pathMatch: 'full'       
-                    },
-                    {
-                        path: 'daily-work-log',
-                        component: DailyWorkLog
-                    },
-                    {
-                        path: 'fuel-control',
-                        component: FuelControl
-                    },
-                    {
-                        path: 'evidence-management',
-                        component: EvidenceManagement
-                    },
-                    {
-                        path: 'digital-signature-workflow',
-                        component: DigitalSignatureWorkflow
-                    },
-                    {
-                        path: 'reports-and-dashboards',
-                        component: ReportsAndDashboards
-                    },
-                ]
-            },
-            {
-                path: 'warehouse',
-                children: [
-                    {
-                        path: '',              
-                        redirectTo: 'valued-kardex',    
-                        pathMatch: 'full'       
-                    },
-                    {
-                        path: 'valued-kardex',
-                        component: ValuedKardex
-                    },
-                    {
-                        path: 'physical-bincard',
-                        component: PhysicalBincard
-                    },
-                    {
-                        path: 'warranty-control',
-                        component: WarrantyControl
-                    },
-                    {
-                        path: 'inventory-reports',
-                        component: InventoryReports
-                    },
-                    {
-                        path: 'project-based-traveability',
-                        component: ProjectBasedTraceability
-                    },
-
-                ]
-            },
-            {
-                path: 'first-feature',
-                component: MyFirtsFeature
-            },
-            {
-                path: 'second-feature',
-                component: MySecondFeature
-            },
-            {
-                path: 'third-feature',
-                component: MyThirdFeature
-            },
-            {
-                path: 'conformity',
-                component: Conformity
-            }
-        ]
-    },
-    {
-        // This section is to prove new functionalities
-        path: 'draft',
-        children:[
-            {
-                path: '',              
-                redirectTo: 'how-send-values',    
-                pathMatch: 'full'       
-            },
-            {
-                path: 'how-send-values',
-                component: MyFirstComponent
-            },
-            {
-                path: 'first-feature',
-                component: MyFirtsFeature
-            },
-        ]
-    },
-    {
-        path: '**', 
-        redirectTo: ''
-    }
-];*/
