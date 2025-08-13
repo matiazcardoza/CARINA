@@ -3,7 +3,6 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth';
 import { CommonModule } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-register',
@@ -34,12 +33,13 @@ export class Register {
   onRegister(): void {
     if (this.registerForm.valid) {
       this.authService.register(this.registerForm.value).subscribe({
-        next: () => {
+        next: (response) => {
+          console.log('Register response:', response);
           this.router.navigate(['/dashboard']);
         },
-        error: (err: HttpErrorResponse) => {
-          console.error('Registration failed', err);
-          alert('Registration failed. Please check the information.');
+        error: (err) => {
+          console.error('Register failed:', err);
+          alert('Error al registrar. Por favor, verifica la información.');
         }
       });
     }
