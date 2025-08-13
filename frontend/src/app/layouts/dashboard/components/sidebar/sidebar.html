@@ -1,19 +1,22 @@
+<!-- este es el fondo que cubre la pantalla cuando el sidebar es visible -->
+<div class="dark_background"  [class.dark_background_hidden]="isOpen()" (click)="closeSidebar()"></div>
 <ul class="sidebar_container" [class.sidebar_container_hidden]="isOpen()">
-    <div class="icon_close_container">
+    <li class="icon_close_container">
         <mat-icon class="close_icon_style" (click)="handleOpenSidebar()">close</mat-icon>
-    </div>
-    <li (click)="closeSidebar()" routerLink="daily-parts/daily-work-log">Registro de trabajo diario</li>
-    <li (click)="closeSidebar()" routerLink="daily-parts/fuel-control">Control de combustible</li>
-    <li (click)="closeSidebar()" routerLink="daily-parts/evidence-management">Gestión de evidencias</li>
-    <li (click)="closeSidebar()" routerLink="daily-parts/digital-signature-workflow">Workflow de firmas digitales</li>
-    <li (click)="closeSidebar()" routerLink="daily-parts/reports-and-dashboards">Reportes y dashboard</li>
-    
-    <li (click)="closeSidebar()" routerLink="warehouse/valued-kardex">Kardex valorizado</li>
-    <li (click)="closeSidebar()" routerLink="warehouse/physical-bincard">Bincard físico</li>
-    <li (click)="closeSidebar()" routerLink="warehouse/warranty-control">Control de garantías</li>
-    <li (click)="closeSidebar()" routerLink="warehouse/inventory-reports">Reportes y dashboard</li>
-    <li (click)="closeSidebar()" routerLink="warehouse/inventory-reports">Reporte de inventarios</li>
-    <li (click)="closeSidebar()" routerLink="warehouse/project-based-traveability">Trazabilidad de Proyectos</li>
+    </li>
+    <li class="item_title">PARTES DIARIOS DIGITALES</li>
+    <li class="item" (click)="closeSidebar()" routerLink="daily-work-log">Registro de trabajo diario</li>
+    <li class="item" (click)="closeSidebar()" routerLink="fuel-control">Control de combustible</li>
+    <li class="item" (click)="closeSidebar()" routerLink="evidence-management">Gestión de evidencias</li>
+    <li class="item" (click)="closeSidebar()" routerLink="digital-signature-workflow">Workflow de firmas digitales</li>
+    <li class="item" (click)="closeSidebar()" routerLink="reports-and-dashboards">Reportes y dashboard</li>
+    <li class="item_title">ALMACÉN DIGITAL</li>
+    <li class="item" (click)="closeSidebar()" routerLink="valued-kardex">Kardex valorizado</li>
+    <li class="item" (click)="closeSidebar()" routerLink="physical-bincard">Bincard físico</li>
+    <li class="item" (click)="closeSidebar()" routerLink="warranty-control">Control de garantías</li>
+    <li class="item" (click)="closeSidebar()" routerLink="inventory-reports">Reportes y dashboard</li>
+    <li class="item" (click)="closeSidebar()" routerLink="inventory-reports">Reporte de inventarios</li>
+    <li class="item" (click)="closeSidebar()" routerLink="project-based-traveability">Trazabilidad de Proyectos</li>
     <!-- <li>{{value()}}</li>
     <li>{{incomingValue()}}</li> -->
 </ul>
