@@ -40,7 +40,7 @@ export const routes: Routes = [
     },
     // Rutas protegidas que requieren autenticación (dashboard y sus hijos)
     {
-        path: '',
+        path: 'dashboard',
         component: Dashboard,
         children: [
             {

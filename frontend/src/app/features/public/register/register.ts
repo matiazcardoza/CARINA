@@ -1,41 +1,47 @@
-// src/app/features/public/register/register.ts
-import { Component, OnInit } from '@angular/core';
-import { AuthService } from '../../../services/auth';
+import { Component } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../../services/auth';
+import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
-    selector: 'app-register',
-    templateUrl: './register.html',
-    styleUrl: './register.css',
-    standalone: true,
-    imports: [FormsModule]
+  selector: 'app-register',
+  templateUrl: './register.html',
+  styleUrls: ['./register.css'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule
+  ]
 })
-export class Register implements OnInit {
-    credentials = {
-        name: '',
-        email: '',
-        password: '',
-        password_confirmation: ''
-    };
+export class Register {
+  registerForm: FormGroup;
 
-    constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router
+  ) {
+    this.registerForm = this.fb.group({
+      name: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      password_confirmation: ['', Validators.required]
+    });
+  }
 
-    ngOnInit(): void {
-        this.authService.getCsrfCookie().subscribe(); // Obtiene la cookie CSRF al cargar el componente
+  onRegister(): void {
+    if (this.registerForm.valid) {
+      this.authService.register(this.registerForm.value).subscribe({
+        next: () => {
+          this.router.navigate(['/dashboard']);
+        },
+        error: (err: HttpErrorResponse) => {
+          console.error('Registration failed', err);
+          alert('Registration failed. Please check the information.');
+        }
+      });
     }
-
-    onRegister(): void {
-      console.log('Registering with credentials:', this.credentials);
-        this.authService.register(this.credentials).subscribe({
-            next: (response) => {
-                console.log('Registration successful', response);
-                this.router.navigate(['/dashboard']); // Redirige al dashboard después del registro
-            },
-            error: (err) => {
-                console.error('Registration failed', err);
-
-            },
-        });
-    }
+  }
 }
