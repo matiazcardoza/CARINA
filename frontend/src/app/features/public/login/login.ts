@@ -40,7 +40,7 @@ export class Login {
 
       this.authService.login(formData).subscribe({
         next: () => {
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(['/carina']);
         },
         error: (err: HttpErrorResponse) => {
           this.isLoading = false;
