@@ -21,6 +21,7 @@ import { WarrantyControl } from './features/private/warranty-control/warranty-co
 import { InventoryReports } from './features/private/inventory-reports/inventory-reports';
 import { ProjectBasedTraceability } from './features/private/project-based-traceability/project-based-traceability';
 import { NotFound } from './layouts/not-found/not-found';
+import { authGuard } from './services/auth.guard'; // Importamos la nueva guardia
 
 export const routes: Routes = [
     // Redirige la ruta raíz a la página de login
@@ -42,11 +43,12 @@ export const routes: Routes = [
     {
         path: 'carina', 
         component: Dashboard,
+        canActivate: [authGuard], // <--- ¡Esta es la línea clave que añadimos!
         children: [
             {
-                path: '',              
+                path: '',          
                 redirectTo: 'home',    
-                pathMatch: 'full'       
+                pathMatch: 'full'      
             },
             {
                 path: 'home',
@@ -103,9 +105,9 @@ export const routes: Routes = [
         path: 'draft',
         children:[
             {
-                path: '',              
+                path: '',          
                 redirectTo: 'how-send-values',    
-                pathMatch: 'full'       
+                pathMatch: 'full'      
             },
             {
                 path: 'how-send-values',
@@ -118,7 +120,7 @@ export const routes: Routes = [
         ]
     },
     {
-        path: '**',   
+        path: '**',  
         component: NotFound
     }
 ];
