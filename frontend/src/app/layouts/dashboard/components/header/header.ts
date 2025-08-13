@@ -10,8 +10,8 @@ import {MatIconModule} from '@angular/material/icon'
   styleUrl: './header.css'
 })
 export class Header {
-  sentOpenValue = output<boolean>()
   isOpen = input<boolean>(false)
+  sentOpenValue = output<boolean>()
 
   handleOpenSidebar(value: boolean){
     console.log(value)

@@ -3,12 +3,13 @@
     (sentOpenValue)="handleOpenSidebar($event)"
 />
 
+<div class="outlet-container" [class.dark_container_right_side]="!isOpen()">
 
     <app-header 
     (sentOpenValue)="handleOpenSidebar($event)" 
         [isOpen]="isOpen()"
     />
-    <div class="outlet-container" [class.dark_container_right_side]="!isOpen()">
+    
         <router-outlet />
     <app-footer/>
 </div>
