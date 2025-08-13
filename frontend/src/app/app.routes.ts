@@ -21,8 +21,8 @@ import { WarrantyControl } from './features/private/warranty-control/warranty-co
 import { InventoryReports } from './features/private/inventory-reports/inventory-reports';
 import { ProjectBasedTraceability } from './features/private/project-based-traceability/project-based-traceability';
 import { NotFound } from './layouts/not-found/not-found';
-import { authGuard } from './services/auth.guard';
-import { publicGuard } from './services/public.guard';
+import { authGuard } from './services/AuthService/auth.guard';
+import { publicGuard } from './services/AuthService/public.guard';
 
 export const routes: Routes = [
     // Redirige la ruta raíz a la página de login

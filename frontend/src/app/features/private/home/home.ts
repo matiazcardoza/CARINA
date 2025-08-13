@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from '../../../services/auth';
+import { AuthService } from '../../../services/AuthService/auth';
 
 @Component({
   selector: 'app-home',
