@@ -1,0 +1,13 @@
+.outlet-container{
+    /* border: 5px solid red; */
+    /* margin-left: 2rem; */
+    /* transition: transform 0.4s; << animación */
+    transition: transform 0.3s ease; /* Suaviza la rotación */
+}
+
+.dark_container_right_side{
+    /* border: 1px solid green; */
+    /* margin-left: 12rem; */
+    /* margin-left: 335px; */
+    transform: translateX(335px); /* << en vez de margin-left */
+}

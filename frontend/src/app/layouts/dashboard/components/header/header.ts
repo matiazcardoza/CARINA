@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { Sidebar } from '../sidebar/sidebar';
 import { Profile } from '../profile/profile';
@@ -10,8 +10,11 @@ import {MatIconModule} from '@angular/material/icon'
   styleUrl: './header.css'
 })
 export class Header {
-  isOpen = signal<boolean>(false)
+  sentOpenValue = output<boolean>()
+  isOpen = input<boolean>(false)
+
   handleOpenSidebar(value: boolean){
-    this.isOpen.set(value) 
+    console.log(value)
+    this.sentOpenValue.emit(value); 
   }
 }
