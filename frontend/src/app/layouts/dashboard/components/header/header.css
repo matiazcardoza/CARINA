@@ -5,8 +5,11 @@ header{
     align-items: center;
     padding: 1rem;
     width: 100%;
-    /* box-shadow: 0 0 8px rgba(0, 0, 0, 0.247); */
-box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.082);}
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.247);
+    /* box-shadow: 30px 5px 5px rgba(247, 6, 6, 0.945); */
+    /* border: 5px solid red; */
+    z-index: 4000;
+}
     div{
         width: 100%;
         display: flex;
