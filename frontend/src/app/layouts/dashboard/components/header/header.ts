@@ -14,7 +14,7 @@ export class Header {
   sentOpenValue = output<boolean>()
 
   handleOpenSidebar(value: boolean){
-    console.log(value)
+    // console.log(value)
     this.sentOpenValue.emit(value); 
   }
 }

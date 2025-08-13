@@ -24,7 +24,7 @@ export class Sidebar {
   incomingValue = input<boolean>(false)
 
   closeSidebar(){
-    console.log("cerrar el sidebar")
+    // console.log("cerrar el sidebar")
     this.sentOpenValue.emit(true)
   }
   isActive = true;

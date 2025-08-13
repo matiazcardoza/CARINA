@@ -12,7 +12,7 @@ import { Sidebar } from './components/sidebar/sidebar';
 export class Dashboard {
   isOpen = signal<boolean>(false)
   handleOpenSidebar(value: boolean){
-    console.log("valor ejecutado en el dashbloard")
+    // console.log("valor ejecutado en el dashbloard")
     this.isOpen.set(value) 
   }
 }

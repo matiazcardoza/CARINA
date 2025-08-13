@@ -1,1 +1,67 @@
-<p>valued-kardex works!</p>
+<form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+  
+  <div>
+    <label for="name">Nombre:</label>
+    <input id="name" type="text" formControlName="name" />
+
+    @if (userForm.get('name')?.invalid && userForm.get('name')?.touched) {
+      <div class="error-messages">
+        @if (userForm.get('name')?.hasError('required')) {
+          <small>⚠ El nombre es obligatorio.</small>
+        }
+        @if (userForm.get('name')?.hasError('minlength')) {
+          <small>⚠ Mínimo 3 caracteres.</small>
+        }
+      </div>
+    }
+  </div>
+
+  <div>
+    <label for="email">Email:</label>
+    <input id="email" type="email" formControlName="email" />
+    
+    @if (userForm.get('email')?.invalid && userForm.get('email')?.touched) {
+      <div class="error-messages">
+        @if (userForm.get('email')?.hasError('required')) {
+          <small>⚠ El email es obligatorio.</small>
+        }
+        @if (userForm.get('email')?.hasError('email')) {
+          <small>⚠ Formato de email inválido.</small>
+        }
+      </div>
+    }
+  </div>
+
+  <div>
+    <label for="role">Rol:</label>
+    <select id="role" formControlName="role">
+      <option value="" disabled>Seleccione un rol</option>
+      @for (r of roles; track r) {
+        <option [value]="r">{{ r }}</option>
+      }
+    </select>
+    
+    @if (userForm.get('role')?.invalid && userForm.get('role')?.touched) {
+      <div class="error-messages">
+        @if (userForm.get('role')?.hasError('required')) {
+          <small>⚠ Debes seleccionar un rol.</small>
+        }
+      </div>
+    }
+  </div>
+
+  <div>
+    <label>
+      <input type="checkbox" formControlName="subscribe" />
+      Suscribirse a noticias
+    </label>
+  </div>
+
+  <button type="submit" [disabled]="userForm.invalid">Enviar</button>
+</form>
+
+@if (submissionSuccess) {
+  <div class="success-message">
+    <p>{{ serverMessage }}</p>
+  </div>
+}

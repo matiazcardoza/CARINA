@@ -20,4 +20,6 @@ describe('PhysicalBincard', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  
 });

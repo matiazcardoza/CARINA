@@ -1,1 +1,42 @@
-<p>physical-bincard works!</p>
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Correo</th>
+        <th>País</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+        @for( item of data; track item.id){
+      <!-- <tr *ngFor="let item of data"> -->
+        <tr>
+        <td>{{ item.id }}</td>
+        <td>{{ item.nombre }}</td>
+        <td>{{ item.correo }}</td>
+        <td>{{ item.pais }}</td>
+        <td>
+          <!-- <span class="badge" [ngClass]="{
+            'activo': item.estado === 'Activo',
+            'inactivo': item.estado === 'Inactivo',
+            'pendiente': item.estado === 'Pendiente'
+          }">{{ item.estado }}</span> -->
+          @switch(item.estado){
+            @case('Activo'){
+                <span class="badge activo">{{ item.estado }}</span>
+            }
+            @case ('Inactivo') {
+                <span class="badge inactivo">{{ item.estado }}</span>
+            }
+            @case ('Pendiente') {
+                <span class="badge pendiente">{{ item.estado }}</span>
+            }
+          }
+        </td>
+      </tr>
+      }
+    </tbody>
+  </table>
+</div>
