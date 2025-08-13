@@ -5,7 +5,6 @@ import { tap, switchMap, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 
-
 @Injectable({
   providedIn: 'root'
 })
@@ -15,7 +14,10 @@ export class AuthService {
   isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
   constructor(private http: HttpClient, private router: Router) {
-    this.checkInitialAuthState();
+    this.verifyAuthentication().subscribe({
+      next: () => this.isAuthenticatedSubject.next(true),
+      error: () => this.isAuthenticatedSubject.next(false)
+    });
   }
 
   getCsrfToken(): Observable<any> {
@@ -82,13 +84,9 @@ export class AuthService {
     );
   }
 
-  private checkInitialAuthState(): void {
-    this.isAuthenticatedSubject.next(false);
-  }
-
   verifyAuthentication(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/user`, { 
-      withCredentials: true
+    return this.http.get(`${this.apiUrl}/api/user`, { 
+      withCredentials: true 
     }).pipe(
       tap(() => this.isAuthenticatedSubject.next(true)),
       catchError(() => {
@@ -99,7 +97,7 @@ export class AuthService {
   }
 
   getCurrentUser(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/user`, { 
+    return this.http.get(`${this.apiUrl}/api/user`, {
       withCredentials: true
     });
   }

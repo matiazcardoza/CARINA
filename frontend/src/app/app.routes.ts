@@ -21,7 +21,8 @@ import { WarrantyControl } from './features/private/warranty-control/warranty-co
 import { InventoryReports } from './features/private/inventory-reports/inventory-reports';
 import { ProjectBasedTraceability } from './features/private/project-based-traceability/project-based-traceability';
 import { NotFound } from './layouts/not-found/not-found';
-import { authGuard } from './services/auth.guard'; // Importamos la nueva guardia
+import { authGuard } from './services/auth.guard';
+import { publicGuard } from './services/public.guard';
 
 export const routes: Routes = [
     // Redirige la ruta raíz a la página de login
@@ -33,11 +34,13 @@ export const routes: Routes = [
     // Ruta para el componente de login
     {
         path: 'login',
-        component: Login
+        component: Login,
+        canActivate: [publicGuard]
     },
     {
         path: 'register',
-        component: Register
+        component: Register,
+        canActivate: [publicGuard]
     },
     // Rutas protegidas que requieren autenticación (dashboard y sus hijos)
     {
