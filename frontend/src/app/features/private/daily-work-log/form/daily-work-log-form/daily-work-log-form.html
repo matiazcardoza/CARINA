@@ -1,0 +1,57 @@
+<div class="dialog-container">
+  <h2 mat-dialog-title>{{ title }}</h2>
+  
+  <mat-dialog-content>
+    <form [formGroup]="workLogForm" class="work-log-form">
+      
+      <!-- Campo de Fecha -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Fecha de Trabajo</mat-label>
+        <input matInput 
+               [matDatepicker]="picker" 
+               formControlName="work_date"
+               readonly>
+        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+        <mat-error>{{ workDateError }}</mat-error>
+      </mat-form-field>
+
+      <!-- Campo de Hora Inicial -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Hora Inicial</mat-label>
+        <input matInput 
+               type="time"
+               formControlName="start_time"
+               placeholder="HH:MM">
+        <mat-error>{{ startTimeError }}</mat-error>
+      </mat-form-field>
+
+      <!-- Campo de Hora Final -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Hora Final</mat-label>
+        <input matInput 
+               type="time"
+               formControlName="final_time"
+               placeholder="HH:MM">
+        <mat-error>{{ finalTimeError }}</mat-error>
+      </mat-form-field>
+
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button 
+            (click)="onCancel()" 
+            [disabled]="isLoading">
+      Cancelar
+    </button>
+    
+    <button mat-raised-button 
+            color="primary" 
+             
+            [disabled]="isLoading">
+      <span *ngIf="isLoading">Guardando...</span>
+      <span *ngIf="!isLoading">{{ submitButtonText }}</span>
+    </button>
+  </mat-dialog-actions>
+</div>
