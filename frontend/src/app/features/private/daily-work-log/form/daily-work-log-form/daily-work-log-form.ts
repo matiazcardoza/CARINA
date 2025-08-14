@@ -29,7 +29,7 @@ export interface DialogData {
     MatNativeDateModule
   ]
 })
-export class DailyPartsFormComponent implements OnInit {
+export class DailyWorkLogForm implements OnInit {
   workLogForm: FormGroup;
   isLoading = false;
   
@@ -37,13 +37,13 @@ export class DailyPartsFormComponent implements OnInit {
   private dailyWorkLogService = inject(DailyWorkLogService);
 
   constructor(
-    public dialogRef: MatDialogRef<DailyPartsFormComponent>,
+    public dialogRef: MatDialogRef<DailyWorkLogForm>,
     @Inject(MAT_DIALOG_DATA) public data: DialogData
   ) {
     this.workLogForm = this.fb.group({
       work_date: ['', Validators.required],
       start_time: ['', [Validators.required, Validators.pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)]],
-      final_time: ['', [Validators.required, Validators.pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)]]
+      initial_fuel: ['', [Validators.required, Validators.pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)]]
     });
   }
 
@@ -53,7 +53,7 @@ export class DailyPartsFormComponent implements OnInit {
       this.workLogForm.patchValue({
         work_date: new Date(this.data.workLog.work_date),
         start_time: this.data.workLog.start_time,
-        final_time: this.data.workLog.final_time
+        initial_fuel: this.data.workLog.initial_fuel
       });
     }
   }
@@ -65,7 +65,6 @@ export class DailyPartsFormComponent implements OnInit {
   get submitButtonText(): string {
     return this.data.isEdit ? 'Actualizar' : 'Crear';
   }
-
 
 
   onCancel() {
@@ -113,7 +112,7 @@ export class DailyPartsFormComponent implements OnInit {
   }
 
   get finalTimeError() {
-    const control = this.workLogForm.get('final_time');
+    const control = this.workLogForm.get('initial_fuel');
     if (control?.hasError('required') && control?.touched) {
       return 'La hora final es requerida';
     }

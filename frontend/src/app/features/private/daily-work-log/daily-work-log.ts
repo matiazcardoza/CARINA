@@ -5,14 +5,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
 import { DailyWorkLogService } from '../../../services/DailyWorkLogService/daily-work-log-service';
-import { DailyPartsFormComponent } from './form/daily-work-log-form/daily-work-log-form';
+import { DailyWorkLogForm } from './form/daily-work-log-form/daily-work-log-form';
 import { MatDialog } from '@angular/material/dialog';
 
 export interface WorkLogElement {
   id: number;
   work_date: string;
   start_time: string;
-  final_time: string;
+  initial_fuel: string;
 }
 
 @Component({
@@ -29,7 +29,7 @@ export interface WorkLogElement {
   standalone: true,
 })
 export class DailyWorkLog implements AfterViewInit, OnInit {
-  displayedColumns: string[] = ['id', 'work_date', 'start_time', 'final_time'];
+  displayedColumns: string[] = ['id', 'work_date', 'start_time', 'initial_fuel'];
   dataSource = new MatTableDataSource<WorkLogElement>([]);
   
   private dailyWorkLogService = inject(DailyWorkLogService);
@@ -68,7 +68,7 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
   }
 
   openCreateDialog() {
-    const dialogRef = this.dialog.open(DailyPartsFormComponent, {
+    const dialogRef = this.dialog.open(DailyWorkLogForm, {
       width: '500px',
       data: { 
         isEdit: false,
