@@ -21,7 +21,7 @@ export class Products {
     id: 0,
     order_id: 0,
     name: '',
-    heritage_code: 'sdf34234',
+    heritage_code: '123',
     unit_price: '', // ← viene como string, no como número
     state: 1,
   }
@@ -74,8 +74,9 @@ export class Products {
   cerrarModalListaKardex():void{
     this.isModalKardexListOpen.set(false)
   }
-  addNewKardexItem():void{
+  addNewKardexItem(item:products):void{
     this.isModalKardexLAddNewOpen.set(true)
+    this.productSelected.set(item);
   }
   cerrarKardexAddNewModal():void{
     this.isModalKardexLAddNewOpen.set(false);

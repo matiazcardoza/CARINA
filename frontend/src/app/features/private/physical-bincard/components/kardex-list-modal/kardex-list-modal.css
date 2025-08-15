@@ -143,3 +143,44 @@ form > button:active{
       color: #212529;
     }
 
+
+
+/* ------------------------estlos para cuadro informativo----------------------- */
+
+.information_box{
+  /* background: pink; */
+  /* border: 1px solid red; */
+  display: flex;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+  margin-bottom: 1rem;
+  justify-content: end;
+}
+  .information_item{
+    background: rgb(228, 228, 228);
+    /* border: 1px solid blue; */
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+  }
+    .information_item_title{
+      /* background: orange; */
+      /* padding: 0.5rem; */
+      font-size: 1.3rem;
+      color: rgb(161, 6, 6);
+      font-weight: 600;
+      
+    }
+    .information_item_value{
+      /* background: green; */
+      color: rgb(0, 0, 32);
+      padding: 0.5rem;
+      font-size: 1.3rem;
+      font-weight: 400;
+      text-align: end;
+    }
+h2{
+  margin: 0;
+  padding: 0;
+}

@@ -68,8 +68,13 @@ form{
             
             font-size: small;
         }
-        form > div > input{
-            /* background: green; */
+        form > div > input, select{
+              /* all: unset; 
+            box-sizing: border-box;
+            width: 100%;*/
+            padding: 0.5rem; 
+            border: 1px solid #6b6b6b;
+            border-radius: 0.5rem;
         }
         .error_style{
             background: red;

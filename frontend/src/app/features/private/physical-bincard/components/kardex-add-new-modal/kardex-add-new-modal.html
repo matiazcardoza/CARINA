@@ -2,16 +2,64 @@
     <div class="container">
         <!-- <mat-icon class="close_icon_style" (click)="handleOpenSidebar()">close</mat-icon> -->
         <div class="header_container">
-            <h2>Adicionar movimiento kardex</h2>
+            <h2>Kardes del producto: {{productItem()!.name}}</h2>
             <mat-icon class="close_icon_style" (click)="onCancel()">close</mat-icon>
         </div>
         <div class="body_container">
 
-            <!-- <input/>
-            <input/>
-            <input/>
-            <input/> -->
-            asdfasd
+            <form [formGroup]="formularioKardex" (ngSubmit)="onSubmit()">
+
+                <!-- <div>
+                    <label for="movement_type">tipo de movimiento</label>
+                    <input id="movement_type" type="text" formControlName="movement_type" />
+
+                    @if (formularioKardex.get('movement_type')?.invalid && formularioKardex.get('movement_type')?.touched) {
+                        <div class="error-messages">
+                            @if (formularioKardex.get('movement_type')?.hasError('required')) {
+                            <small>El nombre del producto es obligatorio</small>
+                            }
+
+                        </div>
+                    }
+                </div> -->
+                
+                <div>
+                <label for="movement_type">Tipo de movimiento</label>
+                <select id="movement_type" formControlName="movement_type">
+                    <option value="" disabled selected>Seleccione una opción</option>
+                    <option value="entrada">Entrada</option>
+                    <option value="salida">Salida</option>
+                </select>
+
+                @if (formularioKardex.get('movement_type')?.invalid && formularioKardex.get('movement_type')?.touched) {
+                    <div class="error-messages">
+                    @if (formularioKardex.get('movement_type')?.hasError('required')) {
+                        <small>El tipo de movimiento es obligatorio</small>
+                    }
+                    </div>
+                }
+                </div>
+
+
+                <div>
+                    <label for="amount">Cantidad</label>
+                    <input id="amount" type="text" formControlName="amount" />
+
+                    @if (formularioKardex.get('amount')?.invalid && formularioKardex.get('amount')?.touched) {
+                        <div class="error-messages">
+                            @if (formularioKardex.get('amount')?.hasError('required')) {
+                            <small>El nombre del producto es obligatorio</small>
+                            }
+                            <!-- <small class="error_style">El nombre es obligatorio.</small> -->
+                            <!-- @if (formularioKardex.get('name')?.hasError('minlength')) {
+                            <small>⚠ Mínimo 3 caracteres.</small>
+                            } -->
+                        </div>
+                    }
+                </div>
+            <button type="submit" [disabled]="formularioKardex.invalid">Enviar</button>
+            </form>
+            <!-- <button (click)="onProductCreated()" >ver valor entrago por el padre</button> -->
 
         </div>
         <!-- <button (click)="onProductCreated()">crear</button> -->
