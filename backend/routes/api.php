@@ -22,6 +22,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/daily-work-log/{id}', [DailyPartController::class, 'update']);
     Route::delete('/daily-work-log/{id}', [DailyPartController::class, 'destroy']);
     Route::post('/daily-work-log/complete', [DailyPartController::class, 'completeWork']);
+    Route::post('/daily-work-log/{id}/generate-pdf', [DailyPartController::class, 'generatePdf']);
 
     //orders silucia routes
     Route::apiResource('/orders-silucia', OrderSiluciaController::class);

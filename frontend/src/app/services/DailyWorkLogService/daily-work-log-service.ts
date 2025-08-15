@@ -59,17 +59,18 @@ export class DailyWorkLogService {
   }
 
   completeWorkLog(formData: FormData): Observable<WorkLogElement> {
-    console.log('Submitting work log:');
-    formData.forEach((value, key) => {
-      console.log(key, value);
-    });
-    
-    // NO agregues Content-Type header manualmente para FormData
     return this.http.post<SingleApiResponse>(`${this.apiUrl}/api/daily-work-log/complete`, formData, {
       withCredentials: true
-      // No incluir headers: { 'Content-Type': ... }
     }).pipe(
       map(response => response.data)
     );
+  }
+
+  generatePdf(id: number): Observable<Blob> {
+    console.log(`Generating PDF for work log ID: ${id}`);
+    return this.http.post(`${this.apiUrl}/api/daily-work-log/${id}/generate-pdf`, {}, {
+      responseType: 'blob',
+      withCredentials: true
+    });
   }
 }

@@ -1,1 +1,278 @@
-<p>reports-and-dashboards works!</p>
+<div class="dashboard-container">
+  
+  <!-- Header del Dashboard -->
+  <div class="dashboard-header">
+    <h1>Reportes y Dashboard - Partes Diarios</h1>
+    <button mat-raised-button color="primary" (click)="descargarReporte()">
+      <mat-icon>download</mat-icon>
+      Descargar Reporte
+    </button>
+  </div>
+
+  <!-- Tabs para organizar el contenido -->
+  <mat-tab-group>
+    
+    <!-- Tab 1: Dashboard de Resumen -->
+    <mat-tab label="Dashboard General">
+      
+      <!-- Tarjetas de Resumen -->
+      <div class="summary-cards">
+        
+        <mat-card class="summary-card">
+          <mat-card-header>
+            <mat-card-title>Horas Trabajadas</mat-card-title>
+            <mat-icon>schedule</mat-icon>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="metric-value">{{ resumenDashboard.totalHorasTrabajadas | number:'1.1-1' }}</div>
+            <div class="metric-label">Horas Totales</div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="summary-card">
+          <mat-card-header>
+            <mat-card-title>Combustible Consumido</mat-card-title>
+            <mat-icon>local_gas_station</mat-icon>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="metric-value">{{ resumenDashboard.totalCombustibleConsumido | number:'1.2-2' }}</div>
+            <div class="metric-label">Litros Totales</div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="summary-card">
+          <mat-card-header>
+            <mat-card-title>Partes Completados</mat-card-title>
+            <mat-icon>check_circle</mat-icon>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="metric-value">{{ resumenDashboard.partesCompletados }}</div>
+            <div class="metric-label">de {{ partesDiarios.length }} Partes</div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="summary-card">
+          <mat-card-header>
+            <mat-card-title>Eficiencia</mat-card-title>
+            <mat-icon>trending_up</mat-icon>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="metric-value">{{ resumenDashboard.porcentajeEficiencia | number:'1.1-1' }}%</div>
+            <div class="metric-label">Partes Completos</div>
+            <mat-progress-bar 
+              mode="determinate" 
+              [value]="resumenDashboard.porcentajeEficiencia">
+            </mat-progress-bar>
+          </mat-card-content>
+        </mat-card>
+
+      </div>
+
+      <!-- Gráficos de Resumen (placeholders) -->
+      <div class="charts-container">
+        
+        <mat-card class="chart-card">
+          <mat-card-header>
+            <mat-card-title>Consumo de Combustible por Día</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="chart-placeholder">
+              <mat-icon>bar_chart</mat-icon>
+              <p>Gráfico de barras - Consumo diario</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="chart-card">
+          <mat-card-header>
+            <mat-card-title>Horas Trabajadas por Servicio</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="chart-placeholder">
+              <mat-icon>pie_chart</mat-icon>
+              <p>Gráfico circular - Distribución por servicio</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+      </div>
+
+    </mat-tab>
+
+    <!-- Tab 2: Reportes Detallados -->
+    <mat-tab label="Reportes Detallados">
+      
+      <!-- Filtros -->
+      <mat-card class="filters-card">
+        <mat-card-header>
+          <mat-card-title>Filtros de Búsqueda</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="filters-row">
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Fecha</mat-label>
+              <input matInput [matDatepicker]="picker" [(ngModel)]="filtroFecha">
+              <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Proyecto</mat-label>
+              <mat-select [(ngModel)]="filtroProyecto">
+                <mat-option value="">Todos los proyectos</mat-option>
+                <mat-option *ngFor="let proyecto of proyectosDisponibles" [value]="proyecto">
+                  {{ proyecto }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Estado de Firmas</mat-label>
+              <mat-select [(ngModel)]="filtroEstadoFirmas">
+                <mat-option value="">Todos los estados</mat-option>
+                <mat-option *ngFor="let estado of estadosFirmas" [value]="estado">
+                  {{ estado }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <div class="filter-actions">
+              <button mat-raised-button color="primary" (click)="aplicarFiltros()">
+                <mat-icon>search</mat-icon>
+                Aplicar
+              </button>
+              <button mat-button (click)="limpiarFiltros()">
+                <mat-icon>clear</mat-icon>
+                Limpiar
+              </button>
+            </div>
+
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Tabla de Partes Diarios -->
+      <mat-card class="table-card">
+        <mat-card-header>
+          <mat-card-title>Partes Diarios Registrados</mat-card-title>
+          <mat-card-subtitle>{{ partesDiarios.length }} registros encontrados</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          
+          <table mat-table [dataSource]="partesDiarios" class="parts-table">
+            
+            <!-- Columna Fecha -->
+            <ng-container matColumnDef="fecha">
+              <th mat-header-cell *matHeaderCellDef>Fecha</th>
+              <td mat-cell *matCellDef="let parte">
+                {{ parte.fecha | date:'dd/MM/yyyy' }}
+              </td>
+            </ng-container>
+
+            <!-- Columna Servicio -->
+            <ng-container matColumnDef="servicio">
+              <th mat-header-cell *matHeaderCellDef>Servicio/Maquinaria</th>
+              <td mat-cell *matCellDef="let parte">
+                <div class="service-info">
+                  <strong>{{ parte.servicio }}</strong>
+                  <div class="service-hours">
+                    {{ parte.horaInicio }} - {{ parte.horaFin }}
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Columna Horas Trabajadas -->
+            <ng-container matColumnDef="horasTrabajadas">
+              <th mat-header-cell *matHeaderCellDef>Horas Trabajadas</th>
+              <td mat-cell *matCellDef="let parte">
+                <div class="hours-info">
+                  <mat-icon>schedule</mat-icon>
+                  {{ parte.horasTrabajadas | number:'1.1-1' }}h
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Columna Combustible -->
+            <ng-container matColumnDef="combustibleConsumido">
+              <th mat-header-cell *matHeaderCellDef>Combustible</th>
+              <td mat-cell *matCellDef="let parte">
+                <div class="fuel-info">
+                  <mat-icon>local_gas_station</mat-icon>
+                  {{ parte.combustibleConsumido | number:'1.2-2' }}L
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Columna Estado Firmas -->
+            <ng-container matColumnDef="estadoFirmas">
+              <th mat-header-cell *matHeaderCellDef>Estado Firmas</th>
+              <td mat-cell *matCellDef="let parte">
+                <mat-chip-set>
+                  <mat-chip [color]="obtenerColorEstadoFirmas(parte.estadoFirmas)" selected>
+                    {{ obtenerEstadoFirmas(parte.estadoFirmas) }}
+                  </mat-chip>
+                </mat-chip-set>
+                <div class="signatures-detail">
+                  <mat-icon [class.signed]="parte.estadoFirmas.controlador">
+                    {{ parte.estadoFirmas.controlador ? 'check_circle' : 'radio_button_unchecked' }}
+                  </mat-icon>
+                  <span>C</span>
+                  <mat-icon [class.signed]="parte.estadoFirmas.residente">
+                    {{ parte.estadoFirmas.residente ? 'check_circle' : 'radio_button_unchecked' }}
+                  </mat-icon>
+                  <span>R</span>
+                  <mat-icon [class.signed]="parte.estadoFirmas.supervisor">
+                    {{ parte.estadoFirmas.supervisor ? 'check_circle' : 'radio_button_unchecked' }}
+                  </mat-icon>
+                  <span>S</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Columna Evidencias -->
+            <ng-container matColumnDef="evidencias">
+              <th mat-header-cell *matHeaderCellDef>Evidencias</th>
+              <td mat-cell *matCellDef="let parte">
+                <div class="evidence-info">
+                  <mat-icon [matBadge]="parte.evidencias" matBadgeColor="primary">
+                    photo_camera
+                  </mat-icon>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Columna Proyecto -->
+            <ng-container matColumnDef="proyecto">
+              <th mat-header-cell *matHeaderCellDef>Proyecto</th>
+              <td mat-cell *matCellDef="let parte">
+                <div class="project-info">
+                  {{ parte.proyecto }}
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Columna Acciones -->
+            <ng-container matColumnDef="acciones">
+              <th mat-header-cell *matHeaderCellDef>Acciones</th>
+              <td mat-cell *matCellDef="let parte">
+                <button mat-icon-button color="primary" (click)="verDetalleParte(parte)">
+                  <mat-icon>visibility</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            
+          </table>
+
+        </mat-card-content>
+      </mat-card>
+
+    </mat-tab>
+
+  </mat-tab-group>
+
+</div>
