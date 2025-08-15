@@ -6,6 +6,12 @@
   padding: 2rem;
 }
 
+.action_style{
+    /* background: blue; */
+    display: flex;
+    gap: 0.2rem;
+}
+
   .see_product{
     background: rgb(138, 4, 27);
     color: white;
@@ -14,9 +20,13 @@
     border-radius: 0.5rem;
     margin-left: auto;
   }
+  .add_product{
+    background: rgb(145, 95, 4);
+  }
     .see_product:hover{
       background: #720432;
     }
+
 
 
 .table-container {
@@ -71,3 +81,4 @@
       background-color: #ffc107;
       color: #212529;
     }
+

@@ -16,7 +16,7 @@ export class ValuedKardex {
     roles: string[] = ['Usuario', 'Administrador', 'Invitado'];  // Opciones para el select
     submissionSuccess: boolean = false;
     serverMessage: string = '';
-
+    
   constructor(private fb: FormBuilder, private exampleService: ExmapleService){
 
   }

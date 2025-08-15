@@ -23,7 +23,7 @@ import { ProjectBasedTraceability } from './features/private/project-based-trace
 import { NotFound } from './layouts/not-found/not-found';
 import { authGuard } from './services/AuthService/auth.guard';
 import { publicGuard } from './services/AuthService/public.guard';
-
+import { Products } from './features/private/physical-bincard/components/products/products';
 export const routes: Routes = [
     // Redirige la ruta raíz a la página de login
     {
@@ -83,8 +83,36 @@ export const routes: Routes = [
             },
             {
                 path: 'physical-bincard',
-                component: PhysicalBincard
+                children: [
+                    {
+                        path: '',   
+                        component: PhysicalBincard,
+                    },
+                    {
+                        path: ':bincardId',
+                        component: Products,
+                    },
+                    {
+                        path: ':bincardId/products',
+                        component: Products,
+                    },
+                    {
+                        path: ':bincardId/products/:productId',
+                        component: Products,
+                    },
+                    {
+                        path: ':bincardId/products/:productId/edit',
+                        component: Products,
+                    },
+
+                ]
+                
             },
+            // {
+            //     // muestra los productos del bicard fisico con el id "id"
+            //     path: 'physical-bincard/:id/products',          
+            //     component: Products,
+            // },
             {
                 path: 'warranty-control',
                 component: WarrantyControl
@@ -122,8 +150,8 @@ export const routes: Routes = [
             },
         ]
     },
-    {
-        path: '**',  
-        component: NotFound
-    }
+    // {
+    //     path: '**',  
+    //     component: NotFound
+    // }
 ];

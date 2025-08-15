@@ -1,42 +1,78 @@
-<div class="table-container">
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Nombre</th>
-        <th>Correo</th>
-        <th>País</th>
-        <th>Estado</th>
-      </tr>
-    </thead>
-    <tbody>
-        @for( item of data; track item.id){
-      <!-- <tr *ngFor="let item of data"> -->
-        <tr>
-        <td>{{ item.id }}</td>
-        <td>{{ item.nombre }}</td>
-        <td>{{ item.correo }}</td>
-        <td>{{ item.pais }}</td>
-        <td>
-          <!-- <span class="badge" [ngClass]="{
-            'activo': item.estado === 'Activo',
-            'inactivo': item.estado === 'Inactivo',
-            'pendiente': item.estado === 'Pendiente'
-          }">{{ item.estado }}</span> -->
-          @switch(item.estado){
-            @case('Activo'){
-                <span class="badge activo">{{ item.estado }}</span>
-            }
-            @case ('Inactivo') {
-                <span class="badge inactivo">{{ item.estado }}</span>
-            }
-            @case ('Pendiente') {
-                <span class="badge pendiente">{{ item.estado }}</span>
-            }
+<!-- 
+<section class="container">
+    <button> adicionar orden</button>
+    <button (click)="seeData"> see data </button>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>País</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+            @for( item of data; track item.id){
+            <tr>
+            <td>{{ item.id }}</td>
+            <td>{{ item.nombre }}</td>
+            <td>{{ item.correo }}</td>
+            <td>{{ item.pais }}</td>
+            <td>
+
+              @switch(item.estado){
+                @case('Activo'){
+                    <span class="badge activo">{{ item.estado }}</span>
+                }
+                @case ('Inactivo') {
+                    <span class="badge inactivo">{{ item.estado }}</span>
+                }
+                @case ('Pendiente') {
+                    <span class="badge pendiente">{{ item.estado }}</span>
+                }
+              }
+            </td>
+          </tr>
           }
-        </td>
-      </tr>
-      }
-    </tbody>
-  </table>
-</div>
+        </tbody>
+      </table>
+    </div>
+</section> -->
+
+
+
+<section class="container">
+  <button class="see_product" (click)="seeProductos(1)">Adicionar Orden</button>
+  <!-- <button (click)="seeData()">See Data</button> -->
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>SILUCIA ID</th>
+          <th>Tipo de Orden</th>
+          <th>Fecha de Emisión</th>
+          <th>Proyecto</th>
+          <th>Estado</th>
+          <th>productos asociados a orden</th>
+          
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of myData(); track item?.id) {
+          <tr>
+            <td>{{ item.silucia_id }}</td>
+            <td>{{ item.order_type }}</td>
+            <td>{{ item.issue_date }}</td>
+            <td>{{ item.goal_project }}</td>
+            <td>{{ item.state }}</td>
+            <td> <button class="see_product" (click)="seeProductos(item.id)"> ver </button> </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
