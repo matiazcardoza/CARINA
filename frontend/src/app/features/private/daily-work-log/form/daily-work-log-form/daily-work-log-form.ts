@@ -7,6 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef } from '@angular/core';
 import { DailyWorkLogService } from '../../../../../services/DailyWorkLogService/daily-work-log-service';
 
 export interface DialogData {
@@ -30,6 +31,7 @@ export interface DialogData {
   ]
 })
 export class DailyWorkLogForm implements OnInit {
+  
   workLogForm: FormGroup;
   isLoading = false;
   
@@ -38,12 +40,13 @@ export class DailyWorkLogForm implements OnInit {
 
   constructor(
     public dialogRef: MatDialogRef<DailyWorkLogForm>,
-    @Inject(MAT_DIALOG_DATA) public data: DialogData
+    @Inject(MAT_DIALOG_DATA) public data: DialogData,
+    private cdr: ChangeDetectorRef
   ) {
     this.workLogForm = this.fb.group({
       work_date: ['', Validators.required],
-      start_time: ['', [Validators.required, Validators.pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)]],
-      initial_fuel: ['', [Validators.required, Validators.pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)]]
+      start_time: ['', Validators.required], // Se asignará automáticamente
+      initial_fuel: ['', [Validators.required, Validators.min(0)]]
     });
   }
 
@@ -51,11 +54,25 @@ export class DailyWorkLogForm implements OnInit {
     if (this.data.isEdit && this.data.workLog) {
       // Si es edición, llenar el formulario con los datos existentes
       this.workLogForm.patchValue({
-        work_date: new Date(this.data.workLog.work_date),
+        work_date: this.data.workLog.work_date ? new Date(this.data.workLog.work_date) : null,
         start_time: this.data.workLog.start_time,
         initial_fuel: this.data.workLog.initial_fuel
       });
+    } else {
+      // Si es nuevo registro, asignar la hora actual
+      this.setCurrentTime();
     }
+  }
+
+  private setCurrentTime() {
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const currentTime = `${hours}:${minutes}`;
+    
+    this.workLogForm.patchValue({
+      start_time: currentTime
+    });
   }
 
   get title(): string {
@@ -66,9 +83,55 @@ export class DailyWorkLogForm implements OnInit {
     return this.data.isEdit ? 'Actualizar' : 'Crear';
   }
 
-
   onCancel() {
     this.dialogRef.close(false);
+  }
+
+  onSubmit() {
+    if (this.workLogForm.valid && !this.isLoading) {
+      this.isLoading = true;
+      
+      const formValue = this.workLogForm.value;
+      const workLogData = {
+        work_date: this.formatDate(formValue.work_date),
+        start_time: formValue.start_time,
+        initial_fuel: parseFloat(formValue.initial_fuel)
+      };
+
+      if (this.data.isEdit && this.data.workLog?.id) {
+        // Actualizar registro existente
+        this.dailyWorkLogService.updateWorkLog(this.data.workLog.id, workLogData)
+          .subscribe({
+            next: (updatedWorkLog) => {
+              this.isLoading = false;
+              this.cdr.detectChanges();
+              this.dialogRef.close(updatedWorkLog);
+            },
+            error: (error) => {
+              this.isLoading = false;
+              this.cdr.detectChanges();
+              console.error('Error al actualizar:', error);
+              // Aquí puedes mostrar un mensaje de error al usuario
+            }
+          });
+      } else {
+        // Crear nuevo registro
+        this.dailyWorkLogService.createWorkLog(workLogData)
+          .subscribe({
+            next: (newWorkLog) => {
+              this.isLoading = false;
+              this.cdr.detectChanges();
+              this.dialogRef.close(newWorkLog);
+            },
+            error: (error) => {
+              this.isLoading = false;
+              this.cdr.detectChanges();
+              console.error('Error al crear:', error);
+              // Aquí puedes mostrar un mensaje de error al usuario
+            }
+          });
+      }
+    }
   }
 
   private formatDate(date: Date): string {
@@ -105,19 +168,16 @@ export class DailyWorkLogForm implements OnInit {
     if (control?.hasError('required') && control?.touched) {
       return 'La hora inicial es requerida';
     }
-    if (control?.hasError('pattern') && control?.touched) {
-      return 'Formato de hora inválido (HH:MM)';
-    }
     return '';
   }
 
-  get finalTimeError() {
+  get initialFuelError() {
     const control = this.workLogForm.get('initial_fuel');
     if (control?.hasError('required') && control?.touched) {
-      return 'La hora final es requerida';
+      return 'El combustible inicial es requerido';
     }
-    if (control?.hasError('pattern') && control?.touched) {
-      return 'Formato de hora inválido (HH:MM)';
+    if (control?.hasError('min') && control?.touched) {
+      return 'El combustible inicial debe ser mayor o igual a 0';
     }
     return '';
   }

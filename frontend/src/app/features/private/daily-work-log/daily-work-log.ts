@@ -6,7 +6,9 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
 import { DailyWorkLogService } from '../../../services/DailyWorkLogService/daily-work-log-service';
 import { DailyWorkLogForm } from './form/daily-work-log-form/daily-work-log-form';
+import { DailyWorkLogUpload } from './form/daily-work-log-upload/daily-work-log-upload';
 import { MatDialog } from '@angular/material/dialog';
+import { ChangeDetectorRef } from '@angular/core';
 
 export interface WorkLogElement {
   id: number;
@@ -29,7 +31,10 @@ export interface WorkLogElement {
   standalone: true,
 })
 export class DailyWorkLog implements AfterViewInit, OnInit {
-  displayedColumns: string[] = ['id', 'work_date', 'start_time', 'initial_fuel'];
+
+  constructor(private cdr: ChangeDetectorRef) {}
+
+  displayedColumns: string[] = ['id', 'work_date', 'start_time', 'initial_fuel', 'actions'];
   dataSource = new MatTableDataSource<WorkLogElement>([]);
   
   private dailyWorkLogService = inject(DailyWorkLogService);
@@ -73,6 +78,66 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
       data: { 
         isEdit: false,
         workLog: null 
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadWorkLogData();
+      }
+    });
+  }
+
+  openEditDialog(workLog: WorkLogElement) {
+    const dialogRef = this.dialog.open(DailyWorkLogForm, {
+      width: '500px',
+      data: { 
+        isEdit: true,
+        workLog: workLog 
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Si se editó el registro, recargar los datos
+        this.loadWorkLogData();
+      }
+    });
+  }
+
+  deleteWorkLog(id: number) {
+    if (confirm('¿Estás seguro de que deseas eliminar este registro?')) {
+      this.isLoading = true;
+      this.dailyWorkLogService.deleteWorkLog(id)
+        .subscribe({
+          next: () => {
+            this.isLoading = false;
+            this.cdr.detectChanges();
+            this.loadWorkLogData();
+          },
+          error: (error) => {
+            this.isLoading = false;
+            this.cdr.detectChanges();
+            this.error = 'Error al eliminar el registro. Por favor, intenta nuevamente.';
+          }
+        });
+    }
+  }
+  
+  openCompleteModal(id: number) {
+    const dialogRef = this.dialog.open(DailyWorkLogUpload, {
+      width: '700px',
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+      data: { 
+        isEdit: true,
+        workLog: { id } as WorkLogElement
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadWorkLogData();
       }
     });
   }

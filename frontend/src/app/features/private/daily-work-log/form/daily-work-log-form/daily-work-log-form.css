@@ -1,0 +1,29 @@
+/* daily-work-log-form.css */
+
+.dialog-container {
+  position: relative;
+  z-index: 1;
+}
+
+.work-log-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.full-width {
+  width: 100%;
+}
+
+/* Estilo para el campo de hora que es readonly */
+.work-log-form input[readonly] {
+  cursor: default;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+/* Estilo para el hint de hora automática */
+.work-log-form mat-hint {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.6);
+}
