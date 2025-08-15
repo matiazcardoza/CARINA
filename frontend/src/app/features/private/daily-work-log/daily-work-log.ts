@@ -123,7 +123,7 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
         });
     }
   }
-  
+
   openCompleteModal(id: number) {
     const dialogRef = this.dialog.open(DailyWorkLogUpload, {
       width: '700px',
@@ -141,4 +141,16 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
       }
     });
   }
+
+  generatePdf(id: number) {
+    this.dailyWorkLogService.generatePdf(id).subscribe({
+        next: (response: Blob) => {
+            const fileURL = URL.createObjectURL(response);
+            window.open(fileURL, '_blank');
+        },
+        error: () => {
+            this.error = 'Error al generar el PDF. Por favor, intenta nuevamente.';
+        }
+    });
+}
 }
