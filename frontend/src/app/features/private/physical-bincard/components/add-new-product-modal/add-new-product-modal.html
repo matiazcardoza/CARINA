@@ -1,0 +1,87 @@
+<div class="dark_background">
+    <div class="container">
+        <!-- <mat-icon class="close_icon_style" (click)="handleOpenSidebar()">close</mat-icon> -->
+        <div class="header_container">
+            <h2>Adiciona nuevo producto</h2>
+            <mat-icon class="close_icon_style" (click)="onCancel()">close</mat-icon>
+        </div>
+        <div class="body_container">
+            <!-- <input/>
+            <input/>
+            <input/>
+            <input/> -->
+            <form [formGroup]="formularioProducto" (ngSubmit)="onSubmit()">
+
+                <div>
+                    <label for="name">Nombre de producto:</label>
+                    <input id="name" type="text" formControlName="name" />
+
+                    @if (formularioProducto.get('name')?.invalid && formularioProducto.get('name')?.touched) {
+                        <div class="error-messages">
+                            @if (formularioProducto.get('name')?.hasError('required')) {
+                            <small>El nombre del producto es obligatorio</small>
+                            }
+                            <!-- <small class="error_style">El nombre es obligatorio.</small> -->
+                            <!-- @if (formularioProducto.get('name')?.hasError('minlength')) {
+                            <small>⚠ Mínimo 3 caracteres.</small>
+                            } -->
+                        </div>
+                    }
+                </div>
+
+                <div>
+                    <label for="heritage_code">Código patrimonial:</label>
+                    <input id="heritage_code" type="text" formControlName="heritage_code" />
+
+                    @if (formularioProducto.get('heritage_code')?.invalid && formularioProducto.get('heritage_code')?.touched) {
+                        <div class="error-messages">
+                            @if (formularioProducto.get('heritage_code')?.hasError('required')) {
+                            <small>El código patrimonial es obligatorio</small>
+                            }
+                            <!-- @if (formularioProducto.get('nombre')?.hasError('minlength')) {
+                            <small>⚠ Mínimo 3 caracteres.</small>
+                            } -->
+                        </div>
+                    }
+                </div>
+
+                <div>
+                    <label for="unit_price">Precio unitario:</label>
+                    <input id="unit_price" type="text" formControlName="unit_price" />
+
+                    @if (formularioProducto.get('unit_price')?.invalid && formularioProducto.get('unit_price')?.touched) {
+                        <div class="error-messages">
+                            @if (formularioProducto.get('unit_price')?.hasError('required')) {
+                            <small>El precio unitario es obligatorio</small>
+                            }
+                            <!-- @if (formularioProducto.get('nombre')?.hasError('minlength')) {
+                            <small>⚠ Mínimo 3 caracteres.</small>
+                            } -->
+                        </div>
+                    }
+                </div>
+
+                <div>
+                    <label for="nombre">Estado:</label>
+                    <input id="state" type="text" formControlName="state" />
+
+                    @if (formularioProducto.get('state')?.invalid && formularioProducto.get('state')?.touched) {
+                        <div class="error-messages">
+                            @if (formularioProducto.get('state')?.hasError('required')) {
+                            <small>El estado es obligatorio</small>
+                            }
+                            <!-- @if (formularioProducto.get('nombre')?.hasError('minlength')) {
+                            <small>⚠ Mínimo 3 caracteres.</small>
+                            } -->
+                        </div>
+                    }
+                </div>
+                
+                <button type="submit" [disabled]="formularioProducto.invalid">Enviar</button>
+                <!-- <button type="submit" >Enviar</button> -->
+
+            </form>
+        </div>
+        <!-- <button (click)="onProductCreated()">crear</button> -->
+    </div>
+</div>

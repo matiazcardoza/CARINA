@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PhysicalBincard } from './physical-bincard';
+import { KardexAddNewModal } from './kardex-add-new-modal';
 
-describe('PhysicalBincard', () => {
-  let component: PhysicalBincard;
-  let fixture: ComponentFixture<PhysicalBincard>;
+describe('KardexAddNewModal', () => {
+  let component: KardexAddNewModal;
+  let fixture: ComponentFixture<KardexAddNewModal>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PhysicalBincard]
+      imports: [KardexAddNewModal]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(PhysicalBincard);
+    fixture = TestBed.createComponent(KardexAddNewModal);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
@@ -20,6 +20,4 @@ describe('PhysicalBincard', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
-  
 });

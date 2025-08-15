@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PhysicalBincard } from './physical-bincard';
+import { Products } from './products';
 
-describe('PhysicalBincard', () => {
-  let component: PhysicalBincard;
-  let fixture: ComponentFixture<PhysicalBincard>;
+describe('Products', () => {
+  let component: Products;
+  let fixture: ComponentFixture<Products>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PhysicalBincard]
+      imports: [Products]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(PhysicalBincard);
+    fixture = TestBed.createComponent(Products);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
@@ -20,6 +20,4 @@ describe('PhysicalBincard', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
-  
 });

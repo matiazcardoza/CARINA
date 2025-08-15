@@ -1,10 +1,10 @@
 import { Component, input, output, signal } from '@angular/core';
 import {MatIconModule} from '@angular/material/icon'
-import { NgClass } from '@angular/common';
+// import { NgClass } from '@angular/common';
 import { RouterModule } from '@angular/router';
 @Component({
   selector: 'app-sidebar',
-  imports: [MatIconModule, NgClass, RouterModule],
+  imports: [MatIconModule, RouterModule],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css'
 })
@@ -24,7 +24,7 @@ export class Sidebar {
   incomingValue = input<boolean>(false)
 
   closeSidebar(){
-    console.log("cerrar el sidebar")
+    // console.log("cerrar el sidebar")
     this.sentOpenValue.emit(true)
   }
   isActive = true;
