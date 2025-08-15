@@ -7,7 +7,26 @@ use Illuminate\Http\Request;
 
 class OrderProductsController extends Controller
 {
-    public function store(Request $request, OrderSilucia $orderSilucia)
+
+    public function index(OrderSilucia $order_silucia){
+        // $orderSilucia = OrderSilucia::find(1);
+
+        // $comments = $video->comments()->latest()->get();
+        // return "hola mundo";
+        // return response()->json([
+        //     'video_id' => $video->id,
+        //     'comments' => $comments
+        // ]);
+        $products = $order_silucia->products()->latest()->get();
+
+        return $products;
+        // return response()->json([
+        //     'video_id' => $products->id,
+        //     'comments' => $comments
+        // ]);
+    }
+
+    public function store(Request $request, OrderSilucia $order_silucia)
     {
         // return response()->json([
         //     "id_order_silucia" => $orderSilucia->id,
@@ -22,7 +41,7 @@ class OrderProductsController extends Controller
         ]);
 
         // Crear vía la relación para que se asigne order_id automáticamente
-        $product = $orderSilucia->products()->create([
+        $product = $order_silucia->products()->create([
             'name'          => $data['name'],
             'heritage_code' => $data['heritage_code'] ?? null,
             'unit_price'    => $data['unit_price'] ?? null,

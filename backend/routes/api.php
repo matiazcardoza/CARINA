@@ -22,9 +22,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/daily-work-log/complete', [DailyPartController::class, 'completeWork']);
 
     //orders silucia routes
-    Route::get('/orders-silucia', [OrderSiluciaController::class, 'index']);
-    Route::get('/orders-silucia/{orderSilucia}/products', [OrderSiluciaController::class, 'OrderProductsController']);
-    Route::post('/orders-silucia/{orderSilucia}/products', [OrderProductsController::class, 'store']);
+    Route::apiResource('/orders-silucia', OrderSiluciaController::class);
+
+    // recurso anidado se obtiene productos pertenecientes a una orden sillucia
+    Route::apiResource('orders-silucia.products', OrderProductsController::class)
+        ->parameters([
+            'orders-silucia' => 'order_silucia'
+        ])
+        ->only(['index','store'])
+        ->shallow();
 
     //orders producto routes
     Route::get('/products/{product}/movements-kardex', [ProductMovementKardexController::class, 'index']);
