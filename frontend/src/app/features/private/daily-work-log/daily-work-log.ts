@@ -7,14 +7,16 @@ import { CommonModule } from '@angular/common';
 import { DailyWorkLogService } from '../../../services/DailyWorkLogService/daily-work-log-service';
 import { DailyWorkLogForm } from './form/daily-work-log-form/daily-work-log-form';
 import { DailyWorkLogUpload } from './form/daily-work-log-upload/daily-work-log-upload';
+import { DailyWorkLogReceive } from './form/daily-work-log-receive/daily-work-log-receive';
 import { MatDialog } from '@angular/material/dialog';
 import { ChangeDetectorRef } from '@angular/core';
 
+import { Router } from '@angular/router';
+
 export interface WorkLogElement {
   id: number;
-  work_date: string;
-  start_time: string;
-  initial_fuel: string;
+  issue_date: string;
+  state: number;
 }
 
 @Component({
@@ -34,12 +36,14 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
 
   constructor(private cdr: ChangeDetectorRef) {}
 
-  displayedColumns: string[] = ['id', 'work_date', 'start_time', 'initial_fuel', 'actions'];
+  displayedColumns: string[] = ['id', 'order_type', 'issue_date', 'state', 'actions'];
   dataSource = new MatTableDataSource<WorkLogElement>([]);
   
   private dailyWorkLogService = inject(DailyWorkLogService);
   private dialog = inject(MatDialog);
-  isLoading = false;
+  private router = inject(Router);
+  
+  isLoading = true;
   error: string | null = null;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -53,17 +57,21 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
   }
 
   loadWorkLogData() {
+    this.isLoading = true;
     this.error = null;
     
-    this.dailyWorkLogService.getWorkLogData()
+    this.dailyWorkLogService.getOrdersWorkLogData()
       .subscribe({
         next: (data) => {
+          console.log('Datos recibidos:', data);
           this.dataSource.data = data;
           this.isLoading = false;
+          this.cdr.detectChanges();
         },
         error: (error) => {
           this.error = 'Error al cargar los datos. Por favor, intenta nuevamente.';
           this.isLoading = false;
+          this.cdr.detectChanges();
         }
       });
   }
@@ -99,7 +107,6 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        // Si se editó el registro, recargar los datos
         this.loadWorkLogData();
       }
     });
@@ -142,6 +149,16 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
     });
   }
 
+  openReceiveDialog() {
+    const dialogRef = this.dialog.open(DailyWorkLogReceive, {
+      width: '500px'
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      // Aquí puedes realizar cualquier acción después de cerrar el modal si es necesario
+    });
+  }
+
   generatePdf(id: number) {
     this.dailyWorkLogService.generatePdf(id).subscribe({
         next: (response: Blob) => {
@@ -152,5 +169,9 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
             this.error = 'Error al generar el PDF. Por favor, intenta nuevamente.';
         }
     });
-}
+  }
+
+  navigateToWorkLogId(id: number) {
+    this.router.navigate(['/carina/daily-work-log/daily-work-log-id', id]);
+  }
 }

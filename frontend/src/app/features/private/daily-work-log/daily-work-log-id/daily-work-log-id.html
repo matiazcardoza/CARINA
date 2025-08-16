@@ -1,0 +1,26 @@
+<div class="daily-work-log-container">
+  <!-- Header con título y acciones principales -->
+  <div class="header-section">
+    <div class="page-title">
+      <h1>Registro Diario de Trabajo</h1>
+      <p class="subtitle">Gestiona y supervisa los registros de trabajo diarios</p>
+      
+    </div>
+    <p>Mostrando detalles del Work Log ID: {{ workLogId }}</p>
+    <div class="header-actions">
+      <button mat-raised-button color="primary"  class="action-button">
+        <mat-icon>add</mat-icon>
+        Nuevo Registro
+      </button>
+      
+      <button mat-raised-button color="accent"  class="action-button">
+        <mat-icon>assignment</mat-icon>
+        Nueva Orden
+      </button>
+      
+      <button mat-icon-button  matTooltip="Actualizar datos" class="refresh-button">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>

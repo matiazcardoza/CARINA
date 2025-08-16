@@ -28,6 +28,14 @@ export class DailyWorkLogService {
   private http = inject(HttpClient);
   private apiUrl = environment.BACKEND_URL;
 
+  getOrdersWorkLogData(): Observable<WorkLogElement[]> {
+    return this.http.get<ApiResponse>(`${this.apiUrl}/api/orders-silucia`, {
+      withCredentials: true
+    }).pipe(
+      map(response => response.data)
+    );
+  }
+
   getWorkLogData(): Observable<WorkLogElement[]> {
     return this.http.get<ApiResponse>(`${this.apiUrl}/api/daily-work-log`, {
       withCredentials: true
@@ -67,10 +75,14 @@ export class DailyWorkLogService {
   }
 
   generatePdf(id: number): Observable<Blob> {
-    console.log(`Generating PDF for work log ID: ${id}`);
     return this.http.post(`${this.apiUrl}/api/daily-work-log/${id}/generate-pdf`, {}, {
       responseType: 'blob',
       withCredentials: true
     });
+  }
+
+  getOrderByNumber(orderNumber: string): Observable<any> {
+    const apiUrl = `https://sistemas.regionpuno.gob.pe/siluciav2-api/api/ordenserviciodetallado?numero=${orderNumber}`;
+    return this.http.get<any>(apiUrl);
   }
 }

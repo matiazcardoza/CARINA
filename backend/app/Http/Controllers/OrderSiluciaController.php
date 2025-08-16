@@ -8,10 +8,16 @@ use App\Models\OrderSilucia;
 
 class OrderSiluciaController extends Controller
 {
-    public function index()
+    function index(Request $request)
     {
-        $orders = OrderSilucia::all();
-        return response()->json($orders);
+        $orderSilucia = OrderSilucia::select('orders_silucia.*', 'services.state')
+                                    ->leftjoin('services', 'orders_silucia.id', '=', 'services.order_id')
+                                    ->get();
+
+        return response()->json([
+            'message' => 'Daily work log retrieved successfully',
+            'data' => $orderSilucia
+        ]);
     }
 
     // VideoCommentController

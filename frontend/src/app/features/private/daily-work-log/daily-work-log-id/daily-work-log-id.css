@@ -204,24 +204,24 @@
   color: #424242;
 }
 
-.manufacturing-cell {
+.time-cell {
   min-width: 120px;
 }
 
-.manufacturing-info {
+.time-info {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.manufacturing-icon {
+.time-icon {
   font-size: 1rem;
   height: 1rem;
   width: 1rem;
   color: #666;
 }
 
-.manufacturing-value {
+.time-value {
   font-family: 'Roboto Mono', monospace;
   font-weight: 500;
 }

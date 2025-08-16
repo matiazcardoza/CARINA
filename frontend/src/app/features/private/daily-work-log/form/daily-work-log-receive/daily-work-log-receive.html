@@ -1,0 +1,205 @@
+<div class="dialog-container">
+  <div class="header-section">
+    <h2 class="dialog-title">
+      <mat-icon>cloud_download</mat-icon>
+      Importar Orden desde SILUCIA
+    </h2>
+    <p class="dialog-subtitle">
+      Ingrese el número de orden para obtener los datos desde el sistema SILUCIA
+    </p>
+  </div>
+
+  <div class="content-section">
+    <div class="search-header">
+      <mat-icon>search</mat-icon>
+      <h3>Buscar Orden</h3>
+    </div>
+    
+    <form [formGroup]="orderForm" class="order-form">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Número de Orden</mat-label>
+        <input 
+          matInput 
+          formControlName="numeroOrden"
+          placeholder="Ej: 00401"
+          maxlength="5"
+        >
+        <mat-icon matSuffix>tag</mat-icon>
+        <mat-hint>Ingrese el número de orden de 5 dígitos</mat-hint>
+        
+        <mat-error *ngIf="hasFieldError('numeroOrden')">
+          {{ getFieldError('numeroOrden') }}
+        </mat-error>
+        
+        <mat-error *ngIf="numeroOrdenErrors">
+          {{ numeroOrdenErrors }}
+        </mat-error>
+      </mat-form-field>
+      
+      <div class="form-actions">
+        <button 
+          mat-raised-button 
+          color="primary" 
+          type="button"
+          (click)="searchOrder()"
+          [disabled]="isLoading" 
+          class="search-button">
+          <mat-icon *ngIf="!isLoading">search</mat-icon>
+          <mat-icon *ngIf="isLoading" class="spinning">refresh</mat-icon>
+          {{ isLoading ? 'Buscando...' : 'Buscar' }}
+        </button>
+        
+        <button 
+          mat-button 
+          type="button"
+          (click)="clearData()"
+          [disabled]="isLoading">
+          <mat-icon>clear</mat-icon>
+          Limpiar
+        </button>
+      </div>
+    </form>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="isLoading" class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Buscando orden en SILUCIA...</p>
+    </div>
+
+    <!-- Results Section -->
+    <div *ngIf="showResults && orderData" class="results-section">
+      <div class="results-header">
+        <mat-icon>assignment</mat-icon>
+        <h3>Detalles de la Orden</h3>
+      </div>
+
+      <mat-card class="order-card">
+        <mat-card-header>
+          <div mat-card-avatar class="order-avatar">
+            <mat-icon>description</mat-icon>
+          </div>
+          <mat-card-title>Orden N° {{ orderData.numero }}/{{ orderData.anio }}</mat-card-title>
+          <mat-card-subtitle>SIAF: {{ orderData.siaf }}</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+          <div class="order-details">
+            <!-- Información General -->
+            <div class="detail-section">
+              <h4><mat-icon>info</mat-icon>Información General</h4>
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <strong>Fecha de Orden:</strong>
+                  <span>{{ formatDate(orderData.fecha) }}</span>
+                </div>
+                <div class="detail-item">
+                  <strong>Fecha de Prestación:</strong>
+                  <span>{{ formatDate(orderData.fecha_prestacion) }}</span>
+                </div>
+                <div class="detail-item">
+                  <strong>Plazo de Prestación:</strong>
+                  <span>{{ orderData.plazo_prestacion }} días</span>
+                </div>
+                <div class="detail-item">
+                  <strong>Procedimiento:</strong>
+                  <span>{{ orderData.desprocedim }}</span>
+                </div>
+              </div>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <!-- Proyecto y Meta -->
+            <div class="detail-section">
+              <h4><mat-icon>account_balance</mat-icon>Proyecto</h4>
+              <div class="project-info">
+                <div class="detail-item">
+                  <strong>Código de Meta:</strong>
+                  <span>{{ orderData.cod_meta }}</span>
+                </div>
+                <div class="detail-item full-width">
+                  <strong>Descripción:</strong>
+                  <p class="description-text">{{ orderData.desmeta }}</p>
+                </div>
+                <div class="detail-item">
+                  <strong>Rubro:</strong>
+                  <span>{{ orderData.desrubro }}</span>
+                </div>
+                <div class="detail-item">
+                  <strong>Operación:</strong>
+                  <span>{{ orderData.desuoper }}</span>
+                </div>
+              </div>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <!-- Servicio y Costos -->
+            <div class="detail-section">
+              <h4><mat-icon>build</mat-icon>Servicio</h4>
+              <div class="service-info">
+                <div class="detail-item full-width">
+                  <strong>Ítem:</strong>
+                  <p class="item-text">{{ orderData.item }}</p>
+                </div>
+                <div class="cost-summary">
+                  <div class="cost-item">
+                    <span class="cost-label">Cantidad:</span>
+                    <span class="cost-value">{{ orderData.cantidad }} {{ orderData.desmedida }}</span>
+                  </div>
+                  <div class="cost-item">
+                    <span class="cost-label">Precio Unitario:</span>
+                    <span class="cost-value">{{ formatCurrency(orderData.precio) }}</span>
+                  </div>
+                  <div class="cost-item total">
+                    <span class="cost-label">Total:</span>
+                    <span class="cost-value">{{ formatCurrency(getTotal()) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <!-- Detalles de la Orden -->
+            <div class="detail-section">
+              <h4><mat-icon>notes</mat-icon>Detalles de la Orden</h4>
+              <div class="order-details-content">
+                <pre class="details-text">{{ orderData.detalles_orden }}</pre>
+              </div>
+            </div>
+
+            <!-- Status -->
+            <div class="detail-section">
+              <h4><mat-icon>check_circle</mat-icon>Estado</h4>
+              <div class="status-info">
+                <mat-chip-listbox>
+                  <mat-chip [color]="orderData.total_conformidad > 0 ? 'primary' : 'warn'">
+                    <mat-icon>{{ orderData.total_conformidad > 0 ? 'verified' : 'pending' }}</mat-icon>
+                    {{ orderData.total_conformidad > 0 ? 'Con Conformidad' : 'Pendiente de Conformidad' }}
+                  </mat-chip>
+                </mat-chip-listbox>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions class="card-actions">
+          <button 
+            mat-raised-button 
+            color="primary"
+            (click)="importOrder()">
+            <mat-icon>download</mat-icon>
+            Importar Orden
+          </button>
+          <button 
+            mat-button
+            (click)="clearData()">
+            <mat-icon>refresh</mat-icon>
+            Nueva Búsqueda
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+</div>
