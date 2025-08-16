@@ -32,10 +32,13 @@ export class MyPersonalGetService {
     return this.http.post<any>(`${this.apiUrl}/api/orders-silucia/${id}/products`,body,this.options)
     // return this.http.get<any>(this.apiUrl,this.options);
   }
+  createKardexMovement(id:any, body:any): Observable<any> {
+    // products/{product}/kardex
+    return this.http.post<any>(`${this.apiUrl}/api/products/${id}/kardex`,body,this.options)
+    // return this.http.get<any>(this.apiUrl,this.options);
+  }
   // /products/{product}/movements-kardex
-    getKardexByProduct(productId: number): Observable<MovementKardex[]> {
-    // según tu backend (ej. Laravel) tenías:
-    // Route::get('/product/{product}/movement-kardex', ...)
+  getKardexByProduct(productId: number): Observable<MovementKardex[]> {
     return this.http.get<MovementKardex[]>(`${this.apiUrl}/api/products/${productId}/movements-kardex`, this.options);
   }
 

@@ -17,14 +17,14 @@ export class AddNewProductModal {
   formularioProducto: FormGroup;
 
   constructor(private fb: FormBuilder, private productService: MyPersonalGetService, private route: ActivatedRoute ){
-
+    
     this.formularioProducto = this.fb.group({
       name: ['', [Validators.required]],
       heritage_code:  ['', [Validators.required]],
       unit_price:  ['', [Validators.required]],
       state:  ['', [Validators.required]],
-      // otros campos según Usuario (ejemplo: telefono, etc.)
     });
+
   }
 
   bincardId!: number;  // ID del usuario que se está editando
