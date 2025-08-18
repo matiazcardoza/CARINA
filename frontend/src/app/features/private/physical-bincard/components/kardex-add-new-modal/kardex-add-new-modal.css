@@ -97,3 +97,20 @@ form > button:active{
     margin-left: auto;
     border-radius: 0.5rem;
 }
+
+/* ------------- estilos para subir archivos -------------- */
+
+.upload_file{
+    background: rgb(243, 243, 243);
+    min-width: 200px;
+    min-height: 150px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    color: rgb(153, 153, 153);
+}
+    .photo_icon{
+        color: rgb(182, 182, 182);
+        /* background: rgb(95, 29, 29); */
+    }

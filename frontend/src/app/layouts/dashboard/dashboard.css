@@ -5,3 +5,8 @@ transition: margin 0.4s ease;}
     margin-left: 335px;
 }
 
+@media (max-width: 768px) {
+  .dark_container_right_side {
+    margin-left: 0px;
+  }
+}

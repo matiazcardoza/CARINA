@@ -1,0 +1,22 @@
+.uploader { max-width: 520px; margin: 0 auto; display: grid; gap: 12px; }
+
+.dropzone {
+  border: 2px dashed #c9cdd4;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.dropzone.dragging { background: #f8faff; border-color: #7a95ff; }
+
+.camera { display: grid; gap: 8px; }
+.camera video { width: 100%; border-radius: 12px; background: #000; }
+.camera-actions { display: flex; gap: 8px; }
+
+.preview { display: grid; gap: 8px; }
+.preview img { max-width: 100%; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,.08); }
+.preview-actions, .camera-controls { display: flex; gap: 8px; }
+
+button { padding: 8px 12px; border-radius: 10px; border: 1px solid #d0d5dd; background: white; cursor: pointer; }
+button:hover { background: #f6f7fb; }
+.error { color: #b42318; }
