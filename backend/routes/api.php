@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\DailyPartController;
 use App\Http\Controllers\MovementKardexController;
-use App\Models\DailyPart;
 use App\Http\Controllers\OrderSiluciaController;
 use App\Http\Controllers\OrderProductoController;
 use App\Http\Controllers\OrderProductsController;
@@ -16,6 +15,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+    
+    //orders silucia routes
+    Route::get('/orders-silucia', [OrderSiluciaController::class, 'index']);
 
     //daily work log routes
     Route::get('/daily-work-log', [DailyPartController::class, 'index']);
@@ -24,9 +26,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/daily-work-log/{id}', [DailyPartController::class, 'destroy']);
     Route::post('/daily-work-log/complete', [DailyPartController::class, 'completeWork']);
     Route::post('/daily-work-log/{id}/generate-pdf', [DailyPartController::class, 'generatePdf']);
-
-    //orders silucia routes
-    Route::apiResource('/orders-silucia', OrderSiluciaController::class);
 
     // recurso anidado se obtiene productos pertenecientes a una orden sillucia
     Route::apiResource('orders-silucia.products', OrderProductsController::class)

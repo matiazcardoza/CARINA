@@ -11,6 +11,8 @@ import { MyThirdFeature } from './features/private/my-third-feature/my-third-fea
 import { Conformity } from './features/private/conformity/conformity';
 import { MyFirstComponent } from './shared/draft/my-first-component/my-first-component';
 import { DailyWorkLog } from './features/private/daily-work-log/daily-work-log';
+import { DailyWorkLogId } from './features/private/daily-work-log/daily-work-log-id/daily-work-log-id';
+
 import { FuelControl } from './features/private/fuel-control/fuel-control';
 import { EvidenceManagement } from './features/private/evidence-management/evidence-management';
 import { DigitalSignatureWorkflow } from './features/private/digital-signature-workflow/digital-signature-workflow';
@@ -59,9 +61,18 @@ export const routes: Routes = [
                 path: 'home',
                 component: Home
             },
-            {
-                path: 'daily-work-log',
-                component: DailyWorkLog
+            { 
+                path: 'daily-work-log', 
+                children: [
+                    { 
+                    path: '', 
+                    component: DailyWorkLog 
+                    },
+                    { 
+                    path: 'daily-work-log-id/:id', 
+                    component: DailyWorkLogId 
+                    }
+                ]
             },
             {
                 path: 'fuel-control',
