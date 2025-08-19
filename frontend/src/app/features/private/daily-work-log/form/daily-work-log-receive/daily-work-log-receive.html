@@ -60,6 +60,10 @@
       </div>
     </form>
 
+    <div *ngIf="getTipoMaquinaria()" class="machinery-type">
+      <strong>Tipo:</strong> {{ getTipoMaquinaria() === 'SECA' ? 'Máquina Seca' : 'Máquina Servida' }}
+    </div>
+
     <!-- Loading Spinner -->
     <div *ngIf="isLoading" class="loading-container">
       <mat-spinner diameter="50"></mat-spinner>

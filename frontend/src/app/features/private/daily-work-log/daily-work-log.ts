@@ -15,6 +15,8 @@ import { Router } from '@angular/router';
 
 export interface WorkLogElement {
   id: number;
+  description: string;
+  order_type: string;
   issue_date: string;
   state: number;
 }
@@ -36,7 +38,7 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
 
   constructor(private cdr: ChangeDetectorRef) {}
 
-  displayedColumns: string[] = ['id', 'order_type', 'issue_date', 'state', 'actions'];
+  displayedColumns: string[] = ['id', 'description', 'order_type', 'issue_date', 'state', 'actions'];
   dataSource = new MatTableDataSource<WorkLogElement>([]);
   
   private dailyWorkLogService = inject(DailyWorkLogService);
@@ -63,7 +65,6 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
     this.dailyWorkLogService.getOrdersWorkLogData()
       .subscribe({
         next: (data) => {
-          console.log('Datos recibidos:', data);
           this.dataSource.data = data;
           this.isLoading = false;
           this.cdr.detectChanges();
@@ -151,7 +152,8 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
 
   openReceiveDialog() {
     const dialogRef = this.dialog.open(DailyWorkLogReceive, {
-      width: '500px'
+      width: '90vw',
+      height: '85vh',
     });
 
     dialogRef.afterClosed().subscribe(() => {

@@ -45,7 +45,7 @@ export class DailyWorkLogForm implements OnInit {
   ) {
     this.workLogForm = this.fb.group({
       work_date: ['', Validators.required],
-      start_time: ['', Validators.required], // Se asignará automáticamente
+      start_time: ['', Validators.required],
       initial_fuel: ['', [Validators.required, Validators.min(0)]]
     });
   }
@@ -59,7 +59,10 @@ export class DailyWorkLogForm implements OnInit {
         initial_fuel: this.data.workLog.initial_fuel
       });
     } else {
-      // Si es nuevo registro, asignar la hora actual
+      const now = new Date();
+      this.workLogForm.patchValue({
+        work_date: now
+      });
       this.setCurrentTime();
     }
   }
