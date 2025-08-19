@@ -184,3 +184,17 @@ h2{
   margin: 0;
   padding: 0;
 }
+
+/* ------------------------estlos para cboton de descarga ----------------------- */
+.download_pdf_container{
+  /* background: pink; */
+  display: flex;
+  justify-content: end;
+  padding: 1rem;
+}
+  .download_button{
+    background: rgb(146, 54, 1);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    color: white;
+  }

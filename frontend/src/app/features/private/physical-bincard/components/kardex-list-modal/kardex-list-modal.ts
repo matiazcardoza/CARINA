@@ -77,4 +77,34 @@ export class KardexListModal {
   onCancel(){
     this.closeModal.emit(false)
   }
+
+  downloadPdfx(){
+    this.service.downloadPdf(1).subscribe({
+      next: (value)=>{
+        console.log("this is the response: ", value)
+      },
+      error: () => {},
+      complete: ()=>{}
+
+    })
+    console.log("esta es la descarga")
+  }
+
+
+  downloadPdf() {
+  this.service.downloadPdf(1).subscribe(res => {
+    const blob = res.body!;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    // si no quieres fijar nombre en front, no pongas nada especial;
+    // 'a.download' vacío usa el que mande el navegador/servidor en muchos casos
+    a.href = url;
+    a.download = ''; 
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+}
+
 }

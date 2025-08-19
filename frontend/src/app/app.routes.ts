@@ -27,6 +27,7 @@ import { authGuard } from './services/AuthService/auth.guard';
 import { publicGuard } from './services/AuthService/public.guard';
 import { Products } from './features/private/physical-bincard/components/products/products';
 import { UploadFile } from './shared/draft/upload-file/upload-file';
+import { ComponentTesting } from './shared/draft/component-testing/component-testing';
 
 export const routes: Routes = [
     // Redirige la ruta raíz a la página de login
@@ -164,6 +165,10 @@ export const routes: Routes = [
             {
                 path: 'upload-file',
                 component: UploadFile
+            },
+            {
+                path: 'component-testing',
+                component: ComponentTesting
             },
         ]
     },
