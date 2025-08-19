@@ -38,10 +38,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //orders producto routes
     Route::get('/products/{product}/movements-kardex', [ProductMovementKardexController::class, 'index']);
     Route::post('/products/{product}/kardex',[MovementKardexController::class, 'storeForProduct']);
-    
+    Route::get('/products/{product}/movements-kardex/pdf',[ProductMovementKardexController::class, 'pdf']);
 });
-
-    Route::get('/pdf', [PdfControllerKardex::class, 'generar']);
-    
 
 

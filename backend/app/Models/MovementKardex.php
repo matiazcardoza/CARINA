@@ -18,7 +18,10 @@ class MovementKardex extends Model
         'movement_type',
         'movement_date',
         'amount',
-        'final_balance'
+        'final_balance',
+        'class',         // nuevo
+        'number',        // nuevo
+        'observations',  // nuevo
     ];
     public function product(): BelongsTo
     {
