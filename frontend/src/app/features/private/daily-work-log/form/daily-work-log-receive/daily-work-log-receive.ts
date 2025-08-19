@@ -34,6 +34,7 @@ interface OrderDetail {
   total_conformidad: number;
   operadores: any[];
   vehiculos: any[];
+  state? : number;
 }
 
 interface OrderResponse {
@@ -99,10 +100,16 @@ export class DailyWorkLogReceive implements OnInit {
 
     this.dailyWorkLogService.getOrderByNumber(numeroOrden).subscribe({
       next: (response: OrderResponse) => {
-        console.log('Orden obtenida:', response);
-        
         if (response.data && response.data.length > 0) {
-          this.orderData = response.data[0]; // Tomar el primer elemento
+          this.orderData = response.data[0];
+          const tipoMaquinaria = this.getTipoMaquinaria();
+          if (tipoMaquinaria === 'SECA') {
+            this.orderData.state = 1;
+          } else if (tipoMaquinaria === 'SERVIDA') {
+            this.orderData.state = 2;
+          } else {
+            this.orderData.state = 0; 
+          }
           this.showResults = true;
           this.numeroOrdenErrors = null;
         } else {
@@ -112,7 +119,7 @@ export class DailyWorkLogReceive implements OnInit {
         }
         
         this.isLoading = false;
-        this.cdr.detectChanges(); // Forzar detección de cambios
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error al buscar la orden:', err);
@@ -120,7 +127,7 @@ export class DailyWorkLogReceive implements OnInit {
         this.orderData = null;
         this.showResults = false;
         this.isLoading = false;
-        this.cdr.detectChanges(); // Forzar detección de cambios
+        this.cdr.detectChanges();
       }
     });
   }
@@ -174,10 +181,30 @@ export class DailyWorkLogReceive implements OnInit {
   }
 
   importOrder(): void {
-    if (this.orderData) {
-      // Aquí implementarías la lógica para importar la orden
-      console.log('Importando orden:', this.orderData);
-      // Podrías emitir un evento o navegar a otra página
+    const ImportOrderData = this.orderData;
+    this.dailyWorkLogService.importOrder(ImportOrderData).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        this.clearData();
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        console.error('Error al crear:', error);
+      }
+    });
+  }
+
+  getTipoMaquinaria(): 'SECA' | 'SERVIDA' | null {
+    if (!this.orderData?.item) return null;
+    const texto = this.orderData.item.toUpperCase();
+    if (texto.includes('MAQUINA SECA')) {
+      return 'SECA';
     }
+    if (texto.includes('MAQUINA SERVIDA')) {
+      return 'SERVIDA';
+    }
+    return null;
   }
 }

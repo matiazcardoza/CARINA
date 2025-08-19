@@ -12,7 +12,8 @@ class DailyPartController extends Controller
 {
     function index(Request $request)
     {
-        $dailyParts = DailyPart::all();
+        $serviceId = $request->id;
+        $dailyParts = DailyPart::where('service_id', $serviceId)->get();
 
         return response()->json([
             'message' => 'Daily work log retrieved successfully',

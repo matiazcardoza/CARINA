@@ -15,11 +15,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
         return $request->user();
     });
     
+
     //orders silucia routes
     Route::get('/orders-silucia', [OrderSiluciaController::class, 'index']);
+    Route::post('orders-silucia/import-order', [OrderSiluciaController::class, 'importOrder']);
 
     //daily work log routes
-    Route::get('/daily-work-log', [DailyPartController::class, 'index']);
+    Route::get('/daily-work-log/{id}', [DailyPartController::class, 'index']);
     Route::post('/daily-work-log', [DailyPartController::class, 'store']);
     Route::put('/daily-work-log/{id}', [DailyPartController::class, 'update']);
     Route::delete('/daily-work-log/{id}', [DailyPartController::class, 'destroy']);
