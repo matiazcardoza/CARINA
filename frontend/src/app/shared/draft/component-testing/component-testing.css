@@ -2,3 +2,8 @@ div{
     background: rgba(255, 201, 201, 0.24);
     height: 500px;
 }
+
+.table-container{
+    background: pink;
+    padding: 1rem;
+}

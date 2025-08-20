@@ -1,0 +1,209 @@
+<div><div class="card">
+  <div>
+    <h1 class="text-3xl font-semibold mb-2">Gestión del Kardex</h1>
+    <p class="text-lg text-gray-500">Aquí se muestran los productos relacionados a las órdenes de compra.</p>
+  </div>
+
+  <p-table
+  #dt1
+  [value]="products()"
+  [globalFilterFields]="['numero','fecha','detalles_orden','rsocial','ruc','item','detalle','cantidad','desmedida','precio','total_internado','saldo']"
+  selectionMode="single"
+  [(selection)]="selectedProduct"
+  dataKey="idcompradet"
+  [rows]="5"
+  [paginator]="true"
+  stateStorage="session"
+  stateKey="statedemo-session"
+  [scrollable]="true"
+  scrollDirection="both"
+  [tableStyle]="{ 'min-width': '100rem' }"
+  
+  >
+  <!-- scrollHeight="flex"  -->
+    <!-- Caption -->
+    <ng-template pTemplate="caption">
+      <p-iconfield iconPosition="left">
+        <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+        <input
+          pInputText
+          type="text"
+          [value]="($any(dt1.filters?.['global']))?.value ?? ''"
+          (input)="dt1.filterGlobal($event.target.value, 'contains')"
+          placeholder="Global Search"
+        />
+      </p-iconfield>
+    </ng-template>
+
+    <!-- Header -->
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="numero" style="width:7.7%">
+          <div class="item_head">N° de Orden <p-sortIcon field="numero"/></div>
+        </th>
+        <th pSortableColumn="fecha" style="width:7.7%">
+          <div class="item_head">Fecha <p-sortIcon field="fecha"/></div>
+        </th>
+        <th pSortableColumn="detalles_orden" style="width:7.7%">
+          <div class="item_head">Detalle de orden <p-sortIcon field="detalles_orden"/></div>
+        </th>
+        <th pSortableColumn="rsocial" style="width:7.7%">
+          <div class="item_head">Proveedor <p-sortIcon field="rsocial"/></div>
+        </th>
+        <th pSortableColumn="ruc" style="width:7.7%">
+          <div class="item_head">RUC <p-sortIcon field="ruc"/></div>
+        </th>
+        <th pSortableColumn="item" style="width:7.7%">
+          <div class="item_head">Ítem <p-sortIcon field="item"/></div>
+        </th>
+        <th pSortableColumn="detalle" style="width:7.7%">
+          <div class="item_head">Ítem (detalle) <p-sortIcon field="detalle"/></div>
+        </th>
+        <th pSortableColumn="cantidad" style="width:7.7%">
+          <div class="item_head">Cantidad pedida <p-sortIcon field="cantidad"/></div>
+        </th>
+        <th pSortableColumn="desmedida" style="width:7.7%">
+          <div class="item_head">Unidad de medida <p-sortIcon field="desmedida"/></div>
+        </th>
+        <th pSortableColumn="precio" style="width:7.7%">
+          <div class="item_head">Precio <p-sortIcon field="precio"/></div>
+        </th>
+        <th pSortableColumn="total_internado" style="width:7.7%"  >
+          <div class="item_head">Total internado <p-sortIcon field="total_internado"/></div>
+        </th >
+        <th pSortableColumn="saldo" style="width:7.7%">
+          <div class="item_head">Saldo (pendiente) <p-sortIcon field="saldo"/></div>
+        </th>
+        <th pFrozenColumn alignFrozen="right" [style]="{ width: '150px', textAlign: 'center' }">
+            <span class="flex items-center gap-2">
+                Acciones
+                <i class="pi pi-cog text-gray-500"></i>
+            </span>
+        </th>
+     </tr>
+    </ng-template>
+
+    <!-- Body -->
+    <ng-template pTemplate="body" let-product>
+      <tr>
+        <td>{{ product.numero }}</td>
+        <td>{{ product.fecha }}</td>
+        <td>{{ product.detalles_orden.length > 50 ? (product.detalles_orden | slice:0:50) + '...' : product.detalles_orden }}</td>
+        <td>{{ product.rsocial }}</td>
+        <td>{{ product.ruc }}</td>
+        <td>{{ product.item }}</td>
+        <td>{{ product.detalle }}</td>
+        <td>{{ product.cantidad }}</td>
+        <td>{{ product.desmedida }}</td>
+        <td>{{ product.precio }}</td>
+        <td>{{ product.total_internado }}</td>
+        <td>{{ product.saldo }}</td>
+    <!-- Celda congelada a la derecha -->
+    <td pFrozenColumn alignFrozen="right">
+      <div class="flex container_action_buttons gap-2">
+          <!-- label="Ver" -->
+        <p-button
+          icon="pi pi-eye"
+          severity="info"
+          (onClick)="handleModalSeeDetailsOfMovimentKardex()">
+        </p-button>
+        <!-- label="Agregar" -->
+        <p-button
+          icon="pi pi-plus"
+          severity="success"
+          (onClick)="openMovementModal(product)">
+        </p-button>
+      </div>
+    </td>
+      </tr>
+    </ng-template>
+
+    <!-- Empty -->
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="13">No se encontraron registros.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+
+<!-- ---------------------------------------------------------- -->
+
+
+<p-dialog
+  header="Registrar movimiento"
+  [(visible)]="showMovementModal"
+  [modal]="true"
+  [closable]="false"
+  [style]="{ width: '420px' }"
+>
+  <div class="p-fluid flex flex-col gap-3">
+
+    <!-- Tipo de movimiento -->
+    <div class="field">
+      <label class="font-medium mb-1 block">Tipo de movimiento</label>
+
+        <!-- <div class="card flex justify-center">
+            <p-autocomplete [(ngModel)]="value" [suggestions]="items" (completeMethod)="search($event)" />
+        </div> -->
+    <p-autoComplete
+        [(ngModel)]="form.movementType"
+        [suggestions]="filteredMovementOptions"
+        (completeMethod)="searchMovement($event)"
+        [dropdown]="true"
+        [forceSelection]="true"
+        [minLength]="0"
+        placeholder="Selecciona una opción"
+        appendTo="body"
+    ></p-autoComplete>
+    <!-- [options]="movementOptions" -->
+    </div>
+
+    <!-- Cantidad -->
+    <div class="field">
+      <label for="cantidad" class="font-medium mb-1 block">Cantidad</label>
+      <p-inputNumber
+        inputId="cantidad"
+        [(ngModel)]="form.cantidad"
+        [min]="1"
+        [useGrouping]="false"
+        [showButtons]="true"
+      ></p-inputNumber>
+    </div>
+
+    <!-- Personas -->
+    <div class="field">
+      <div class="flex items-center justify-between">
+        <span class="font-medium">Personas</span>
+        <p-button
+          icon="pi pi-user-plus"
+          (onClick)="onAddPerson()"
+          [rounded]="true"
+          [text]="true"
+          [ariaLabel]="'Adicionar persona'"
+        ></p-button>
+      </div>
+      <!-- Aquí podrías listar las personas seleccionadas si lo necesitas -->
+      <small class="text-gray-500">Añade personas con el botón.</small>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2 w-full">
+      <p-button
+        label="Cancelar"
+        severity="secondary"
+        outlined
+        (onClick)="closeMovementModal()"
+      ></p-button>
+      <p-button
+        label="Aceptar"
+        icon="pi pi-check"
+        (onClick)="onSubmitMovement()"
+        [disabled]="!form.movementType || !form.cantidad"
+      ></p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+</div>

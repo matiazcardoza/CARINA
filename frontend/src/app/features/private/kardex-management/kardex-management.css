@@ -1,0 +1,25 @@
+.card{
+    background: rgb(236, 236, 236);
+    padding: 2rem;
+}
+    .container_action_buttons{
+        /* background: pink; */
+        display: flex;
+        gap: 0.5rem;
+    }
+
+
+
+
+/* --------- Estilos para la tabla --------- */
+
+.item_head{
+  display: flex;              /* flex */
+  align-items: flex-end;      /* items-end */
+  gap: 0.5rem;                /* gap-2 → 8px (1rem = 16px) */
+  /* background: red; */
+}
+    .action_container{
+        background: pink;
+        height: 100%;
+    }

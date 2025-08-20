@@ -12,7 +12,6 @@ import { Conformity } from './features/private/conformity/conformity';
 import { MyFirstComponent } from './shared/draft/my-first-component/my-first-component';
 import { DailyWorkLog } from './features/private/daily-work-log/daily-work-log';
 import { DailyWorkLogId } from './features/private/daily-work-log/daily-work-log-id/daily-work-log-id';
-
 import { FuelControl } from './features/private/fuel-control/fuel-control';
 import { EvidenceManagement } from './features/private/evidence-management/evidence-management';
 import { DigitalSignatureWorkflow } from './features/private/digital-signature-workflow/digital-signature-workflow';
@@ -28,6 +27,7 @@ import { publicGuard } from './services/AuthService/public.guard';
 import { Products } from './features/private/physical-bincard/components/products/products';
 import { UploadFile } from './shared/draft/upload-file/upload-file';
 import { ComponentTesting } from './shared/draft/component-testing/component-testing';
+import { KardexManagement } from './features/private/kardex-management/kardex-management';
 
 export const routes: Routes = [
     // Redirige la ruta raíz a la página de login
@@ -94,6 +94,15 @@ export const routes: Routes = [
             {
                 path: 'valued-kardex',
                 component: ValuedKardex
+            },
+            {
+                path: 'kardex-management',
+                children: [
+                    {
+                        path: '',   
+                        component: KardexManagement,
+                    }
+                ]
             },
             {
                 path: 'physical-bincard',

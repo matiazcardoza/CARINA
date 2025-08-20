@@ -1,7 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
 
 
-* {
+/* * {
   margin: 0px;
   padding: 0px;
   box-sizing: border-box;
@@ -37,16 +37,16 @@ ul, ol {
 }
 
 input, select{
-    /* background: green; */
-      all: unset; /* Elimina casi todos los estilos por defecto */
+
+      all: unset; 
     box-sizing: border-box;
     width: 100%;
-    /* padding: 0.5rem; */
+
     border: 1px solid #ccc;
-    /* background: green; */
-    /* color: white; */
+
     font-family: inherit;
     font-size: inherit;
-}
+} */
 
 @import 'material-icons/iconfont/material-icons.css';
+@import "primeicons/primeicons.css";

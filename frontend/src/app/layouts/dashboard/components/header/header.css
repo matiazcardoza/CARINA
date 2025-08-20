@@ -8,7 +8,11 @@ header{
     box-shadow: 0 0 8px rgba(0, 0, 0, 0.247);
     /* box-shadow: 30px 5px 5px rgba(247, 6, 6, 0.945); */
     /* border: 5px solid red; */
-    z-index: 4000;
+    z-index: 5;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
 }
     div{
         width: 100%;
