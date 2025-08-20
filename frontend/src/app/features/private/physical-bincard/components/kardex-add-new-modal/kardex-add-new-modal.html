@@ -9,20 +9,7 @@
 
             <form [formGroup]="formularioKardex" (ngSubmit)="onSubmit()">
 
-                <!-- <div>
-                    <label for="movement_type">tipo de movimiento</label>
-                    <input id="movement_type" type="text" formControlName="movement_type" />
-
-                    @if (formularioKardex.get('movement_type')?.invalid && formularioKardex.get('movement_type')?.touched) {
-                        <div class="error-messages">
-                            @if (formularioKardex.get('movement_type')?.hasError('required')) {
-                            <small>El nombre del producto es obligatorio</small>
-                            }
-
-                        </div>
-                    }
-                </div> -->
-                
+               
                 <div>
                 <label for="movement_type">Tipo de movimiento</label>
                 <select id="movement_type" formControlName="movement_type">
@@ -56,6 +43,11 @@
                             } -->
                         </div>
                     }
+                </div>
+
+                <div class="upload_file">
+                    <mat-icon class="photo_icon">photo</mat-icon>
+                    selecciona
                 </div>
             <button type="submit" [disabled]="formularioKardex.invalid">Enviar</button>
             </form>

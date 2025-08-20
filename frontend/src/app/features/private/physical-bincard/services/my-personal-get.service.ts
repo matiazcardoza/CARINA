@@ -1,9 +1,11 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 // import { MovementKardex } from '../interface/movement-kardex.interface';
 import { MovementKardex } from '../interface/movement-kardex.interface';
+import { Order } from '../interface/order.interface';
+import { OrdersSilucia } from '../interface/orders-silucia.interface';
 // iportt product
 @Injectable({
   providedIn: 'root'
@@ -21,7 +23,7 @@ export class MyPersonalGetService {
   getData(): Observable<any>{
     
     // return this.http.get<any>(this.apiUrl,this.options)
-    return this.http.get<any>(`${this.apiUrl}${this.ordenesSilucia}`,this.options)
+    return this.http.get<OrdersSilucia>(`${this.apiUrl}${this.ordenesSilucia}`,this.options)
   }
   // Leer todos los usuarios
   getProducts(id:number): Observable<any> {
@@ -40,6 +42,16 @@ export class MyPersonalGetService {
   // /products/{product}/movements-kardex
   getKardexByProduct(productId: number): Observable<MovementKardex[]> {
     return this.http.get<MovementKardex[]>(`${this.apiUrl}/api/products/${productId}/movements-kardex`, this.options);
+  }
+  // /products/{product}/movements-kardex/pdf'
+  downloadPdf(id:number): Observable<HttpResponse<Blob>> {
+    // return this.http.get(`${this.apiUrl}/api/pdf`, {
+    return this.http.get(`${this.apiUrl}/api/products/${id}/movements-kardex/pdf`, {
+      responseType: 'blob',
+      observe: 'response',
+      withCredentials: true,                 // si usas cookies/Sanctum
+      headers: { Accept: 'application/pdf' } // opcional
+    });
   }
 
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\MovementKardex;
 use App\Models\Product;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class MovementKardexController extends Controller
@@ -30,4 +31,6 @@ class MovementKardexController extends Controller
             'data' => $entry
         ], 201);
     }
+
+
 }

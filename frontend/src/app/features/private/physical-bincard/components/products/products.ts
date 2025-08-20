@@ -5,9 +5,15 @@ import { products } from '../../interface/products.interface';
 import { AddNewProductModal } from '../add-new-product-modal/add-new-product-modal';
 import { KardexListModal } from '../kardex-list-modal/kardex-list-modal';
 import { KardexAddNewModal } from '../kardex-add-new-modal/kardex-add-new-modal';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTableModule } from '@angular/material/table';
+import { CurrencyPipe } from '@angular/common';
 @Component({
   selector: 'app-products',
-  imports: [AddNewProductModal,KardexListModal, KardexAddNewModal],
+  imports: [AddNewProductModal,KardexListModal, KardexAddNewModal, MatTableModule, MatButtonModule, MatIconModule, MatCardModule, MatChipsModule, CurrencyPipe],
   templateUrl: './products.html',
   styleUrl: './products.css'
 })

@@ -5,6 +5,7 @@ use App\Http\Controllers\MovementKardexController;
 use App\Http\Controllers\OrderSiluciaController;
 use App\Http\Controllers\OrderProductoController;
 use App\Http\Controllers\OrderProductsController;
+use App\Http\Controllers\PdfControllerKardex;
 use App\Http\Controllers\ProductMovementKardexController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -39,9 +40,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //orders producto routes
     Route::get('/products/{product}/movements-kardex', [ProductMovementKardexController::class, 'index']);
     Route::post('/products/{product}/kardex',[MovementKardexController::class, 'storeForProduct']);
+    Route::get('/products/{product}/movements-kardex/pdf',[ProductMovementKardexController::class, 'pdf']);
 });
-
-
-    
 
 

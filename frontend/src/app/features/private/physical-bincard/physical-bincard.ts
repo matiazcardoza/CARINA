@@ -2,6 +2,7 @@ import { Component, signal } from '@angular/core';
 import { MyPersonalGetService } from './services/my-personal-get.service';
 import { Order } from './interface/order.interface';
 import { ActivatedRoute, Router } from '@angular/router';
+import { OrdersSilucia } from './interface/orders-silucia.interface';
 @Component({
   selector: 'app-physical-bincard',
   imports: [],
@@ -30,8 +31,9 @@ export class PhysicalBincard {
 
   getData(){
     this.service.getData().subscribe({
-      next: (value:Order[]) => {
-        this.myData.set(value)
+      // next: (value:Order[]) => {
+      next: (value:OrdersSilucia) => {
+        this.myData.set(value.data)
         // this.isOpen.set(value) 
         console.log("this is the value of api", value)
       },
