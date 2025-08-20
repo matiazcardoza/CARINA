@@ -42,7 +42,6 @@ export class DailyWorkLogService {
   }
 
   importOrder(orderData: any): Observable<any> {
-    console.log('Importando orden del servicio:', orderData);
     return this.http.post<any>(`${this.apiUrl}/api/orders-silucia/import-order`, orderData, {
       withCredentials: true
     });
@@ -57,6 +56,7 @@ export class DailyWorkLogService {
   }
 
   createWorkLog(workLogData: CreateWorkLogData): Observable<WorkLogElement> {
+    console.log('workLogData:', workLogData);
     return this.http.post<SingleApiResponse>(`${this.apiUrl}/api/daily-work-log`, workLogData, {
       withCredentials: true
     }).pipe(

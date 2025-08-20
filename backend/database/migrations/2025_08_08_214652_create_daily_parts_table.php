@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('daily_parts', function (Blueprint $table) {
             $table->id('id');
             $table->unsignedBigInteger('service_id');
+            $table->string('description')->nullable();
             $table->date('work_date')->nullable();
             $table->time('start_time')->nullable();
             $table->time('end_time')->nullable();

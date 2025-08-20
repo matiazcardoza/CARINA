@@ -27,9 +27,10 @@ class DailyPartController extends Controller
             'work_date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
             'initial_fuel' => 'required|numeric',
+            'description' => 'required|string'
         ]);
 
-        $validatedData['service_id'] = 1;
+        $validatedData['service_id'] = $request->work_log_id;
 
         $dailyPart = DailyPart::create($validatedData);
 

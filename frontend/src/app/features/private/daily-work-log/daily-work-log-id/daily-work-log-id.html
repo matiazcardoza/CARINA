@@ -135,7 +135,7 @@
                 </button>
                 
                 <button mat-icon-button 
-                        
+                        (click)="deleteWorkLog(element.id)"
                         matTooltip="Eliminar registro"
                         class="action-btn delete-btn">
                   <mat-icon>delete</mat-icon>
@@ -149,7 +149,7 @@
                 </button>
 
                 <button mat-icon-button 
-                        
+                        (click)="generatePdf(element.id)"
                         matTooltip="Generar PDF"
                         class="action-btn pdf-btn">
                   <mat-icon>picture_as_pdf</mat-icon>
@@ -187,7 +187,7 @@
           <mat-icon class="state-icon empty">inbox</mat-icon>
           <h3>No hay registros disponibles</h3>
           <p>Comienza agregando tu primer registro de trabajo diario</p>
-          <button mat-raised-button color="primary"  class="create-first-button">
+          <button mat-raised-button color="primary" (click)="openCreateDialog()" class="create-first-button">
             <mat-icon>add</mat-icon>
             Crear Primer Registro
           </button>
