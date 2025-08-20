@@ -56,6 +56,7 @@ export class DailyWorkLogService {
   }
 
   createWorkLog(workLogData: CreateWorkLogData): Observable<WorkLogElement> {
+    console.log('workLogData:', workLogData);
     return this.http.post<SingleApiResponse>(`${this.apiUrl}/api/daily-work-log`, workLogData, {
       withCredentials: true
     }).pipe(

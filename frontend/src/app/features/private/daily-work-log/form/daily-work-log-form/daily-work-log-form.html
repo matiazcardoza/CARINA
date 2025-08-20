@@ -39,7 +39,19 @@
         <mat-error>{{ initialFuelError }}</mat-error>
       </mat-form-field>
 
+      <!-- Nuevo Campo de Descripción -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Descripción (Opcional)</mat-label>
+        <textarea matInput 
+                  formControlName="description"
+                  placeholder="Describe las actividades realizadas..."
+                  rows="3"
+                  maxlength="500"></textarea>
+        <mat-hint>Máximo 500 caracteres</mat-hint>
+        <mat-error>{{ descriptionError }}</mat-error>
+      </mat-form-field>
     </form>
+    
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">

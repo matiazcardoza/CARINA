@@ -13,6 +13,7 @@ import { DailyWorkLogService } from '../../../../../services/DailyWorkLogService
 export interface DialogData {
   isEdit: boolean;
   workLog: any;
+  workLogId?: string | number;
 }
 
 @Component({
@@ -46,17 +47,19 @@ export class DailyWorkLogForm implements OnInit {
     this.workLogForm = this.fb.group({
       work_date: ['', Validators.required],
       start_time: ['', Validators.required],
-      initial_fuel: ['', [Validators.required, Validators.min(0)]]
+      initial_fuel: ['', [Validators.required, Validators.min(0)]],
+      description: ['']
     });
   }
 
   ngOnInit() {
     if (this.data.isEdit && this.data.workLog) {
-      // Si es edición, llenar el formulario con los datos existentes
+
       this.workLogForm.patchValue({
         work_date: this.data.workLog.work_date ? new Date(this.data.workLog.work_date) : null,
         start_time: this.data.workLog.start_time,
-        initial_fuel: this.data.workLog.initial_fuel
+        initial_fuel: this.data.workLog.initial_fuel,
+        description: this.data.workLog.description || ''
       });
     } else {
       const now = new Date();
@@ -76,6 +79,7 @@ export class DailyWorkLogForm implements OnInit {
     this.workLogForm.patchValue({
       start_time: currentTime
     });
+    this.cdr.detectChanges();
   }
 
   get title(): string {
@@ -98,47 +102,55 @@ export class DailyWorkLogForm implements OnInit {
       const workLogData = {
         work_date: this.formatDate(formValue.work_date),
         start_time: formValue.start_time,
-        initial_fuel: parseFloat(formValue.initial_fuel)
+        initial_fuel: parseFloat(formValue.initial_fuel),
+        description: formValue.description,
+        work_log_id: this.data.workLogId ? Number(this.data.workLogId) : null
       };
 
       if (this.data.isEdit && this.data.workLog?.id) {
-        // Actualizar registro existente
-        this.dailyWorkLogService.updateWorkLog(this.data.workLog.id, workLogData)
-          .subscribe({
-            next: (updatedWorkLog) => {
-              this.isLoading = false;
-              this.cdr.detectChanges();
-              this.dialogRef.close(updatedWorkLog);
-            },
-            error: (error) => {
-              this.isLoading = false;
-              this.cdr.detectChanges();
-              console.error('Error al actualizar:', error);
-              // Aquí puedes mostrar un mensaje de error al usuario
-            }
+
+        setTimeout(() => {
+          this.dailyWorkLogService.updateWorkLog(this.data.workLog.id, workLogData)
+            .subscribe({
+              next: (updatedWorkLog) => {
+                this.isLoading = false;
+                this.cdr.detectChanges();
+                setTimeout(() => {
+                  this.dialogRef.close(updatedWorkLog);
+                }, 100);
+              },
+              error: (error) => {
+                this.isLoading = false;
+                this.cdr.detectChanges();
+                console.error('Error al actualizar:', error);
+              }
           });
+        }, 0);
       } else {
-        // Crear nuevo registro
-        this.dailyWorkLogService.createWorkLog(workLogData)
-          .subscribe({
-            next: (newWorkLog) => {
-              this.isLoading = false;
-              this.cdr.detectChanges();
-              this.dialogRef.close(newWorkLog);
-            },
-            error: (error) => {
-              this.isLoading = false;
-              this.cdr.detectChanges();
-              console.error('Error al crear:', error);
-              // Aquí puedes mostrar un mensaje de error al usuario
-            }
-          });
+
+        setTimeout(() => {
+          this.dailyWorkLogService.createWorkLog(workLogData)
+            .subscribe({
+              next: (newWorkLog) => {
+                this.isLoading = false;
+                this.cdr.detectChanges();
+                setTimeout(() => {
+                  this.dialogRef.close(newWorkLog);
+                }, 100);
+              },
+              error: (error) => {
+                this.isLoading = false;
+                this.cdr.detectChanges();
+                console.error('Error al crear:', error);
+              }
+            });
+        }, 0);
       }
     }
   }
 
   private formatDate(date: Date): string {
-    // Formatear fecha como YYYY-MM-DD
+
     const year = date.getFullYear();
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
@@ -146,8 +158,6 @@ export class DailyWorkLogForm implements OnInit {
   }
 
   private compareTime(time1: string, time2: string): number {
-    // Comparar dos horas en formato HH:MM
-    // Retorna < 0 si time1 < time2, 0 si son iguales, > 0 si time1 > time2
     const [h1, m1] = time1.split(':').map(Number);
     const [h2, m2] = time2.split(':').map(Number);
     
@@ -157,7 +167,7 @@ export class DailyWorkLogForm implements OnInit {
     return minutes1 - minutes2;
   }
 
-  // Getters para mostrar errores
+
   get workDateError() {
     const control = this.workLogForm.get('work_date');
     if (control?.hasError('required') && control?.touched) {
@@ -182,6 +192,11 @@ export class DailyWorkLogForm implements OnInit {
     if (control?.hasError('min') && control?.touched) {
       return 'El combustible inicial debe ser mayor o igual a 0';
     }
+    return '';
+  }
+
+  get descriptionError() {
+    const control = this.workLogForm.get('description');
     return '';
   }
 }

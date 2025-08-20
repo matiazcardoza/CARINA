@@ -135,7 +135,7 @@
                 </button>
                 
                 <button mat-icon-button 
-                        
+                        (click)="deleteWorkLog(element.id)"
                         matTooltip="Eliminar registro"
                         class="action-btn delete-btn">
                   <mat-icon>delete</mat-icon>
@@ -149,7 +149,7 @@
                 </button>
 
                 <button mat-icon-button 
-                        
+                        (click)="generatePdf(element.id)"
                         matTooltip="Generar PDF"
                         class="action-btn pdf-btn">
                   <mat-icon>picture_as_pdf</mat-icon>
