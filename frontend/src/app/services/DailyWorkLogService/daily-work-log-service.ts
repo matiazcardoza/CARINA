@@ -42,7 +42,6 @@ export class DailyWorkLogService {
   }
 
   importOrder(orderData: any): Observable<any> {
-    console.log('Importando orden del servicio:', orderData);
     return this.http.post<any>(`${this.apiUrl}/api/orders-silucia/import-order`, orderData, {
       withCredentials: true
     });

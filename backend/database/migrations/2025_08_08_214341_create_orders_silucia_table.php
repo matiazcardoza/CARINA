@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('orders_silucia', function (Blueprint $table) {
             $table->id('id');
-            $table->unsignedBigInteger('silucia_id');
+            $table->unsignedBigInteger('silucia_id')->unique();
             $table->string('order_type')->nullable();
             $table->date('issue_date')->nullable();
             $table->string('goal_project')->nullable();
-            $table->string('api_date')->nullable();
+            $table->longText('api_date')->nullable();
             $table->integer('state')->default(1);
             $table->timestamps();
         });

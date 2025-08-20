@@ -6,12 +6,7 @@
       <p class="subtitle">Gestiona ordenes de servicio</p>
     </div>
     
-    <div class="header-actions">
-      <button mat-raised-button color="primary" (click)="openCreateDialog()" class="action-button">
-        <mat-icon>add</mat-icon>
-        Nuevo Registro
-      </button>
-      
+    <div class="header-actions">   
       <button mat-raised-button color="accent" (click)="openReceiveDialog()" class="action-button">
         <mat-icon>assignment</mat-icon>
         Nueva Orden
@@ -168,35 +163,11 @@
                 </button>
                 
                 <button mat-icon-button 
-                        (click)="openEditDialog(element)" 
-                        matTooltip="Editar registro"
-                        class="action-btn edit-btn">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                
-                <button mat-icon-button 
                         (click)="deleteWorkLog(element.id)" 
                         matTooltip="Eliminar registro"
                         class="action-btn delete-btn">
                   <mat-icon>delete</mat-icon>
                 </button>
-                
-                <!-- Botones adicionales comentados - descomenta si los necesitas -->
-                <!--
-                <button mat-icon-button 
-                        (click)="openCompleteModal(element.id)" 
-                        matTooltip="Completar registro"
-                        class="action-btn complete-btn">
-                  <mat-icon>check_circle</mat-icon>
-                </button>
-                
-                <button mat-icon-button 
-                        (click)="generatePdf(element.id)" 
-                        matTooltip="Generar PDF"
-                        class="action-btn pdf-btn">
-                  <mat-icon>picture_as_pdf</mat-icon>
-                </button>
-                -->
               </div>
             </td>
           </ng-container>
@@ -213,10 +184,6 @@
           <mat-icon class="state-icon empty">inbox</mat-icon>
           <h3>No hay registros disponibles</h3>
           <p>Comienza agregando tu primer registro de trabajo diario</p>
-          <button mat-raised-button color="primary" (click)="openCreateDialog()" class="create-first-button">
-            <mat-icon>add</mat-icon>
-            Crear Primer Registro
-          </button>
         </div>
       </div>
 

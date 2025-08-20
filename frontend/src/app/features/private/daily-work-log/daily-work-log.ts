@@ -5,12 +5,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
 import { DailyWorkLogService } from '../../../services/DailyWorkLogService/daily-work-log-service';
-import { DailyWorkLogForm } from './form/daily-work-log-form/daily-work-log-form';
 import { DailyWorkLogUpload } from './form/daily-work-log-upload/daily-work-log-upload';
 import { DailyWorkLogReceive } from './form/daily-work-log-receive/daily-work-log-receive';
 import { MatDialog } from '@angular/material/dialog';
 import { ChangeDetectorRef } from '@angular/core';
-
 import { Router } from '@angular/router';
 
 export interface WorkLogElement {
@@ -45,13 +43,19 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
   private dialog = inject(MatDialog);
   private router = inject(Router);
   
-  isLoading = true;
+  isLoading = false;  // Cambiar el estado inicial
   error: string | null = null;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   ngOnInit() {
-    this.loadWorkLogData();
+    this.isLoading = false;
+    this.error = null;
+    this.cdr.detectChanges();
+    
+    Promise.resolve().then(() => {
+      this.loadWorkLogData();
+    });
   }
 
   ngAfterViewInit() {
@@ -59,76 +63,53 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
   }
 
   loadWorkLogData() {
-    this.isLoading = true;
-    this.error = null;
-    
-    this.dailyWorkLogService.getOrdersWorkLogData()
-      .subscribe({
-        next: (data) => {
-          this.dataSource.data = data;
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          this.error = 'Error al cargar los datos. Por favor, intenta nuevamente.';
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        }
-      });
+    Promise.resolve().then(() => {
+      this.isLoading = true;
+      this.error = null;
+      this.cdr.detectChanges();
+      
+      this.dailyWorkLogService.getOrdersWorkLogData()
+        .subscribe({
+          next: (data) => {
+            this.dataSource.data = data;
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          },
+          error: (error) => {
+            this.error = 'Error al cargar los datos. Por favor, intenta nuevamente.';
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          }
+        });
+    });
   }
 
   reloadData() {
-    this.loadWorkLogData();
-  }
-
-  openCreateDialog() {
-    const dialogRef = this.dialog.open(DailyWorkLogForm, {
-      width: '500px',
-      data: { 
-        isEdit: false,
-        workLog: null 
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadWorkLogData();
-      }
-    });
-  }
-
-  openEditDialog(workLog: WorkLogElement) {
-    const dialogRef = this.dialog.open(DailyWorkLogForm, {
-      width: '500px',
-      data: { 
-        isEdit: true,
-        workLog: workLog 
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadWorkLogData();
-      }
+    Promise.resolve().then(() => {
+      this.loadWorkLogData();
     });
   }
 
   deleteWorkLog(id: number) {
     if (confirm('¿Estás seguro de que deseas eliminar este registro?')) {
-      this.isLoading = true;
-      this.dailyWorkLogService.deleteWorkLog(id)
-        .subscribe({
-          next: () => {
-            this.isLoading = false;
-            this.cdr.detectChanges();
-            this.loadWorkLogData();
-          },
-          error: (error) => {
-            this.isLoading = false;
-            this.cdr.detectChanges();
-            this.error = 'Error al eliminar el registro. Por favor, intenta nuevamente.';
-          }
-        });
+      Promise.resolve().then(() => {
+        this.isLoading = true;
+        this.cdr.detectChanges();
+        
+        this.dailyWorkLogService.deleteWorkLog(id)
+          .subscribe({
+            next: () => {
+              this.isLoading = false;
+              this.cdr.detectChanges();
+              this.loadWorkLogData();
+            },
+            error: (error) => {
+              this.isLoading = false;
+              this.error = 'Error al eliminar el registro. Por favor, intenta nuevamente.';
+              this.cdr.detectChanges();
+            }
+          });
+      });
     }
   }
 
@@ -156,8 +137,13 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
       height: '85vh',
     });
 
-    dialogRef.afterClosed().subscribe(() => {
-      // Aquí puedes realizar cualquier acción después de cerrar el modal si es necesario
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        Promise.resolve().then(() => {
+          this.cdr.detectChanges();
+          this.loadWorkLogData();
+        });
+      }
     });
   }
 

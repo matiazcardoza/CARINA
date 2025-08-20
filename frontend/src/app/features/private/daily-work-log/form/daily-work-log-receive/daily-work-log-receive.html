@@ -60,8 +60,9 @@
       </div>
     </form>
 
-    <div *ngIf="getTipoMaquinaria()" class="machinery-type">
-      <strong>Tipo:</strong> {{ getTipoMaquinaria() === 'SECA' ? 'Máquina Seca' : 'Máquina Servida' }}
+    <!-- Cambiado: usar la propiedad precalculada en lugar de llamar al método -->
+    <div *ngIf="tipoMaquinaria" class="machinery-type">
+      <strong>Tipo:</strong> {{ getTipoMaquinariaLabel() }}
     </div>
 
     <!-- Loading Spinner -->
@@ -157,7 +158,8 @@
                   </div>
                   <div class="cost-item total">
                     <span class="cost-label">Total:</span>
-                    <span class="cost-value">{{ formatCurrency(getTotal()) }}</span>
+                    <!-- Cambiado: usar la propiedad precalculada -->
+                    <span class="cost-value">{{ formatCurrency(totalCalculado) }}</span>
                   </div>
                 </div>
               </div>
@@ -192,13 +194,15 @@
           <button 
             mat-raised-button 
             color="primary"
-            (click)="importOrder()">
+            (click)="importOrder()"
+            [disabled]="isLoading">
             <mat-icon>download</mat-icon>
             Importar Orden
           </button>
           <button 
             mat-button
-            (click)="clearData()">
+            (click)="clearData()"
+            [disabled]="isLoading">
             <mat-icon>refresh</mat-icon>
             Nueva Búsqueda
           </button>

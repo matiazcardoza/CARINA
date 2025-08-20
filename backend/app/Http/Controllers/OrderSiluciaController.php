@@ -24,13 +24,30 @@ class OrderSiluciaController extends Controller
 
     public function importOrder(Request $request)
     {
-        Log::info('Importing order with data: ', $request->all());
         $silucia_id = $request->idservicio;
         $goal_project = $request->idmeta;
-        $api_date = $request->all();
-        $state = $request->estado;
+        $api_date = $request->item;
+        Log::info('este es el api_date', ['api_date' => $api_date]);
+        $state = $request->state;
+        $description = $request->item;
+        $symbol = ',';
+        $clean_description = strstr($description, $symbol, true);
 
+        $order = new OrderSilucia();
+        $order->silucia_id = $silucia_id;
+        $order->order_type = 'SERVICIO';
+        $order->issue_date = now();
+        $order->goal_project = $goal_project;
+        $order->api_date = $api_date;
 
+        
+        $order->save();
+
+        $service = new Service();
+        $service->order_id = $order->id;
+        $service->description = $clean_description;
+        $service->state = $state;
+        $service->save();
     }
 
     // VideoCommentController

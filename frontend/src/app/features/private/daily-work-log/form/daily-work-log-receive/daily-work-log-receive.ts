@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, Inject } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
@@ -9,6 +9,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { DailyWorkLogService } from '../../../../../services/DailyWorkLogService/daily-work-log-service';
 
 interface OrderDetail {
@@ -34,7 +35,7 @@ interface OrderDetail {
   total_conformidad: number;
   operadores: any[];
   vehiculos: any[];
-  state? : number;
+  state?: number;
 }
 
 interface OrderResponse {
@@ -67,11 +68,17 @@ export class DailyWorkLogReceive implements OnInit {
   isLoading = false;
   orderData: OrderDetail | null = null;
   showResults = false;
+  
+  // Agregar propiedades para evitar múltiples llamadas a métodos en el template
+  tipoMaquinaria: 'SECA' | 'SERVIDA' | null = null;
+  totalCalculado: number = 0;
 
   constructor(
     private fb: FormBuilder, 
     private dailyWorkLogService: DailyWorkLogService,
-    private cdr: ChangeDetectorRef
+    private dialogRef: MatDialogRef<DailyWorkLogReceive>,
+    private cdr: ChangeDetectorRef,  // Asegúrate de inyectar ChangeDetectorRef
+    @Inject(MAT_DIALOG_DATA) public data: any
   ) {}
 
   ngOnInit(): void {
@@ -97,28 +104,37 @@ export class DailyWorkLogReceive implements OnInit {
     const numeroOrden = this.orderForm.get('numeroOrden')?.value;
     this.isLoading = true;
     this.showResults = false;
+    this.orderData = null;
+    this.tipoMaquinaria = null;
+    this.totalCalculado = 0;
 
     this.dailyWorkLogService.getOrderByNumber(numeroOrden).subscribe({
       next: (response: OrderResponse) => {
         if (response.data && response.data.length > 0) {
           this.orderData = response.data[0];
-          const tipoMaquinaria = this.getTipoMaquinaria();
-          if (tipoMaquinaria === 'SECA') {
+          
+          this.tipoMaquinaria = this.calculateTipoMaquinaria();
+          this.totalCalculado = this.calculateTotal();
+          
+          if (this.tipoMaquinaria === 'SECA') {
             this.orderData.state = 1;
-          } else if (tipoMaquinaria === 'SERVIDA') {
+          } else if (this.tipoMaquinaria === 'SERVIDA') {
             this.orderData.state = 2;
           } else {
             this.orderData.state = 0; 
           }
+          
           this.showResults = true;
           this.numeroOrdenErrors = null;
         } else {
           this.numeroOrdenErrors = 'No se encontraron datos para esta orden.';
           this.orderData = null;
           this.showResults = false;
+          this.tipoMaquinaria = null;
+          this.totalCalculado = 0;
         }
-        
         this.isLoading = false;
+        
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -126,6 +142,8 @@ export class DailyWorkLogReceive implements OnInit {
         this.numeroOrdenErrors = 'Ocurrió un error al buscar la orden. Intente de nuevo.';
         this.orderData = null;
         this.showResults = false;
+        this.tipoMaquinaria = null;
+        this.totalCalculado = 0;
         this.isLoading = false;
         this.cdr.detectChanges();
       }
@@ -137,6 +155,8 @@ export class DailyWorkLogReceive implements OnInit {
     this.numeroOrdenErrors = null;
     this.orderData = null;
     this.showResults = false;
+    this.tipoMaquinaria = null;
+    this.totalCalculado = 0;
   }
 
   hasFieldError(fieldName: string): boolean {
@@ -166,9 +186,13 @@ export class DailyWorkLogReceive implements OnInit {
     }).format(amount);
   }
 
-  getTotal(): number {
+  private calculateTotal(): number {
     if (!this.orderData) return 0;
     return this.orderData.cantidad * this.orderData.precio;
+  }
+
+  getTotal(): number {
+    return this.totalCalculado;
   }
 
   formatDate(dateString: string): string {
@@ -181,22 +205,34 @@ export class DailyWorkLogReceive implements OnInit {
   }
 
   importOrder(): void {
+    if (!this.orderData) return;
+    this.isLoading = true;
     const ImportOrderData = this.orderData;
-    this.dailyWorkLogService.importOrder(ImportOrderData).subscribe({
-      next: (response) => {
-        this.isLoading = false;
-        this.cdr.detectChanges();
-        this.clearData();
-      },
-      error: (error) => {
-        this.isLoading = false;
-        this.cdr.detectChanges();
-        console.error('Error al crear:', error);
-      }
-    });
+    
+    setTimeout(() => {
+      this.dailyWorkLogService.importOrder(ImportOrderData).subscribe({
+        next: (response) => {
+          this.isLoading = false;
+          this.cdr.detectChanges();
+          setTimeout(() => {
+            this.dialogRef.close(true);
+          }, 100);
+        },
+        error: (error) => {
+          console.error('Error al crear:', error);
+          this.isLoading = false;
+          this.numeroOrdenErrors = 'Error al importar la orden. Intente de nuevo.';
+          this.cdr.detectChanges();
+        }
+      });
+    }, 0);
   }
 
-  getTipoMaquinaria(): 'SECA' | 'SERVIDA' | null {
+  closeDialog(): void {
+    this.dialogRef.close(false);
+  }
+
+  private calculateTipoMaquinaria(): 'SECA' | 'SERVIDA' | null {
     if (!this.orderData?.item) return null;
     const texto = this.orderData.item.toUpperCase();
     if (texto.includes('MAQUINA SECA')) {
@@ -206,5 +242,20 @@ export class DailyWorkLogReceive implements OnInit {
       return 'SERVIDA';
     }
     return null;
+  }
+
+  getTipoMaquinaria(): 'SECA' | 'SERVIDA' | null {
+    return this.tipoMaquinaria;
+  }
+
+  getTipoMaquinariaLabel(): string {
+    switch (this.tipoMaquinaria) {
+      case 'SECA':
+        return 'Máquina Seca';
+      case 'SERVIDA':
+        return 'Máquina Servida';
+      default:
+        return '';
+    }
   }
 }
