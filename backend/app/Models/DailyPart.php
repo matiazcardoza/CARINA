@@ -14,6 +14,7 @@ class DailyPart extends Model
 
     protected $fillable = [
         'service_id',
+        'description',
         'work_date',
         'start_time',
         'end_time',
