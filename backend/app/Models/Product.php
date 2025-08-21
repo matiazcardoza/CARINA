@@ -15,6 +15,8 @@ class Product extends Model
 
     protected $fillable = [
         'order_id',
+        'id_order_silucia',
+        'id_product_silucia',
         'name',
         'heritage_code',
         'unit_price',

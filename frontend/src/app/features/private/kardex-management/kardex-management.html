@@ -1,4 +1,4 @@
-<div><div class="card">
+<div class="card">
   <div>
     <h1 class="text-3xl font-semibold mb-2">Gestión del Kardex</h1>
     <p class="text-lg text-gray-500">Aquí se muestran los productos relacionados a las órdenes de compra.</p>
@@ -18,6 +18,7 @@
   [scrollable]="true"
   scrollDirection="both"
   [tableStyle]="{ 'min-width': '100rem' }"
+  [loading]="loadingProducts()"
   
   >
   <!-- scrollHeight="flex"  -->
@@ -25,11 +26,18 @@
     <ng-template pTemplate="caption">
       <p-iconfield iconPosition="left">
         <p-inputicon><i class="pi pi-search"></i></p-inputicon>
-        <input
+        <!-- <input
           pInputText
           type="text"
           [value]="($any(dt1.filters?.['global']))?.value ?? ''"
           (input)="dt1.filterGlobal($event.target.value, 'contains')"
+          placeholder="Global Search"
+        /> -->
+        <input
+          pInputText
+          type="text"
+          [value]="filterProducts()"
+          (input)="getProductsOfSiluciaBackend({numero: $event.target?.value})"
           placeholder="Global Search"
         />
       </p-iconfield>
@@ -105,7 +113,7 @@
         <p-button
           icon="pi pi-eye"
           severity="info"
-          (onClick)="handleModalSeeDetailsOfMovimentKardex()">
+          (onClick)="openMovementDetailsModal(product)">
         </p-button>
         <!-- label="Agregar" -->
         <p-button
@@ -138,34 +146,30 @@
   [closable]="false"
   [style]="{ width: '420px' }"
 >
-  <div class="p-fluid flex flex-col gap-3">
+  <div class="p-fluid flex flex-col gap-3 container_dialog">
 
     <!-- Tipo de movimiento -->
-    <div class="field">
+    <div class="field dialog_item">
       <label class="font-medium mb-1 block">Tipo de movimiento</label>
 
-        <!-- <div class="card flex justify-center">
-            <p-autocomplete [(ngModel)]="value" [suggestions]="items" (completeMethod)="search($event)" />
-        </div> -->
-    <p-autoComplete
-        [(ngModel)]="form.movementType"
-        [suggestions]="filteredMovementOptions"
-        (completeMethod)="searchMovement($event)"
-        [dropdown]="true"
-        [forceSelection]="true"
-        [minLength]="0"
-        placeholder="Selecciona una opción"
-        appendTo="body"
-    ></p-autoComplete>
-    <!-- [options]="movementOptions" -->
+      <p-autoComplete
+          [(ngModel)]="form.movement_type"
+          [suggestions]="filteredMovementOptions"
+          (completeMethod)="searchMovement($event)"
+          [dropdown]="true"
+          [forceSelection]="true"
+          [minLength]="0"
+          placeholder="Selecciona una opción"
+          appendTo="body"
+      ></p-autoComplete>
     </div>
 
     <!-- Cantidad -->
-    <div class="field">
+    <div class="field dialog_item">
       <label for="cantidad" class="font-medium mb-1 block">Cantidad</label>
       <p-inputNumber
         inputId="cantidad"
-        [(ngModel)]="form.cantidad"
+        [(ngModel)]="form.amount"
         [min]="1"
         [useGrouping]="false"
         [showButtons]="true"
@@ -173,8 +177,8 @@
     </div>
 
     <!-- Personas -->
-    <div class="field">
-      <div class="flex items-center justify-between">
+    <div class="field dialog_people">
+      <div class="flex items-center justify-between dialog_people_item">
         <span class="font-medium">Personas</span>
         <p-button
           icon="pi pi-user-plus"
@@ -201,9 +205,80 @@
         label="Aceptar"
         icon="pi pi-check"
         (onClick)="onSubmitMovement()"
-        [disabled]="!form.movementType || !form.cantidad"
+        [disabled]="!form.movement_type || !form.amount"
       ></p-button>
     </div>
   </ng-template>
 </p-dialog>
-</div>
+
+
+<!-- ------------------ Modal para mostrar movimientos-------------------- -->
+ 
+
+
+
+
+<p-dialog
+  header="Detalles de movimientos"
+  [(visible)]="showMovementDetailsModal"
+  [modal]="true"
+  [closable]="false"
+  [style]="{ width: '920px'}"
+>
+  <div class="p-fluid flex flex-col gap-3">
+    <p-table
+      [value]="movementsKardex()"
+      [paginator]="true"
+      [rows]="movementsPageSize"
+      [totalRecords]="movementsTotal()"
+      [lazy]="true"
+      (onLazyLoad)="onMovementsLazyLoad($event)"
+      [loading]="movementsLoading()"
+      [tableStyle]="{ 'min-width': '60rem' }"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="id">ID <p-sortIcon field="id"/></th>
+          <th pSortableColumn="movement_type">Tipo <p-sortIcon field="movement_type"/></th>
+          <th pSortableColumn="movement_date">Fecha <p-sortIcon field="movement_date"/></th>
+          <th pSortableColumn="amount">Cantidad <p-sortIcon field="amount"/></th>
+          <!-- <th pSortableColumn="final_balance">Saldo final <p-sortIcon field="final_balance"/></th> -->
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-movement>
+        <tr>
+          <td>{{ movement.id }}</td>
+          <td>{{ movement.movement_type }}</td>
+          <td>{{ movement.movement_date }}</td>
+          <td>{{ movement.amount }}</td>
+          <!-- <td>{{ movement.final_balance ?? '-' }}</td> -->
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="footer">
+        <tr>
+          <td colspan="5">
+            <div class="flex justify-end gap-6" style="display:flex; justify-content:flex-start; gap:1.5rem;">
+              <span><strong>Total entradas:</strong> {{ totalEntradas }}</span>
+              <span><strong>Total salidas:</strong> {{ totalSalidas }}</span>
+              <span><strong>Stock (entradas - salidas):</strong> {{ stockSaldo }}</span>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr><td colspan="5">Sin movimientos.</td></tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2 w-full">
+      <p-button label="Cerrar" severity="secondary" outlined (onClick)="closeMovementDetailsModal()"></p-button>
+      <p-button label="Descargar informe" icon="pi pi-download" (onClick)="onSubmitMovementDetails()"></p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+
