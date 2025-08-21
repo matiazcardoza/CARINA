@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, DestroyRef, inject, Signal, signal, effect  } from '@angular/core';
 import { SlicePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -12,9 +12,10 @@ import { Button } from 'primeng/button';
 import { Tag } from 'primeng/tag';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
-
+import { KardexManagementService } from './services/kardex-management.service';
 // Data mock
 import { clients, products } from './utils/mockup-data';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-kardex-management',
@@ -34,14 +35,17 @@ export class KardexManagement {
   // ----- State (signals / props) -----
   customers = signal<any[]>([]);
   products = signal<any[]>([]);
+  loadingProducts = signal<boolean>(false);
+  errorLoadingProducts = signal<string>('');
   selectedCustomers!: any;
   selectedProduct: any | null = null;
+  filterProducts =  signal<string>('');
 
   // Modales
   openModalSeeDetailsOfMovimentKardex = signal<boolean>(true);
   openModaladdMovimentKardex = signal<boolean>(true);
   showMovementModal = false;
-
+  showMovementDetailsModal = false;
   // Personas (opcional, listo para crecer)
   people = signal<any[]>([]);
   selectedPersonId: number | null = null;
@@ -50,17 +54,43 @@ export class KardexManagement {
   newPersonDocument = '';
 
   // Form movimiento (usaremos AutoComplete tipo dropdown con strings “Entrada/Salida”)
-  movementOptionsStr: Array<'Entrada' | 'Salida'> = ['Entrada', 'Salida'];
+  movementOptionsStr: Array<'entrada' | 'salida'> = ['entrada', 'salida'];
   filteredMovementOptions: string[] = [];
+
   form = {
-    movementType: null as 'Entrada' | 'Salida' | null,
-    cantidad: null as number | null
+    movement_type: null as 'entrada' | 'salida' | null,
+    amount: null as number | null,
+    id_order_silucia: null as number | null,
+    id_product_silucia: null as number |null,
   };
 
+  movementsKardex    = signal<any[]>([]);
+  movementsLoading   = signal<boolean>(false);
+  movementsTotal     = signal<number>(0);
+  movementsPageSize  = 50; // lo ajustaremos con lo que devuelva el backend
+  selectedProductForMovements: any | null = null;
+
+  private readonly destroyRef = inject(DestroyRef); 
+  constructor(private service:KardexManagementService){
+    effect(()=>{
+      console.log("valor inicial del filterProducts: ", this.filterProducts());
+    })
+  }
+
   // ----- Lifecycle -----
+
   ngOnInit() {
-    this.customers.set(clients);
-    this.products.set(products.data);
+    this.getProductsOfSiluciaBackend({});
+    // this.customers.set(clients);
+    // this.products.set(products.data)
+  }
+
+  getProductsOfSiluciaBackend(filters:{ numero?: string; anio?: number; estado?: string }){
+    this.loadingProducts.set(true);
+    this.service.getSiluciaProducts(filters).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: res => { this.products.set(res.data); this.loadingProducts.set(false)},
+      error: err => { this.errorLoadingProducts.set('No se pudo cargar'); this.loadingProducts.set(false) }
+    });
   }
 
   // ----- Helpers UI -----
@@ -100,12 +130,31 @@ export class KardexManagement {
 
   // ----- Movimiento (modal) -----
   openMovementModal(_row?: any) {
+
+    /**
+     * Los valores con los cuales identificaremos a un producto es por su id unico 
+     * de proudcto llamado "idompradet"y tambien necesitamos indentificar a la orden, 
+     * lo hacemo por el id de orden que es "numero", este valor tiene que ser 
+     * unico en la base de datos de silucia.
+     * 
+     * posteriormente vamos a necesitar los demas valores, especificamente para 
+     * asegurarnos de que no se manipulen los valores, es decir que las personas, como 
+     * un programador no modifique valores como cantidad de producsot que ya existian
+     */
+    this.form.id_order_silucia =  Number(_row.numero);
+    this.form.id_product_silucia=  _row.idcompradet;
     this.showMovementModal = true;
+    console.log(this.form)
   }
 
   closeMovementModal() {
     this.showMovementModal = false;
-    this.form = { movementType: null, cantidad: null };
+    this.form = { 
+      movement_type: null, 
+      amount: null, 
+      id_order_silucia: null ,
+      id_product_silucia: null ,
+    };
   }
 
   // AutoComplete como dropdown
@@ -120,11 +169,150 @@ export class KardexManagement {
     // Aquí puedes mapear si necesitas valor interno en minúsculas:
     // const value = this.form.movementType === 'Entrada' ? 'entrada' : 'salida';
     console.log('Movimiento:', this.form);
+    console.log('Datos de formulario seleccionados: ', this.filteredMovementOptions);
+    
+    this.service.createKardexMovement(this.form).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: res => { 
+        this.getProductsOfSiluciaBackend({});
+      },
+      error: err => { 
+        this.errorLoadingProducts.set('No se pudo cargar');
+      }
+    });
     this.closeMovementModal();
   }
+
+  // ----- Detalles de movimiento (modal) -----
+  // openMovementDetailsModal(_row?: any){
+  //   // debemos hacer la peticion para obtner la tabla de detalles de movimeinto
+  //   this.service.getKardexMovementBySiluciaBackend(_row.numero, _row.idcompradet).subscribe({
+  //     next: res => {
+  //       this.movementsKardex.set(res.movements.data) 
+  //       console.log("datos de movimiento relacinados a un orden a un producto de la base de datos silucia: ", res)
+  //     },
+  //     error: err => { 
+  //       this.errorLoadingProducts.set('No se pudo cargar');
+  //     }
+  //   });
+  //   this.showMovementDetailsModal = true;
+  // }
+  // openMovementDetailsModal(row?: any){
+  //     this.selectedProductForMovements = row;
+  //     this.showMovementDetailsModal = true;
+  //     this.fetchMovements(1, this.movementsPageSize);
+  //   }
+    openMovementDetailsModal(row?: any) {
+    this.selectedProductForMovements = row;
+    this.showMovementDetailsModal = true;
+    this.fetchMovements(1, this.movementsPageSize);
+  }
+    
+    private fetchMovements(page: number, perPage: number) {
+    if (!this.selectedProductForMovements) return;
+
+    const orderNum = this.selectedProductForMovements.numero;
+    const productIdSilucia = this.selectedProductForMovements.idcompradet;
+
+    this.movementsLoading.set(true);
+
+    // Ajusta tu servicio para aceptar page y per_page en la URL
+    this.service.getKardexMovementBySiluciaBackend(orderNum, productIdSilucia, {
+      page,
+      per_page: perPage,
+    })
+      .subscribe({
+        next: (res: any) => {
+          // Backend que mostraste: res.movements.{data,total,per_page}
+          this.movementsKardex.set(res.movements.data);
+          this.movementsTotal.set(res.movements.total);
+          this.movementsPageSize = res.movements.per_page;
+          this.movementsLoading.set(false);
+        },
+        error: _ => {
+          this.movementsLoading.set(false);
+        }
+      });
+  }
+  // getKardexMovementBySiluciaBackend(numero: number|string, idcompradet: number, page=1, perPage=50) {
+  //   return this.http.get<any>(
+  //     `/api/silucia-orders/${numero}/products/${idcompradet}/movements-kardex`,
+  //     { params: { page, per_page: perPage } }
+  //   );
+  // }
+
+  closeMovementDetailsModal(){
+    this.showMovementDetailsModal = false;
+    this.movementsKardex.set([]);
+  }
+
+  onSubmitMovementDetails(){
+    // Debemos descargar el pdf para el reporte
+      console.log("detalles de pdf: ",this.selectedProductForMovements);
+      const id_order_silucia = this.selectedProductForMovements.numero;
+      const id_product_silucia = this.selectedProductForMovements.idcompradet;
+      // this.service.downloadPdf(2874,249069).subscribe(res => {
+      this.service.downloadPdf(id_order_silucia,id_product_silucia).subscribe(res => {
+        const blob = res.body!;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        // si no quieres fijar nombre en front, no pongas nada especial;
+        // 'a.download' vacío usa el que mande el navegador/servidor en muchos casos
+        a.href = url;
+        a.download = ''; 
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      });
+  }
+
+  
 
   // ----- Placeholder (si cierras otros modales) -----
   closeMovementsModal() {
     // hook para cerrar modal principal si lo usas en otro lado
   }
+
+  onMovementsLazyLoad(e: any) {
+    // e.first = índice inicial, e.rows = tamaño de página
+    const page = Math.floor((e.first ?? 0) / (e.rows ?? this.movementsPageSize)) + 1;
+    const perPage = e.rows ?? this.movementsPageSize;
+    this.fetchMovements(page, perPage);
+  }
+
+
+  // utilidades para calcular totales:
+  
+  // ...tu código existente...
+
+  /** Utilidad segura para convertir a número */
+    private toNum(v: any): number {
+      const n = typeof v === 'number' ? v : parseFloat(String(v));
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    /** Total de ENTRADAS en la página actual del modal */
+    get totalEntradas(): number {
+      return (this.movementsKardex() ?? []).reduce(
+        (sum, m) => sum + (m?.movement_type === 'entrada' ? this.toNum(m?.amount) : 0),
+        0
+      );
+    }
+
+    /** Total de SALIDAS en la página actual del modal */
+    get totalSalidas(): number {
+      return (this.movementsKardex() ?? []).reduce(
+        (sum, m) => sum + (m?.movement_type === 'salida' ? this.toNum(m?.amount) : 0),
+        0
+      );
+    }
+
+    /** “Stock” según tu consigna: salidas - entradas */
+    get stockSaldo(): number {
+      return this.totalEntradas - this.totalSalidas ;
+      // Nota: contabilidad clásica suele usar entradas - salidas; aquí respeto lo que pediste.
+    }
+
+
+
 }
