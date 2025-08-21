@@ -247,6 +247,23 @@ export class KardexManagement {
 
   onSubmitMovementDetails(){
     // Debemos descargar el pdf para el reporte
+      console.log("detalles de pdf: ",this.selectedProductForMovements);
+      const id_order_silucia = this.selectedProductForMovements.numero;
+      const id_product_silucia = this.selectedProductForMovements.idcompradet;
+      // this.service.downloadPdf(2874,249069).subscribe(res => {
+      this.service.downloadPdf(id_order_silucia,id_product_silucia).subscribe(res => {
+        const blob = res.body!;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        // si no quieres fijar nombre en front, no pongas nada especial;
+        // 'a.download' vacío usa el que mande el navegador/servidor en muchos casos
+        a.href = url;
+        a.download = ''; 
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      });
   }
 
   

@@ -41,18 +41,19 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/products/{product}/movements-kardex', [ProductMovementKardexController::class, 'index']);
 
     Route::post('/products/{product}/kardex',[MovementKardexController::class, 'storeForProduct']);
-    Route::get('/products/{product}/movements-kardex/pdf',[ProductMovementKardexController::class, 'pdf']);
+    
 
     /** 
      * Lo usamos para registrar un movimiento y al mismo tiempo registrar en productos los datos obtenidoso de la enpodint de silucia,
      * y el registro ya existe en producto, solemente se asigna un nuevo movimiento
      */
-         // 1 movimiento
+    // 1 movimiento
     // Route::post('/kardex/movements/bulk', [MovementKardexController::class, 'bulk']);   // varios movimientos
 });
 
-// Route::post('/movements-kardex', [MovementKardexController::class, 'store']);  
-Route::post('/movements-kardex', [MovementKardexController::class, 'store']);  
-Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex',  [MovementKardexController::class, 'indexBySiluciaIds']);
-Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf']);
+    Route::get('/products/{product}/movements-kardex/pdf',[ProductMovementKardexController::class, 'pdf']);
+    // Route::post('/movements-kardex', [MovementKardexController::class, 'store']);  
+    Route::post('/movements-kardex', [MovementKardexController::class, 'store']);  
+    Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex',  [MovementKardexController::class, 'indexBySiluciaIds']);
+    Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf']);
 

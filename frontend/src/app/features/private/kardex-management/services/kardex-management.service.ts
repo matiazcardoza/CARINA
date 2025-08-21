@@ -57,5 +57,16 @@ export class KardexManagementService {
       { params }
     );
   }
+
+  downloadPdf(id_order_silucia:number,id_product_silucia:number ): Observable<HttpResponse<Blob>> {
+    // return this.http.get(`${this.apiUrl}/api/pdf`, {
+    // return this.http.get(`${this.apiUrl}/api/products/${id}/movements-kardex/pdf`, {
+    return this.http.get(`${this.apiUrl}/api/silucia-orders/${id_order_silucia}/products/${id_product_silucia}/movements-kardex/pdf`, {
+      responseType: 'blob',
+      observe: 'response',
+      withCredentials: true,                 // si usas cookies/Sanctum
+      headers: { Accept: 'application/pdf' } // opcional
+    });
+  }
     
 }

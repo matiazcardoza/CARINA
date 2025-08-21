@@ -5,62 +5,77 @@
     <meta charset="UTF-8">
     <title>Lista de items</title>
     <style>
+        @page {
+            /* margin: 0px 0px; top/bottom: 100px, left/right: 50px */
+            margin: 50px 50px; /* top/bottom: 100px, left/right: 50px */
+            font-family: DejaVu Sans, sans-serif;
+        }
+        /* ===== UNIFICAR BORDES: color y grosor ===== */
+                                            /* Color y grosor únicos */
+                                            :root { --bcolor: #3f3f3fff; --bsize: 1px; }  /* ajusta 1px si los quieres más gruesos */
+
+                                            /* Evita dobles bordes */
+                                            table { border-collapse: collapse !important; }
+
+                                            /* Tablas principales */
+                                            .box th, .box td,
+                                            .table_01 th, .table_01 td,
+                                            .totales th, .totales td,
+                                            .firmas td,
+                                            .signature_container,
+                                            .signature_item {
+                                            border: var(--bsize) solid var(--bcolor) !important;
+                                            }
+
+                                            /* Quita reglas viejas que cambiaban color/grosor en la caja izquierda */
+                                            .caja-izq {
+                                            border: var(--bsize) solid var(--bcolor) !important;
+                                            }
+
+                                            /* Si no quieres líneas grises en la tabla de datos */
+                                            .th_table_01, .td_table_01 { border-color: var(--bcolor) !important; }
+
+                                            /* (opcional) encabezados sin gris de fondo */
+                                            .th_table_01 { background-color: #f2f2f2; } /* o quítalo si lo quieres blanco */
+
         /* ===== Estilos generales ===== */
-        * {
-            margin: 0px;                /* ✅ Sí funciona */
-            padding: 0px;               /* ✅ Sí funciona */
+        /* * {
+            margin: 0px;                
+            padding: 0px;               
             box-sizing: border-box;
         }
         html{
-            /* background: orange; */
             padding: 1rem;
             margin: 2rem;
             margin-bottom: 0;
-        }
+        } */
+
         body {
-
-            font-family: DejaVu Sans, sans-serif;
+            /* font-family: DejaVu Sans, sans-serif; */
             font-size: 12px;
-            /* color: #333; */
-            /* margin: 20px; */
-            /* padding: 2rem; */
+            font-family: "DejaVu Sans", sans-serif;
         }
 
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 20px;
-        }
-        .title_container{
-            /* background: pink; */
-            margin-bottom: 8px;
-        }
-        .title_container > h1 {
-            margin-bottom: 0px;
-        }
-            .secondary_title{
-                font-size: 1.2rem;
-            }
 
-        /* ===== Estilos para detalles ===== */
+/* ===== Estilos para tabla de encabezados uno ===== */
+        table.box { width: 100%; border-collapse: separate; margin-bottom: 4px; }
+        table.box td, table.box th { border: 1px solid #000; padding: 6px; }
+
+        /* Bloque superior */
+        .left-panel   { width: 40%; height: 10px; text-align: center; vertical-align: middle; background: #e4e4e4ff; font-size: 2rem; }
+        .obra         { height: 25px; vertical-align: middle; }
+        .obra-empty   { height: 25px; }
+
+        /* Bloque inferior */
+        .material     { width: 70%; height: 40px; vertical-align: middle; padding-left: 12px; }
+        .subhead      { width: 25%; text-align: center; }
+        .subcell      { height: 25px; } /* área en blanco bajo los encabezados */
+/* ===== Estilos para detalles ===== */
         .details_container{
-            /* background: #FFADDD; */
-            /* display: inline-block; */
             width: 100%;
-            /* display: block; */
-            /* display: inline; */
-                /* vertical-align: top; */
-            /* vertical-align: top; */
         }
 
             .details_row{
-                /* display: inline-block;
-                vertical-align: top; */
-                    /* margin-left: 1.4rem; */
-                /* background: #EDFFAD; */
-                /* display: inline-block; */
-                /* vertical-align: top; */
-                /* width: 100%; */
                 margin-bottom: 0.5rem;
             }
 
@@ -73,38 +88,32 @@
                     color: #2c3e50;
                 }
 
-
-        /* ===== Estilos de la tabla ===== */
-        table {
+/* ===== Estilos de la tabla ===== */
+        .table_01 {
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
         }
 
-        th, td {
+        .th_table_01, .td_table_01 {
             border: 1px solid #bbb;
             padding: 8px;
             text-align: left;
         }
 
-        th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-        }
-
+            .th_table_01 {
+                background-color: #f2f2f2;
+                font-weight: bold;
+            }
+            /* Texto alineado al centro para el número */
+            .td_table_01:first-child {
+                text-align: center;
+                font-weight: bold;
+            }
         /* Fila alternada */
-        tbody tr:nth-child(even) {
+        .tbody_table_01, tr:nth-child(even) {
             background-color: #f9f9f9;
         }
-
-        /* Texto alineado al centro para el número */
-        td:first-child {
-            text-align: center;
-            font-weight: bold;
-        }
-
-
-
 
         .signature_container{
             page-break-inside: avoid; 
@@ -179,7 +188,8 @@
                     margin-left: 1.4rem;
 
                 }
-            /* ===== Estilos para detalles ===== */
+/* ===== Estilos para detalles ===== */
+/* ===== Estilos para detalles ===== */
         .stock_container{
             margin-top: 1rem;
             /* background: #FFADDD; */
@@ -221,11 +231,68 @@
                     text-align: right;
                     width: 100%;
                 }
-    </style>
+/* ===== Estilos PARA FIRMAS ===== */
+    table.firmas { width:100%; border-collapse:collapse; table-layout:fixed; margin-top:10px; }
+    table.firmas td { border:1px solid #000; padding:0; height:120px; page-break-inside:avoid; }
+
+    /* Para ubicar el texto cerca del borde inferior */
+    .sigbox   { position:relative; height:120px; }
+    .siglabel { position:absolute; left:0; right:0; bottom:10px; text-align:center; font-weight: bold; }
+
+  /* ===== Estilos PARA DETALLES STOCK, TOTALES ENTRADAS Y SALIDAS  ===== */
+ table.totales { width:100%; border-collapse:collapse; table-layout:fixed; margin-top:8px; }
+  table.totales th, table.totales td { border:1px solid #000; padding:4px; text-align:center; }
+
+
+  /* Caja grande a la izquierda */
+  .caja-izq{
+    width:70%;
+    height: 2px;              /* ajusta la altura a tu gusto */
+    text-align:left;
+    vertical-align:top;
+    /* Bordes rojos (gana por ser más grueso) */
+    border-left:1px solid rgba(255, 255, 255, 1) !important;
+    border-top:1px solid rgba(255, 255, 255, 1) !important;
+    border-bottom:1px solid rgba(255, 255, 255, 1) !important;
+    /* El borde derecho queda negro para separar del bloque de totales */
+    border-right:10.5x solid #000 !important;
+    /* background-color: red; */
+  }
+
+  /* Encabezados y celdas de totales */
+  .th-titulo { font-weight:bold; }      /* usa 700 si quieres más grueso */
+  .td-valor  { height:15px; border: 1px solid black; }          /* altura de la fila de valores */
+
+</style>
 </head>
 <body>
 
-<div class="title_container">
+<!-- BLOQUE SUPERIOR -->
+<table class="box">
+  <tr>
+    <td class="left-panel" rowspan="2">CONTROL DE MATERIALES</td>
+    <td class="obra">OBRA: "MEJORAMIENTO DEL SERVICIO EDUCATIVO, EN LA INSTITUCIÓN EDUCATIVA PRIMARIA"</td>
+  </tr>
+  <tr>
+    <td class="obra-empty">&nbsp;</td>
+  </tr>
+</table>
+
+<!-- BLOQUE INFERIOR -->
+<table class="box">
+  <tr>
+    <td class="material" rowspan="2">MATERIAL: {{$pdf_details["product"]["name"]}}</td>
+    <th class="subhead">UNIDAD</th>
+    <th class="subhead">CODIGO</th>
+  </tr>
+  <tr>
+    <td class="subcell">&nbsp;</td>
+    <td class="subcell">&nbsp;</td>
+  </tr>
+</table>
+
+
+<!-- <div class="title_container">
     <h1 class="principal_title">Control visible de almacen</h1>
     <h1 class="secondary_title">Artículo: {{$pdf_details["product"]["name"]}}</h1>
 </div>
@@ -247,92 +314,98 @@
         <div class="details_title">Unidad:</div>
         <div class="details_item">-----</div>
     </div>
-</div>
+</div> -->
 
-<table>
 
+
+
+<table class="table_01">
     <thead>
         <meta charset="UTF-8">
         <tr>
-            <th>#</th>
-            <th>Fecha</th>
-            <th>Clase</th>
-            <th>Numero</th>
-            <th>Tipo de movimiento</th>
-            <th>Monto</th>
+            <th class="th_table_01" rowspan="2">#</th>
+            <th class="th_table_01" rowspan="2">Fecha</th>
+            <th class="th_table_01" colspan="2">Comprobante</th>
+            <!-- <th class="th_table_01">Numero</th> -->
+            <th class="th_table_01" rowspan="2">Tipo de movimiento</th>
+            <th class="th_table_01" rowspan="2">Monto</th>
+            <th class="th_table_01" rowspan="2">Nombre y Apellido (Recibido/Encargado)</th>
+            <th class="th_table_01" rowspan="2">Observaciones</th>
+        </tr>
+        <tr>
+            <!-- <th class="th_table_01">#</th> -->
+            <!-- <th class="th_table_01">Fecha</th> -->
+            <th class="th_table_01">Clase</th>
+            <th class="th_table_01">Numero</th>
+            <!-- <th class="th_table_01">Tipo de movimiento</th> -->
+            <!-- <th class="th_table_01">Monto</th> -->
+            <!-- <th class="th_table_01" >Nombre y Apellido (Recibido/Encargado)</th> -->
+             <!-- <th class="th_table_01" rowspan="2">Observaciones</th> -->
         </tr>
     </thead>
-    <tbody>
+
+    <tbody class="tbody_table_01">
         @foreach($pdf_details["movements"] as $index => $item)
             <tr>
                 <!-- <td>{{ $index + 1 }}</td> -->
-                <td>{{ $item['id'] }}</td>
-                <td>{{ $item['movement_date'] }}</td>
-                <td>{{ $item['class'] }}</td>
-                <td>{{ $item['number'] }}</td>
-                <td>{{ $item['movement_type'] }}</td>
-                <td>{{ $item['amount'] }}</td>
+                <td class="td_table_01">{{ $item['id'] }}</td>
+                <td class="td_table_01">{{ $item['movement_date'] }}</td>
+                <td class="td_table_01">{{ $item['class'] }}</td>
+                <td class="td_table_01">{{ $item['number'] }}</td>
+                <td class="td_table_01">{{ $item['movement_type'] }}</td>
+                <td class="td_table_01">{{ $item['amount'] }}</td>
+                <td class="td_table_01">Julia Mamani Yampasi</td>
+                <td class="td_table_01">Ninguna</td>
             </tr>
         @endforeach
     </tbody>
+
 </table>
 
 
-<div class="signature_container">
 
-        <div class="signature_item">
-            <h2 class="signature_title">Ingeniero supervisor</h2>
-        </div>
 
-        <div class="signature_item">
-            <h2 class="signature_title">Asistente administrativo</h2>
-        </div>
+<table class="totales">
+  <tr>
+    <td class="caja-izq" rowspan="2">
+      &nbsp;  <!-- deja espacio en blanco; pon texto si quieres -->
+    </td>
+    <th class="th-titulo">Total entrada</th>
+    <th class="th-titulo">Total Salida</th>
+    <th class="th-titulo">Stock</th>
+  </tr>
+  <tr>
+    <td class="td-valor">{{ $pdf_details['totalEntradas'] }}</td>
+    <td class="td-valor">{{ $pdf_details['totalSalidas']  }}</td>
+    <td class="td-valor">{{ $pdf_details['stockFinal']  }}</td>
+  </tr>
+</table>
 
-        <div class="signature_item">
-            <h2 class="signature_title">Almacenero de obras</h2>
-        </div>
-</div>
 
-<div class="stock_container">
-    <div class="stock_row">
-        <div class="stock_title">Total entrada:</div>
-        <div class="stock_item">{{$pdf_details["totalEntradas"]}}</div>
-    </div>
-    <div class="stock_row">
-        <div class="stock_title">Total salida:</div>
-        <div class="stock_item">{{$pdf_details["totalSalidas"]}}</div>
-    </div>
-    <div class="stock_row">
-        <div class="stock_title">Stock:</div>
-        <div class="stock_item">{{$pdf_details["stockFinal"]}}</div>
-    </div>
-</div>
-
-<div class="observations_styles">
-    <h2 class="observations_title">Observaciones</h2>
-    @foreach($pdf_details["movements"] as $index => $item)
-
-        @if(!empty($item['observations']))        
-            <h2 class="observations_container">{{ $item['id'] }}: {{ $item['observations'] }}
-                <div class="container_qr_code">
-                @if(!empty($item['qr_codes']))
-                    <!-- <div class="qr_code">XXXXXXX</div> -->
-                    @foreach($item['qr_codes'] as $qr)
-                        <!-- <div class="qr_code">{{ $qr }}</div> -->
-                        <div class="qr_code">HHHHHH</div>
-                    @endforeach
-                @endif
-                </div>
-            </h2>
-        @endif
-    @endforeach
-</div>
+<table class="firmas">
+  <tr>
+    <td>
+      <div class="sigbox">
+        <div class="siglabel">ALMACENERO</div>
+      </div>
+    </td>
+    <td>
+      <div class="sigbox">
+        <div class="siglabel">ADMINISTRADOR</div>
+      </div>
+    </td>
+    <td>
+      <div class="sigbox">
+        <div class="siglabel">RESIDENTE DE OBRA</div>
+      </div>
+    </td>
+    <td>
+      <div class="sigbox">
+        <div class="siglabel">SUPERVISOR</div>
+      </div>
+    </td>
+  </tr>
+</table>
 
 </body>
 <html>
-
-        @if(!empty($item['observations']))
-            <h2 class="observations_container">{{ $item['id'] }}: {{ $item['observations'] }}</h2>
-        @else
-            <h2 class="observations_container">{{ $item['id'] }}: Sin observaciones registradas.</h2>
-        @endif
