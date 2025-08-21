@@ -223,8 +223,8 @@
   [(visible)]="showMovementDetailsModal"
   [modal]="true"
   [closable]="false"
-  [style]="{ width: '920px'}"
->
+  >
+  <!-- [style]="{ minWidth: 'px'}" -->
   <div class="p-fluid flex flex-col gap-3">
     <p-table
       [value]="movementsKardex()"
@@ -234,8 +234,9 @@
       [lazy]="true"
       (onLazyLoad)="onMovementsLazyLoad($event)"
       [loading]="movementsLoading()"
-      [tableStyle]="{ 'min-width': '60rem' }"
-    >
+      >
+      <!-- [tableStyle]="{ 'min-width': '60rem' }" -->
+      <!-- [tableStyle]="{ 'min-width': '60rem' }" -->
       <ng-template pTemplate="header">
         <tr>
           <th pSortableColumn="id">ID <p-sortIcon field="id"/></th>
