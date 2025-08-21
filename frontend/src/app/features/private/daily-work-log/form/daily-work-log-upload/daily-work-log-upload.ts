@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
-import { CommonModule } from '@angular/common'; // Importa CommonModule
+import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
 import { DailyWorkLogService } from '../../../../../services/DailyWorkLogService/daily-work-log-service';
 
@@ -50,7 +50,7 @@ export class DailyWorkLogUpload implements OnInit {
     this.uploadForm = this.fb.group({
       end_time: [{value: '', disabled: true}, Validators.required],
       final_fuel: ['', [Validators.required, Validators.min(0)]],
-      notes: [''] // Campo opcional para notas adicionales
+      occurrence: [''] // Campo opcional para notas adicionales
     });
   }
 
@@ -145,10 +145,7 @@ export class DailyWorkLogUpload implements OnInit {
       formData.append('workLogId', this.data.workLog.id.toString());
       formData.append('end_time', formValue.end_time);
       formData.append('final_fuel', formValue.final_fuel.toString());
-      
-      if (formValue.notes) {
-        formData.append('notes', formValue.notes);
-      }
+      formData.append('occurrence', formValue.occurrence);
 
       // Agregar todas las imágenes
       this.selectedFiles.forEach((file, index) => {

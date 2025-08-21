@@ -158,6 +158,10 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
       });
     }
   }
+
+  convertWorkLogId(id: any): number {
+    return Number(id);
+  }
   
   generatePdf(id: number) {
     this.dailyWorkLogService.generatePdf(id).subscribe({

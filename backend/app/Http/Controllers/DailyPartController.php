@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DailyPart;
+use App\Models\Service;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -77,26 +78,24 @@ class DailyPartController extends Controller
     public function completeWork(Request $request)
     {
         $worlkLogId = $request->workLogId;        
-        $dailyPart = DailyPart::find($worlkLogId);
-        
-        $dailyPart->end_time = $request->end_time;
-        $dailyPart->final_fuel = $request->final_fuel;
-
-        $start = Carbon::parse($dailyPart->start_time);
-        $end = Carbon::parse($dailyPart->end_time);
-
-        $interval = $start->diff($end);
-
-        $hours = $interval->h;
-        $minutes = $interval->i;
-
-        $timeWorked = $hours + ($minutes / 60);
-
-        $dailyPart->time_worked = $timeWorked;
-
-        $dailyPart->fuel_consumed = $dailyPart->final_fuel - $dailyPart->initial_fuel;
-
+            $dailyPart = DailyPart::find($worlkLogId);
+            $dailyPart->end_time = $request->end_time;
+            $dailyPart->final_fuel = $request->final_fuel;
+            $start = Carbon::parse($dailyPart->start_time);
+            $end = Carbon::parse($dailyPart->end_time);
+            $interval = $start->diff($end);
+            $hours = $interval->h;
+            $minutes = $interval->i;
+            $timeWorked = $hours + ($minutes / 60);
+            $dailyPart->time_worked = $timeWorked;
+            $dailyPart->fuel_consumed = $dailyPart->final_fuel - $dailyPart->initial_fuel;
         $dailyPart->save();
+
+        $service = Service::find($dailyPart->service_id);
+        $service->occurrences = $request->occurrence;
+        $service->save();
+
+
 
         return response()->json([
             'message' => 'Daily work log completed successfully',
@@ -162,21 +161,79 @@ class DailyPartController extends Controller
             ]
         ];
 
+        // Ruta del logo usando storage publicado
+        $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
+        $logoWorkPath = storage_path('app/public/image_pdf_template/logo_work.png');
+    
+        // Datos de la empresa y reporte
         $reportData = [
-            'empresa' => 'EMPRESA CONSTRUCTORA DEL SUR S.A.C.',
+            'logo_empresa' => $logoPath,
+            'logo_trabajo' => $logoWorkPath,
+            'nombre_empresa' => 'GOBIERNO REGIONAL PUNO',
+            'ruc_empresa' => '20448978280',
             'proyecto' => 'MEJORAMIENTO CARRETERA PUNO - JULIACA',
             'contrato' => 'N° 2024-001-GRP',
             'fecha_generacion' => Carbon::now()->format('d/m/Y H:i:s'),
-            'usuario_genera' => 'Sistema Administrativo'
+            'usuario_genera' => 'Sistema Administrativo',
+            'periodo' => Carbon::now()->format('F Y'), // Enero 2025, etc.
+            'area' => 'GERENCIA DE INFRAESTRUCTURA'
         ];
+
+        // Datos del personal (simulando datos de planilla)
+        $personal = [
+            [
+                'orden' => 1,
+                'apellido_paterno' => 'MAMANI',
+                'apellido_materno' => 'QUISPE',
+                'nombres' => 'JUAN CARLOS',
+                'cargo' => 'OPERADOR DE MAQUINARIA',
+                'remuneracion' => 2500.00,
+                'fecha_ingreso' => '2023-01-15',
+                'fecha_nacimiento' => '1985-05-20',
+                'documento' => '12345678'
+            ],
+            [
+                'orden' => 2,
+                'apellido_paterno' => 'CONDORI',
+                'apellido_materno' => 'MAMANI',
+                'nombres' => 'MARIA ELENA',
+                'cargo' => 'INGENIERA RESIDENTE',
+                'remuneracion' => 4500.00,
+                'fecha_ingreso' => '2022-03-10',
+                'fecha_nacimiento' => '1980-12-15',
+                'documento' => '87654321'
+            ],
+            [
+                'orden' => 3,
+                'apellido_paterno' => 'QUISPE',
+                'apellido_materno' => 'HUANCA',
+                'nombres' => 'PEDRO LUIS',
+                'cargo' => 'SUPERVISOR DE OBRA',
+                'remuneracion' => 3800.00,
+                'fecha_ingreso' => '2023-07-01',
+                'fecha_nacimiento' => '1978-09-08',
+                'documento' => '45678912'
+            ]
+        ];
+
+        // Generar QR code (ejemplo básico)
+        $qr_data = "Verificar en: https://regionpuno.gob.pe/verify?id=" . $id;
+        $qr_code = base64_encode("data_qr_example"); // Aquí deberías usar una librería para generar el QR real
 
         $data = [
             'dailyPartData' => $dailyPartData,
             'reportData' => $reportData,
+            'personal' => $personal,
+            'pdf' => true,
+            'excel' => false,
+            'qr_code' => $qr_code
         ];
 
         $pdf = Pdf::loadView('pdf.daily_part', $data);
-
-        return $pdf->stream('daily_part.pdf');
+        
+        // Configurar opciones del PDF si es necesario
+        $pdf->setPaper('A4', 'portrait');
+        
+        return $pdf->stream('anexo_01_planilla.pdf');
     }
 }

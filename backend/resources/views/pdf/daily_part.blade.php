@@ -1,362 +1,638 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Parte Diario de Trabajo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parte Diario de Equipos</title>
     <style>
+        /* Reset básico optimizado para PDF */
+        * {
+            margin: 2px, 15px, 15px, 15px;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Configuración general del documento */
+        @page {
+            margin: 2mm 15mm 15mm 15mm;
+            size: A4 portrait;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            font-size: 11px;
-            margin: 20px;
-            line-height: 1.4;
-        }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 10px;
-        }
-        
-        .header h1 {
-            margin: 0;
-            font-size: 16px;
-            font-weight: bold;
-            color: #333;
-        }
-        
-        .header h2 {
-            margin: 5px 0;
-            font-size: 14px;
-            color: #666;
-        }
-        
-        .company-info {
-            text-align: center;
-            margin-bottom: 15px;
+            font-family: "DejaVu Sans", Arial, sans-serif;
             font-size: 10px;
+            line-height: 1.2;
+            color: #000;
+            background: #fff;
         }
-        
-        .section {
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            padding: 10px;
+
+        /* Utilidades generales */
+        .text-center { text-align: center; }
+        .text-left { text-align: left; }
+        .text-right { text-align: right; }
+        .font-bold { font-weight: bold; }
+        .mb-10 { margin-bottom: 10px; }
+        .mb-15 { margin-bottom: 15px; }
+        .mb-20 { margin-bottom: 20px; }
+
+        /* Header optimizado */
+        .header {
+            width: 100%;
+            margin-bottom: 5px;
+            page-break-inside: avoid;
         }
-        
-        .section-title {
-            background-color: #f5f5f5;
-            font-weight: bold;
-            text-transform: uppercase;
+
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            border-bottom: 2px solid #000;
+        }
+
+        .header-table td {
+            vertical-align: top;
             padding: 5px;
-            margin: -10px -10px 10px -10px;
-            border-bottom: 1px solid #ccc;
         }
-        
-        .row {
-            display: flex;
-            margin-bottom: 8px;
+
+        .logo-cell {
+            width: 80px;
+            text-align: center;
         }
-        
-        .col-50 {
-            width: 48%;
-            margin-right: 2%;
+
+        .logo {
+            width: 50px;
+            height: 60ch;
+            max-width: 50px;
+            max-height: 60px;
+            object-fit: contain;
         }
-        
-        .col-33 {
-            width: 31%;
-            margin-right: 2%;
+
+        .logo-trabajo {
+            width: 60px;
+            height: 60px;
+            max-width: 60px;
+            max-height: 60px;
+            object-fit: contain;
         }
-        
-        .col-25 {
-            width: 23%;
-            margin-right: 2%;
+
+        .title-cell {
+            width: auto;
+            padding: 0 10px;
         }
-        
-        .field {
-            margin-bottom: 8px;
-        }
-        
-        .field-label {
+
+        .title-cell h1 {
+            color: #0066cc;
+            font-size: 13px;
             font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .title-cell h2 {
+            color: #000;
+            font-size: 9px;
+            font-weight: normal;
+            margin: 1px 0;
+        }
+
+        .date-cell {
+            width: 140px;
+            text-align: center;
+        }
+
+        .date-box {
+            border: 1px solid #0066cc;
+            padding: 6px 8px;
             display: inline-block;
-            width: 100px;
+            margin: 0 1px;
+            font-weight: bold;
+            font-size: 9px;
         }
-        
-        .field-value {
-            border-bottom: 1px solid #333;
+
+        /* Título del formulario */
+        .form-title {
+            background-color: #4472C4;
+            color: white;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 5px;
+            margin: 5px 0;
+            page-break-inside: avoid;
+        }
+
+        /* Tablas base optimizadas */
+        .table-base {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        .table-base th,
+        .table-base td {
+            border: 1px solid #000;
+            padding: 4px;
+            vertical-align: middle;
+        }
+
+        .table-base th {
+            background-color: #E7E6E6;
+            font-weight: bold;
+            font-size: 9px;
+            text-align: center;
+        }
+
+        /* Información del equipo */
+        .info-table {
+            width: 100%;
+            margin-bottom: 15px;
+            border-collapse: collapse;
+        }
+
+        .info-table td {
+            padding: 3px 5px;
+            vertical-align: middle;
+            border: none;
+        }
+
+        .info-label {
+            font-weight: bold;
+            white-space: nowrap;
+            width: 120px;
+        }
+
+        .info-line {
+            border-bottom: 1px solid #000;
+            min-height: 16px;
             display: inline-block;
-            min-width: 150px;
-            padding-left: 5px;
+            width: 100%;
         }
-        
-        .activities-list {
-            border: 1px solid #ccc;
-            padding: 10px;
-            min-height: 80px;
-            background-color: #fafafa;
+
+        /* Tabla de operador - CORREGIDA */
+        .operador-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 5px 0;
         }
-        
-        .activities-list ul {
-            margin: 0;
-            padding-left: 20px;
+
+        .operador-table th,
+        .operador-table td {
+            border: 1px solid #000;
+            text-align: center;
+            vertical-align: middle;
         }
-        
+
+        .operador-table th {
+            background-color: #E7E6E6;
+            font-weight: bold;
+            font-size: 9px;
+            padding: 4px;
+            height: 4px;
+        }
+
+        /* ALTURA ESPECÍFICA PARA CELDAS DE DATOS DE OPERADOR */
+        .operador-table tbody td {
+            height: 7px !important;
+            min-height: 7px !important;
+            padding: 7px !important;
+        }
+
+        /* Tabla de trabajo */
+        .work-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 5px;
+        }
+
+        .work-table th,
+        .work-table td {
+            border: 1px solid #000;
+            padding: 4px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .work-table th {
+            background-color: #E7E6E6;
+            font-weight: bold;
+            font-size: 9px;
+        }
+
+        .work-table .hours-col { width: 8%; }
+        .work-table .work-col { 
+            width: 68%; 
+            text-align: left;
+            padding-left: 8px;
+        }
+        .work-table .total-col { width: 16%; }
+
+        .work-row {
+            height: 25px;
+        }
+
+        .work-row td {
+            height: 15px !important;
+        }
+
+        /* Sección de resumen */
+        .summary-section {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .summary-left {
+            width: 55%;
+            vertical-align: top;
+            padding-right: 10px;
+        }
+
+        .summary-right {
+            width: 45%;
+            vertical-align: top;
+        }
+
+        .hours-summary,
+        .supplies-summary {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .hours-summary th,
+        .hours-summary td,
+        .supplies-summary th,
+        .supplies-summary td {
+            border: 1px solid #000;
+            padding: 4px;
+        }
+
+        .hours-summary th,
+        .supplies-summary th {
+            background-color: #E7E6E6;
+            font-weight: bold;
+            text-align: center;
+            font-size: 9px;
+        }
+
+        .hours-summary .label-col {
+            text-align: left;
+            width: 70%;
+        }
+
+        .hours-summary .value-col {
+            width: 15%;
+            text-align: center;
+        }
+
+        .supplies-summary .desc-col {
+            width: 60%;
+            text-align: left;
+        }
+
+        .supplies-summary .cant-col,
+        .supplies-summary .unit-col {
+            width: 20%;
+            text-align: center;
+        }
+
+        /* Tabla de horómetro - CORREGIDA */
+        .meter-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        .meter-table th,
+        .meter-table td {
+            border: 1px solid #000;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .meter-table th {
+            background-color: #E7E6E6;
+            font-weight: bold;
+            font-size: 9px;
+            padding: 8px;
+            height: 40px;
+        }
+
+        .meter-table .meter-col {
+            width: 33.33%;
+        }
+
+        /* ALTURA ESPECÍFICA PARA CELDAS DE DATOS DE HORÓMETRO */
+        .meter-table tbody td {
+            height: 50px !important;
+            min-height: 50px !important;
+            padding: 15px 8px !important;
+        }
+
+        /* Observaciones */
         .observations {
-            border: 1px solid #ccc;
-            padding: 10px;
-            min-height: 50px;
-            background-color: #fafafa;
+            margin-bottom: 2px !important;
         }
-        
+
+        .observations-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        /* Firmas optimizadas */
+        .signatures-section {
+            width: 100%;
+            margin-top: 20px;
+            page-break-inside: avoid;
+        }
+
         .signatures-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
         }
-        
-        .signatures-table th,
+
         .signatures-table td {
-            border: 1px solid #333;
-            padding: 8px;
+            width: 50%;
+            padding: 15px 10px;
             text-align: center;
+            vertical-align: bottom;
         }
-        
-        .signatures-table th {
-            background-color: #f0f0f0;
+
+        .signature-line {
+            border-bottom: 1px solid #000;
+            height: 30px;
+            margin-bottom: 5px;
+        }
+
+        .signature-title {
+            font-weight: bold;
+            font-size: 9px;
+        }
+
+        /* Optimizaciones específicas para dompdf */
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        table {
+            page-break-inside: auto;
+        }
+
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+
+        .total-row {
+            height: 15px;
+        }
+
+        .total-row td {
+            height: 15px !important;
+            border: 1px solid #000;
+            padding: 4px;
+            text-align: center;
+            vertical-align: middle;
             font-weight: bold;
         }
-        
-        .signature-box {
-            height: 60px;
-            border-bottom: 1px solid #333;
-            margin-top: 20px;
-            position: relative;
-        }
-        
-        .signature-label {
-            position: absolute;
-            bottom: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 10px;
-            text-align: center;
-        }
-        
-        .evidences-list {
-            border: 1px solid #ccc;
-            padding: 10px;
-            background-color: #fafafa;
-        }
-        
-        .evidences-list ul {
-            margin: 0;
-            padding-left: 20px;
-        }
-        
-        .footer {
-            margin-top: 30px;
-            text-align: center;
+        .hours-main {
+            background-color: #E7E6E6;
+            font-weight: bold;
             font-size: 9px;
-            color: #666;
-            border-top: 1px solid #ccc;
-            padding-top: 10px;
-        }
-        
-        .status-badge {
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 9px;
-            text-transform: uppercase;
-        }
-        
-        .status-firmado {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        
-        .status-pendiente {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-        
-        @media print {
-            body { margin: 0; }
-            .page-break { page-break-before: always; }
+            text-align: center;
+            padding: 4px;
         }
     </style>
 </head>
 <body>
-    <!-- Encabezado -->
+    <!-- Header -->
     <div class="header">
-        <h1>PARTE DIARIO DE TRABAJO</h1>
-        <h2>CONTROL DE MAQUINARIA Y EQUIPOS</h2>
-    </div>
-    
-    <div class="company-info">
-        <strong>{{ $reportData['empresa'] }}</strong><br>
-        {{ $reportData['proyecto'] }}<br>
-        Contrato: {{ $reportData['contrato'] }}
-    </div>
+        <table class="header-table">
+            <tr>
+                <td class="logo-cell">
+                    @if(isset($reportData['logo_empresa']) && $reportData['logo_empresa'])
+                        <img class="logo" src="{{ $reportData['logo_empresa'] }}" alt="Logo Empresa">
+                    @endif
+                </td>
 
-    <!-- Información General -->
-    <div class="section">
-        <div class="section-title">Información General</div>
-        <div class="row">
-            <div class="col-50">
-                <div class="field">
-                    <span class="field-label">Fecha:</span>
-                    <span class="field-value">{{ $dailyPartData['fecha_parte'] }}</span>
-                </div>
-                <div class="field">
-                    <span class="field-label">Equipo:</span>
-                    <span class="field-value">{{ $dailyPartData['servicio']['nombre'] }}</span>
-                </div>
-            </div>
-            <div class="col-50">
-                <div class="field">
-                    <span class="field-label">Código:</span>
-                    <span class="field-value">{{ $dailyPartData['servicio']['codigo'] }}</span>
-                </div>
-                <div class="field">
-                    <span class="field-label">Operador:</span>
-                    <span class="field-value">{{ $dailyPartData['servicio']['operador'] }}</span>
-                </div>
-            </div>
-        </div>
-        <div class="field">
-            <span class="field-label">Proyecto:</span>
-            <span class="field-value" style="min-width: 400px;">{{ $dailyPartData['servicio']['proyecto'] }}</span>
-        </div>
-    </div>
+                <td class="title-cell">
+                    <h1>GOBIERNO REGIONAL PUNO</h1>
+                    <h2>OBRA: "MEJORAMIENTO DE LA CARRETERA (PU 675)</h2>
+                    <h2>POMATA YOROHOCO, PROVINCIA DE CHUCUITO - PUNO</h2>
+                </td>
 
-    <!-- Control Horario -->
-    <div class="section">
-        <div class="section-title">Control de Horario</div>
-        <div class="row">
-            <div class="col-25">
-                <div class="field">
-                    <span class="field-label">Inicio:</span>
-                    <span class="field-value">{{ $dailyPartData['horario']['hora_inicio'] }}</span>
-                </div>
-            </div>
-            <div class="col-25">
-                <div class="field">
-                    <span class="field-label">Fin:</span>
-                    <span class="field-value">{{ $dailyPartData['horario']['hora_fin'] }}</span>
-                </div>
-            </div>
-            <div class="col-25">
-                <div class="field">
-                    <span class="field-label">H. Total:</span>
-                    <span class="field-value">{{ $dailyPartData['horario']['horas_trabajadas'] }}</span>
-                </div>
-            </div>
-            <div class="col-25">
-                <div class="field">
-                    <span class="field-label">H. Efectivas:</span>
-                    <span class="field-value">{{ $dailyPartData['horario']['horas_efectivas'] }}</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Control de Combustible -->
-    <div class="section">
-        <div class="section-title">Control de Combustible</div>
-        <div class="row">
-            <div class="col-25">
-                <div class="field">
-                    <span class="field-label">Inicial (L):</span>
-                    <span class="field-value">{{ $dailyPartData['combustible']['inicial'] }}</span>
-                </div>
-            </div>
-            <div class="col-25">
-                <div class="field">
-                    <span class="field-label">Final (L):</span>
-                    <span class="field-value">{{ $dailyPartData['combustible']['final'] }}</span>
-                </div>
-            </div>
-            <div class="col-25">
-                <div class="field">
-                    <span class="field-label">Consumido (L):</span>
-                    <span class="field-value">{{ $dailyPartData['combustible']['consumido'] }}</span>
-                </div>
-            </div>
-            <div class="col-25">
-                <div class="field">
-                    <span class="field-label">Rendimiento:</span>
-                    <span class="field-value">{{ $dailyPartData['combustible']['rendimiento'] }} L/h</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Actividades Realizadas -->
-    <div class="section">
-        <div class="section-title">Actividades Realizadas</div>
-        <div class="activities-list">
-            <ul>
-                @foreach($dailyPartData['actividades'] as $actividad)
-                    <li>{{ $actividad }}</li>
-                @endforeach
-            </ul>
-        </div>
-    </div>
-
-    <!-- Observaciones -->
-    <div class="section">
-        <div class="section-title">Observaciones</div>
-        <div class="observations">
-            {{ $dailyPartData['observaciones'] }}
-        </div>
-    </div>
-
-    <!-- Evidencias -->
-    <div class="section">
-        <div class="section-title">Evidencias Fotográficas</div>
-        <div class="evidences-list">
-            <ul>
-                @foreach($dailyPartData['evidencias'] as $evidencia)
-                    <li>{{ $evidencia }}</li>
-                @endforeach
-            </ul>
-        </div>
-    </div>
-
-    <!-- Control de Firmas -->
-    <div class="section">
-        <div class="section-title">Control de Firmas Digitales</div>
-        <table class="signatures-table">
-            <thead>
-                <tr>
-                    <th>Nivel</th>
-                    <th>Responsable</th>
-                    <th>Fecha/Hora</th>
-                    <th>Estado</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($dailyPartData['firmas'] as $firma)
-                    <tr>
-                        <td>{{ $firma['nivel'] }}</td>
-                        <td>{{ $firma['nombre'] }}</td>
-                        <td>{{ $firma['fecha'] ?? 'Pendiente' }}</td>
-                        <td>
-                            <span class="status-badge status-{{ $firma['estado'] }}">
-                                {{ $firma['estado'] }}
-                            </span>
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
+                <td class="date-cell">
+                    <div style="margin-bottom: 8px;">
+                        @if(isset($reportData['logo_trabajo']) && $reportData['logo_trabajo'])
+                            <img class="logo-trabajo" src="{{ $reportData['logo_trabajo'] }}" alt="Logo Trabajo">
+                        @endif
+                    </div>
+                    <div>
+                        <span class="date-box">DIA</span>
+                        <span class="date-box">MES</span>
+                        <span class="date-box">AÑO</span>
+                    </div>
+                </td>
+            </tr>
         </table>
     </div>
 
-    <!-- Pie de página -->
-    <div class="footer">
-        <strong>Sistema de Gestión de Partes Diarios</strong><br>
-        Generado el: {{ $reportData['fecha_generacion'] }} por {{ $reportData['usuario_genera'] }}<br>
-        Documento ID: PD-{{ str_pad($dailyPartData['id'], 6, '0', STR_PAD_LEFT) }}
+    <!-- Form Title -->
+    <div class="form-title">PARTE DIARIO DE EQUIPOS/MAQUINARIA</div>
+
+    <!-- Equipment Information -->
+    <table class="info-table">
+        <tr>
+            <td class="info-label">OBRA:</td>
+            <td colspan="3">
+                <span class="info-line">EXCAVADORA CAT 320D</span>
+            </td>
+        </tr>
+        <tr>
+            <td class="info-label">PROPIETARIO:</td>
+            <td colspan="3">
+                <span class="info-line"></span>
+            </td>
+        </tr>
+        <tr>
+            <td class="info-label">NOMBRE DEL OPERADOR:</td>
+            <td colspan="3">
+                <span class="info-line"></span>
+            </td>
+        </tr>
+        <tr>
+            <td class="info-label">EQUIPO O MAQUINARIA:</td>
+            <td style="width: 45%;">
+                <span class="info-line"></span>
+            </td>
+            <td class="info-label" style="width: 10%;">CAPACIDAD:</td>
+            <td style="width:65%;">
+                <span class="info-line"></span>
+            </td>
+        </tr>
+        <tr>
+            <td class="info-label">MARCA:</td>
+            <td style="width: 45%;">
+                <span class="info-line"></span>
+            </td>
+            <td class="info-label" style="width: 10%;">PLACA:</td>
+            <td style="width: 65%">
+                <span class="info-line"></span>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Operator Table -->
+    <table class="operador-table">
+        <thead>
+            <tr>
+                <th style="width: 25%;">DEL OPERADOR</th>
+                <th style="width: 25%;">MAÑANA</th>
+                <th style="width: 25%;">TARDE</th>
+                <th style="width: 25%;">HORAS TRABAJADAS</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Work Table -->
+    <table class="work-table">
+        <thead>
+            <tr>
+                <th colspan="2" class="hours-main" style="border-right: 1px solid #000;">HORAS</th>
+                <th rowspan="2" class="work-col" style="border-left: 1px solid #000;">TRABAJOS REALIZADOS<br>CON EQUIPO Y/O MAQUINARIA</th>
+                <th rowspan="2" class="total-col">TOTAL<br>HORAS</th>
+            </tr>
+            <tr>
+                <th class="hours-col">DE</th>
+                <th class="hours-col" style="border-right: 1.4px solid #000;">A</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="work-row">
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr class="work-row">
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr class="work-row">
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr class="work-row">
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr class="work-row">
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr class="work-row">
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr class="work-row">
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+
+            <tr class="total-row">
+                <td colspan="3" style="text-align: center; font-weight: bold; background-color: #E7E6E6;">TOTAL</td>
+                <td style="background-color: #E7E6E6;"></td>
+            </tr>
+
+        </tbody>
+    </table>
+
+    <!-- Observations -->
+    <div class="observations">
+        <div class="observations-label">Ocurrencias:</div>
+        <div style="min-height: 18px; padding: 2px 0;">
+            Trabajo ejecutado según especificaciones técnicas. Condiciones climáticas favorables.
+        </div>
+    </div>
+
+    <!-- Operator Table -->
+    <table class="operador-table">
+        <tbody>
+            <tr>
+                <th style="width: 20%;">KM./HOROMETRO INICIO:</th>
+                <td></td>
+                <th style="width: 20%;">KM./HOMETRO FINAL:</th>
+                <td></td>
+                <th style="width: 20%;">TOTAL</th>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Summary Section -->
+    <table class="operador-table">
+        <tbody>
+            <tr>
+                <th style="width: 20%;">GASOHOL</th>
+                <td>Gls. </td>
+                <th style="width: 20%;">ACEITE HIDRÁULICO</th>
+                <td>Gls. </td>
+            </tr>
+            <tr>
+                <th style="width: 20%;">PETRÓLEO</th>
+                <td>Gls. </td>
+                <th style="width: 20%;">GRASA</th>
+                <td>Gls. </td>
+            </tr>
+            <tr>
+                <th style="width: 20%;">ACEITE MOTOR</th>
+                <td>Gls. </td>
+                <th style="width: 20%;">FILTRO</th>
+                <td>Gls. </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Signatures -->
+    <div class="signatures-section">
+        <table class="signatures-table">
+            <tr>
+                <td>
+                    <div class="signature-line"></div>
+                    <div class="signature-title">CONTROLADOR</div>
+                </td>
+                <td>
+                    <div class="signature-line"></div>
+                    <div class="signature-title">RESIDENTE DE OBRA</div>
+                </td>
+                <td>
+                    <div class="signature-line"></div>
+                    <div class="signature-title">SUPERVISOR DE OBRA</div>
+                </td>
+            </tr>
+        </table>
     </div>
 </body>
 </html>
