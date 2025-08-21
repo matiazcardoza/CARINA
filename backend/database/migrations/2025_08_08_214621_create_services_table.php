@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id('id');
             $table->unsignedBigInteger('order_id');
             $table->string('description')->nullable();
+            $table->string('occurrences')->nullable();
             $table->integer('state')->default(1);
             $table->foreign('order_id')->references('id')->on('orders_silucia')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();

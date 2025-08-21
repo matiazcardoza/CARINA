@@ -23,16 +23,15 @@ class DailyPartController extends Controller
 
     function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'work_date' => 'required|date',
-            'start_time' => 'required|date_format:H:i',
-            'initial_fuel' => 'required|numeric',
-            'description' => 'required|string'
+        Log::info('estos son los datos index', ['request' => $request->all()]);
+
+        $dailyPart = DailyPart::create([
+            'service_id' => $request->work_log_id,
+            'work_date' => $request->work_date,
+            'start_time' => $request->start_time,
+            'initial_fuel' => $request->initial_fuel,
+            'description' => $request->description
         ]);
-
-        $validatedData['service_id'] = $request->work_log_id;
-
-        $dailyPart = DailyPart::create($validatedData);
 
         return response()->json([
             'message' => 'Daily work log created successfully',
