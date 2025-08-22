@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('order_type')->nullable();
             $table->date('issue_date')->nullable();
             $table->string('goal_project')->nullable();
+            $table->longText('goal_detail')->nullable();
             $table->longText('api_date')->nullable();
             $table->integer('state')->default(1);
             $table->timestamps();

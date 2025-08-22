@@ -412,25 +412,24 @@
         <table class="header-table">
             <tr>
                 <td class="logo-cell">
-                    @if(isset($reportData['logo_empresa']) && $reportData['logo_empresa'])
-                        <img class="logo" src="{{ $reportData['logo_empresa'] }}" alt="Logo Empresa">
+                    @if(isset($logoPath) && $logoPath)
+                        <img class="logo" src="{{ $logoPath }}" alt="Logo Empresa">
                     @endif
                 </td>
 
                 <td class="title-cell">
                     <h1>GOBIERNO REGIONAL PUNO</h1>
-                    <h2>OBRA: "MEJORAMIENTO DE LA CARRETERA (PU 675)</h2>
-                    <h2>POMATA YOROHOCO, PROVINCIA DE CHUCUITO - PUNO</h2>
+                    <h2>{{ $orderSilucia->goal_detail }}</h2>
                 </td>
 
                 <td class="date-cell">
                     <div style="margin-bottom: 8px;">
-                        @if(isset($reportData['logo_trabajo']) && $reportData['logo_trabajo'])
-                            <img class="logo-trabajo" src="{{ $reportData['logo_trabajo'] }}" alt="Logo Trabajo">
+                        @if(isset($logoWorkPath) && $logoWorkPath)
+                            <img class="logo-trabajo" src="{{ $logoWorkPath }}" alt="Logo Trabajo">
                         @endif
                     </div>
                     <div>
-                        <span class="date-box">DIA</span>
+                        <span class="date-box">{{ $dailyPart->work_date }}</span>
                         <span class="date-box">MES</span>
                         <span class="date-box">AÑO</span>
                     </div>
