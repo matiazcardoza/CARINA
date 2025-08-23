@@ -17,7 +17,9 @@ class OrderSilucia extends Model
         'order_type',
         'issue_date',
         'goal_project',
-        'state',
+        'goal_detail',
+        'api_date',
+        'state'
     ];
     // ----------------
     protected $casts = [

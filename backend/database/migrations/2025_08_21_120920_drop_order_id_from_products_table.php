@@ -33,12 +33,14 @@ return new class extends Migration
     {
         // Volver a crear la columna y su FK (por si haces rollback)
         Schema::table('products', function (Blueprint $table) {
-            $table->unsignedBigInteger('order_id');
+            $table->unsignedBigInteger('order_id')->nullable(false)->change();
+
+            // Restauramos la FK original
             $table->foreign('order_id')
-                  ->references('id')
-                  ->on('orders_silucia')
-                  ->onDelete('cascade')
-                  ->onUpdate('cascade');
+                ->references('id')
+                ->on('orders_silucia')
+                ->onDelete('cascade')
+                ->onUpdate('cascade');
         });
     }
 };

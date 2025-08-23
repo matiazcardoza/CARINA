@@ -27,7 +27,7 @@ class OrderSiluciaController extends Controller
         $silucia_id = $request->idservicio;
         $goal_project = $request->idmeta;
         $api_date = $request->item;
-        Log::info('este es el api_date', ['api_date' => $api_date]);
+        $goal_detail = $request->desmeta;
         $state = $request->state;
         $description = $request->item;
         $symbol = ',';
@@ -38,6 +38,7 @@ class OrderSiluciaController extends Controller
         $order->order_type = 'SERVICIO';
         $order->issue_date = now();
         $order->goal_project = $goal_project;
+        $order->goal_detail = $goal_detail;
         $order->api_date = $api_date;
 
         

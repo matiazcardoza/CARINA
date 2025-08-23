@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\DailyPart;
+use App\Models\OrderSilucia;
+use App\Models\Service;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -23,8 +25,6 @@ class DailyPartController extends Controller
 
     function store(Request $request)
     {
-        Log::info('estos son los datos index', ['request' => $request->all()]);
-
         $dailyPart = DailyPart::create([
             'service_id' => $request->work_log_id,
             'work_date' => $request->work_date,
@@ -77,26 +77,24 @@ class DailyPartController extends Controller
     public function completeWork(Request $request)
     {
         $worlkLogId = $request->workLogId;        
-        $dailyPart = DailyPart::find($worlkLogId);
-        
-        $dailyPart->end_time = $request->end_time;
-        $dailyPart->final_fuel = $request->final_fuel;
-
-        $start = Carbon::parse($dailyPart->start_time);
-        $end = Carbon::parse($dailyPart->end_time);
-
-        $interval = $start->diff($end);
-
-        $hours = $interval->h;
-        $minutes = $interval->i;
-
-        $timeWorked = $hours + ($minutes / 60);
-
-        $dailyPart->time_worked = $timeWorked;
-
-        $dailyPart->fuel_consumed = $dailyPart->final_fuel - $dailyPart->initial_fuel;
-
+            $dailyPart = DailyPart::find($worlkLogId);
+            $dailyPart->end_time = $request->end_time;
+            $dailyPart->final_fuel = $request->final_fuel;
+            $start = Carbon::parse($dailyPart->start_time);
+            $end = Carbon::parse($dailyPart->end_time);
+            $interval = $start->diff($end);
+            $hours = $interval->h;
+            $minutes = $interval->i;
+            $timeWorked = $hours + ($minutes / 60);
+            $dailyPart->time_worked = $timeWorked;
+            $dailyPart->fuel_consumed = $dailyPart->final_fuel - $dailyPart->initial_fuel;
         $dailyPart->save();
+
+        $service = Service::find($dailyPart->service_id);
+        $service->occurrences = $request->occurrence;
+        $service->save();
+
+
 
         return response()->json([
             'message' => 'Daily work log completed successfully',
@@ -104,79 +102,28 @@ class DailyPartController extends Controller
         ], 200);
     }
 
-    public function generatePdf($id)
+    public function generatePdf($serviceId)
     {
-        $dailyPartData = [
-            'id' => $id,
-            'fecha_parte' => Carbon::now()->format('d/m/Y'),
-            'servicio' => [
-                'nombre' => 'EXCAVADORA CAT 320D',
-                'codigo' => 'EXC-001',
-                'operador' => 'Juan Carlos Mamani',
-                'proyecto' => 'CONSTRUCCIÓN CARRETERA PUNO-JULIACA KM 15+000',
-            ],
-            'horario' => [
-                'hora_inicio' => '07:00',
-                'hora_fin' => '17:00',
-                'horas_trabajadas' => 10.0,
-                'horas_efectivas' => 9.5,
-            ],
-            'combustible' => [
-                'inicial' => 85.5,
-                'final' => 45.2,
-                'consumido' => 40.3,
-                'rendimiento' => 4.24,
-            ],
-            'actividades' => [
-                'Excavación de cunetas laterales - Progresiva 15+000 a 15+500',
-                'Conformación de taludes en corte',
-                'Limpieza y mantenimiento de equipo',
-                'Traslado de material excedente'
-            ],
-            'observaciones' => 'Trabajo ejecutado según especificaciones técnicas. Condiciones climáticas favorables.',
-            'firmas' => [
-                [
-                    'nivel' => 'Controlador',
-                    'nombre' => 'Ing. Carlos Quispe',
-                    'fecha' => Carbon::now()->format('d/m/Y H:i'),
-                    'estado' => 'firmado'
-                ],
-                [
-                    'nivel' => 'Residente',
-                    'nombre' => 'Ing. María Condori',
-                    'fecha' => Carbon::now()->addHours(2)->format('d/m/Y H:i'),
-                    'estado' => 'firmado'
-                ],
-                [
-                    'nivel' => 'Supervisor',
-                    'nombre' => 'Ing. Pedro Mamani',
-                    'fecha' => null,
-                    'estado' => 'pendiente'
-                ]
-            ],
-            'evidencias' => [
-                'Foto del área de trabajo inicial',
-                'Foto del avance al 50%',
-                'Foto del trabajo terminado',
-                'Foto del equipo al final de jornada'
-            ]
-        ];
-
-        $reportData = [
-            'empresa' => 'EMPRESA CONSTRUCTORA DEL SUR S.A.C.',
-            'proyecto' => 'MEJORAMIENTO CARRETERA PUNO - JULIACA',
-            'contrato' => 'N° 2024-001-GRP',
-            'fecha_generacion' => Carbon::now()->format('d/m/Y H:i:s'),
-            'usuario_genera' => 'Sistema Administrativo'
-        ];
-
+        $service = Service::find($serviceId);
+        $orderSilucia = OrderSilucia::find($service->order_id);
+        $dailyPart = DailyPart::where('service_id', $serviceId)->get();
+        $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
+        $logoWorkPath = storage_path('app/public/image_pdf_template/logo_work.png');
+        $qr_code = base64_encode("data_qr_example");
         $data = [
-            'dailyPartData' => $dailyPartData,
-            'reportData' => $reportData,
+            'logoPath' => $logoPath,
+            'orderSilucia' => $orderSilucia,
+            'logoWorkPath' => $logoWorkPath,
+            'dailyPart' => $dailyPart,
+            'pdf' => true,
+            'qr_code' => $qr_code
         ];
 
         $pdf = Pdf::loadView('pdf.daily_part', $data);
-
-        return $pdf->stream('daily_part.pdf');
+        
+        // Configurar opciones del PDF si es necesario
+        $pdf->setPaper('A4', 'portrait');
+        
+        return $pdf->stream('anexo_01_planilla.pdf');
     }
 }

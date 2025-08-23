@@ -11,6 +11,13 @@
         <mat-icon>add</mat-icon>
         Nuevo Registro
       </button>
+
+      <button mat-icon-button
+        (click)="generatePdf(convertWorkLogId(workLogId))"
+        matTooltip="Generar PDF"
+        class="action-btn pdf-btn">
+        <mat-icon>picture_as_pdf</mat-icon>
+      </button>
       
       <button mat-icon-button (click)="reloadData()" matTooltip="Actualizar datos" class="refresh-button">
         <mat-icon>refresh</mat-icon>
@@ -148,29 +155,13 @@
                   <mat-icon>check_circle</mat-icon>
                 </button>
 
-                <button mat-icon-button 
+                <!--<button mat-icon-button 
                         (click)="generatePdf(element.id)"
                         matTooltip="Generar PDF"
                         class="action-btn pdf-btn">
                   <mat-icon>picture_as_pdf</mat-icon>
-                </button>
-                
-                <!-- Botones adicionales comentados - descomenta si los necesitas -->
-                <!--
-                <button mat-icon-button 
-                        (click)="openCompleteModal(element.id)" 
-                        matTooltip="Completar registro"
-                        class="action-btn complete-btn">
-                  <mat-icon>check_circle</mat-icon>
-                </button>
-                
-                <button mat-icon-button 
-                        (click)="generatePdf(element.id)" 
-                        matTooltip="Generar PDF"
-                        class="action-btn pdf-btn">
-                  <mat-icon>picture_as_pdf</mat-icon>
-                </button>
-                -->
+                </button>-->
+          
               </div>
             </td>
           </ng-container>
