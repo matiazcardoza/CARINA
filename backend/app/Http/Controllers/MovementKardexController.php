@@ -111,6 +111,7 @@ class MovementKardexController extends Controller
                 'movement_date' => now(),
                 'movement_type' => $data['movement_type'],
                 'amount'        => $data['amount'],
+                'observations'        => $data['observations'],
             ]);
             // $movement = MovementKardex::create([
             //     'product_id'    => $product->id,

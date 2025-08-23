@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('id_order_silucia')->after('order_id');
             $table->unsignedBigInteger('id_product_silucia')->after('id_order_silucia');
 
-            // Índices
+            // Índicesp
             $table->index('id_order_silucia', 'products_id_order_silucia_idx');
 
             // Unicidad: un mismo detalle de pedido no puede repetirse dentro de una orden

@@ -16,6 +16,7 @@ import { KardexManagementService } from './services/kardex-management.service';
 // Data mock
 import { clients, products } from './utils/mockup-data';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AddNewUserModal } from './components/add-new-user-modal/add-new-user-modal';
 
 @Component({
   selector: 'app-kardex-management',
@@ -25,7 +26,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     FormsModule, SlicePipe,
     // PrimeNG
     TableModule, InputTextModule, DialogModule, InputNumberModule,
-    AutoComplete, Button, Tag, IconField, InputIcon
+    AutoComplete, Button, Tag, IconField, InputIcon,AddNewUserModal
   ],
   templateUrl: './kardex-management.html',
   styleUrl: './kardex-management.css'
@@ -46,6 +47,7 @@ export class KardexManagement {
   openModaladdMovimentKardex = signal<boolean>(true);
   showMovementModal = false;
   showMovementDetailsModal = false;
+  showAddUserModal = false
   // Personas (opcional, listo para crecer)
   people = signal<any[]>([]);
   selectedPersonId: number | null = null;
@@ -60,8 +62,9 @@ export class KardexManagement {
   form = {
     movement_type: null as 'entrada' | 'salida' | null,
     amount: null as number | null,
-    id_order_silucia: null as number | null,
+    id_order_silucia: null as string | null,
     id_product_silucia: null as number |null,
+    observations: null as string |null,
   };
 
   movementsKardex    = signal<any[]>([]);
@@ -86,6 +89,7 @@ export class KardexManagement {
   }
 
   getProductsOfSiluciaBackend(filters:{ numero?: string; anio?: number; estado?: string }){
+    console.log("Numero enviado", filters.numero);
     this.loadingProducts.set(true);
     this.service.getSiluciaProducts(filters).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: res => { this.products.set(res.data); this.loadingProducts.set(false)},
@@ -123,10 +127,7 @@ export class KardexManagement {
     this.openAddPerson.set(false);
   }
 
-  onAddPerson() {
-    // abre modal de persona o navega: hook listo
-    console.log('Adicionar persona');
-  }
+
 
   // ----- Movimiento (modal) -----
   openMovementModal(_row?: any) {
@@ -141,7 +142,7 @@ export class KardexManagement {
      * asegurarnos de que no se manipulen los valores, es decir que las personas, como 
      * un programador no modifique valores como cantidad de producsot que ya existian
      */
-    this.form.id_order_silucia =  Number(_row.numero);
+    this.form.id_order_silucia =  _row.numero;
     this.form.id_product_silucia=  _row.idcompradet;
     this.showMovementModal = true;
     console.log(this.form)
@@ -154,6 +155,7 @@ export class KardexManagement {
       amount: null, 
       id_order_silucia: null ,
       id_product_silucia: null ,
+      observations: null
     };
   }
 
@@ -314,5 +316,24 @@ export class KardexManagement {
     }
 
 
+
+    // ---------------- Modal para añadir persona ---------------------------
+
+    // function handleOpenModal(){
+
+    // }
+
+    // onAddPerson() {
+    //   // abre modal de persona o navega: hook listo
+    //   console.log('Adicionar persona');
+    // }
+    
+    closeModalAddPerson(): void {
+      this.showAddUserModal = false;
+    }
+
+    OpenModalAddPerson():void{
+      this.showAddUserModal = true;
+    }
 
 }

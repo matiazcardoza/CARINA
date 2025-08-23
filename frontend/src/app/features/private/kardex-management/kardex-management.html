@@ -136,8 +136,7 @@
 </div>
 
 
-<!-- ---------------------------------------------------------- -->
-
+<!-- ------------------Modal para registrar movimientos-------------------------------- -->
 
 <p-dialog
   header="Registrar movimiento"
@@ -176,13 +175,27 @@
       ></p-inputNumber>
     </div>
 
+    <!-- Comentario -->
+    <div class="field dialog_item">
+      <label for="observations" class="font-medium mb-1 block">Observaciones</label>
+      <textarea
+        id="observations"
+        pInputTextarea
+        [(ngModel)]="form.observations"
+        rows="3"
+        cols="30"
+        placeholder="Escribe tus observaciones aquí"
+        style="resize: vertical;"
+      ></textarea>
+    </div>
+
     <!-- Personas -->
     <div class="field dialog_people">
       <div class="flex items-center justify-between dialog_people_item">
         <span class="font-medium">Personas</span>
         <p-button
           icon="pi pi-user-plus"
-          (onClick)="onAddPerson()"
+          (onClick)="OpenModalAddPerson()"
           [rounded]="true"
           [text]="true"
           [ariaLabel]="'Adicionar persona'"
@@ -191,6 +204,7 @@
       <!-- Aquí podrías listar las personas seleccionadas si lo necesitas -->
       <small class="text-gray-500">Añade personas con el botón.</small>
     </div>
+
   </div>
 
   <ng-template pTemplate="footer">
@@ -213,10 +227,6 @@
 
 
 <!-- ------------------ Modal para mostrar movimientos-------------------- -->
- 
-
-
-
 
 <p-dialog
   header="Detalles de movimientos"
@@ -224,8 +234,17 @@
   [modal]="true"
   [closable]="false"
   >
+  
   <!-- [style]="{ minWidth: 'px'}" -->
-  <div class="p-fluid flex flex-col gap-3">
+  <!-- <div class="p-fluid flex flex-col gap-3"> -->
+  <div 
+    style="
+      /* background: pink;
+      border: 3px solid orange;
+      width: 500px;
+      height: 600px; */
+      overflow: hidden;"
+    >
     <p-table
       [value]="movementsKardex()"
       [paginator]="true"
@@ -243,6 +262,7 @@
           <th pSortableColumn="movement_type">Tipo <p-sortIcon field="movement_type"/></th>
           <th pSortableColumn="movement_date">Fecha <p-sortIcon field="movement_date"/></th>
           <th pSortableColumn="amount">Cantidad <p-sortIcon field="amount"/></th>
+          <th pSortableColumn="amount" style="max-width: 300px; width:300px;">Observaciones <p-sortIcon field="amount"/></th>
           <!-- <th pSortableColumn="final_balance">Saldo final <p-sortIcon field="final_balance"/></th> -->
         </tr>
       </ng-template>
@@ -253,6 +273,7 @@
           <td>{{ movement.movement_type }}</td>
           <td>{{ movement.movement_date }}</td>
           <td>{{ movement.amount }}</td>
+          <td style=" text-align: justify;" >{{ movement.observations || 'ninguna' }}</td>
           <!-- <td>{{ movement.final_balance ?? '-' }}</td> -->
         </tr>
       </ng-template>
@@ -282,4 +303,10 @@
     </div>
   </ng-template>
 </p-dialog>
+
+
+<app-add-new-user-modal
+  [isOpen]="showAddUserModal"
+  (sentOpenValue)="closeModalAddPerson()"
+/>
 

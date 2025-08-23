@@ -25,7 +25,8 @@ class StoreMovementRequest extends FormRequest
     {
         return [
                     // Identificadores del “gancho” al producto SILUCIA
-            'id_order_silucia'   => ['required','integer'],     // idcompra de SILUCIA
+            // 'id_order_silucia'   => ['required','integer'],     // idcompra de SILUCIA
+            'id_order_silucia'   => ['required','string','max:20','regex:/^\d+$/'],
             'id_product_silucia' => ['required','integer'],     // idcompradet de SILUCIA
 
             // Si tu front conoce el id local de la orden, lo puedes mandar (opcional),
@@ -33,9 +34,10 @@ class StoreMovementRequest extends FormRequest
 
             // Datos del movimiento
             'movement_type'      => ['required', Rule::in(['entrada','salida'])], // entrada/salida
-            'movement_date' => ['sometimes','date'],
+            'movement_date'      => ['sometimes','date'],
             // 'movement_date'      => ['required','date'],
             'amount'             => ['required','numeric'],      // cantidad +/-
+            'observations'       => ['nullable', 'string', 'max:5000'],      // cantidad +/-
             // 'note'               => ['nullable','string','max:500'],
 
             // Campos opcionales para completar el producto si se crea en el acto

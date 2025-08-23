@@ -28,6 +28,7 @@ import { Products } from './features/private/physical-bincard/components/product
 import { UploadFile } from './shared/draft/upload-file/upload-file';
 import { ComponentTesting } from './shared/draft/component-testing/component-testing';
 import { KardexManagement } from './features/private/kardex-management/kardex-management';
+import { DigitalSignature } from './shared/draft/digital-signature/digital-signature';
 
 export const routes: Routes = [
     // Redirige la ruta raíz a la página de login
@@ -178,6 +179,10 @@ export const routes: Routes = [
             {
                 path: 'component-testing',
                 component: ComponentTesting
+            },
+            {
+                path: 'digital-signature',
+                component: DigitalSignature
             },
         ]
     },

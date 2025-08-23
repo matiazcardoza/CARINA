@@ -24,6 +24,12 @@ class Product extends Model
         'category_id',
     ];
 
+    protected $casts = [
+        'id_order_silucia'   => 'string',
+        'id_product_silucia' => 'integer',
+    ];
+
+
     public function movements(): HasMany
     {
         return $this->hasMany(MovementKardex::class, 'product_id');

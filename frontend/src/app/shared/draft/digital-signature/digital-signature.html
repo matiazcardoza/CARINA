@@ -1,0 +1,13 @@
+    <h2 class="title">Demo firma digital</h2>
+
+    <button type="button" (click)="sign()" [disabled]="working">
+      {{ working ? 'Firmando…' : 'Firmar PDF' }}
+    </button>
+
+    <!-- <p *ngIf="message">
+        @if{{ message }}
+    
+    </p> -->
+    @if(message){
+        <p>{{ message }}  </p>
+    }
