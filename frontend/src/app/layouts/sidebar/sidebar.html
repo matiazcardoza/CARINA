@@ -1,0 +1,128 @@
+
+<!-- HEADLESS (sin Tailwind + animación nativa) -->
+<p-drawer 
+  #drawerRef 
+  [visible]="isOpen()"
+  [modal]="false" 
+  >
+  <!-- (onShow)="handleOpenSidebar()" -->
+  <!-- (visble)="handleOpenSidebar()" -->
+  <!-- [(visible)]="visible" -->
+  <ng-template #headless>
+    <div class="drawer">
+      <!-- Título -->
+      <div class="drawer__header">
+        <span class="brand">
+          <svg class="brand__logo" width="31" height="33" viewBox="0 0 31 33" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15.1934 0V0V0L0.0391235 5.38288L2.35052 25.3417L15.1934 32.427V32.427V32.427L28.0364 25.3417L30.3478 5.38288L15.1934 0Z" fill="var(--p-primary-color)"/>
+          </svg>
+          <span class="brand__text">Your Logo</span>
+        </span>
+        <span>
+          <p-button 
+            type="button" 
+            (onClick)="handleOpenSidebar()"
+            icon="pi pi-times" 
+            rounded="true" 
+            outlined="true" 
+            styleClass="icon-24"
+            ></p-button>
+            <!-- (click)="close(drawerRef, $event)"  -->
+        </span>
+      </div>
+
+      <!-- Scroll -->
+      <div class="drawer__scroll">
+        <ul class="menu">
+          <li>
+            <!-- FAVORITES -->
+            <button class="menu__toggle" (click)="toggle('fav')">
+              <span class="menu__section">PARTES DIARIOS DIGITALES</span>
+              <i class="pi" [class.pi-chevron-down]="!favOpen()" [class.pi-chevron-up]="favOpen()"></i>
+            </button>
+
+            @if (favOpen()) {
+              <ul class="menu__list" animate.enter="slide-down" animate.leave="slide-up">
+                <li routerLink="reports-and-dashboards"><a class="menu__link"><i class="pi pi-chart-line" ></i><span>Reportes y dashboard</span></a></li>
+                <li routerLink="daily-work-log"><a class="menu__link"><i class="pi pi-pen-to-square" ></i><span>Registro de trabajo diario</span></a></li>
+                <li routerLink="fuel-control"><a class="menu__link"><i class="pi pi-car" routerLink="fuel-control"></i><span>Control de combustible</span></a></li>
+                <li routerLink="digital-signature-workflow"><a class="menu__link"><i class="pi pi-check" ></i><span>Workflow de firmas digitales</span></a></li>
+
+                <!-- Reports -->
+                <!-- <li>
+                  <button class="menu__link menu__link--btn" (click)="toggle('reports')">
+                    <i class="pi pi-chart-line"></i>
+                    <span>Reports</span>
+                    <i class="pi ml-auto" [class.pi-chevron-down]="!reportsOpen()" [class.pi-chevron-up]="reportsOpen()"></i>
+                  </button>
+
+                  @if (reportsOpen()) {
+                    <ul class="menu__list menu__list--nested" animate.enter="slide-down" animate.leave="slide-up">
+                      <li>
+                        <button class="menu__link menu__link--btn" (click)="toggle('revenue')">
+                          <i class="pi pi-chart-line"></i>
+                          <span>Revenue</span>
+                          <i class="pi ml-auto" [class.pi-chevron-down]="!revenueOpen()" [class.pi-chevron-up]="revenueOpen()"></i>
+                        </button>
+
+                        @if (revenueOpen()) {
+                          <ul class="menu__list menu__list--nested" animate.enter="slide-down" animate.leave="slide-up">
+                            <li><a class="menu__link"><i class="pi pi-table"></i><span>View</span></a></li>
+                            <li><a class="menu__link"><i class="pi pi-search"></i><span>Search</span></a></li>
+                          </ul>
+                        }
+                      </li>
+
+                      <li><a class="menu__link"><i class="pi pi-chart-line"></i><span>Expenses</span></a></li>
+                    </ul>
+                  }
+                </li> -->
+
+                <!-- <li><a class="menu__link"><i class="pi pi-users"></i><span>Team</span></a></li> -->
+                <!-- <li>
+                  <a class="menu__link">
+                    <i class="pi pi-comments"></i>
+                    <span>Messages</span>
+                    <span class="badge">3</span>
+                  </a>
+                </li> -->
+                <!-- <li><a class="menu__link"><i class="pi pi-calendar"></i><span>Calendar</span></a></li> -->
+                <!-- <li><a class="menu__link"><i class="pi pi-cog"></i><span>Settings</span></a></li> -->
+              </ul>
+            }
+          </li>
+        </ul>
+
+        <ul class="menu">
+          <li>
+            <!-- APPLICATION -->
+            <button class="menu__toggle" (click)="toggle('app')">
+              <span class="menu__section">ALMACÉN DIGITAL</span>
+              <i class="pi" [class.pi-chevron-down]="!appOpen()" [class.pi-chevron-up]="appOpen()"></i>
+            </button>
+
+            @if (appOpen()) {
+              <ul class="menu__list" animate.enter="slide-down" animate.leave="slide-up">
+                <li routerLink="kardex-management"><a class="menu__link"><i class="pi pi-folder" ></i><span>Gestión del kardex</span></a></li>
+                <li routerLink="digital-signatures"><a class="menu__link"><i class="pi pi-chart-bar"></i><span>Firmas de reportes</span></a></li>
+                <li><a class="menu__link"><i class="pi pi-cog"></i><span>Settings</span></a></li>
+              </ul>
+            }
+          </li>
+        </ul>
+      </div>
+
+      <!-- Footer -->
+      <div class="drawer__footer">
+        <hr class="hr" />
+        <a class="profile">
+          <p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle"></p-avatar>
+          <span class="profile__name">Amy Elsner</span>
+        </a>
+      </div>
+    </div>
+  </ng-template>
+</p-drawer>
+
+<!-- Botón para abrir el headless -->
+<!-- <p-button (click)="visible.set(true)" icon="pi pi-bars"></p-button> -->

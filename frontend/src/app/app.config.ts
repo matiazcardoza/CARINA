@@ -9,7 +9,7 @@ import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
 import { importProvidersFrom } from '@angular/core';
 
 /* Proveedores para primeng */
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+// import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeuix/themes/aura';
 import Material from '@primeuix/themes/material';
@@ -38,7 +38,8 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideRouter(routes),
-    provideAnimationsAsync(),
+    // provideAnimationsAsync(),
+    provideAnimations(),
     provideHttpClient(
       withInterceptors([csrfInterceptor]),
       withXsrfConfiguration({

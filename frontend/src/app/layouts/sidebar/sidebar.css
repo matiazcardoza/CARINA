@@ -1,0 +1,58 @@
+/* drawer-examples.component.css */
+
+/* Utilidades mínimas (para los ejemplos) */
+.btn-row { display:flex; gap:.5rem; justify-content:center; align-items:center; }
+.hr-sep { margin:1rem 0; border:0; border-top:1px solid var(--p-content-border-color, #e5e7eb); }
+
+/* Size responsive del Drawer: reemplazo de "!w-full md:!w-80 lg:!w-[30rem]" */
+.drawer-responsive { width: 100% !important; }
+@media (min-width: 768px)  { .drawer-responsive { width: 20rem !important; } }    /* md */
+@media (min-width: 1024px) { .drawer-responsive { width: 30rem !important; } }    /* lg */
+
+/* TEMPLATE header/footer */
+.hdr { display:flex; align-items:center; gap:.5rem; }
+.hdr__name { font-weight:700; }
+
+/* HEADLESS layout (CSS puro) */
+.drawer { display:flex; flex-direction:column; height:100%; background:var(--p-content-background,#fff); color:var(--p-text-color,#2a2a2a); }
+.drawer__header { display:flex; align-items:center; justify-content:space-between; padding:1rem 1.5rem .75rem; flex-shrink:0; }
+.brand { display:inline-flex; align-items:center; gap:.75rem; }
+.brand__logo { display:block; }
+.brand__text { font-weight:600; font-size:1.25rem; color:var(--p-primary-color,#0ea5e9); }
+.icon-24 { width:2rem; height:2rem; }
+
+.drawer__scroll { overflow-y:auto; padding:.25rem 0; }
+.drawer__footer { margin-top:auto; padding:.5rem 1rem 1rem; }
+
+.menu { list-style:none; margin:0; padding:1rem; }
+.menu__toggle { width:100%; background:none; border:0; padding:1rem; display:flex; align-items:center; justify-content:space-between; cursor:pointer; color:var(--p-text-muted-color,#6b7280); font-weight:500; transition:background-color .2s ease; }
+.menu__toggle:hover { background:var(--p-content-hover-background,#f4f4f5); }
+.menu__section { font-size:.875rem; letter-spacing:.02em; }
+
+.menu__list { list-style:none; margin:0; padding:0; overflow:hidden; }
+.menu__list--nested { padding-left:1rem; }
+
+.menu__link { display:flex; align-items:center; gap:.5rem; padding:1rem; border-radius:.5rem; text-decoration:none; color:var(--p-text-color,#2a2a2a); transition:background-color .2s ease,color .2s ease; cursor:pointer; }
+.menu__link:hover { background:var(--p-content-hover-background,#f4f4f5); }
+.menu__link--btn { background:none; border:0; width:100%; text-align:left; }
+
+.badge { margin-left:auto; min-width:1.5rem; height:1.5rem; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; font-size:.75rem; background:var(--p-primary-color,#0ea5e9); color:var(--p-primary-contrast-color,#fff); }
+
+.hr { border:0; border-top:1px solid var(--p-content-border-color,#e5e7eb); margin:0 0 1rem; }
+.profile { display:flex; align-items:center; gap:.5rem; padding:.75rem 1rem; border-radius:.5rem; text-decoration:none; color:var(--p-text-color,#2a2a2a); transition:background-color .2s ease; cursor:pointer; }
+.profile:hover { background:var(--p-content-hover-background,#f4f4f5); }
+.profile__name { font-weight:700; }
+
+/* Animaciones nativas Angular 20: clases usadas por animate.enter/leave */
+@keyframes slideDown { 0%{opacity:0;transform:translateY(-4px);max-height:0} 100%{opacity:1;transform:translateY(0);max-height:1000px} }
+@keyframes slideUp   { 0%{opacity:1;transform:translateY(0);max-height:1000px} 100%{opacity:0;transform:translateY(-4px);max-height:0} }
+.slide-down { animation: slideDown 240ms ease-out forwards; }
+.slide-up   { animation: slideUp   200ms ease-in  forwards; }
+
+/* pequeña utilidad para alinear icono a la derecha */
+.ml-auto { margin-left:auto; }
+
+/* Botonera del footer template */
+.row { display:flex; }
+.gap { gap:.5rem; }
+.btn-grow { flex:1 1 auto; }

@@ -1,12 +1,13 @@
 .outlet-container{
-transition: margin 0.4s ease;
+transition: margin 0.3s ease;
 /* border: 1px solid red; */
 /* padding-bottom: 5rem; */
-padding-top: 4rem;
+/* border: 2px solid red; */
+/* padding-top: 4rem; */
 }
 
 .dark_container_right_side{
-    margin-left: 335px;
+    margin-left: 321px;
 }
 
 @media (max-width: 768px) {

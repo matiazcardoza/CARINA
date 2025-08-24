@@ -29,7 +29,7 @@ import { UploadFile } from './shared/draft/upload-file/upload-file';
 import { ComponentTesting } from './shared/draft/component-testing/component-testing';
 import { KardexManagement } from './features/private/kardex-management/kardex-management';
 import { DigitalSignature } from './shared/draft/digital-signature/digital-signature';
-
+import { Sidebar } from './layouts/sidebar/sidebar';
 export const routes: Routes = [
     // Redirige la ruta raíz a la página de login
     {
@@ -183,6 +183,10 @@ export const routes: Routes = [
             {
                 path: 'digital-signature',
                 component: DigitalSignature
+            },
+            {
+                path: 'sidebar-exmple',
+                component: Sidebar
             },
         ]
     },

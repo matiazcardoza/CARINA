@@ -2,12 +2,16 @@
     [isOpen]="isOpen()"
     (sentOpenValue)="handleOpenSidebar($event)"
 />
-
-<div class="outlet-container" [class.dark_container_right_side]="!isOpen()">
-    <app-header 
+<!-- [isOpen]="isOpen()" -->
+    <!-- (sentOpenValue)="handleOpenSidebar($event)" -->
+<app-navbar
+    (sentOpenValue)="handleOpenSidebar($event)" 
+/>
+<div class="outlet-container" [class.dark_container_right_side]="isOpen()">
+    <!-- <app-header 
         (sentOpenValue)="handleOpenSidebar($event)" 
         [isOpen]="isOpen()"
-    />
-        <router-outlet />
+    /> -->
+    <router-outlet />
     <!-- <app-footer/> -->
 </div>
