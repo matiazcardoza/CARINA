@@ -7,54 +7,33 @@
 >
   <form (ngSubmit)="onBuscarDni()" style="display:flex; flex-direction:column; gap:14px;">
 
-    <!-- fila: input + buscar -->
-               <!-- [value]="filterProducts()"   (input)="getProductsOfSiluciaBackend({numero: $event.target?.value})" -->
-    <div style="display:flex; gap:12px; align-items:center;">
-      <!-- [(input)]="dniQuery" -->
-      <input
-        pInputText
-        name="dni"
-        placeholder="Ingrese DNI"
-        inputmode="numeric"
-        pattern="[0-9]*"
-        maxlength="8"
-        style="
-          flex:1;
-          height:44px;
-          border-radius:12px;
-          padding:0 16px;
-        "
-      />
-
-      <p-button
-        type="submit"
-        label="Buscar"
-        [disabled]="!dniQuery"
-        [style]="{
-          height: '44px',
-          'border-radius': '10px',
-          'background': '#b01763',
-          'border-color': '#b01763',
-          'padding': '0 18px',
-          'font-weight': '700'
-        }"
-      />
-    </div>
-
-    <!-- botón cancelar ancho -->
-    <p-button
-      type="button"
-      label="Cancelar"
-      (onClick)="closeMovementDetailsModal()"
-      [style]="{
-        width: '100%',
-        height: '44px',
-        'border-radius': '12px',
-        'background': '#ececec',
-        'border': 'none',
-        'color': '#3f4a5a',
-        'font-weight': '600'
-      }"
-    />
+        <input
+          pInputText 
+          name="dni"
+          placeholder="Ingrese DNI"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          maxlength="8"
+          [(ngModel)]="dniQuery"
+        />
+        <!-- @if(dniQuery){
+          <h4>Usuarios Seleccionados:</h4>
+          <p>Usuarios Seleccionados:</p>
+          <p>Usuarios Seleccionados:</p>
+        } -->
+        <div style="display:flex; gap:12px; justify-content:end;">
+            <p-button
+              type="button"
+              label="Cancelar"
+              (onClick)="closeMovementDetailsModal()"
+              severity="secondary"
+            />
+            <p-button
+              type="submit"
+              label="Buscar"
+              icon="pi pi-check"
+              [disabled]="!dniQuery"
+            />
+        </div>
   </form>
 </p-dialog>

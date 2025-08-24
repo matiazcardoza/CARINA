@@ -6,6 +6,7 @@ use App\Http\Controllers\OrderSiluciaController;
 use App\Http\Controllers\OrderProductoController;
 use App\Http\Controllers\OrderProductsController;
 use App\Http\Controllers\PdfControllerKardex;
+use App\Http\Controllers\PeopleController;
 use App\Http\Controllers\ProductMovementKardexController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -51,9 +52,19 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Route::post('/kardex/movements/bulk', [MovementKardexController::class, 'bulk']);   // varios movimientos
 });
 
-    Route::get('/products/{product}/movements-kardex/pdf',[ProductMovementKardexController::class, 'pdf']);
-    // Route::post('/movements-kardex', [MovementKardexController::class, 'store']);  
+    // Route::get('/products/{product}/movements-kardex/pdf',[ProductMovementKardexController::class, 'pdf']);
+    // Route::post('/movements-kardex', [MovementKardexController::class, 'store']); 
+
+    // =============================================================================================================================================== 
+    // buscamos el producto, si no lo encontramos lo creamos y al mismo tiempo guardarmos el movimiento
     Route::post('/movements-kardex', [MovementKardexController::class, 'store']);  
+    // mostramos todos los movimientos que pertenecen a un producto de la base de datos de silucia
     Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex',  [MovementKardexController::class, 'indexBySiluciaIds']);
+    // generamos un reporte de  todos los movimientos que pertenecen a un producto de la base de datos de silucia
     Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf']);
 
+
+    Route::get('/people/{dni}', [PeopleController::class, 'showOrFetch']); // cache-first (db) → RENIEC
+    Route::get('/movements-kardex/{movement}/people', [MovementKardexController::class, 'people']);
+    Route::post('/movements-kardex/{movement}/people', [MovementKardexController::class, 'attachPerson']);
+    Route::delete('/movements-kardex/{movement}/people/{dni}', [MovementKardexController::class, 'detachPerson']);

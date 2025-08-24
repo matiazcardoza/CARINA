@@ -34,5 +34,9 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    
+    'reniec' => [
+        'base_url' => env('RENIEC_BASE_URL'),
+    ],
 
 ];

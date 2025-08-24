@@ -27,4 +27,10 @@ class MovementKardex extends Model
     {
         return $this->belongsTo(Product::class, 'product_id');
     }
+    
+    public function people()
+    {
+        return $this->belongsToMany(\App\Models\Person::class, 'movement_person', 'movement_kardex_id', 'person_dni')
+            ->withPivot(['role','note','attached_at']);
+    }
 }

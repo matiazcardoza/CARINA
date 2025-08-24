@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreMovementRequest;
 use App\Models\MovementKardex;
+use App\Models\Person;
 use App\Models\Product;
+use App\Services\ReniecClient;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
@@ -220,140 +222,81 @@ class MovementKardexController extends Controller
         return $pdfFile->download('anexo02_demo.pdf');
     }
 
+    // obtiene todas las personas de un movimiento
+    public function people(MovementKardex $movement)
+    {
+        return response()->json(
+            $movement->people()->orderBy('people.dni')->get()
+        );
+    }
+
+    // funcion para adjuntar peronas al movimiento
+    // attach: si la persona no existe, consulta RENIEC y la crea
+    public function attachPerson(Request $request, MovementKardex $movement, ReniecClient $reniec)
+    {
+        $data = $request->validate([
+            'dni'  => ['required','string','regex:/^\d{8}$/'],
+            'role' => ['nullable','string','max:100'],
+            'note' => ['nullable','string','max:255'],
+        ]);
+
+        $dni = $data['dni'];
+
+        $person = Person::find($dni);
+        if (!$person) {
+            // cache miss → RENIEC
+            $payload = $reniec->fetchByDni($dni);
+            $ret = data_get($payload, 'consultarResponse.return');
+            if (data_get($ret, 'coResultado') !== '0000') {
+                return response()->json(['ok'=>false,'message'=>'DNI no encontrado en RENIEC'], 404);
+            }
+            $dp = data_get($ret, 'datosPersona', []);
+            $ubg = explode('/', (string)($dp['ubigeo'] ?? ''));
+
+            $person = Person::create([
+                'dni'            => $dni,
+                'first_lastname' => $dp['apPrimer']    ?? null,
+                'second_lastname'=> $dp['apSegundo']   ?? null,
+                'names'          => $dp['prenombres']  ?? null,
+                'full_name'      => trim(($dp['prenombres'] ?? '').' '.($dp['apPrimer'] ?? '').' '.($dp['apSegundo'] ?? '')),
+                'civil_status'   => $dp['estadoCivil'] ?? null,
+                'address'        => $dp['direccion']   ?? null,
+                'ubigeo'         => $dp['ubigeo']      ?? null,
+                'ubg_department' => $ubg[0] ?? null,
+                'ubg_province'   => $ubg[1] ?? null,
+                'ubg_district'   => $ubg[2] ?? null,
+                'photo_base64'   => $dp['foto']        ?? null,
+                'raw'            => $payload,
+                'reniec_consulted_at' => now(),
+            ]);
+        }
+
+        // vincular (idempotente por PK compuesta)
+        $movement->people()->syncWithoutDetaching([
+            $person->dni => [
+                'role' => $data['role'] ?? null,
+                'note' => $data['note'] ?? null,
+                'attached_at' => now(),
+            ]
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'movement_id' => $movement->id,
+            'person' => $person,
+        ], 201);
+    }
+    
+    // desvincular persona de movimiento de prodcuto
+    public function detachPerson(MovementKardex $movement, string $dni)
+    {
+        $movement->people()->detach($dni);
+
+        return response()->json(['ok'=>true]);
+    }
 
 }
 
 
 
 
-    // EJEMPLO UNO
-        // // -------- Empresa (mock) --------
-        // $empresa = (object)[
-        //     'razon_social' => 'Gobierno Regional Puno - Proyecto de Demostración',
-        //     'ruc'          => '20123456789',
-        //     'logo'         => 'logo_demo.png', // storage/logo_demo.png (usa storage:link)
-        // ];
-
-        // // -------- Mes/Año/Proyecto (mock) --------
-        // $anio = 2025;
-        // $month = 8; // Agosto
-        // $mes = 'AGOSTO';
-        // $proyecto = 'Mejoramiento de Infraestructura Vial Urbana – Zona Central';
-
-        // // -------- Cabeceras (días) --------
-        // $inicioMes = Carbon::create($anio, $month, 1);
-        // $finMes    = (clone $inicioMes)->endOfMonth();
-        // $periodo   = CarbonPeriod::create($inicioMes, '1 day', $finMes);
-
-        // $mapDia = [1=>'L', 2=>'M', 3=>'X', 4=>'J', 5=>'V', 6=>'S', 7=>'D'];
-        // $diasNumeros = [];
-        // $diasLetras  = [];
-        // foreach ($periodo as $dia) {
-        //     $diasNumeros[] = (int)$dia->format('d');
-        //     $diasLetras[]  = $mapDia[$dia->dayOfWeekIso];
-        // }
-        // // La vista espera $cabeceras con esta forma:
-        // $cabeceras = [[
-        //     'nombre_dias' => $diasLetras,
-        //     'dias'        => $diasNumeros,
-        // ]];
-
-        // // -------- Datos de cabecera de “responsables” que usa la vista --------
-        // $tipo = (object)[
-        //     'nombre' => 'EJECUCIÓN DE OBRA',
-        //     'codigo' => 'OBRA', // forzamos rama "else" (no GASGES/EXPTEC)
-        // ];
-        // $tipo_asistencia = 'ASISTENCIA REGULAR';
-
-        // // Si id es 49 o 48 la vista escribe "GERENCIA REGIONAL DE INFRAESTRUCTURA"
-        // $oficina = (object)[
-        //     'id'     => 49,
-        //     'nombre' => 'Gerencia Regional de Infraestructura',
-        // ];
-
-        // $proyecto_completo = (object)[
-        //     'cui'     => '2512345',
-        //     'pliego'  => '458 - Gobierno Regional Puno',
-        //     'fte_fto' => 'Recursos Ordinarios',
-        // ];
-        // $meta = 'Meta 001';
-        // $tareo = (object)[ 'fte_fto' => null ]; // null => usa $proyecto_completo->fte_fto
-
-        // // Personas base
-        // $base = [
-        //     ['dni'=>'40781234', 'nombres'=>'ANA',    'ap_paterno'=>'QUISPE', 'ap_materno'=>'MAMANI', 'cargo'=>'ASISTENTE', 'nac'=>'1994-05-12'],
-        //     ['dni'=>'45678901', 'nombres'=>'CARLOS', 'ap_paterno'=>'HUANCA', 'ap_materno'=>'QUISPE', 'cargo'=>'SUPERVISOR', 'nac'=>'1989-11-03'],
-        //     ['dni'=>'42345678', 'nombres'=>'MARÍA',  'ap_paterno'=>'APAZA',  'ap_materno'=>'FLORES', 'cargo'=>'TÉCNICO', 'nac'=>'1992-02-21'],
-        //     ['dni'=>'41239876', 'nombres'=>'JOSÉ',   'ap_paterno'=>'COILA',  'ap_materno'=>'RAMOS',  'cargo'=>'OPERARIO', 'nac'=>'1990-07-09'],
-        //     ['dni'=>'43876543', 'nombres'=>'LUCÍA',  'ap_paterno'=>'CHOQUE', 'ap_materno'=>'QUENTA', 'cargo'=>'ASISTENTE', 'nac'=>'1995-09-30'],
-        // ];
-
-        // // Asistencias: S y D = F, resto = A + 1 falta aleatoria
-        // $personal = [];
-        // foreach ($base as $p) {
-        //     $asistencias = [];
-        //     $laborablesIdx = [];
-        //     $idx = 0;
-
-        //     foreach (CarbonPeriod::create($inicioMes, '1 day', $finMes) as $dia) {
-        //         $isWeekend = in_array($dia->dayOfWeekIso, [6,7]);
-        //         if ($isWeekend) {
-        //             $asistencias[] = 'F';
-        //         } else {
-        //             $asistencias[] = 'A';
-        //             $laborablesIdx[] = $idx;
-        //         }
-        //         $idx++;
-        //     }
-        //     if (!empty($laborablesIdx)) {
-        //         $randomKey = $laborablesIdx[array_rand($laborablesIdx)];
-        //         $asistencias[$randomKey] = 'F';
-        //     }
-
-        //     $tot_asis = 0;
-        //     foreach ($asistencias as $a) if ($a === 'A') $tot_asis++;
-
-        //     $personal[] = [
-        //         'num_doc'        => $p['dni'],
-        //         'nombres'        => $p['nombres'],
-        //         'ap_paterno'     => $p['ap_paterno'],
-        //         'ap_materno'     => $p['ap_materno'],
-        //         'fec_nacimiento' => $p['nac'],
-        //         'cargo'          => $p['cargo'],
-        //         'asistencias'    => $asistencias,
-        //         'tot_asis'       => $tot_asis,
-        //     ];
-        // }
-
-        // // Quienes firma/encargados para la rama "OBRA"
-        // $supervisor = (object)['nombre_completo' => 'Ing. Pedro Quispe Condori'];
-        // $residente  = (object)['nombre_completo' => 'Ing. Rosa Mamani Tito'];
-        // $inspector  = null; // no se usa si hay supervisor
-        // $jefe_proyecto = null; // solo para EXPTEC
-
-        // // Páginas r1, r2, r3: vacías para no generar más páginas
-        // $r1_personal = $r2_personal = $r3_personal = [];
-        // $r1_cabeceras = $r2_cabeceras = $r3_cabeceras = [];
-        // $r1_mes = $r2_mes = $r3_mes = null;
-        // $r1_anio = $r2_anio = $r3_anio = null;
-        // $r1_tipo_asistencia = $r2_tipo_asistencia = $r3_tipo_asistencia = null;
-        // $r1_supervisor = $r2_supervisor = $r3_supervisor = null;
-        // $r1_inspector  = $r2_inspector  = $r3_inspector  = null;
-        // $r1_residente  = $r2_residente  = $r3_residente  = null;
-        // $r1_jefe_proyecto = $r2_jefe_proyecto = $r3_jefe_proyecto = null;
-
-        // // Flags + QR
-        // $pdf   = true;
-        // $excel = false;
-        // $qr_code = ''; // si usas package, pon aquí el base64
-
-        // $payload = compact(
-        //     'empresa','excel','qr_code','pdf',
-        //     'mes','anio','proyecto','cabeceras','personal',
-        //     'tipo','tipo_asistencia','oficina',
-        //     'proyecto_completo','meta','tareo',
-        //     'supervisor','residente','inspector','jefe_proyecto',
-        //     'r1_personal','r1_cabeceras','r1_mes','r1_anio','r1_tipo_asistencia','r1_supervisor','r1_inspector','r1_residente','r1_jefe_proyecto',
-        //     'r2_personal','r2_cabeceras','r2_mes','r2_anio','r2_tipo_asistencia','r2_supervisor','r2_inspector','r2_residente','r2_jefe_proyecto',
-        //     'r3_personal','r3_cabeceras','r3_mes','r3_anio','r3_tipo_asistencia','r3_supervisor','r3_inspector','r3_residente','r3_jefe_proyecto'
-        // );
