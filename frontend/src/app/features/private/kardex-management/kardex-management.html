@@ -7,12 +7,18 @@
   <p-table
   #dt1
   [value]="products()"
+  [paginator]="true"
+  [rows]="pageSize"
+  [totalRecords]="productsTotal()"
+  [lazy]="true"
+  (onLazyLoad)="onProductsLazyLoad($event)"
+
   [globalFilterFields]="['numero','fecha','detalles_orden','rsocial','ruc','item','detalle','cantidad','desmedida','precio','total_internado','saldo']"
   selectionMode="single"
   [(selection)]="selectedProduct"
   dataKey="idcompradet"
-  [rows]="5"
-  [paginator]="true"
+
+
   stateStorage="session"
   stateKey="statedemo-session"
   [scrollable]="true"
@@ -23,16 +29,11 @@
   >
   <!-- scrollHeight="flex"  -->
     <!-- Caption -->
-    <ng-template pTemplate="caption">
+
+     <!-- BUSQUEDA -->
+    <!-- <ng-template pTemplate="caption">
       <p-iconfield iconPosition="left">
         <p-inputicon><i class="pi pi-search"></i></p-inputicon>
-        <!-- <input
-          pInputText
-          type="text"
-          [value]="($any(dt1.filters?.['global']))?.value ?? ''"
-          (input)="dt1.filterGlobal($event.target.value, 'contains')"
-          placeholder="Global Search"
-        /> -->
         <input
           pInputText
           type="text"
@@ -41,7 +42,68 @@
           placeholder="Global Search"
         />
       </p-iconfield>
-    </ng-template>
+    </ng-template> -->
+
+<ng-template pTemplate="caption">
+  <div
+    style="
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+      align-items:end;
+      grid-auto-flow:dense;
+      width:100%;
+    "
+  >
+    <!-- N° Orden -->
+    <p-iconfield style="display:block; width:100%;">
+      <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+      <input pInputText type="text" [(ngModel)]="uiFilters.numero" placeholder="N° Orden" style="width:100%;" />
+    </p-iconfield>
+
+    <!-- Año -->
+    <div style="width:100%;">
+      <input pInputText type="number" [(ngModel)]="uiFilters.anio" placeholder="Año" style="width:100%;" />
+    </div>
+
+    <!-- SIAF -->
+    <div style="width:100%;">
+      <input pInputText type="text" [(ngModel)]="uiFilters.siaf" placeholder="SIAF" style="width:100%;" />
+    </div>
+
+    <!-- RUC -->
+    <div style="width:100%;">
+      <input pInputText type="text" [(ngModel)]="uiFilters.ruc" placeholder="RUC" style="width:100%;" />
+    </div>
+
+    <!-- Razón social -->
+    <div style="width:100%;">
+      <input pInputText type="text" [(ngModel)]="uiFilters.rsocial" placeholder="Razón social" style="width:100%;" />
+    </div>
+
+    <!-- Ítem -->
+    <div style="width:100%;">
+      <input pInputText type="text" [(ngModel)]="uiFilters.item" placeholder="Ítem" style="width:100%;" />
+    </div>
+
+    <!-- Meta -->
+    <div style="width:100%;">
+      <input pInputText type="text" [(ngModel)]="uiFilters.desmeta" placeholder="Meta (desmeta)" style="width:100%;" />
+    </div>
+
+    <!-- Email -->
+    <div style="width:100%;">
+      <input pInputText type="text" [(ngModel)]="uiFilters.email" placeholder="Email proveedor" style="width:100%;" />
+    </div>
+
+    <!-- Botones (fila completa, alineados a la derecha) -->
+    <div style="grid-column:1 / -1; display:flex; gap:8px; justify-content:flex-end; margin-top:4px;">
+      <p-button label="Buscar" icon="pi pi-search" (onClick)="onSearchClick()"></p-button>
+      <p-button label="Limpiar" severity="secondary" outlined (onClick)="onClearClick()"></p-button>
+    </div>
+  </div>
+</ng-template>
+
 
     <!-- Header -->
     <ng-template pTemplate="header">
@@ -277,72 +339,72 @@
       <!-- [expandedRowKeys]="expandedRowsMovements" -->
 
         <!-- RESUMEN ARRIBA -->
-        <ng-template pTemplate="caption">
-          <div
+      <ng-template pTemplate="caption">
+        <div
+          style="
+            display:flex;
+            flex-wrap:wrap;
+            align-items:center;
+            gap:18px;
+            padding:12px 14px;
+            background:#fafafa;
+            border:1px solid #e5e7eb;
+            border-radius:10px;
+            box-shadow:0 1px 2px rgba(0,0,0,0.04);
+          "
+        >
+          <span
             style="
               display:flex;
-              flex-wrap:wrap;
               align-items:center;
-              gap:18px;
-              padding:12px 14px;
-              background:#fafafa;
-              border:1px solid #e5e7eb;
-              border-radius:10px;
-              box-shadow:0 1px 2px rgba(0,0,0,0.04);
+              gap:8px;
+              font-size:1.1rem;          /* texto un poquito más grande */
+              font-weight:600;
+              color:#14532d;
             "
           >
-            <span
-              style="
-                display:flex;
-                align-items:center;
-                gap:8px;
-                font-size:1.1rem;          /* texto un poquito más grande */
-                font-weight:600;
-                color:#14532d;
-              "
-            >
-              <i class="pi pi-sign-in" style="font-size:1.25rem; color:#16a34a;"></i>
-              <span>
-                Total entradas:
-                <span style="font-weight:700;">{{ totalEntradas }}</span>
-              </span>
+            <i class="pi pi-sign-in" style="font-size:1.25rem; color:#16a34a;"></i>
+            <span>
+              Total entradas:
+              <span style="font-weight:700;">{{ totalEntradas }}</span>
             </span>
+          </span>
 
-            <span
-              style="
-                display:flex;
-                align-items:center;
-                gap:8px;
-                font-size:1.1rem;
-                font-weight:600;
-                color:#7f1d1d;
-              "
-            >
-              <i class="pi pi-sign-out" style="font-size:1.25rem; color:#dc2626;"></i>
-              <span>
-                Total salidas:
-                <span style="font-weight:700;">{{ totalSalidas }}</span>
-              </span>
+          <span
+            style="
+              display:flex;
+              align-items:center;
+              gap:8px;
+              font-size:1.1rem;
+              font-weight:600;
+              color:#7f1d1d;
+            "
+          >
+            <i class="pi pi-sign-out" style="font-size:1.25rem; color:#dc2626;"></i>
+            <span>
+              Total salidas:
+              <span style="font-weight:700;">{{ totalSalidas }}</span>
             </span>
+          </span>
 
-            <span
-              style="
-                display:flex;
-                align-items:center;
-                gap:8px;
-                font-size:1.1rem;
-                font-weight:600;
-                color:#0b4191;
-              "
-            >
-              <i class="pi pi-box" style="font-size:1.25rem; color:#0284c7;"></i>
-              <span>
-                Stock:
-                <span style="font-weight:700;">{{ stockSaldo }}</span>
-              </span>
+          <span
+            style="
+              display:flex;
+              align-items:center;
+              gap:8px;
+              font-size:1.1rem;
+              font-weight:600;
+              color:#0b4191;
+            "
+          >
+            <i class="pi pi-box" style="font-size:1.25rem; color:#0284c7;"></i>
+            <span>
+              Stock:
+              <span style="font-weight:700;">{{ stockSaldo }}</span>
             </span>
-          </div>
-        </ng-template>
+          </span>
+        </div>
+      </ng-template>
       <!-- [tableStyle]="{ 'min-width': '60rem' }" -->
       <!-- [tableStyle]="{ 'min-width': '60rem' }" -->
       <ng-template pTemplate="header">

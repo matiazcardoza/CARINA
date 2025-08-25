@@ -44,6 +44,16 @@ export class KardexManagement {
   listDniPeople = signal<any[]>([]);
   // expandedRowsMovements: { [id: number]: boolean } = {};
   expandedRowsMovements = signal<Record<number, boolean>>({});
+  uiFilters = {
+    numero: '',
+    anio: undefined as number | undefined,
+    item: '',
+    desmeta: '',
+    siaf: '',
+    ruc: '',
+    rsocial: '',
+    email: ''
+  };
 
   // Modales
   openModalSeeDetailsOfMovimentKardex = signal<boolean>(true);
@@ -85,22 +95,87 @@ export class KardexManagement {
   }
 
   // ----- Lifecycle -----
+  productsTotal = signal<number>(0);
+  pageSize = 20; 
 
-  ngOnInit() {
-    this.getProductsOfSiluciaBackend({});
-    // this.customers.set(clients);
-    // this.products.set(products.data)
-  }
+  onSearchClick() {
+    // Normaliza "anio" (por si el input devuelve string vacío)
+    const raw = (this.uiFilters.anio as any);
+    const anio = raw === '' || raw == null ? undefined : Number(raw);
 
-  getProductsOfSiluciaBackend(filters:{ numero?: string; anio?: number; estado?: string }){
-    console.log("Numero enviado", filters.numero);
-    this.loadingProducts.set(true);
-    this.service.getSiluciaProducts(filters).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: res => { this.products.set(res.data); this.loadingProducts.set(false)},
-      error: err => { this.errorLoadingProducts.set('No se pudo cargar'); this.loadingProducts.set(false) }
+    this.getProductsOfSiluciaBackend({
+      ...this.uiFilters,
+      anio,
+      page: 1,
+      per_page: this.pageSize
     });
   }
 
+  onClearClick() {
+    this.uiFilters = {
+      numero: '',
+      anio: undefined,
+      item: '',
+      desmeta: '',
+      siaf: '',
+      ruc: '',
+      rsocial: '',
+      email: ''
+    };
+
+    this.getProductsOfSiluciaBackend({
+      page: 1,
+      per_page: this.pageSize
+    });
+  }
+
+  ngOnInit() {
+    // this.getProductsOfSiluciaBackend({});
+    this.loadFirstPage();
+  }
+  private loadFirstPage() {
+    this.getProductsOfSiluciaBackend({ ...this.uiFilters, page: 1, per_page: this.pageSize });
+  }
+
+  getProductsOfSiluciaBackend(filters:{ 
+    // numero?: string; anio?: number; estado?: string
+    numero?: string; anio?: number; item?: string; desmeta?: string; siaf?: string;
+    ruc?: string; rsocial?: string; email?: string; page?: number; per_page?: number 
+  }){
+
+
+    this.loadingProducts.set(true);
+    this.service.getSiluciaProducts(filters)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.products.set(res.data);
+          this.productsTotal.set(res.total ?? res.data?.length ?? 0);
+          this.pageSize = res.per_page ?? this.pageSize;
+          this.loadingProducts.set(false);
+          // Restaura selección si el producto está en la página actual
+          if (this.lastSelectedKey != null) {
+            const match = (res.data ?? []).find((r: any) => r.idcompradet === this.lastSelectedKey);
+            this.selectedProduct = match || null;
+          }
+        },
+        error: _ => { this.errorLoadingProducts.set('No se pudo cargar'); this.loadingProducts.set(false); }
+      });
+  }
+
+  lastProductsPage = 1;
+  lastProductsRows = this.pageSize;
+  lastSelectedKey: number | null = null; // idcompradet del producto seleccionado
+  onProductsLazyLoad(e: any) {
+    const first = e.first ?? 0;
+    const rows  = e.rows ?? this.pageSize;
+    const page  = Math.floor(first / rows) + 1;
+
+    this.lastProductsPage = page;
+    this.lastProductsRows = rows;
+
+    this.getProductsOfSiluciaBackend({ ...this.uiFilters, page, per_page: rows });
+  }
   // ----- Helpers UI -----
   getSeverity(status: string) {
     switch (status) {
@@ -174,19 +249,24 @@ export class KardexManagement {
   }
 
   onSubmitMovement() {
-    // Aquí puedes mapear si necesitas valor interno en minúsculas:
-    // const value = this.form.movementType === 'Entrada' ? 'entrada' : 'salida';
-    console.log('Movimiento:', this.form);
-    console.log('Datos de formulario seleccionados: ', this.filteredMovementOptions);
-    
-    this.service.createKardexMovement(this.form).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: res => { 
-        this.getProductsOfSiluciaBackend({});
-      },
-      error: err => { 
-        this.errorLoadingProducts.set('No se pudo cargar');
-      }
-    });
+    // Captura el id del producto que estabas tocando
+    this.lastSelectedKey = this.selectedProduct?.idcompradet ?? null;
+
+    const page = this.lastProductsPage;
+    const perPage = this.lastProductsRows;
+
+    this.service.createKardexMovement(this.form)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: _ => {
+          // Refresca manteniendo misma página y filtros
+          this.getProductsOfSiluciaBackend({ ...this.uiFilters, page, per_page: perPage });
+        },
+        error: _ => {
+          this.errorLoadingProducts.set('No se pudo cargar');
+        }
+      });
+
     this.closeMovementModal();
   }
 
