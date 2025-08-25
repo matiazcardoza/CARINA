@@ -62,6 +62,7 @@ class MovementKardexController extends Controller
     public function store(StoreMovementRequest $request)
     {
         // return $request;
+        // return $request;
         $data = $request->validated();
         // return $data;
         return DB::transaction(function () use ($data) {
