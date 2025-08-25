@@ -268,32 +268,144 @@
       [lazy]="true"
       (onLazyLoad)="onMovementsLazyLoad($event)"
       [loading]="movementsLoading()"
+      dataKey="id"
+    
+      [expandedRowKeys]="expandedRowsMovements()"
+      (onRowExpand)="onRowExpandMovement($event)"
+      (onRowCollapse)="onRowCollapseMovement($event)"
       >
+      <!-- [expandedRowKeys]="expandedRowsMovements" -->
+
+        <!-- RESUMEN ARRIBA -->
+        <ng-template pTemplate="caption">
+          <div
+            style="
+              display:flex;
+              flex-wrap:wrap;
+              align-items:center;
+              gap:18px;
+              padding:12px 14px;
+              background:#fafafa;
+              border:1px solid #e5e7eb;
+              border-radius:10px;
+              box-shadow:0 1px 2px rgba(0,0,0,0.04);
+            "
+          >
+            <span
+              style="
+                display:flex;
+                align-items:center;
+                gap:8px;
+                font-size:1.1rem;          /* texto un poquito más grande */
+                font-weight:600;
+                color:#14532d;
+              "
+            >
+              <i class="pi pi-sign-in" style="font-size:1.25rem; color:#16a34a;"></i>
+              <span>
+                Total entradas:
+                <span style="font-weight:700;">{{ totalEntradas }}</span>
+              </span>
+            </span>
+
+            <span
+              style="
+                display:flex;
+                align-items:center;
+                gap:8px;
+                font-size:1.1rem;
+                font-weight:600;
+                color:#7f1d1d;
+              "
+            >
+              <i class="pi pi-sign-out" style="font-size:1.25rem; color:#dc2626;"></i>
+              <span>
+                Total salidas:
+                <span style="font-weight:700;">{{ totalSalidas }}</span>
+              </span>
+            </span>
+
+            <span
+              style="
+                display:flex;
+                align-items:center;
+                gap:8px;
+                font-size:1.1rem;
+                font-weight:600;
+                color:#0b4191;
+              "
+            >
+              <i class="pi pi-box" style="font-size:1.25rem; color:#0284c7;"></i>
+              <span>
+                Stock:
+                <span style="font-weight:700;">{{ stockSaldo }}</span>
+              </span>
+            </span>
+          </div>
+        </ng-template>
       <!-- [tableStyle]="{ 'min-width': '60rem' }" -->
       <!-- [tableStyle]="{ 'min-width': '60rem' }" -->
       <ng-template pTemplate="header">
         <tr>
+          <th style="width:3rem;"></th> <!-- nueva -->
           <th pSortableColumn="id">ID <p-sortIcon field="id"/></th>
           <th pSortableColumn="movement_type">Tipo <p-sortIcon field="movement_type"/></th>
-          <th pSortableColumn="movement_date">Fecha <p-sortIcon field="movement_date"/></th>
           <th pSortableColumn="amount">Cantidad <p-sortIcon field="amount"/></th>
           <th pSortableColumn="amount" style="max-width: 300px; width:300px;">Observaciones <p-sortIcon field="amount"/></th>
+          <th pSortableColumn="movement_date">Fecha <p-sortIcon field="movement_date"/></th>
           <!-- <th pSortableColumn="final_balance">Saldo final <p-sortIcon field="final_balance"/></th> -->
         </tr>
       </ng-template>
 
-      <ng-template pTemplate="body" let-movement>
+      <!-- <ng-template pTemplate="body" let-movement>
         <tr>
           <td>{{ movement.id }}</td>
           <td>{{ movement.movement_type }}</td>
-          <td>{{ movement.movement_date }}</td>
           <td>{{ movement.amount }}</td>
           <td style=" text-align: justify;" >{{ movement.observations || 'ninguna' }}</td>
-          <!-- <td>{{ movement.final_balance ?? '-' }}</td> -->
+          <td>{{ movement.movement_date }}</td>
+        </tr>
+      </ng-template> -->
+
+      <ng-template pTemplate="body" let-movement let-expanded="expanded">
+        <tr>    
+          <td>
+            <p-button type="button"
+              [pRowToggler]="movement"
+              [disabled]="!movement?.people?.length"
+              [text]="true"
+              [rounded]="true"
+              severity="secondary"
+              [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'">
+            </p-button>
+          </td>
+          <td>{{ movement.id }}</td>
+          <td>{{ movement.movement_type }}</td>
+          <td>{{ movement.amount }}</td>
+
+          <!-- Observaciones con scroll interno -->
+          <td style="max-width:300px; width:300px; padding:0;">
+            <div
+              style="
+                max-height:84px;            /* ~4–5 líneas aprox */
+                overflow-y:auto;            /* muestra scroll vertical si excede */
+                overflow-x:hidden;          /* evita scroll horizontal */
+                line-height:1.35;
+                text-align:justify;
+                padding:6px 8px;            /* algo de aire */
+                word-break:break-word;      /* corta palabras largas */
+                white-space:normal;         /* asegura múltiples líneas */
+              "
+            >
+              {{ movement.observations || 'ninguna' }}
+            </div>
+          </td>
+
+          <td>{{ movement.movement_date }}</td>
         </tr>
       </ng-template>
 
-      <ng-template pTemplate="footer">
+      <!-- <ng-template pTemplate="footer">
         <tr>
           <td colspan="5">
             <div class="flex justify-end gap-6" style="display:flex; justify-content:flex-start; gap:1.5rem;">
@@ -303,23 +415,66 @@
             </div>
           </td>
         </tr>
+      </ng-template> -->
+
+      <!-- <ng-template pTemplate="rowexpansion" let-movement> -->
+      <ng-template pTemplate="expandedrow" let-movement>
+        <tr>
+          <td colspan="6">
+            <div style="padding:10px 8px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;">
+              <h4 style="margin:0 0 8px 0;font-size:1rem;">Personas anexadas</h4>
+
+              <p-table [value]="movement.people || []">
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th style="width:8rem;">DNI</th>
+                    <th>Nombre completo</th>
+                    <th style="width:8rem;">Rol</th>
+                    <th>Nota</th>
+                    <th style="width:11rem;">Adjuntado</th>
+                  </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-person>
+                  <tr>
+                    <td>{{ person.dni }}</td>
+                    <td>{{ person.full_name || ((person.names || '') + ' ' + (person.first_lastname || '') + ' ' + (person.second_lastname || '')) }}</td>
+                    <td>{{ person.pivot?.role || '—' }}</td>
+                    <td>{{ person.pivot?.note || '—' }}</td>
+                    <td>{{ person.pivot?.attached_at || '—' }}</td>
+                  </tr>
+                </ng-template>
+
+                <ng-template pTemplate="emptymessage">
+                  <tr><td colspan="5">Sin personas anexadas.</td></tr>
+                </ng-template>
+              </p-table>
+            </div>
+          </td>
+        </tr>
       </ng-template>
 
-      <ng-template pTemplate="emptymessage">
+
+      <!-- <ng-template pTemplate="emptymessage">
         <tr><td colspan="5">Sin movimientos.</td></tr>
+      </ng-template> -->
+      <ng-template pTemplate="emptymessage">
+        <tr><td colspan="6">Sin movimientos.</td></tr>
       </ng-template>
     </p-table>
+    
   </div>
 
   <ng-template pTemplate="footer">
-    <div class="flex justify-end gap-2 w-full">
+    <!-- <div class="flex justify-end gap-2 w-full"> -->
+      <div style="display: flex; justify-content: flex-end; gap: 0.5rem; width: 100%;">
       <p-button label="Cerrar" severity="secondary" outlined (onClick)="closeMovementDetailsModal()"></p-button>
       <p-button label="Descargar informe" icon="pi pi-download" (onClick)="onSubmitMovementDetails()"></p-button>
     </div>
   </ng-template>
 </p-dialog>
 
-
+<!-- ------------------ Modal para adicionar personas por dni-------------------- -->
 <app-add-new-user-modal
   [isOpen]="showAddUserModal"
   (sentOpenValue)="closeModalAddPerson()"

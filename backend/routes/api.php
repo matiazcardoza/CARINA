@@ -38,13 +38,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->only(['index','store'])
         ->shallow();
 
-    //orders producto routes
-    // Route::get('/products/{product}/movements-kardex', [ProductMovementKardexController::class, 'index']);
-    // Route::post('/products/{product}/kardex',[MovementKardexController::class, 'storeForProduct']);
+
     
     
 });
-
+    // ---------------------------Revisar y eliminar estas endopitns con sus metodos----------------------------------
+    // Route::get('/products/{product}/movements-kardex', [ProductMovementKardexController::class, 'index']);
+    // Route::post('/products/{product}/kardex',[MovementKardexController::class, 'storeForProduct']);
     // Route::get('/products/{product}/movements-kardex/pdf',[ProductMovementKardexController::class, 'pdf']);
     // Route::post('/movements-kardex', [MovementKardexController::class, 'store']); 
     // Route::post('/kardex/movements/bulk', [MovementKardexController::class, 'bulk']);   // varios movimientos
@@ -57,7 +57,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf']);
 
 
+    // muestra datos de una persona, ya sea consultadno a la api de reniec o consultando la propia base de datos
     Route::get('/people/{dni}', [PeopleController::class, 'showOrFetch']); // cache-first (db) → RENIEC
+    // muestra todas las personas pertenecientes a un movimiento
     Route::get('/movements-kardex/{movement}/people', [MovementKardexController::class, 'people']);
+    // esta endpoint debe hacerse en "/movements-kardex" pues ahi es donde se guardara el dato de un 
     Route::post('/movements-kardex/{movement}/people', [MovementKardexController::class, 'attachPerson']);
+    // endpoint no terminado - sirve para quitar una persona de un movimiento
     Route::delete('/movements-kardex/{movement}/people/{dni}', [MovementKardexController::class, 'detachPerson']);

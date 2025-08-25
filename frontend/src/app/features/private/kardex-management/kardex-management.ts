@@ -41,7 +41,9 @@ export class KardexManagement {
   selectedCustomers!: any;
   selectedProduct: any | null = null;
   filterProducts =  signal<string>('');
-  listDniPeople = signal<any[]>([])
+  listDniPeople = signal<any[]>([]);
+  // expandedRowsMovements: { [id: number]: boolean } = {};
+  expandedRowsMovements = signal<Record<number, boolean>>({});
 
   // Modales
   openModalSeeDetailsOfMovimentKardex = signal<boolean>(true);
@@ -210,6 +212,7 @@ export class KardexManagement {
     openMovementDetailsModal(row?: any) {
     this.selectedProductForMovements = row;
     this.showMovementDetailsModal = true;
+    this.expandedRowsMovements.set({});   // ← reset al abrir
     this.fetchMovements(1, this.movementsPageSize);
   }
     
@@ -232,6 +235,14 @@ export class KardexManagement {
           this.movementsKardex.set(res.movements.data);
           this.movementsTotal.set(res.movements.total);
           this.movementsPageSize = res.movements.per_page;
+          // expandir todas las filas de la página actual
+          // const all: Record<number, boolean> = {};
+          // for (const m of res.movements.data ?? []) all[m.id] = true;
+          // this.expandedRowsMovements.set(all);
+          // this.expandedRowsMovements = {}; // ← limpiar al cambiar de página
+
+          // const all = Object.fromEntries((res.movements.data ?? []).map((m: any) => [m.id, true]));
+          // this.expandedRowsMovements.set(all);
           this.movementsLoading.set(false);
         },
         error: _ => {
@@ -283,6 +294,7 @@ export class KardexManagement {
     // e.first = índice inicial, e.rows = tamaño de página
     const page = Math.floor((e.first ?? 0) / (e.rows ?? this.movementsPageSize)) + 1;
     const perPage = e.rows ?? this.movementsPageSize;
+    this.expandedRowsMovements.set({});   // ← reset al cambiar de página
     this.fetchMovements(page, perPage);
   }
 
@@ -362,4 +374,21 @@ export class KardexManagement {
       // console.log("Datos de form:", this.form);
     }
 
+    // -------------------expansion de filas--------------
+    onRowExpandMovement(e: any) {
+      console.log("value001", e)
+      const id = e.data?.id;
+      if (id == null) return;
+      this.expandedRowsMovements.update(map => ({ ...map, [id]: true }));
+    }
+
+    onRowCollapseMovement(e: any) {
+      console.log("value002", e)
+      const id = e.data?.id;
+      if (id == null) return;
+      this.expandedRowsMovements.update(map => {
+        const { [id]: _omit, ...rest } = map;
+        return rest;
+      });
+    }
 }

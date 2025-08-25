@@ -179,6 +179,18 @@ class MovementKardexController extends Controller
         $perPage = (int) $request->query('per_page', 50);
 
         $query = $product->movements()
+            ->with([
+                    'people' => function ($q) {
+                        // IMPORTANTE: incluye la PK 'dni' del related para hidratar bien el modelo
+                        $q->select([
+                            'people.dni',
+                            'people.full_name',
+                            'people.names',
+                            'people.first_lastname',
+                            'people.second_lastname',
+                        ]);
+                    }
+                ])
             ->orderByDesc('movement_date') // fecha más reciente primero
             ->orderByDesc('id');           // y a igualdad de fecha, el último creado
 
