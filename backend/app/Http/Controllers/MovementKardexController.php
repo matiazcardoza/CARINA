@@ -113,7 +113,7 @@ class MovementKardexController extends Controller
                 'movement_date' => now(),
                 'movement_type' => $data['movement_type'],
                 'amount'        => $data['amount'],
-                'observations'        => $data['observations'],
+                'observations'  => $data['observations'],
             ]);
             // $movement = MovementKardex::create([
             //     'product_id'    => $product->id,
@@ -123,12 +123,44 @@ class MovementKardexController extends Controller
             //     'final_balance' => $newBalance,
             // ]);
 
+            // 3) Adjuntar personas por DNI (si vino el array y no está vacío)
+            $attached = [];
+            $missing  = [];
+
+            if (!empty($data['people_dnis']) && is_array($data['people_dnis'])) {
+                // normalizar, deduplicar
+                $peopleDnis = collect($data['people_dnis'])
+                    ->filter() // no nulos/empty
+                    ->map(fn ($dni) => str_pad(preg_replace('/\D/','', $dni), 8, '0', STR_PAD_LEFT))
+                    ->unique()
+                    ->values();
+
+                if ($peopleDnis->isNotEmpty()) {
+                    // buscamos solo los que YA están guardados (flujo showOrFetch)
+                    $found = \App\Models\Person::whereIn('dni', $peopleDnis)->pluck('dni');
+
+                    // adjuntamos los encontrados (idempotente)
+                    $movement->people()->syncWithoutDetaching(
+                        $found->mapWithKeys(fn ($dni) => [$dni => ['attached_at' => now()]])->all()
+                    );
+
+                    $attached = $found->values()->all();
+                    $missing  = $peopleDnis->diff($found)->values()->all(); // DNIs no encontrados en tu BD
+                    // Nota: Si quieres intentar traer los "missing" desde RENIEC aquí, se puede,
+                    // pero tu flujo actual ya los trae antes con showOrFetch.
+                }
+            }
+
+
             return response()->json([
                 'ok'       => true,
-                'product'  => $product->only([
-                    'id','id_order_silucia','id_product_silucia'
-                ]),
+                'product'  => $product->only(['id','id_order_silucia','id_product_silucia']),
                 'movement' => $movement,
+                'movement' => $movement,
+                'people'   => [
+                    'attached_dnis' => $attached, // DNIs efectivamente vinculados
+                    'missing_dnis'  => $missing,  // DNIs que no estaban en BD (no se vincularon)
+                ],
             ], 201);
         });
     }

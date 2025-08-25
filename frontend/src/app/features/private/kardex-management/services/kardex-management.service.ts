@@ -40,33 +40,36 @@ export class KardexManagementService {
     //   // return this.http.get<any>(`${this.apiUrl}/api/products/${productId}/movements-kardex`, this.options);
     //   return this.http.get<any>(`${this.apiUrl}/api/silucia-orders/${orderSiluciaId}/products/${productSiluciaId}/movements-kardex`, this.options);
     // }
-  getKardexMovementBySiluciaBackend(
-    numero: number | string,
-    idcompradet: number,
-    opts?: { page?: number; per_page?: number }
-  ) {
-    const params = new HttpParams({
-      fromObject: {
-        page: String(opts?.page ?? 1),
-        per_page: String(opts?.per_page ?? 50),
-      },
-    });
+    getKardexMovementBySiluciaBackend(
+      numero: number | string,
+      idcompradet: number,
+      opts?: { page?: number; per_page?: number }
+    ) {
+      const params = new HttpParams({
+        fromObject: {
+          page: String(opts?.page ?? 1),
+          per_page: String(opts?.per_page ?? 50),
+        },
+      });
 
-    return this.http.get<any>(
-      `${this.apiUrl}/api/silucia-orders/${encodeURIComponent(String(numero))}/products/${idcompradet}/movements-kardex`,
-      { params }
-    );
-  }
+      return this.http.get<any>(
+        `${this.apiUrl}/api/silucia-orders/${encodeURIComponent(String(numero))}/products/${idcompradet}/movements-kardex`,
+        { params }
+      );
+    }
 
-  downloadPdf(id_order_silucia:number,id_product_silucia:number ): Observable<HttpResponse<Blob>> {
-    // return this.http.get(`${this.apiUrl}/api/pdf`, {
-    // return this.http.get(`${this.apiUrl}/api/products/${id}/movements-kardex/pdf`, {
-    return this.http.get(`${this.apiUrl}/api/silucia-orders/${id_order_silucia}/products/${id_product_silucia}/movements-kardex/pdf`, {
-      responseType: 'blob',
-      observe: 'response',
-      withCredentials: true,                 // si usas cookies/Sanctum
-      headers: { Accept: 'application/pdf' } // opcional
-    });
-  }
+    downloadPdf(id_order_silucia:number,id_product_silucia:number ): Observable<HttpResponse<Blob>> {
+      // return this.http.get(`${this.apiUrl}/api/pdf`, {
+      // return this.http.get(`${this.apiUrl}/api/products/${id}/movements-kardex/pdf`, {
+      return this.http.get(`${this.apiUrl}/api/silucia-orders/${id_order_silucia}/products/${id_product_silucia}/movements-kardex/pdf`, {
+        responseType: 'blob',
+        observe: 'response',
+        withCredentials: true,                 // si usas cookies/Sanctum
+        headers: { Accept: 'application/pdf' } // opcional
+      });
+    }
     
+    getPersonByDni(dni: string): Observable<any> {
+      return this.http.get<any>(`${this.apiUrl}/api/people/${dni}`,this.options);
+    }
 }

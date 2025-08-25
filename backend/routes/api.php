@@ -39,22 +39,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ->shallow();
 
     //orders producto routes
-    Route::get('/products/{product}/movements-kardex', [ProductMovementKardexController::class, 'index']);
-
-    Route::post('/products/{product}/kardex',[MovementKardexController::class, 'storeForProduct']);
+    // Route::get('/products/{product}/movements-kardex', [ProductMovementKardexController::class, 'index']);
+    // Route::post('/products/{product}/kardex',[MovementKardexController::class, 'storeForProduct']);
     
-
-    /** 
-     * Lo usamos para registrar un movimiento y al mismo tiempo registrar en productos los datos obtenidoso de la enpodint de silucia,
-     * y el registro ya existe en producto, solemente se asigna un nuevo movimiento
-     */
-    // 1 movimiento
-    // Route::post('/kardex/movements/bulk', [MovementKardexController::class, 'bulk']);   // varios movimientos
+    
 });
 
     // Route::get('/products/{product}/movements-kardex/pdf',[ProductMovementKardexController::class, 'pdf']);
     // Route::post('/movements-kardex', [MovementKardexController::class, 'store']); 
-
+    // Route::post('/kardex/movements/bulk', [MovementKardexController::class, 'bulk']);   // varios movimientos
     // =============================================================================================================================================== 
     // buscamos el producto, si no lo encontramos lo creamos y al mismo tiempo guardarmos el movimiento
     Route::post('/movements-kardex', [MovementKardexController::class, 'store']);  

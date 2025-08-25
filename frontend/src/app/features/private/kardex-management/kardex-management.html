@@ -185,7 +185,8 @@
         rows="3"
         cols="30"
         placeholder="Escribe tus observaciones aquí"
-        style="resize: vertical;"
+        style="resize: vertical; border: 1px solid rgb(178, 191, 194); border-radius: 8px;"
+
       ></textarea>
     </div>
 
@@ -205,10 +206,24 @@
       <small class="text-gray-500">Añade personas con el botón.</small>
     </div>
 
+
+  @if (listDniPeople().length > 0) {
+    <p-listbox [options]="listDniPeople()" [style]="{ width: '100%' }" [filter]="false">
+      <ng-template let-item pTemplate="item">
+        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+          <span><strong>DNI:</strong> {{ item.dni }}</span>
+          <span><strong>Nombre:</strong> {{ item.names }}</span>
+          <span><strong>Apellido paterno:</strong> {{ item.first_lastname }}</span>
+          <span><strong>Apellido materno:</strong> {{ item.second_lastname }}</span>
+        </div>
+      </ng-template>
+    </p-listbox>
+  }
+
   </div>
 
   <ng-template pTemplate="footer">
-    <div class="flex justify-end gap-2 w-full">
+    <div style="display: flex; justify-content: flex-end; gap: 0.5rem; width: 100%;">
       <p-button
         label="Cancelar"
         severity="secondary"
@@ -308,5 +323,6 @@
 <app-add-new-user-modal
   [isOpen]="showAddUserModal"
   (sentOpenValue)="closeModalAddPerson()"
+  (onListPeopleByDni)="handleListPeopleByDni($event)"
 />
 

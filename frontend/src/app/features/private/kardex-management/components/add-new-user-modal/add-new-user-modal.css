@@ -6,3 +6,19 @@ h4{
     padding: 0;
     margin: 0;
 }
+.user_container{
+    background: rgb(235, 238, 248);
+    /* box-shadow: 0 0px 16px rgba(0, 0, 0, 0.089); */
+    border-radius: 8px;
+    /* border: 2px solid red; */
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+
+}
+    .user_data_container{
+        /* background: pink; */
+        width: 100%;
+        /* border-bottom: 1px solid gray; */
+
+    }

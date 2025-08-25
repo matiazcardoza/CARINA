@@ -36,7 +36,7 @@ class StoreMovementRequest extends FormRequest
             'movement_type'      => ['required', Rule::in(['entrada','salida'])], // entrada/salida
             'movement_date'      => ['sometimes','date'],
             // 'movement_date'      => ['required','date'],
-            'amount'             => ['required','numeric'],      // cantidad +/-
+            'amount'             => ['numeric'],      // cantidad +/-
             'observations'       => ['nullable', 'string', 'max:5000'],      // cantidad +/-
             // 'note'               => ['nullable','string','max:500'],
 
@@ -45,6 +45,9 @@ class StoreMovementRequest extends FormRequest
             // 'heritage_code'      => ['nullable','string','max:255'],
             // 'unit_price'         => ['nullable','numeric'],
             // 'quantity'           => ['nullable','numeric'], // stock planificado, si aplica
+                    // nuevo: adjuntar personas por DNI (opcional)
+            'people_dnis'        => ['sometimes','array'],
+            'people_dnis.*'      => ['required','string','regex:/^\d{8}$/'],
         ];
     }
 }

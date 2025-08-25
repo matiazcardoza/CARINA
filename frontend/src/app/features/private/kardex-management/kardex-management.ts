@@ -17,7 +17,7 @@ import { KardexManagementService } from './services/kardex-management.service';
 import { clients, products } from './utils/mockup-data';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AddNewUserModal } from './components/add-new-user-modal/add-new-user-modal';
-
+import { ListboxModule } from 'primeng/listbox';
 @Component({
   selector: 'app-kardex-management',
   standalone: true,
@@ -26,7 +26,7 @@ import { AddNewUserModal } from './components/add-new-user-modal/add-new-user-mo
     FormsModule, SlicePipe,
     // PrimeNG
     TableModule, InputTextModule, DialogModule, InputNumberModule,
-    AutoComplete, Button, Tag, IconField, InputIcon,AddNewUserModal
+    AutoComplete, Button, Tag, IconField, InputIcon,AddNewUserModal, ListboxModule
   ],
   templateUrl: './kardex-management.html',
   styleUrl: './kardex-management.css'
@@ -41,6 +41,7 @@ export class KardexManagement {
   selectedCustomers!: any;
   selectedProduct: any | null = null;
   filterProducts =  signal<string>('');
+  listDniPeople = signal<any[]>([])
 
   // Modales
   openModalSeeDetailsOfMovimentKardex = signal<boolean>(true);
@@ -65,6 +66,7 @@ export class KardexManagement {
     id_order_silucia: null as string | null,
     id_product_silucia: null as number |null,
     observations: null as string |null,
+    people_dnis: [] as string[]
   };
 
   movementsKardex    = signal<any[]>([]);
@@ -155,8 +157,10 @@ export class KardexManagement {
       amount: null, 
       id_order_silucia: null ,
       id_product_silucia: null ,
-      observations: null
+      observations: null,
+      people_dnis: []
     };
+    this.listDniPeople.set([])
   }
 
   // AutoComplete como dropdown
@@ -334,6 +338,28 @@ export class KardexManagement {
 
     OpenModalAddPerson():void{
       this.showAddUserModal = true;
+    }
+
+    handleListPeopleByDni(event: any):void{
+      const nuevaPersona = event;
+
+      // con esto mostramos en la interfaz que nombres han sido seleccionado
+      this.listDniPeople.update(listaActual => {
+        const yaExiste = listaActual.some(p => p.dni === nuevaPersona.dni);
+        return yaExiste ? listaActual : [...listaActual, nuevaPersona];
+      });
+
+      // con esto enviamos solamente dnis
+      if(this.listDniPeople().length != 0){
+        const dnis = this.listDniPeople().map((object)=>{
+          return object?.dni;
+        })
+        this.form.people_dnis = dnis;
+      }
+
+      // console.log("Persona recibida por DNI:", nuevaPersona);
+      // console.log("Lista actualizada:", this.listDniPeople());
+      // console.log("Datos de form:", this.form);
     }
 
 }
