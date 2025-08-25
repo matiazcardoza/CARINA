@@ -349,6 +349,7 @@ if (isset($pdf)) {
     <tr>
         <td class="left-panel" rowspan="2">CONTROL DE MATERIALES</td>
         <td class="obra">OBRA: "MEJORAMIENTO DEL SERVICIO EDUCATIVO, EN LA INSTITUCIÓN EDUCATIVA PRIMARIA"</td>
+        
     </tr>
     <tr>
         <td class="obra-empty">&nbsp;</td>
