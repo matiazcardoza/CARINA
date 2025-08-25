@@ -10,9 +10,12 @@ use App\Services\ReniecClient;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use Illuminate\Container\Attributes\Log;
 // use Illuminate\Container\Attributes\DB;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class MovementKardexController extends Controller
 {
@@ -65,7 +68,9 @@ class MovementKardexController extends Controller
         // return $request;
         $data = $request->validated();
         // return $data;
-        return DB::transaction(function () use ($data) {
+        return DB::transaction(function () use ($request, $data) {
+
+            $sil = $request->input('silucia_product', []);
             // 1) Buscar o crear el “gancho” del producto por la pareja SILUCIA
             $product = Product::firstOrCreate(
                 [
@@ -81,6 +86,19 @@ class MovementKardexController extends Controller
                     'unit_price'    => $data['unit_price']    ?? null,
                     // 'quantity'      => $data['quantity']      ?? null,
                     'state'         => 1,
+
+                    'numero'          => $sil['numero']          ?? null,
+                    'fecha'           => $sil['fecha']           ?? null,
+                    'detalles_orden'  => $sil['detalles_orden']  ?? null,   // ojo: plural
+                    'rsocial'         => $sil['rsocial']         ?? null,
+                    'ruc'             => $sil['ruc']             ?? null,
+                    'item'            => $sil['item']            ?? null,
+                    'detalle'         => $sil['detalle']         ?? null,
+                    'cantidad'        => $sil['cantidad']        ?? null,
+                    'desmedida'       => $sil['desmedida']       ?? null,
+                    'precio'          => $sil['precio']          ?? null,
+                    'total_internado' => $sil['total_internado'] ?? null,
+                    'saldo'           => $sil['saldo']           ?? null,
                 ]
             );
 
@@ -169,6 +187,7 @@ class MovementKardexController extends Controller
 
     public function indexBySiluciaIds(Request $request, $id_order_silucia, $id_product_silucia)
     {
+
         // 1) Buscar el “gancho” Product por la pareja de SILUCIA
         $product = Product::where('id_order_silucia', $id_order_silucia)
             ->where('id_product_silucia', $id_product_silucia)
@@ -258,13 +277,51 @@ class MovementKardexController extends Controller
             'stockFinal'    => $totalEntradas - $totalSalidas,
         ];
         $view = 'pdfKardex.reporte'; // <-- cámbialo al nombre real de tu plantilla
+        // 1) Generar PDF
+        $view = 'pdfKardex.reporte';
 
-        return Pdf::loadView($view, compact('pdf_details'))
-            ->setPaper('a4', 'landscape') // o 'landscape' si prefieres horizontal
-            ->download('lista_items_demo.pdf');
+    $pdf = Pdf::loadView($view, compact('pdf_details'))
+              ->setPaper('a4', 'landscape');
+              // ->setOption('isRemoteEnabled', true); // si usas imágenes remotas
+
+    // === RUTA PRIVADA CONSISTENTE ===
+    // Esto quedará en storage/app/private/silucia_product_reports
+    $dir = 'silucia_product_reports';
+    Storage::disk('local')->makeDirectory($dir); // asegura carpeta
+
+    $base   = "kardex_{$id_order_silucia}_{$id_product_silucia}";
+    $suffix = trim(implode('_', array_filter([
+        $type ? "t-{$type}" : null,
+        $from ? "from-{$from}" : null,
+        $to   ? "to-{$to}"   : null,
+        now()->format('Ymd_His'),
+    ])), '_');
+
+    $filename     = Str::slug($base . ($suffix ? "_{$suffix}" : ''), '_') . '.pdf';
+    $relativePath = "{$dir}/{$filename}";
+
+    // Guardar archivo físico
+    $ok = Storage::disk('local')->put($relativePath, $pdf->output());
+
+    // Verificación defensiva
+    if (!$ok || !Storage::disk('local')->exists($relativePath)) {
+        // Log::error('No se pudo guardar el PDF', ['path' => $relativePath]);
+        abort(500, 'No se pudo guardar el PDF.');
+    }
+
+    // Guardar solo el nombre del PDF en la columna
+    $product->pdf_filename = $filename;
+    $product->save();
+
+    // Descargar usando la MISMA disk/relpath (evita errores de ruta)
+    return Storage::download($relativePath, $filename);
+    // return Storage::disk('local')->download($relativePath, $filename);
+        // return Pdf::loadView($view, compact('pdf_details'))
+        //     ->setPaper('a4', 'landscape') 
+        //     ->download('lista_items_demo.pdf');
 
 
-        return $pdfFile->download('anexo02_demo.pdf');
+        // return $pdfFile->download('anexo02_demo.pdf');
     }
 
     // obtiene todas las personas de un movimiento

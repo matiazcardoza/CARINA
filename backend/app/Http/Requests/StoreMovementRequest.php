@@ -48,6 +48,20 @@ class StoreMovementRequest extends FormRequest
                     // nuevo: adjuntar personas por DNI (opcional)
             'people_dnis'        => ['sometimes','array'],
             'people_dnis.*'      => ['required','string','regex:/^\d{8}$/'],
+
+            // para guarddar los nuevo datos de silucia
+            'silucia_product.numero'          => ['required','string'],
+            'silucia_product.fecha'           => ['nullable','date'],
+            'silucia_product.detalles_orden'  => ['nullable','string'],
+            'silucia_product.rsocial'         => ['nullable','string'],
+            'silucia_product.ruc'             => ['nullable','string'],
+            'silucia_product.item'            => ['nullable','string'],
+            'silucia_product.detalle'         => ['nullable','string'],
+            'silucia_product.cantidad'        => ['nullable','numeric'],
+            'silucia_product.desmedida'       => ['nullable','string'],
+            'silucia_product.precio'          => ['nullable','numeric'],
+            'silucia_product.total_internado' => ['nullable','numeric'],
+            'silucia_product.saldo'           => ['nullable','numeric'],
         ];
     }
 }

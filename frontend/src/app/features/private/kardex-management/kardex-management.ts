@@ -78,7 +78,8 @@ export class KardexManagement {
     id_order_silucia: null as string | null,
     id_product_silucia: null as number |null,
     observations: null as string |null,
-    people_dnis: [] as string[]
+    people_dnis: [] as string[],
+    silucia_product: null as any
   };
 
   movementsKardex    = signal<any[]>([]);
@@ -224,6 +225,7 @@ export class KardexManagement {
     this.form.id_order_silucia =  _row.numero;
     this.form.id_product_silucia=  _row.idcompradet;
     this.showMovementModal = true;
+    this.form.silucia_product = JSON.parse(JSON.stringify(_row))
     console.log(this.form)
   }
 
@@ -235,7 +237,8 @@ export class KardexManagement {
       id_order_silucia: null ,
       id_product_silucia: null ,
       observations: null,
-      people_dnis: []
+      people_dnis: [],
+      silucia_product: null 
     };
     this.listDniPeople.set([])
   }
@@ -254,7 +257,7 @@ export class KardexManagement {
 
     const page = this.lastProductsPage;
     const perPage = this.lastProductsRows;
-
+    console.log("datos enviado a backend: ", this.form);
     this.service.createKardexMovement(this.form)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
