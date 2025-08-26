@@ -407,6 +407,13 @@
     </style>
 </head>
 <body>
+    @php
+    $mesesEspanol = [
+        1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
+        5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
+        9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+    ];
+    @endphp
     <!-- Header -->
     <div class="header">
         <table class="header-table">
@@ -429,9 +436,21 @@
                         @endif
                     </div>
                     <div>
-                        <span class="date-box">{{ $dailyPart->work_date }}</span>
-                        <span class="date-box">MES</span>
-                        <span class="date-box">AÑO</span>
+                        <span class="date-box">
+                            @foreach ($dailyPart->unique('work_date') as $item)
+                                {{ \Carbon\Carbon::parse($item->work_date)->format('d') }}
+                            @endforeach
+                        </span>
+                        <span class="date-box">
+                            @foreach ($dailyPart->unique('work_date') as $item)
+                                {{ $mesesEspanol[\Carbon\Carbon::parse($item->work_date)->format('n')] }}
+                            @endforeach
+                        </span>
+                        <span class="date-box">
+                            @foreach ($dailyPart->unique('work_date') as $item)
+                                {{ \Carbon\Carbon::parse($item->work_date)->format('Y') }}
+                            @endforeach
+                        </span>
                     </div>
                 </td>
             </tr>
@@ -446,39 +465,39 @@
         <tr>
             <td class="info-label">OBRA:</td>
             <td colspan="3">
-                <span class="info-line">EXCAVADORA CAT 320D</span>
+                <span class="info-line">{{ $orderSilucia->goal_detail }}</span>
             </td>
         </tr>
         <tr>
             <td class="info-label">PROPIETARIO:</td>
             <td colspan="3">
-                <span class="info-line"></span>
+                <span class="info-line">TENAY COMPAY EIRL</span>
             </td>
         </tr>
         <tr>
             <td class="info-label">NOMBRE DEL OPERADOR:</td>
             <td colspan="3">
-                <span class="info-line"></span>
+                <span class="info-line">VALVERDE VILCA CHOQUE</span>
             </td>
         </tr>
         <tr>
             <td class="info-label">EQUIPO O MAQUINARIA:</td>
             <td style="width: 45%;">
-                <span class="info-line"></span>
+                <span class="info-line">CATERPILLAR</span>
             </td>
             <td class="info-label" style="width: 10%;">CAPACIDAD:</td>
             <td style="width:65%;">
-                <span class="info-line"></span>
+                <span class="info-line">Cat C4.4</span>
             </td>
         </tr>
         <tr>
             <td class="info-label">MARCA:</td>
             <td style="width: 45%;">
-                <span class="info-line"></span>
+                <span class="info-line"> CATERPILLAR MODELO: 416F2</span>
             </td>
             <td class="info-label" style="width: 10%;">PLACA:</td>
             <td style="width: 65%">
-                <span class="info-line"></span>
+                <span class="info-line">BCG-205</span>
             </td>
         </tr>
     </table>
@@ -517,54 +536,56 @@
             </tr>
         </thead>
         <tbody>
-            <tr class="work-row">
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr class="work-row">
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr class="work-row">
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr class="work-row">
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr class="work-row">
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr class="work-row">
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr class="work-row">
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
+            @php
+                $totalHours = 0;
+                $totalMinutes = 0;
+            @endphp
+            
+            @foreach($dailyPart as $index => $part)
+                <tr class="work-row">
+                    <td>{{ $part->start_time ? \Carbon\Carbon::parse($part->start_time)->format('H:i') : '' }}</td>
+                    <td>{{ $part->end_time ? \Carbon\Carbon::parse($part->end_time)->format('H:i') : '' }}</td>
+                    <td style="text-align: left; padding-left: 8px;">{{ $part->description ?? '' }}</td>
+                    <td>
+                        @if($part->start_time && $part->end_time)
+                            @php
+                                $start = \Carbon\Carbon::parse($part->start_time);
+                                $end = \Carbon\Carbon::parse($part->end_time);
+                                $diff = $start->diff($end);
+                                $hours = $diff->h + ($diff->days * 24);
+                                $minutes = $diff->i;
+                                $totalHours += $hours;
+                                $totalMinutes += $minutes;
+                            @endphp
+                            {{ sprintf('%02d:%02d', $hours, $minutes) }}
+                        @else
+                            {{ $part->time_worked ? \Carbon\Carbon::parse($part->time_worked)->format('H:i') : '' }}
+                        @endif
+                    </td>
+                </tr>
+            @endforeach
+            
+            {{-- Rellenar filas vacías hasta completar 7 filas --}}
+            @for($i = count($dailyPart); $i < 7; $i++)
+                <tr class="work-row">
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            @endfor
 
             <tr class="total-row">
                 <td colspan="3" style="text-align: center; font-weight: bold; background-color: #E7E6E6;">TOTAL</td>
-                <td style="background-color: #E7E6E6;"></td>
+                <td style="background-color: #E7E6E6;">
+                    @php
+                        // Convertir minutos extras a horas
+                        $totalHours += intval($totalMinutes / 60);
+                        $totalMinutes = $totalMinutes % 60;
+                    @endphp
+                    {{ sprintf('%02d:%02d', $totalHours, $totalMinutes) }}
+                </td>
             </tr>
-
         </tbody>
     </table>
 
