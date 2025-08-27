@@ -1,0 +1,25 @@
+
+    <div class="container">
+      <h2>Prueba de Petición a API</h2>
+      <p>Haz clic en el botón para realizar una petición GET a un endpoint de prueba.</p>
+
+      <button (click)="realizarPeticion()" [disabled]="isLoading()">
+        @if (isLoading()) {
+          <span>Cargando...</span>
+        } @else {
+          <span>Realizar Petición</span>
+        }
+      </button>
+
+      <div class="response-area">
+        @if (error(); as errorData) {
+          <h3>Error en la Petición:</h3>
+          <pre class="error">{{ errorData | json }}</pre>
+        }
+
+        @if (datos(); as responseData) {
+          <h3>Respuesta Recibida:</h3>
+          <pre class="success">{{ responseData | json }}</pre>
+        }
+      </div>
+    </div>

@@ -30,6 +30,8 @@ import { ComponentTesting } from './shared/draft/component-testing/component-tes
 import { KardexManagement } from './features/private/kardex-management/kardex-management';
 import { DigitalSignature } from './shared/draft/digital-signature/digital-signature';
 import { Sidebar } from './layouts/sidebar/sidebar';
+import { SignaturesMovementReports } from './features/private/signatures-movement-reports/signatures-movement-reports';
+import { TestResquests } from './shared/draft/test-resquests/test-resquests';
 export const routes: Routes = [
     // Redirige la ruta raíz a la página de login
     {
@@ -106,6 +108,19 @@ export const routes: Routes = [
                 ]
             },
             {
+                path: 'digital-signatures',
+                children: [
+                    {
+                        path: '',   
+                        component: SignaturesMovementReports,
+                    },
+                ]
+            },
+            {
+                path: 'test-requests',
+                component: TestResquests,
+            },
+            {
                 path: 'physical-bincard',
                 children: [
                     {
@@ -143,7 +158,7 @@ export const routes: Routes = [
             },
             {
                 path: 'inventory-reports',
-                component: InventoryReports
+                component: SignaturesMovementReports
             },
             {
                 path: 'project-based-traveability',

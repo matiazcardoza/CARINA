@@ -22,20 +22,24 @@ export class DigitalSignature {
   constructor(private signature: DigitalSignatureService) {}
 
   sign() {
+    // const callback = `${this.environment.API_URL}api/signatures/callback` + `?flow_id=${flowId}&step_id=${stepId}&token=${callbackToken}`;
     this.working = true;
     this.message = '';
 
     const params: SignatureParams = {
-      location_url_pdf: `${this.environment.STORAGE_URL}docs/ejemplo.pdf`,
-      post_location_upload: `${this.environment.API_URL}api/firmas-guardar-archivo-firmado-digitalmente?archivo_id=123`,
+      // location_url_pdf: `http://127.0.0.1:8000/api/payments/kardex_02874_249069_20250825_094654.pdf`,
+      location_url_pdf: `http://127.0.0.1:8000/api/payments/PDF_NUMERO_1.pdf`,
+      post_location_upload: `http://127.0.0.1:8000/api/signatures/callback?valor=12312312312`,
       rol: 'Jefe de RRHH',
       tipo: 'recursos',
       visible_position: false,
       bacht_operation: false,
       npaginas: 1,
-      posx: 120,
-      posy: 250,
+      posx: 500,
+      posy: 500,
       token: ''
+      // post_location_upload: `${this.environment.API_URL}api/firmas-guardar-archivo-firmado-digitalmente?archivo_id=123`,
+      // post_location_upload: `http://127.0.0.1:8000/api/payments/kardex_02874_249069_20250825_094654.pdf`,
     };
 
     this.signature.openSignatureWindow$(params, 'https://sistemas.regionpuno.gob.pe/firma-api/').subscribe({

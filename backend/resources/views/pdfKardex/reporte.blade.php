@@ -348,7 +348,7 @@ if (isset($pdf)) {
     <table class="box">
     <tr>
         <td class="left-panel" rowspan="2">CONTROL DE MATERIALES</td>
-        <td class="obra">OBRA: "MEJORAMIENTO DEL SERVICIO EDUCATIVO, EN LA INSTITUCIÓN EDUCATIVA PRIMARIA"</td>
+        <td class="obra">OBRA: "{{ $pdf_details['product']['desmeta'] ?? '—' }}"</td>
         
     </tr>
     <tr>
@@ -359,7 +359,7 @@ if (isset($pdf)) {
     <!-- BLOQUE INFERIOR -->
     <table class="box">
     <tr>
-        <td class="material" rowspan="2">MATERIAL: {{$pdf_details["product"]["name"]}}</td>
+        <td class="material" rowspan="2">MATERIAL001: {{$pdf_details["product"]["item"]}}</td>
         <th class="subhead">UNIDAD</th>
         <th class="subhead">CODIGO</th>
     </tr>
@@ -428,11 +428,24 @@ if (isset($pdf)) {
                 <!-- <td>{{ $index + 1 }}</td> -->
                 <td class="td_table_01">{{ $item['id'] }}</td>
                 <td class="td_table_01">{{ $item['movement_date'] }}</td>
-                <td class="td_table_01">{{ $item['class'] }}</td>
-                <td class="td_table_01">{{ $item['number'] }}</td>
+                <!-- <td class="td_table_01">{{ $item['class'] }}</td> -->
+                <td class="td_table_01">O/C</td>
+                <!-- <td class="td_table_01">{{ $item['number'] }}</td> -->
+                <td class="td_table_01">{{ $pdf_details["product"]["numero"]  }}</td>
                 <td class="td_table_01">{{ $item['movement_type'] }}</td>
                 <td class="td_table_01">{{ $item['amount'] }}</td>
-                <td class="td_table_01">Julia Mamani Yampasi</td>
+                <!-- <td class="td_table_01">Julia Mamani Yampasi</td> -->
+                
+
+                <td class="td_table_01">
+                    @php
+                        $p = $item->people->first(); // primera persona adjunta
+                        $pName = $p?->full_name ?? trim(($p->names ?? '').' '.($p->first_lastname ?? '').' '.($p->second_lastname ?? ''));
+                        $pName = trim($pName);
+                    @endphp
+                    {{ $pName !== '' ? $pName : 'Julia Mamani Yampasi' }}
+                </td>
+
                 <td class="td_table_01">Ninguna</td>
             </tr>
         @endforeach

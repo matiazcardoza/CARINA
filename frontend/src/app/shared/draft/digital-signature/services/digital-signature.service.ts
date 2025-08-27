@@ -15,7 +15,7 @@ export class DigitalSignatureService {
       // API_URL: 'https://api.tu-app.com/'                          // <- tu backend
       API_URL: 'https://sistemas.regionpuno.gob.pe/sisplan-api/logo_firma_digital.png'                          // <- tu backend
     };
-   openSignatureWindow$(
+  openSignatureWindow$(
     params: SignatureParams,
     apiUrl: string = this.environment.API_FIRMA_DIGITAL,
     timeoutMs = 5 * 60 * 1000

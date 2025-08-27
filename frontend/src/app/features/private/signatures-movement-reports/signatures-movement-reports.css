@@ -1,0 +1,41 @@
+.card{
+    padding: 1.5rem;
+}
+
+/* Estilo equivalente a text-green-500 */
+.text-green-500 {
+  color: #22c55e; /* Verde medio según Tailwind */
+}
+
+/* Ícono PrimeIcons: check-circle */
+.pi-check-circle::before {
+  content: "\e90e"; /* Unicode del ícono */
+  font-family: 'PrimeIcons'; /* Asegúrate de tener esta fuente cargada */
+  font-style: normal;
+  font-weight: normal;
+  speak: none;
+  display: inline-block;
+  text-decoration: inherit;
+  width: 1em;
+  margin-right: .2em;
+  text-align: center;
+}
+
+/* Estilo equivalente a text-red-500 */
+.text-red-500 {
+  color: #ef4444; /* Rojo medio según Tailwind */
+}
+
+/* Ícono PrimeIcons: times-circle */
+.pi-times-circle::before {
+  content: "\e90f"; /* Unicode del ícono */
+  font-family: 'PrimeIcons';
+  font-style: normal;
+  font-weight: normal;
+  speak: none;
+  display: inline-block;
+  text-decoration: inherit;
+  width: 1em;
+  margin-right: .2em;
+  text-align: center;
+}

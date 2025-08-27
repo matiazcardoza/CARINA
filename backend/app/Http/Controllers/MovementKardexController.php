@@ -3,9 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreMovementRequest;
+use App\Models\KardexReport;
 use App\Models\MovementKardex;
 use App\Models\Person;
 use App\Models\Product;
+use App\Models\SignatureEvent;
+use App\Models\SignatureFlow;
+use App\Models\SignatureStep;
 use App\Services\ReniecClient;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
@@ -14,6 +18,7 @@ use Illuminate\Container\Attributes\Log;
 // use Illuminate\Container\Attributes\DB;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -99,6 +104,7 @@ class MovementKardexController extends Controller
                     'precio'          => $sil['precio']          ?? null,
                     'total_internado' => $sil['total_internado'] ?? null,
                     'saldo'           => $sil['saldo']           ?? null,
+                    'desmeta'         => $sil['desmeta']         ?? null, // <-- NUEVO
                 ]
             );
 
@@ -107,6 +113,7 @@ class MovementKardexController extends Controller
                 'name'          => $data['name']          ?? null,
                 'heritage_code' => $data['heritage_code'] ?? null,
                 'unit_price'    => $data['unit_price']    ?? null,
+                'desmeta'       => $sil['desmeta']        ?? null, // <-- NUEVO
                 // 'quantity'      => $data['quantity']      ?? null,
             ], fn($v) => !is_null($v)))->save();
 
@@ -260,7 +267,19 @@ class MovementKardexController extends Controller
                 'amount',
                 'observations'
             ]);
-        }]);
+        },
+
+        'movements.people' => function ($q) {
+            $q->select([
+                'people.dni',
+                'people.full_name',
+                'people.names',
+                'people.first_lastname',
+                'people.second_lastname',
+            ])->orderBy('movement_person.attached_at', 'asc');
+        },
+    
+        ]);
 
 
         // los movements son los movimiento kardex de cada producto
@@ -276,52 +295,149 @@ class MovementKardexController extends Controller
             'totalSalidas'  => $totalSalidas,
             'stockFinal'    => $totalEntradas - $totalSalidas,
         ];
-        $view = 'pdfKardex.reporte'; // <-- cámbialo al nombre real de tu plantilla
+
         // 1) Generar PDF
         $view = 'pdfKardex.reporte';
 
-    $pdf = Pdf::loadView($view, compact('pdf_details'))
-              ->setPaper('a4', 'landscape');
-              // ->setOption('isRemoteEnabled', true); // si usas imágenes remotas
+        $pdf = Pdf::loadView($view, compact('pdf_details'))
+                ->setPaper('a4', 'landscape');
+                // ->setOption('isRemoteEnabled', true); // si usas imágenes remotas
 
-    // === RUTA PRIVADA CONSISTENTE ===
-    // Esto quedará en storage/app/private/silucia_product_reports
-    $dir = 'silucia_product_reports';
-    Storage::disk('local')->makeDirectory($dir); // asegura carpeta
+        // === RUTA PRIVADA CONSISTENTE ===
+        // Esto quedará en storage/app/private/silucia_product_reports
+        $dir = 'silucia_product_reports';
+        Storage::disk('local')->makeDirectory($dir); // asegura carpeta
 
-    $base   = "kardex_{$id_order_silucia}_{$id_product_silucia}";
-    $suffix = trim(implode('_', array_filter([
-        $type ? "t-{$type}" : null,
-        $from ? "from-{$from}" : null,
-        $to   ? "to-{$to}"   : null,
-        now()->format('Ymd_His'),
-    ])), '_');
+        
+        // $path_where_he_was_saved = $validated["attachment"]->store('payment_vouchers','local');
+        
+        $base   = "kardex_{$id_order_silucia}_{$id_product_silucia}";
+        $suffix = trim(implode('_', array_filter([
+            $type ? "t-{$type}" : null,
+            $from ? "from-{$from}" : null,
+            $to   ? "to-{$to}"   : null,
+            now()->format('Ymd_His'),
+        ])), '_');
 
-    $filename     = Str::slug($base . ($suffix ? "_{$suffix}" : ''), '_') . '.pdf';
-    $relativePath = "{$dir}/{$filename}";
+        $filename     = Str::slug($base . ($suffix ? "_{$suffix}" : ''), '_') . '.pdf';
+        $relativePath = "{$dir}/{$filename}";
 
-    // Guardar archivo físico
-    $ok = Storage::disk('local')->put($relativePath, $pdf->output());
+        // Guardar archivo físico
+        $ok = Storage::disk('local')->put($relativePath, $pdf->output());
 
-    // Verificación defensiva
-    if (!$ok || !Storage::disk('local')->exists($relativePath)) {
-        // Log::error('No se pudo guardar el PDF', ['path' => $relativePath]);
-        abort(500, 'No se pudo guardar el PDF.');
-    }
+        // Verificación defensiva
+        if (!$ok || !Storage::disk('local')->exists($relativePath)) {
+            abort(500, 'No se pudo guardar el PDF.');
+        }
 
-    // Guardar solo el nombre del PDF en la columna
-    $product->pdf_filename = $filename;
-    $product->save();
+        // Guardar solo el nombre del PDF en la columna
+        // $product->pdf_filename = $filename;
+        // $product->save();
 
-    // Descargar usando la MISMA disk/relpath (evita errores de ruta)
-    return Storage::download($relativePath, $filename);
-    // return Storage::disk('local')->download($relativePath, $filename);
-        // return Pdf::loadView($view, compact('pdf_details'))
-        //     ->setPaper('a4', 'landscape') 
-        //     ->download('lista_items_demo.pdf');
+        // Poner bloqueo cuando se intente crear dos pdfs o indicar a usuario que se eliminara el pdf previo.
+        // ademas se debe bloquear la creacion de pdf cuando ya se ha firmado un pdf
+        // -----------------------------------------------------------------------------------------------------
 
+        // Este es el flujo para registrar un pdf en la base de datos (especificamente el nombre del pdf)
+        $report = KardexReport::create([
+            'product_id'     => $product->id,
+            // 'pdf_path'  => $relativePath,
+            // 'pdf_path'  => $relativePath,
+            // solamente almacenamos el nombre del pdf
+            'pdf_path'  => $filename,
+            // 'latest_pdf_path'=> $relativePath,
+            // 'from_date'      => $req->query('from'),
+            // 'to_date'        => $req->query('to'),
+            // 'type'           => $req->query('type'),
+            'status'         => 'in_progress',
+            'created_by'     => Auth::id(),
+        ]);
+        $flow = SignatureFlow::create([
+            'kardex_report_id' => $report->id,
+            'current_step'     => 1,
+            'status'           => 'in_progress'
+        ]);
 
-        // return $pdfFile->download('anexo02_demo.pdf');
+        // config('signing.roles_order') --> primero buscara el array en el archivo signing dentro de la carpeta config de laravel, si no lo encuentra, ejecutará el array en el segundo argumento
+        // $roles = config('signing.roles_order', ['almacen_almacenero','almacen_administrador','almacen_residente','almacen_supervisor']);
+        // foreach (array_values($roles) as $i => $role) {
+        //     SignatureStep::create([
+        //         'signature_flow_id' => $flow->id,
+        //         'order'             => $i+1,
+        //         'role'              => $role,
+        //         // Posiciones por defecto (se pueden editar en UI)
+        //         'page'              => 1,
+        //         'pos_x'             => 120,
+        //         'pos_y'             => 250 + ($i*100),
+        //         'width'             => 180,
+        //         'height'            => 60,
+        //         // Token callback si usarás Firma Perú:
+        //         'callback_token'    => Str::random(48),
+        //     ]);
+        // }
+
+        $roles = config('signing.roles_order', 
+            [
+                [
+                    "role"       => 'almacen_almacenero',
+                    "page"      =>  1,
+                    "pos_x"     =>  120,
+                    "pos_y"     =>  150,
+                    "width"     =>  180,
+                    "height"    =>  60,
+                ],
+                [
+                    "role"       => 'almacen_administrador',
+                    "page"      =>  1,
+                    "pos_x"     =>  200,
+                    "pos_y"     =>  150,
+                    "width"     =>  180,
+                    "height"    =>  60,
+                ],
+                [
+                    "role"       => 'almacen_residente',
+                    "page"      =>  1,
+                    "pos_x"     =>  280,
+                    "pos_y"     =>  150,
+                    "width"     =>  180,
+                    "height"    =>  60,
+                ],
+                [
+                    "role"       => 'almacen_supervisor',
+                    "page"      =>  1,
+                    "pos_x"     =>  360,
+                    "pos_y"     =>  150,
+                    "width"     =>  180,
+                    "height"    =>  60,
+                ],
+            ]
+        );
+        foreach (array_values($roles) as $i => $role) {
+            SignatureStep::create([
+                'signature_flow_id' => $flow->id,
+                'order'             => $i+1,
+                'role'              => $role['role'],
+                // Posiciones por defecto (se pueden editar en UI)
+                'page'              => $role['page'],
+                'pos_x'             => $role['pos_x'],
+                'pos_y'             => $role['pos_y'],
+                'width'             => $role['width'],
+                'height'            => $role['height'],
+                // Token callback si usarás Firma Perú:
+                'callback_token'    => Str::random(48),
+            ]);
+        }
+
+        SignatureEvent::create([
+            'signature_flow_id' => $flow->id,
+            'event' => 'flow_created',
+            'user_id' => Auth::id(),
+            'meta' => ['report_id'=>$report->id]
+        ]);
+
+        // Descargar usando la MISMA disk/relpath (evita errores de ruta)
+        // return response()->json(['ok'=>true, 'report'=>$report, 'flow'=>$flow->load('steps')], 201);
+        return Storage::download($relativePath, $filename);
     }
 
     // obtiene todas las personas de un movimiento
