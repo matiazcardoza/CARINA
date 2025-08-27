@@ -64,7 +64,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/products', [ProductController::class, 'index']);
     // ruta para recibir el pdf
     Route::post('signatures/callback', [SignatureCallbackController::class, 'store']);
-    
+
+
+    // ruta de ejemplo para generar pdf con el paquete fpdf
+    Route::get( 'fpdf-example',  [MovementKardexController::class, 'pdfExample']);
     // Ruta oficial para entregar archivos
     Route::get('/signatures/{path}', function ($path) {
 

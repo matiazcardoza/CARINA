@@ -18,6 +18,8 @@ import { clients, products } from './utils/mockup-data';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AddNewUserModal } from './components/add-new-user-modal/add-new-user-modal';
 import { ListboxModule } from 'primeng/listbox';
+import { DigitalSignatureService } from '../../../shared/draft/digital-signature/services/digital-signature.service';
+import { SignatureParams } from '../../../shared/draft/digital-signature/interface/signature-params.interface';
 @Component({
   selector: 'app-kardex-management',
   standalone: true,
@@ -89,7 +91,7 @@ export class KardexManagement {
   selectedProductForMovements: any | null = null;
 
   private readonly destroyRef = inject(DestroyRef); 
-  constructor(private service:KardexManagementService){
+  constructor(private service:KardexManagementService, private signature: DigitalSignatureService){
     effect(()=>{
       console.log("valor inicial del filterProducts: ", this.filterProducts());
     })
@@ -474,4 +476,8 @@ export class KardexManagement {
         return rest;
       });
     }
+
+    // ----------------- Firma digitla ------------------------
+
+
 }

@@ -52,10 +52,10 @@ class ProductController extends Controller
         // Solo reportes con flujo "in_progress"
         $products = Product::query()
             // ->whereHas('reports.flow', fn($q) => $q->where('status', 'in_progress'))
-            ->whereHas('reports.flow') // <-- Así de simple
+            ->whereHas('reports.flow') 
             ->with([
                 'reports' => function ($q) {
-                    $q->select('id','product_id','pdf_path','from_date','to_date','type','status','created_at')
+                    $q->select('id','product_id','pdf_path','from_date','to_date','type','status','pdf_page_number','created_at')
                     // ->whereHas('flow', fn($f) => $f->where('status','in_progress'))
                     ->whereHas('flow')
                     // ->with([
@@ -77,12 +77,8 @@ class ProductController extends Controller
             $product->reports = $product->reports->map(function ($report) use ($roles) {
                 // obtiene cada flujo del reporte
                 $flow = $report->flow;
-                // Log::info($report);
-
                 // Paso actual (quién tiene el turno)
                 $currentStep = $flow->steps->firstWhere('order', (int)$flow->current_step);
-                
-
                 $currentRole = optional($currentStep)->role;
 
                 // Paso del usuario (si tiene varios roles, tomamos el primero que aparezca en el flujo)
@@ -90,8 +86,6 @@ class ProductController extends Controller
                 $userStep = $flow->steps->first(function ($s) use ($roles) {
                     return in_array($s->role, $roles, true);
                 });
-
-                Log::info($userStep->pos_x);
 
                 $canSign = false;
                 if ($userStep) {
@@ -112,8 +106,9 @@ class ProductController extends Controller
                                     'role'  => $userStep->role,
                                     'status'=> $userStep->status,
                                     'order' => $userStep->order,
-
-                                    'page' => $userStep->page,
+                                    // obtenemos la cantidad de paginas de pdf generado y lo insertamos en la pagina que cada rol va a fimar, esto no esta en la base de datos
+                                    // 'page' => $userStep->page,
+                                    'page' => $report->pdf_page_number,
                                     'pos_x' => $userStep->pos_x,
                                     'pos_y' => $userStep->pos_y,
                                     'width' => $userStep->width,

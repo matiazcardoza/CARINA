@@ -14,14 +14,18 @@ use App\Services\ReniecClient;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
-use Illuminate\Container\Attributes\Log;
+// use Illuminate\Container\Attributes\Log;
+use Illuminate\Support\Facades\Log;
 // use Illuminate\Container\Attributes\DB;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-
+// use setasign\Fpdi\Tcpdf\Fpdi;
+use setasign\Fpdi\Fpdi;
+// use setasign\Fpdi\Fpdf\Fpdf;
+use App\Http\Controllers\Fpdf;
 class MovementKardexController extends Controller
 {
     public function index(Product $product)
@@ -330,6 +334,16 @@ class MovementKardexController extends Controller
             abort(500, 'No se pudo guardar el PDF.');
         }
 
+        // Guardamos cantidad de paginas del pdf
+        $pageCount = 1;
+        try {
+            $absolute = Storage::disk('local')->path($relativePath);
+            $fpdi = new Fpdi();
+            $pageCount = (int) $fpdi->setSourceFile($absolute); // ← total de páginas
+        } catch (\Throwable $e) {
+            Log::info("No se pudo contar páginas de {$relativePath}: ".$e->getMessage());
+
+        }
         // Guardar solo el nombre del PDF en la columna
         // $product->pdf_filename = $filename;
         // $product->save();
@@ -349,6 +363,8 @@ class MovementKardexController extends Controller
             // 'from_date'      => $req->query('from'),
             // 'to_date'        => $req->query('to'),
             // 'type'           => $req->query('type'),
+            // 'pdf_page_number'=> 1,
+            'pdf_page_number'  => $pageCount, 
             'status'         => 'in_progress',
             'created_by'     => Auth::id(),
         ]);
@@ -438,6 +454,23 @@ class MovementKardexController extends Controller
         // Descargar usando la MISMA disk/relpath (evita errores de ruta)
         // return response()->json(['ok'=>true, 'report'=>$report, 'flow'=>$flow->load('steps')], 201);
         return Storage::download($relativePath, $filename);
+    }
+
+    public function pdfExample(){
+        return "hola mundo";
+        $pdf = new Fpdf('P', 'mm', 'A4'); // P=portrait, mm, A4
+        $pdf->AddPage();
+        $pdf->SetFont('Arial', 'B', 16);
+
+        // OJO: FPDF no acepta UTF-8; convierte si usas tildes/ñ:
+        $text = mb_convert_encoding('¡Hola FPDF desde Laravel!', 'ISO-8859-1', 'UTF-8');
+
+        $pdf->Cell(0, 10, $text, 0, 1, 'C');
+
+        // Enviar como inline (ver en el navegador)
+        return response($pdf->Output('S'), 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="demo.pdf"');
     }
 
     // obtiene todas las personas de un movimiento

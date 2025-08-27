@@ -15,6 +15,17 @@ import { ListboxModule } from 'primeng/listbox';
 import { KardexManagementService } from '../kardex-management/services/kardex-management.service';
 import { DigitalSignatureService } from '../../../shared/draft/digital-signature/services/digital-signature.service';
 import { SignatureParams } from '../../../shared/draft/digital-signature/interface/signature-params.interface';
+type userStep = {
+  height: number;
+  id: number;
+  order: number;
+  page: number;
+  pos_x: number;
+  pos_y: number;
+  role: string;
+  status: string;
+  width: number;
+}
 
 type Report = {
   report_id: number;
@@ -24,7 +35,7 @@ type Report = {
   flow_id: number;
   current_step: number;
   current_role: string;          // 'almacenero' | 'residente' | etc.
-  user_step: number | null;
+  user_step: userStep | null;
   can_sign: boolean;
   download_url: string;
   sign_callback_url: string | null;
@@ -257,9 +268,10 @@ export class SignaturesMovementReports {
 
       visible_position: false,
       bacht_operation: false,
-      npaginas: 1,
-      posx: 120,
-      posy: 250,
+      npaginas: r?.user_step?.page,
+      // posx: 120,
+      posx: r?.user_step?.pos_x,
+      posy: r?.user_step?.pos_y,
       token: ''
     };
 
