@@ -12,6 +12,9 @@ import { Conformity } from './features/private/conformity/conformity';
 import { MyFirstComponent } from './shared/draft/my-first-component/my-first-component';
 import { DailyWorkLog } from './features/private/daily-work-log/daily-work-log';
 import { DailyWorkLogId } from './features/private/daily-work-log/daily-work-log-id/daily-work-log-id';
+
+import { MechanicalEquipment } from './features/private/mechanical-equipment/mechanical-equipment';
+
 import { FuelControl } from './features/private/fuel-control/fuel-control';
 import { EvidenceManagement } from './features/private/evidence-management/evidence-management';
 import { DigitalSignatureWorkflow } from './features/private/digital-signature-workflow/digital-signature-workflow';
@@ -76,6 +79,11 @@ export const routes: Routes = [
                     }
                 ]
             },
+            {
+                path: 'mechanical_equipment',
+                component: MechanicalEquipment
+            },
+            
             {
                 path: 'fuel-control',
                 component: FuelControl

@@ -1,0 +1,453 @@
+/* Contenedor principal */
+.mechanical-equipment-container {
+  padding: 24px;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* Header de la página */
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-title h1 {
+  margin: 0 0 8px 0;
+  font-size: 2rem;
+  font-weight: 500;
+  color: #1976d2;
+}
+
+.page-title .subtitle {
+  margin: 0;
+  color: #666;
+  font-size: 1rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.action-button {
+  min-width: 140px;
+  height: 40px;
+  font-weight: 500;
+}
+
+.refresh-button, .report-btn {
+  color: #666;
+}
+
+.report-btn:hover {
+  background-color: #e8f5e8;
+  color: #388e3c;
+}
+
+/* Tarjeta de contenido */
+.content-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Estados (carga, error, vacío) */
+.state-container {
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.state-content {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.state-icon {
+  font-size: 4rem;
+  height: 4rem;
+  width: 4rem;
+  margin-bottom: 24px;
+  opacity: 0.7;
+}
+
+.state-icon.spinning {
+  animation: spin 2s linear infinite;
+  color: #1976d2;
+}
+
+.state-icon.error {
+  color: #f44336;
+}
+
+.state-icon.empty {
+  color: #9e9e9e;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.loading-state h3 {
+  color: #1976d2;
+  margin: 0 0 8px 0;
+}
+
+.error-state h3 {
+  color: #f44336;
+  margin: 0 0 8px 0;
+}
+
+.empty-state h3 {
+  color: #424242;
+  margin: 0 0 8px 0;
+}
+
+.state-content p {
+  color: #666;
+  margin: 0 0 24px 0;
+}
+
+.retry-button, .create-first-button {
+  min-width: 160px;
+  height: 40px;
+}
+
+/* Container de la tabla */
+.table-container {
+  padding: 0;
+}
+
+.table-info {
+  padding: 16px 24px;
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #fafafa;
+}
+
+.records-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.records-count mat-icon {
+  font-size: 1.2rem;
+  height: 1.2rem;
+  width: 1.2rem;
+}
+
+/* Wrapper de tabla */
+.table-wrapper {
+  overflow-x: auto;
+}
+
+/* Estilos de tabla */
+.equipment-table {
+  width: 100%;
+  background: white;
+}
+
+/* Headers de tabla */
+.equipment-table th {
+  background-color: #f8f9fa;
+  color: #424242;
+  font-weight: 600;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-content mat-icon {
+  font-size: 1.1rem;
+  height: 1.1rem;
+  width: 1.1rem;
+  color: #666;
+}
+
+/* Filas de tabla */
+.table-row {
+  transition: background-color 0.2s ease;
+}
+
+.table-row:hover {
+  background-color: #f5f5f5;
+}
+
+/* Celdas específicas */
+.id-cell {
+  width: 80px;
+  padding-left: 24px !important;
+}
+
+.id-badge {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.name-cell {
+  min-width: 200px;
+}
+
+.equipment-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.equipment-name {
+  font-weight: 600;
+  color: #424242;
+  font-size: 0.95rem;
+}
+
+.equipment-serial {
+  font-size: 0.8rem;
+  color: #666;
+  font-family: 'Roboto Mono', monospace;
+}
+
+.type-cell {
+  min-width: 140px;
+}
+
+.equipment-type {
+  background: #f3e5f5;
+  color: #7b1fa2;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.brand-cell {
+  min-width: 120px;
+}
+
+.brand-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.brand-name {
+  font-weight: 600;
+  color: #424242;
+  font-size: 0.9rem;
+}
+
+.brand-model {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.model-cell {
+  min-width: 100px;
+}
+
+.model-value {
+  font-family: 'Roboto Mono', monospace;
+  font-weight: 500;
+  color: #424242;
+}
+
+.status-cell {
+  min-width: 130px;
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge .status-icon {
+  font-size: 1rem;
+  height: 1rem;
+  width: 1rem;
+}
+
+.status-active {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.status-maintenance {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.status-inactive {
+  background: #ffebee;
+  color: #d32f2f;
+}
+
+.status-unknown {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.actions-cell {
+  width: 200px;
+  padding-right: 24px !important;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+/* Botones de acción */
+.action-btn {
+  width: 36px;
+  height: 36px;
+  transition: all 0.2s ease;
+}
+
+.view-btn {
+  color: #1976d2;
+}
+
+.view-btn:hover {
+  background-color: #e3f2fd;
+}
+
+.edit-btn {
+  color: #f57c00;
+}
+
+.edit-btn:hover {
+  background-color: #fff3e0;
+}
+
+.maintenance-btn {
+  color: #7b1fa2;
+}
+
+.maintenance-btn:hover {
+  background-color: #f3e5f5;
+}
+
+.delete-btn {
+  color: #d32f2f;
+}
+
+.delete-btn:hover {
+  background-color: #ffebee;
+}
+
+/* Paginación */
+.pagination-container {
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #fafafa;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .mechanical-equipment-container {
+    padding: 16px;
+  }
+  
+  .header-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .header-actions {
+    justify-content: flex-start;
+  }
+  
+  .action-button {
+    flex: 1;
+    min-width: auto;
+  }
+  
+  .page-title h1 {
+    font-size: 1.5rem;
+  }
+  
+  .action-buttons {
+    justify-content: center;
+  }
+  
+  .records-count {
+    font-size: 0.8rem;
+  }
+  
+  /* Ocultar algunas columnas en móvil */
+  .id-column,
+  .id-cell {
+    display: none;
+  }
+  
+  .model-column,
+  .model-cell {
+    display: none;
+  }
+  
+  .type-column,
+  .type-cell {
+    display: none;
+  }
+  
+  .equipment-serial {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .action-button {
+    width: 100%;
+  }
+  
+  .state-container {
+    padding: 32px 16px;
+  }
+  
+  .state-icon {
+    font-size: 3rem;
+    height: 3rem;
+    width: 3rem;
+  }
+  
+  .brand-model {
+    display: none;
+  }
+  
+  .action-buttons {
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+  
+  .action-btn {
+    width: 32px;
+    height: 32px;
+  }
+}

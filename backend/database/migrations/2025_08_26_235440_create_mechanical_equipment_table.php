@@ -11,10 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('orders_silucia', function (Blueprint $table) {
+        Schema::create('mechanical_equipment', function (Blueprint $table) {
             $table->id('id');
-            $table->unsignedBigInteger('silucia_id')->unique();
-            $table->string('order_type')->nullable();
             $table->string('machinery_equipment')->nullable();
             $table->string('ability')->nullable();
             $table->string('brand')->nullable();
@@ -22,7 +20,6 @@ return new class extends Migration
             $table->string('serial_number')->nullable();
             $table->string('year')->nullable();
             $table->string('plate')->nullable();
-            $table->date('issue_date')->nullable();
             $table->integer('state')->default(1);
             $table->timestamps();
         });
@@ -33,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('orders_silucia');
+        Schema::dropIfExists('mechanical_equipment');
     }
 };
