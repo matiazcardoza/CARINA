@@ -271,7 +271,10 @@ export class SignaturesMovementReports {
       npaginas: r?.user_step?.page,
       // posx: 120,
       posx: r?.user_step?.pos_x,
-      posy: r?.user_step?.pos_y,
+      // posx: 445,
+      // posy: r?.user_step?.pos_y,
+      posy: 745,
+      // posy: 725,
       token: ''
     };
 

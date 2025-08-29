@@ -64,7 +64,10 @@ export class KardexManagementService {
 
       return this.http.get<any>(
         `${this.apiUrl}/api/silucia-orders/${encodeURIComponent(String(numero))}/products/${idcompradet}/movements-kardex`,
-        { params }
+        {
+          ...this.options, 
+          params 
+        }
       );
     }
 
