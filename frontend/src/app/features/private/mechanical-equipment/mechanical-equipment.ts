@@ -6,16 +6,18 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatDialog } from '@angular/material/dialog';
 
+import { MechanicalEquipmentForm } from './form/mechanical-equipment-form/mechanical-equipment-form';
+import { MechanicalEquipmentService } from '../../../services/MechanicalEquipmentService/mechanical-equipment-service';
+
+
 export interface MechanicalEquipmentElement {
   id: number;
-  equipment_name: string;
-  equipment_type: string;
+  machinery_equipment: string;
+  ability: string;
   brand: string;
   model: string;
   serial_number: string;
-  acquisition_date: string;
-  status: string;
-  last_maintenance: string;
+  state: number;
 }
 
 @Component({
@@ -33,8 +35,10 @@ export interface MechanicalEquipmentElement {
 })
 export class MechanicalEquipment implements AfterViewInit, OnInit {
   
-  displayedColumns: string[] = ['id', 'equipment_name', 'equipment_type', 'brand', 'model', 'status', 'actions'];
+  displayedColumns: string[] = ['id', 'machinery_equipment', 'ability', 'brand', 'model', 'state', 'actions'];
   dataSource = new MatTableDataSource<MechanicalEquipmentElement>([]);
+
+  private mechanicalEquipmentService = inject(MechanicalEquipmentService);
   private dialog = inject(MatDialog);
   
   // Estado de carga inicial
@@ -46,120 +50,75 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
   constructor(private cdr: ChangeDetectorRef) {}
   
   ngOnInit() {
-    Promise.resolve().then(() => this.loadEquipmentData());
+    this.isLoading = false;
+    this.error = null;
+    this.cdr.detectChanges();
+    
+    Promise.resolve().then(() => {
+      this.loadMechanicalEquipmentData();
+    });
   }
   
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
   }
   
-  loadEquipmentData(): void {
-    this.isLoading = true;
-    this.error = null;
-    this.cdr.detectChanges();
-    
-    // Simulando una llamada async con datos falsos
-    setTimeout(() => {
-      const fakeData: MechanicalEquipmentElement[] = [
-        {
-          id: 1,
-          equipment_name: 'Excavadora Hidráulica',
-          equipment_type: 'Maquinaria Pesada',
-          brand: 'Caterpillar',
-          model: '320D',
-          serial_number: 'CAT320D001',
-          acquisition_date: '2022-03-15',
-          status: 'Operativo',
-          last_maintenance: '2024-07-15'
-        },
-        {
-          id: 2,
-          equipment_name: 'Bulldozer',
-          equipment_type: 'Maquinaria Pesada',
-          brand: 'Komatsu',
-          model: 'D65PX-18',
-          serial_number: 'KOM65PX002',
-          acquisition_date: '2021-11-20',
-          status: 'Mantenimiento',
-          last_maintenance: '2024-08-01'
-        },
-        {
-          id: 3,
-          equipment_name: 'Camión Volquete',
-          equipment_type: 'Transporte',
-          brand: 'Volvo',
-          model: 'FMX 8x4',
-          serial_number: 'VOL8X4003',
-          acquisition_date: '2023-01-10',
-          status: 'Operativo',
-          last_maintenance: '2024-06-20'
-        },
-        {
-          id: 4,
-          equipment_name: 'Grúa Torre',
-          equipment_type: 'Elevación',
-          brand: 'Liebherr',
-          model: '132 HC-L',
-          serial_number: 'LIB132004',
-          acquisition_date: '2022-08-05',
-          status: 'Fuera de Servicio',
-          last_maintenance: '2024-05-10'
-        },
-        {
-          id: 5,
-          equipment_name: 'Compactadora Vibrante',
-          equipment_type: 'Compactación',
-          brand: 'Dynapac',
-          model: 'CA2500D',
-          serial_number: 'DYN2500005',
-          acquisition_date: '2023-06-12',
-          status: 'Operativo',
-          last_maintenance: '2024-08-10'
-        },
-        {
-          id: 6,
-          equipment_name: 'Retroexcavadora',
-          equipment_type: 'Maquinaria Pesada',
-          brand: 'JCB',
-          model: '3CX ECO',
-          serial_number: 'JCB3CX006',
-          acquisition_date: '2022-12-03',
-          status: 'Operativo',
-          last_maintenance: '2024-07-25'
-        }
-      ];
-      
-      this.dataSource.data = fakeData;
-      this.isLoading = false;
+  loadMechanicalEquipmentData(): void {
+    Promise.resolve().then(() => {
+      this.isLoading = true;
+      this.error = null;
       this.cdr.detectChanges();
-    }, 1500); // Simulando delay de red
+      
+      this.mechanicalEquipmentService.getMechanicalEquipment()
+        .subscribe({
+          next: (data) => {
+            this.dataSource.data = data;
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          },
+          error: (error) => {
+            this.error = 'Error al cargar los datos. Por favor, intenta nuevamente.';
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          }
+        });
+    });
   }
-  
+
   reloadData() {
-    Promise.resolve().then(() => this.loadEquipmentData());
+    Promise.resolve().then(() => this.loadMechanicalEquipmentData());
   }
   
   openCreateDialog() {
-    console.log('Abrir diálogo de creación');
-    // Aquí irá la lógica para abrir el modal de creación
-    // const dialogRef = this.dialog.open(MechanicalEquipmentForm, {
-    //   width: '600px',
-    //   data: { 
-    //     isEdit: false,
-    //     equipment: null
-    //   }
-    // });
-    
-    // dialogRef.afterClosed().subscribe(result => {
-    //   if (result) {
-    //     this.reloadData();
-    //   }
-    // });
+    const dialogRef = this.dialog.open(MechanicalEquipmentForm, {
+      width: '700px',
+      data: { 
+        isEdit: false,
+        mechanicalEquipment: null
+      }
+    });
+      
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.reloadData();
+      }
+    });
   }
   
-  openEditDialog(equipment: MechanicalEquipmentElement) {
-    console.log('Editar equipo:', equipment);
-    // Aquí irá la lógica para abrir el modal de edición
+  openEditDialog(mechanicalEquipment: MechanicalEquipmentElement) {
+    const dialogRef = this.dialog.open(MechanicalEquipmentForm, {
+      width: '700px',
+      data: { 
+        isEdit: true,
+        mechanicalEquipment: mechanicalEquipment
+      }
+    });
+      
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.reloadData();
+      }
+    });
   }
   
   viewEquipmentDetails(equipment: MechanicalEquipmentElement) {
@@ -172,18 +131,25 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
     // Aquí irá la lógica para programar mantenimiento
   }
   
-  deleteEquipment(id: number) {
-    if (confirm('¿Estás seguro de que deseas eliminar este equipo?')) {
+  deleteMechanicalEquipment(id: number) {
+    if (confirm('¿Estás seguro de que deseas eliminar este registro?')) {
       Promise.resolve().then(() => {
         this.isLoading = true;
         this.cdr.detectChanges();
         
-        // Simulando eliminación
-        setTimeout(() => {
-          this.dataSource.data = this.dataSource.data.filter(item => item.id !== id);
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        }, 1000);
+        this.mechanicalEquipmentService.deleteMechanicalEquipment(id)
+          .subscribe({
+            next: () => {
+              this.isLoading = false;
+              this.cdr.detectChanges();
+              this.reloadData();
+            },
+            error: (error) => {
+              this.isLoading = false;
+              this.error = 'Error al eliminar el registro. Por favor, intenta nuevamente.';
+              this.cdr.detectChanges();
+            }
+          });
       });
     }
   }
@@ -193,13 +159,17 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
     // Aquí irá la lógica para generar reportes
   }
   
-  getStatusClass(status: string): string {
-    switch (status.toLowerCase()) {
-      case 'operativo':
+  getStateClass(state: string | number): string {
+    const stateNum = Number(state);
+    switch (stateNum) {
+      case 1:
+        //operativo
         return 'status-active';
-      case 'mantenimiento':
+      case 2:
+        //mantenimiento
         return 'status-maintenance';
-      case 'fuera de servicio':
+      case 3:
+        //inactivo
         return 'status-inactive';
       default:
         return 'status-unknown';

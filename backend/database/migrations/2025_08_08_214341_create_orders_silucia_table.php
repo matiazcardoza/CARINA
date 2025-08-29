@@ -22,7 +22,8 @@ return new class extends Migration
             $table->string('serial_number')->nullable();
             $table->string('year')->nullable();
             $table->string('plate')->nullable();
-            $table->date('issue_date')->nullable();
+            $table->string('delivery_date')->nullable();
+            $table->integer('deadline_day')->nullable();
             $table->integer('state')->default(1);
             $table->timestamps();
         });

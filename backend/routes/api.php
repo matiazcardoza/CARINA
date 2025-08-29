@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DailyPartController;
+use App\Http\Controllers\MechanicalEquipmentController;
 use App\Http\Controllers\MovementKardexController;
 use App\Http\Controllers\OrderSiluciaController;
 use App\Http\Controllers\OrderProductoController;
@@ -29,6 +30,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/daily-work-log/{id}', [DailyPartController::class, 'destroy']);
     Route::post('/daily-work-log/complete', [DailyPartController::class, 'completeWork']);
     Route::post('/daily-work-log/{id}/generate-pdf', [DailyPartController::class, 'generatePdf']);
+
+    //mechanical equipment
+    Route::get('/mechanical-equipment', [MechanicalEquipmentController::class, 'index']);
+    Route::post('/mechanical-equipment', [MechanicalEquipmentController::class, 'store']);
+    Route::put('/mechanical-equipment/{id}', [MechanicalEquipmentController::class, 'update']);
+    Route::delete('/mechanical-equipment/{id}', [MechanicalEquipmentController::class, 'destroy']);
 
     // recurso anidado se obtiene productos pertenecientes a una orden sillucia
     Route::apiResource('orders-silucia.products', OrderProductsController::class)

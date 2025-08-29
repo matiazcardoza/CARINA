@@ -133,8 +133,9 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
 
   openReceiveDialog() {
     const dialogRef = this.dialog.open(DailyWorkLogReceive, {
-      width: '90vw',
-      height: '85vh',
+      width: '95vw',        // 95% del ancho de la ventana
+  maxWidth: '700px',   // Máximo absoluto
+  height: '85vh'
     });
 
     dialogRef.afterClosed().subscribe((result) => {

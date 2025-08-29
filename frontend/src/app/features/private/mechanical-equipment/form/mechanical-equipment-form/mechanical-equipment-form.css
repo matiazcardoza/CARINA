@@ -1,0 +1,81 @@
+/* mechanical-equipment-form.component.css */
+
+.dialog-container {
+  position: relative;
+  z-index: 1;
+  min-width: 500px;
+}
+
+.equipment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.half-width {
+  flex: 1;
+}
+
+/* Estilos para campos específicos */
+.equipment-form mat-hint {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.equipment-form mat-error {
+  font-size: 12px;
+}
+
+/* Estilo para el select de estado */
+.equipment-form mat-select {
+  font-weight: 500;
+}
+
+/* Responsividad para dispositivos móviles */
+@media (max-width: 768px) {
+  .dialog-container {
+    min-width: 300px;
+    width: 95vw;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .half-width {
+    width: 100%;
+  }
+}
+
+/* Estilos para mejor UX */
+.equipment-form input:focus,
+.equipment-form mat-select:focus {
+  outline: none;
+}
+
+/* Estilo para campos requeridos */
+.equipment-form mat-form-field.mat-form-field-invalid mat-label {
+  color: #f44336;
+}
+
+/* Animación sutil para el botón de submit */
+button[mat-raised-button] {
+  transition: all 0.2s ease-in-out;
+}
+
+button[mat-raised-button]:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
