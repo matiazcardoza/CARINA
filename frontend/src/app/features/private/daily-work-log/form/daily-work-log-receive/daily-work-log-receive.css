@@ -1,5 +1,6 @@
 .dialog-container {
-  max-width: 1200px;
+  /* max-width: 1200px; */ /* Eliminar esta línea */
+  width: 100%; /* Añadir esto */
   margin: 0 auto;
   padding: 24px;
   background: #fafafa;
@@ -285,4 +286,64 @@
 .mat-mdc-card-header .mat-mdc-card-subtitle {
   font-size: 14px !important;
   opacity: 0.7 !important;
+}
+
+.mat-mdc-form-field input[readonly],
+.mat-mdc-form-field textarea[readonly] {
+  background-color: #f8f9fa;
+  color: #495057 !important;
+  cursor: default;
+}
+
+.mat-mdc-form-field input[readonly]:hover,
+.mat-mdc-form-field textarea[readonly]:hover {
+  background-color: #e9ecef;
+}
+
+/* Mejorar el espaciado de los campos en la grid */
+.detail-grid .mat-mdc-form-field {
+  margin-bottom: 8px;
+}
+
+/* Estilos para textarea autosize */
+.mat-mdc-form-field textarea {
+  min-height: 24px;
+  resize: vertical;
+}
+
+/* Mejorar el aspecto del resumen de costos */
+.cost-summary {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+
+.cost-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.cost-item:last-child {
+  border-bottom: none;
+}
+
+.cost-item.total {
+  background-color: #f8f9fa;
+  border-top: 2px solid #1976d2;
+  font-size: 16px;
+}
+
+/* Responsive para formularios */
+@media (max-width: 768px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .detail-item.full-width {
+    grid-column: 1;
+  }
+}
+
+/* Mejorar visibilidad de iconos en campos readonly */
+.mat-mdc-form-field .mat-mdc-form-field-icon-suffix {
+  color: #666;
 }

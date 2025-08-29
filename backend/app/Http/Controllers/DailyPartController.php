@@ -107,6 +107,7 @@ class DailyPartController extends Controller
         $service = Service::find($serviceId);
         $orderSilucia = OrderSilucia::find($service->order_id);
         $dailyPart = DailyPart::where('service_id', $serviceId)->get();
+        Log::info("infomacion de pdf". $dailyPart);
         $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
         $logoWorkPath = storage_path('app/public/image_pdf_template/logo_work.png');
         $qr_code = base64_encode("data_qr_example");

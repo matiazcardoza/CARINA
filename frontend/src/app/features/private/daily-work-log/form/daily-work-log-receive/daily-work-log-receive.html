@@ -60,11 +60,6 @@
       </div>
     </form>
 
-    <!-- Cambiado: usar la propiedad precalculada en lugar de llamar al método -->
-    <div *ngIf="tipoMaquinaria" class="machinery-type">
-      <strong>Tipo:</strong> {{ getTipoMaquinariaLabel() }}
-    </div>
-
     <!-- Loading Spinner -->
     <div *ngIf="isLoading" class="loading-container">
       <mat-spinner diameter="50"></mat-spinner>
@@ -75,7 +70,7 @@
     <div *ngIf="showResults && orderData" class="results-section">
       <div class="results-header">
         <mat-icon>assignment</mat-icon>
-        <h3>Detalles de la Orden</h3>
+        <h3>Detalles de la orden para importar</h3>
       </div>
 
       <mat-card class="order-card">
@@ -88,106 +83,272 @@
         </mat-card-header>
 
         <mat-card-content>
-          <div class="order-details">
-            <!-- Información General -->
-            <div class="detail-section">
-              <h4><mat-icon>info</mat-icon>Información General</h4>
-              <div class="detail-grid">
-                <div class="detail-item">
-                  <strong>Fecha de Orden:</strong>
-                  <span>{{ formatDate(orderData.fecha) }}</span>
-                </div>
-                <div class="detail-item">
-                  <strong>Fecha de Prestación:</strong>
-                  <span>{{ formatDate(orderData.fecha_prestacion) }}</span>
-                </div>
-                <div class="detail-item">
-                  <strong>Plazo de Prestación:</strong>
-                  <span>{{ orderData.plazo_prestacion }} días</span>
-                </div>
-                <div class="detail-item">
-                  <strong>Procedimiento:</strong>
-                  <span>{{ orderData.desprocedim }}</span>
-                </div>
-              </div>
-            </div>
+          <!-- Reemplaza la sección order-details con este código -->
+<div class="order-details">
+  <!-- Información General -->
+  <div class="detail-section">
+    <h4>
+      <mat-icon>info</mat-icon>
+      Información General
+    </h4>
+    <div class="detail-grid">
+      <mat-form-field appearance="outline" class="detail-item">
+        <mat-label>Fecha de Prestación</mat-label>
+        <input 
+          matInput 
+          [value]="formatDate(orderData.fecha_prestacion)" 
+          readonly>
+        <mat-icon matSuffix>schedule</mat-icon>
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline" class="detail-item">
+        <mat-label>Plazo de Prestación (días)</mat-label>
+        <input 
+          matInput 
+          type="number"
+          [value]="orderData.plazo_prestacion"
+          readonly>
+        <mat-icon matSuffix>timer</mat-icon>
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline" class="detail-item">
+        <mat-label>Tipo de Maquinaria</mat-label>
+        <input 
+          matInput 
+          [value]="getTipoMaquinaria()" 
+          readonly>
+        <mat-icon matSuffix>build</mat-icon>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="detail-item">
+        <mat-label>Tipo de Maquinaria</mat-label>
+        <input 
+          matInput 
+          [value]="" 
+          readonly>
+        <mat-icon matSuffix>build</mat-icon>
+      </mat-form-field>
+    </div>
+  </div>
 
-            <mat-divider></mat-divider>
+  <mat-divider></mat-divider>
 
-            <!-- Proyecto y Meta -->
-            <div class="detail-section">
-              <h4><mat-icon>account_balance</mat-icon>Proyecto</h4>
-              <div class="project-info">
-                <div class="detail-item">
-                  <strong>Código de Meta:</strong>
-                  <span>{{ orderData.cod_meta }}</span>
-                </div>
-                <div class="detail-item full-width">
-                  <strong>Descripción:</strong>
-                  <p class="description-text">{{ orderData.desmeta }}</p>
-                </div>
-                <div class="detail-item">
-                  <strong>Rubro:</strong>
-                  <span>{{ orderData.desrubro }}</span>
-                </div>
-                <div class="detail-item">
-                  <strong>Operación:</strong>
-                  <span>{{ orderData.desuoper }}</span>
-                </div>
-              </div>
-            </div>
+  <!-- Información del Proveedor -->
+  <div class="detail-section">
+    <h4>
+      <mat-icon>business</mat-icon>
+      Información del Proveedor
+    </h4>
+    <div class="detail-grid">
+      <mat-form-field appearance="outline" class="detail-item">
+        <mat-label>RUC</mat-label>
+        <input 
+          matInput 
+          [value]="orderData.ruc" 
+          readonly>
+        <mat-icon matSuffix>badge</mat-icon>
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline" class="detail-item full-width">
+        <mat-label>Razón Social</mat-label>
+        <input 
+          matInput 
+          [value]="orderData.rsocial" 
+          readonly>
+        <mat-icon matSuffix>domain</mat-icon>
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline" class="detail-item">
+        <mat-label>Teléfono Principal</mat-label>
+        <input 
+          matInput 
+          [value]="orderData.telefono1" 
+          readonly>
+        <mat-icon matSuffix>phone</mat-icon>
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline" class="detail-item" *ngIf="orderData.telefono2">
+        <mat-label>Teléfono Secundario</mat-label>
+        <input 
+          matInput 
+          [value]="orderData.telefono2" 
+          readonly>
+        <mat-icon matSuffix>phone</mat-icon>
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline" class="detail-item full-width">
+        <mat-label>Email</mat-label>
+        <input 
+          matInput 
+          [value]="orderData.email" 
+          readonly>
+        <mat-icon matSuffix>email</mat-icon>
+      </mat-form-field>
+    </div>
+  </div>
 
-            <mat-divider></mat-divider>
+  <mat-divider></mat-divider>
 
-            <!-- Servicio y Costos -->
-            <div class="detail-section">
-              <h4><mat-icon>build</mat-icon>Servicio</h4>
-              <div class="service-info">
-                <div class="detail-item full-width">
-                  <strong>Ítem:</strong>
-                  <p class="item-text">{{ orderData.item }}</p>
-                </div>
-                <div class="cost-summary">
-                  <div class="cost-item">
-                    <span class="cost-label">Cantidad:</span>
-                    <span class="cost-value">{{ orderData.cantidad }} {{ orderData.desmedida }}</span>
-                  </div>
-                  <div class="cost-item">
-                    <span class="cost-label">Precio Unitario:</span>
-                    <span class="cost-value">{{ formatCurrency(orderData.precio) }}</span>
-                  </div>
-                  <div class="cost-item total">
-                    <span class="cost-label">Total:</span>
-                    <!-- Cambiado: usar la propiedad precalculada -->
-                    <span class="cost-value">{{ formatCurrency(totalCalculado) }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+  <!-- Información del Servicio -->
+  <div class="detail-section">
+    <h4>
+      <mat-icon>construction</mat-icon>
+      Información del Servicio
+    </h4>
+    <div class="detail-grid">
+      <mat-form-field appearance="outline" class="detail-item full-width">
+        <mat-label>Catálogo del Servicio</mat-label>
+        <input 
+          matInput 
+          [value]="orderData.name_catalog" 
+          readonly>
+        <mat-icon matSuffix>category</mat-icon>
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline" class="detail-item">
+        <mat-label>Unidad de Medida</mat-label>
+        <input 
+          matInput 
+          [value]="orderData.desmedida" 
+          readonly>
+        <mat-icon matSuffix>straighten</mat-icon>
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline" class="detail-item">
+        <mat-label>Cantidad</mat-label>
+        <input 
+          matInput 
+          type="number"
+          [value]="orderData.cantidad"
+          readonly>
+        <mat-icon matSuffix>format_list_numbered</mat-icon>
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline" class="detail-item">
+        <mat-label>Precio Unitario</mat-label>
+        <input 
+          matInput 
+          [value]="formatCurrency(orderData.precio)"
+          readonly>
+        <mat-icon matSuffix>attach_money</mat-icon>
+      </mat-form-field>
+    </div>
+    
+    <!-- Detalles del Item -->
+    <mat-form-field appearance="outline" class="detail-item full-width">
+      <mat-label>Detalles del Servicio</mat-label>
+      <textarea 
+        matInput 
+        [value]="orderData.item"
+        readonly
+        rows="4"
+        cdkTextareaAutosize
+        #autosize="cdkTextareaAutosize"
+        cdkAutosizeMinRows="4"
+        cdkAutosizeMaxRows="8">
+      </textarea>
+      <mat-icon matSuffix>description</mat-icon>
+    </mat-form-field>
+  </div>
 
-            <mat-divider></mat-divider>
+  <mat-divider></mat-divider>
 
-            <!-- Detalles de la Orden -->
-            <div class="detail-section">
-              <h4><mat-icon>notes</mat-icon>Detalles de la Orden</h4>
-              <div class="order-details-content">
-                <pre class="details-text">{{ orderData.detalles_orden }}</pre>
-              </div>
-            </div>
+  <!-- Información del Proyecto -->
+  <div class="detail-section">
+    <h4>
+      <mat-icon>account_tree</mat-icon>
+      Información del Proyecto
+    </h4>
+    <div class="detail-grid">
+      <mat-form-field appearance="outline" class="detail-item">
+        <mat-label>Código de Meta</mat-label>
+        <input 
+          matInput 
+          [value]="orderData.cod_meta" 
+          readonly>
+        <mat-icon matSuffix>code</mat-icon>
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline" class="detail-item full-width">
+        <mat-label>Descripción de Meta</mat-label>
+        <textarea 
+          matInput 
+          [value]="orderData.desmeta"
+          readonly
+          rows="3"
+          cdkTextareaAutosize
+          cdkAutosizeMinRows="3"
+          cdkAutosizeMaxRows="5">
+        </textarea>
+        <mat-icon matSuffix>flag</mat-icon>
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline" class="detail-item">
+        <mat-label>Fuente de Financiamiento</mat-label>
+        <input 
+          matInput 
+          [value]="orderData.desrubro" 
+          readonly>
+        <mat-icon matSuffix>account_balance</mat-icon>
+      </mat-form-field>
+      
+      <mat-form-field appearance="outline" class="detail-item">
+        <mat-label>Procedimiento</mat-label>
+        <input 
+          matInput 
+          [value]="orderData.desprocedim" 
+          readonly>
+        <mat-icon matSuffix>gavel</mat-icon>
+      </mat-form-field>
+    </div>
+  </div>
 
-            <!-- Status -->
-            <div class="detail-section">
-              <h4><mat-icon>check_circle</mat-icon>Estado</h4>
-              <div class="status-info">
-                <mat-chip-listbox>
-                  <mat-chip [color]="orderData.total_conformidad > 0 ? 'primary' : 'warn'">
-                    <mat-icon>{{ orderData.total_conformidad > 0 ? 'verified' : 'pending' }}</mat-icon>
-                    {{ orderData.total_conformidad > 0 ? 'Con Conformidad' : 'Pendiente de Conformidad' }}
-                  </mat-chip>
-                </mat-chip-listbox>
-              </div>
-            </div>
-          </div>
+  <mat-divider></mat-divider>
+
+  <!-- Detalles de la Orden -->
+  <div class="detail-section">
+    <h4>
+      <mat-icon>notes</mat-icon>
+      Detalles Adicionales de la Orden
+    </h4>
+    <mat-form-field appearance="outline" class="detail-item full-width">
+      <mat-label>Detalles de la Orden</mat-label>
+      <textarea 
+        matInput 
+        [value]="orderData.detalles_orden"
+        readonly
+        rows="6"
+        cdkTextareaAutosize
+        cdkAutosizeMinRows="6"
+        cdkAutosizeMaxRows="10">
+      </textarea>
+      <mat-icon matSuffix>article</mat-icon>
+    </mat-form-field>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <!-- Resumen de Costos -->
+  <div class="detail-section">
+    <h4>
+      <mat-icon>calculate</mat-icon>
+      Resumen de Costos
+    </h4>
+    <div class="cost-summary">
+      <div class="cost-item">
+        <span class="cost-label">Cantidad:</span>
+        <span class="cost-value">{{ orderData.cantidad }} {{ orderData.desmedida }}</span>
+      </div>
+      <div class="cost-item">
+        <span class="cost-label">Precio Unitario:</span>
+        <span class="cost-value">{{ formatCurrency(orderData.precio) }}</span>
+      </div>
+      <div class="cost-item total">
+        <span class="cost-label">Total:</span>
+        <span class="cost-value">{{ formatCurrency(getTotal()) }}</span>
+      </div>
+    </div>
+  </div>
+</div>
         </mat-card-content>
 
         <mat-card-actions class="card-actions">

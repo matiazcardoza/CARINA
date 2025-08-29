@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id('id');
             $table->unsignedBigInteger('service_id');
             $table->string('description')->nullable();
+            $table->string('occurrences')->nullable();
             $table->date('work_date')->nullable();
             $table->time('start_time')->nullable();
             $table->time('end_time')->nullable();

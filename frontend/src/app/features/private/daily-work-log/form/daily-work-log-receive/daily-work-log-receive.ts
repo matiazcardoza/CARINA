@@ -11,8 +11,16 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { DailyWorkLogService } from '../../../../../services/DailyWorkLogService/daily-work-log-service';
+import { TextFieldModule } from '@angular/cdk/text-field';
 
 interface OrderDetail {
+  ruc : string;
+  rsocial : string;
+  telefono1 : string;
+  telefono2 : string;
+  email : string;
+  name_catalog : string;
+
   anio: string;
   numero: string;
   fecha: string;
@@ -59,7 +67,8 @@ interface OrderResponse {
     MatCardModule,
     MatDividerModule,
     MatChipsModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    TextFieldModule
   ]
 })
 export class DailyWorkLogReceive implements OnInit {
@@ -68,16 +77,14 @@ export class DailyWorkLogReceive implements OnInit {
   isLoading = false;
   orderData: OrderDetail | null = null;
   showResults = false;
-  
-  // Agregar propiedades para evitar múltiples llamadas a métodos en el template
-  tipoMaquinaria: 'SECA' | 'SERVIDA' | null = null;
+
   totalCalculado: number = 0;
 
   constructor(
     private fb: FormBuilder, 
     private dailyWorkLogService: DailyWorkLogService,
     private dialogRef: MatDialogRef<DailyWorkLogReceive>,
-    private cdr: ChangeDetectorRef,  // Asegúrate de inyectar ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {}
 
@@ -105,7 +112,6 @@ export class DailyWorkLogReceive implements OnInit {
     this.isLoading = true;
     this.showResults = false;
     this.orderData = null;
-    this.tipoMaquinaria = null;
     this.totalCalculado = 0;
 
     this.dailyWorkLogService.getOrderByNumber(numeroOrden).subscribe({
@@ -113,24 +119,12 @@ export class DailyWorkLogReceive implements OnInit {
         if (response.data && response.data.length > 0) {
           this.orderData = response.data[0];
           
-          this.tipoMaquinaria = this.calculateTipoMaquinaria();
-          this.totalCalculado = this.calculateTotal();
-          
-          if (this.tipoMaquinaria === 'SECA') {
-            this.orderData.state = 1;
-          } else if (this.tipoMaquinaria === 'SERVIDA') {
-            this.orderData.state = 2;
-          } else {
-            this.orderData.state = 0; 
-          }
-          
           this.showResults = true;
           this.numeroOrdenErrors = null;
         } else {
           this.numeroOrdenErrors = 'No se encontraron datos para esta orden.';
           this.orderData = null;
           this.showResults = false;
-          this.tipoMaquinaria = null;
           this.totalCalculado = 0;
         }
         this.isLoading = false;
@@ -142,7 +136,6 @@ export class DailyWorkLogReceive implements OnInit {
         this.numeroOrdenErrors = 'Ocurrió un error al buscar la orden. Intente de nuevo.';
         this.orderData = null;
         this.showResults = false;
-        this.tipoMaquinaria = null;
         this.totalCalculado = 0;
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -155,7 +148,6 @@ export class DailyWorkLogReceive implements OnInit {
     this.numeroOrdenErrors = null;
     this.orderData = null;
     this.showResults = false;
-    this.tipoMaquinaria = null;
     this.totalCalculado = 0;
   }
 
@@ -184,11 +176,6 @@ export class DailyWorkLogReceive implements OnInit {
       style: 'currency',
       currency: 'PEN'
     }).format(amount);
-  }
-
-  private calculateTotal(): number {
-    if (!this.orderData) return 0;
-    return this.orderData.cantidad * this.orderData.precio;
   }
 
   getTotal(): number {
@@ -232,30 +219,14 @@ export class DailyWorkLogReceive implements OnInit {
     this.dialogRef.close(false);
   }
 
-  private calculateTipoMaquinaria(): 'SECA' | 'SERVIDA' | null {
-    if (!this.orderData?.item) return null;
+  getTipoMaquinaria(): string {
+    if (!this.orderData?.item) return '';
+    
     const texto = this.orderData.item.toUpperCase();
-    if (texto.includes('MAQUINA SECA')) {
-      return 'SECA';
-    }
-    if (texto.includes('MAQUINA SERVIDA')) {
-      return 'SERVIDA';
-    }
-    return null;
-  }
-
-  getTipoMaquinaria(): 'SECA' | 'SERVIDA' | null {
-    return this.tipoMaquinaria;
-  }
-
-  getTipoMaquinariaLabel(): string {
-    switch (this.tipoMaquinaria) {
-      case 'SECA':
-        return 'Máquina Seca';
-      case 'SERVIDA':
-        return 'Máquina Servida';
-      default:
-        return '';
-    }
+    
+    if (texto.includes('MAQUINA SECA')) return 'Máquina Seca';
+    if (texto.includes('MAQUINA SERVIDA')) return 'Máquina Servida';
+    
+    return '';
   }
 }

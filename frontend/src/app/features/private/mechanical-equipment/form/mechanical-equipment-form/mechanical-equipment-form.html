@@ -1,0 +1,110 @@
+<div class="dialog-container">
+  <h2 mat-dialog-title>{{ title }}</h2>
+  
+  <mat-dialog-content>
+    <form [formGroup]="mechanicalEquipmentForm" class="equipment-form">
+      
+      <!-- Campo de Maquinaria o Equipo -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Maquinaria o Equipo</mat-label>
+        <input matInput 
+               formControlName="machinery_equipment"
+               placeholder="Ej: Excavadora, Grúa, Bulldozer..."
+               maxlength="100">
+        <mat-error>{{ machinery_equipmentError }}</mat-error>
+      </mat-form-field>
+
+      <!-- Campo de Capacidad -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Capacidad</mat-label>
+        <input matInput 
+               formControlName="ability"
+               placeholder="Ej: 20 Toneladas, 300 HP, 5m³..."
+               maxlength="50">
+        <mat-error>{{ abilityError }}</mat-error>
+      </mat-form-field>
+
+      <!-- Fila con Marca y Modelo -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Marca</mat-label>
+          <input matInput 
+                 formControlName="brand"
+                 placeholder="Ej: Caterpillar, Komatsu..."
+                 maxlength="50">
+          <mat-error>{{ brandError }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Modelo</mat-label>
+          <input matInput 
+                 formControlName="model"
+                 placeholder="Ej: 320D, PC200-8..."
+                 maxlength="50">
+          <mat-error>{{ modelError }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Campo de Número de Serie -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Número de Serie</mat-label>
+        <input matInput 
+               formControlName="serial_number"
+               placeholder="Número de serie del equipo"
+               maxlength="50">
+        <mat-error>{{ serialNumberError }}</mat-error>
+      </mat-form-field>
+
+      <!-- Fila con Año y Placa -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Año</mat-label>
+          <input matInput 
+                 type="number"
+                 formControlName="year"
+                 placeholder="2024"
+                 min="1900">
+          <mat-error>{{ yearError }}</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Placa (Opcional)</mat-label>
+          <input matInput 
+                 formControlName="plate"
+                 placeholder="ABC-123"
+                 maxlength="20">
+          <mat-hint>Solo para equipos con placa</mat-hint>
+          <mat-error>{{ plateError }}</mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Campo de Estado -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Estado</mat-label>
+        <mat-select formControlName="state">
+          <mat-option *ngFor="let state of stateOptions" [value]="state.value">
+            {{ state.label }}
+          </mat-option>
+        </mat-select>
+        <mat-error>{{ stateError }}</mat-error>
+      </mat-form-field>
+    </form>
+    
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button 
+            (click)="onCancel()" 
+            [disabled]="isLoading">
+      Cancelar
+    </button>
+    
+    <button mat-raised-button 
+            color="primary" 
+            (click)="onSubmit()"
+            [disabled]="isLoading || mechanicalEquipmentForm.invalid">
+      <span *ngIf="isLoading">Guardando...</span>
+      <span *ngIf="!isLoading">{{ submitButtonText }}</span>
+    </button>
+  </mat-dialog-actions>
+</div>
