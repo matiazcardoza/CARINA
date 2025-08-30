@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
 import { DailyWorkLogService } from '../../../services/DailyWorkLogService/daily-work-log-service';
 import { DailyWorkLogUpload } from './form/daily-work-log-upload/daily-work-log-upload';
 import { DailyWorkLogReceive } from './form/daily-work-log-receive/daily-work-log-receive';
+import { DailyWorkLogMechanical } from './form/daily-work-log-mechanical/daily-work-log-mechanical';
 import { MatDialog } from '@angular/material/dialog';
 import { ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
@@ -15,7 +16,6 @@ export interface WorkLogElement {
   id: number;
   description: string;
   order_type: string;
-  issue_date: string;
   state: number;
 }
 
@@ -36,7 +36,7 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
 
   constructor(private cdr: ChangeDetectorRef) {}
 
-  displayedColumns: string[] = ['id', 'description', 'order_type', 'issue_date', 'state', 'actions'];
+  displayedColumns: string[] = ['id', 'description', 'order_type', 'state', 'actions'];
   dataSource = new MatTableDataSource<WorkLogElement>([]);
   
   private dailyWorkLogService = inject(DailyWorkLogService);
@@ -133,9 +133,26 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
 
   openReceiveDialog() {
     const dialogRef = this.dialog.open(DailyWorkLogReceive, {
-      width: '95vw',        // 95% del ancho de la ventana
-  maxWidth: '700px',   // Máximo absoluto
-  height: '85vh'
+      width: '95vw',
+      maxWidth: '700px',
+      height: '85vh'
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        Promise.resolve().then(() => {
+          this.cdr.detectChanges();
+          this.loadWorkLogData();
+        });
+      }
+    });
+  }
+
+  openMechanicalDialog() {
+    const dialogRef = this.dialog.open(DailyWorkLogMechanical, {
+      width: '95vw',
+      maxWidth: '700px',
+      height: '85vh'
     });
 
     dialogRef.afterClosed().subscribe((result) => {

@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id('id');
             $table->unsignedBigInteger('silucia_id')->unique();
             $table->string('order_type')->nullable();
+            $table->string('supplier')->nullable();
+            $table->string('ruc_supplier')->nullable();
             $table->string('machinery_equipment')->nullable();
             $table->string('ability')->nullable();
             $table->string('brand')->nullable();
@@ -22,7 +24,7 @@ return new class extends Migration
             $table->string('serial_number')->nullable();
             $table->string('year')->nullable();
             $table->string('plate')->nullable();
-            $table->string('delivery_date')->nullable();
+            $table->date('delivery_date')->nullable();
             $table->integer('deadline_day')->nullable();
             $table->integer('state')->default(1);
             $table->timestamps();

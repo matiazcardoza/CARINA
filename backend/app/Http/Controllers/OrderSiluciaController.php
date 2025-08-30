@@ -10,45 +10,59 @@ use Illuminate\Support\Facades\Log;
 
 class OrderSiluciaController extends Controller
 {
-    function index(Request $request)
-    {
-        $orderSilucia = OrderSilucia::select('orders_silucia.*', 'services.state', 'services.description')
-                                    ->leftjoin('services', 'orders_silucia.id', '=', 'services.order_id')
-                                    ->get();
-
-        return response()->json([
-            'message' => 'Daily work log retrieved successfully',
-            'data' => $orderSilucia
-        ]);
-    }
-
     public function importOrder(Request $request)
     {
-        $silucia_id = $request->idservicio;
-        $goal_project = $request->idmeta;
-        $api_date = $request->item;
-        $goal_detail = $request->desmeta;
-        $state = $request->state;
-        $description = $request->item;
-        $symbol = ',';
-        $clean_description = strstr($description, $symbol, true);
+        if($request->maquinaria_id){
+            $newService = Service::create([
+                'mechanical_equipment_id' => $request->maquinaria_id,
+                'goal_id' => $request->meta_id,
+                'operator' => $request->operador,
+                'description' => $request->maquinaria_equipo . ' ' . $request->maquinaria_marca . ' ' . $request->maquinaria_modelo . ' ' . $request->maquinaria_serie,
+                'goal_project' => $request->meta_codigo,
+                'goal_detail' => $request->meta_descripcion,
+                'state' => 3
+            ]);
 
-        $order = new OrderSilucia();
-        $order->silucia_id = $silucia_id;
-        $order->order_type = 'SERVICIO';
-        $order->issue_date = now();
-        $order->goal_project = $goal_project;
-        $order->goal_detail = $goal_detail;
-        $order->api_date = $api_date;
+            return response()->json([
+                'success' => true,
+                'message' => 'registro importado correctamente.',
+                'servicio' => $newService
+            ], 201);
+        } else{
+            $newOrderSilucia = OrderSilucia::create([
+                'silucia_id' => $request->idservicio,
+                'order_type' => 'Servicio',
+                'supplier' => $request->rsocial,
+                'ruc_supplier' => $request->ruc,
+                'machinery_equipment' => $request->maquinaria,
+                'ability' => $request->capacidad,
+                'brand' => $request->marca,
+                'model' => $request->modelo,
+                'serial_number' => $request->serie,
+                'year' => $request->year,
+                'plate' => $request->placa,
+                'delivery_date' => $request->fechaPrestacion,
+                'deadline_day' => $request->plazoPrestacion
+            ]);
 
+            $newService = Service::create([
+                'order_id' => $newOrderSilucia->id,
+                'goal_id' => $request->idmeta,
+                'operator' => $request->operador,
+                'description' => $request->description,
+                'goal_project' => $request->cod_meta,
+                'goal_detail' => $request->desmeta,
+                'state' => $request->tipoMaquinaria
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'registro importado correctamente.',
+                'order_silucia' => $newOrderSilucia,
+                'servicio' => $newService
+            ], 201);
+        }
         
-        $order->save();
-
-        $service = new Service();
-        $service->order_id = $order->id;
-        $service->description = $clean_description;
-        $service->state = $state;
-        $service->save();
     }
 
     // VideoCommentController

@@ -15,11 +15,18 @@ class OrderSilucia extends Model
     protected $fillable = [
         'silucia_id',
         'order_type',
-        'issue_date',
-        'goal_project',
-        'goal_detail',
-        'api_date',
-        'state'
+        'supplier',
+        'ruc_supplier',
+        'machinery_equipment',
+        'ability',
+        'brand',
+        'model',
+        'serial_number',
+        'year',
+        'plate',
+        'delivery_date',
+        'deadline_day',
+        'state',
     ];
     // ----------------
     protected $casts = [
