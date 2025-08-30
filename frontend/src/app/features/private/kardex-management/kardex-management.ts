@@ -17,7 +17,9 @@ import { KardexManagementService } from './services/kardex-management.service';
 import { clients, products } from './utils/mockup-data';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AddNewUserModal } from './components/add-new-user-modal/add-new-user-modal';
-
+import { ListboxModule } from 'primeng/listbox';
+import { DigitalSignatureService } from '../../../shared/draft/digital-signature/services/digital-signature.service';
+import { SignatureParams } from '../../../shared/draft/digital-signature/interface/signature-params.interface';
 @Component({
   selector: 'app-kardex-management',
   standalone: true,
@@ -26,7 +28,7 @@ import { AddNewUserModal } from './components/add-new-user-modal/add-new-user-mo
     FormsModule, SlicePipe,
     // PrimeNG
     TableModule, InputTextModule, DialogModule, InputNumberModule,
-    AutoComplete, Button, Tag, IconField, InputIcon,AddNewUserModal
+    AutoComplete, Button, Tag, IconField, InputIcon,AddNewUserModal, ListboxModule
   ],
   templateUrl: './kardex-management.html',
   styleUrl: './kardex-management.css'
@@ -41,6 +43,19 @@ export class KardexManagement {
   selectedCustomers!: any;
   selectedProduct: any | null = null;
   filterProducts =  signal<string>('');
+  listDniPeople = signal<any[]>([]);
+  // expandedRowsMovements: { [id: number]: boolean } = {};
+  expandedRowsMovements = signal<Record<number, boolean>>({});
+  uiFilters = {
+    numero: '',
+    anio: undefined as number | undefined,
+    item: '',
+    desmeta: '',
+    siaf: '',
+    ruc: '',
+    rsocial: '',
+    email: ''
+  };
 
   // Modales
   openModalSeeDetailsOfMovimentKardex = signal<boolean>(true);
@@ -65,6 +80,8 @@ export class KardexManagement {
     id_order_silucia: null as string | null,
     id_product_silucia: null as number |null,
     observations: null as string |null,
+    people_dnis: [] as string[],
+    silucia_product: null as any
   };
 
   movementsKardex    = signal<any[]>([]);
@@ -74,29 +91,94 @@ export class KardexManagement {
   selectedProductForMovements: any | null = null;
 
   private readonly destroyRef = inject(DestroyRef); 
-  constructor(private service:KardexManagementService){
+  constructor(private service:KardexManagementService, private signature: DigitalSignatureService){
     effect(()=>{
       console.log("valor inicial del filterProducts: ", this.filterProducts());
     })
   }
 
   // ----- Lifecycle -----
+  productsTotal = signal<number>(0);
+  pageSize = 20; 
 
-  ngOnInit() {
-    this.getProductsOfSiluciaBackend({});
-    // this.customers.set(clients);
-    // this.products.set(products.data)
-  }
+  onSearchClick() {
+    // Normaliza "anio" (por si el input devuelve string vacío)
+    const raw = (this.uiFilters.anio as any);
+    const anio = raw === '' || raw == null ? undefined : Number(raw);
 
-  getProductsOfSiluciaBackend(filters:{ numero?: string; anio?: number; estado?: string }){
-    console.log("Numero enviado", filters.numero);
-    this.loadingProducts.set(true);
-    this.service.getSiluciaProducts(filters).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: res => { this.products.set(res.data); this.loadingProducts.set(false)},
-      error: err => { this.errorLoadingProducts.set('No se pudo cargar'); this.loadingProducts.set(false) }
+    this.getProductsOfSiluciaBackend({
+      ...this.uiFilters,
+      anio,
+      page: 1,
+      per_page: this.pageSize
     });
   }
 
+  onClearClick() {
+    this.uiFilters = {
+      numero: '',
+      anio: undefined,
+      item: '',
+      desmeta: '',
+      siaf: '',
+      ruc: '',
+      rsocial: '',
+      email: ''
+    };
+
+    this.getProductsOfSiluciaBackend({
+      page: 1,
+      per_page: this.pageSize
+    });
+  }
+
+  ngOnInit() {
+    // this.getProductsOfSiluciaBackend({});
+    this.loadFirstPage();
+  }
+  private loadFirstPage() {
+    this.getProductsOfSiluciaBackend({ ...this.uiFilters, page: 1, per_page: this.pageSize });
+  }
+
+  getProductsOfSiluciaBackend(filters:{ 
+    // numero?: string; anio?: number; estado?: string
+    numero?: string; anio?: number; item?: string; desmeta?: string; siaf?: string;
+    ruc?: string; rsocial?: string; email?: string; page?: number; per_page?: number 
+  }){
+
+
+    this.loadingProducts.set(true);
+    this.service.getSiluciaProducts(filters)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.products.set(res.data);
+          this.productsTotal.set(res.total ?? res.data?.length ?? 0);
+          this.pageSize = res.per_page ?? this.pageSize;
+          this.loadingProducts.set(false);
+          // Restaura selección si el producto está en la página actual
+          if (this.lastSelectedKey != null) {
+            const match = (res.data ?? []).find((r: any) => r.idcompradet === this.lastSelectedKey);
+            this.selectedProduct = match || null;
+          }
+        },
+        error: _ => { this.errorLoadingProducts.set('No se pudo cargar'); this.loadingProducts.set(false); }
+      });
+  }
+
+  lastProductsPage = 1;
+  lastProductsRows = this.pageSize;
+  lastSelectedKey: number | null = null; // idcompradet del producto seleccionado
+  onProductsLazyLoad(e: any) {
+    const first = e.first ?? 0;
+    const rows  = e.rows ?? this.pageSize;
+    const page  = Math.floor(first / rows) + 1;
+
+    this.lastProductsPage = page;
+    this.lastProductsRows = rows;
+
+    this.getProductsOfSiluciaBackend({ ...this.uiFilters, page, per_page: rows });
+  }
   // ----- Helpers UI -----
   getSeverity(status: string) {
     switch (status) {
@@ -145,6 +227,7 @@ export class KardexManagement {
     this.form.id_order_silucia =  _row.numero;
     this.form.id_product_silucia=  _row.idcompradet;
     this.showMovementModal = true;
+    this.form.silucia_product = JSON.parse(JSON.stringify(_row))
     console.log(this.form)
   }
 
@@ -155,8 +238,11 @@ export class KardexManagement {
       amount: null, 
       id_order_silucia: null ,
       id_product_silucia: null ,
-      observations: null
+      observations: null,
+      people_dnis: [],
+      silucia_product: null 
     };
+    this.listDniPeople.set([])
   }
 
   // AutoComplete como dropdown
@@ -168,19 +254,24 @@ export class KardexManagement {
   }
 
   onSubmitMovement() {
-    // Aquí puedes mapear si necesitas valor interno en minúsculas:
-    // const value = this.form.movementType === 'Entrada' ? 'entrada' : 'salida';
-    console.log('Movimiento:', this.form);
-    console.log('Datos de formulario seleccionados: ', this.filteredMovementOptions);
-    
-    this.service.createKardexMovement(this.form).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: res => { 
-        this.getProductsOfSiluciaBackend({});
-      },
-      error: err => { 
-        this.errorLoadingProducts.set('No se pudo cargar');
-      }
-    });
+    // Captura el id del producto que estabas tocando
+    this.lastSelectedKey = this.selectedProduct?.idcompradet ?? null;
+
+    const page = this.lastProductsPage;
+    const perPage = this.lastProductsRows;
+    console.log("datos enviado a backend: ", this.form);
+    this.service.createKardexMovement(this.form)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: _ => {
+          // Refresca manteniendo misma página y filtros
+          this.getProductsOfSiluciaBackend({ ...this.uiFilters, page, per_page: perPage });
+        },
+        error: _ => {
+          this.errorLoadingProducts.set('No se pudo cargar');
+        }
+      });
+
     this.closeMovementModal();
   }
 
@@ -206,6 +297,7 @@ export class KardexManagement {
     openMovementDetailsModal(row?: any) {
     this.selectedProductForMovements = row;
     this.showMovementDetailsModal = true;
+    this.expandedRowsMovements.set({});   // ← reset al abrir
     this.fetchMovements(1, this.movementsPageSize);
   }
     
@@ -228,6 +320,14 @@ export class KardexManagement {
           this.movementsKardex.set(res.movements.data);
           this.movementsTotal.set(res.movements.total);
           this.movementsPageSize = res.movements.per_page;
+          // expandir todas las filas de la página actual
+          // const all: Record<number, boolean> = {};
+          // for (const m of res.movements.data ?? []) all[m.id] = true;
+          // this.expandedRowsMovements.set(all);
+          // this.expandedRowsMovements = {}; // ← limpiar al cambiar de página
+
+          // const all = Object.fromEntries((res.movements.data ?? []).map((m: any) => [m.id, true]));
+          // this.expandedRowsMovements.set(all);
           this.movementsLoading.set(false);
         },
         error: _ => {
@@ -279,6 +379,7 @@ export class KardexManagement {
     // e.first = índice inicial, e.rows = tamaño de página
     const page = Math.floor((e.first ?? 0) / (e.rows ?? this.movementsPageSize)) + 1;
     const perPage = e.rows ?? this.movementsPageSize;
+    this.expandedRowsMovements.set({});   // ← reset al cambiar de página
     this.fetchMovements(page, perPage);
   }
 
@@ -335,5 +436,48 @@ export class KardexManagement {
     OpenModalAddPerson():void{
       this.showAddUserModal = true;
     }
+
+    handleListPeopleByDni(event: any):void{
+      const nuevaPersona = event;
+
+      // con esto mostramos en la interfaz que nombres han sido seleccionado
+      this.listDniPeople.update(listaActual => {
+        const yaExiste = listaActual.some(p => p.dni === nuevaPersona.dni);
+        return yaExiste ? listaActual : [...listaActual, nuevaPersona];
+      });
+
+      // con esto enviamos solamente dnis
+      if(this.listDniPeople().length != 0){
+        const dnis = this.listDniPeople().map((object)=>{
+          return object?.dni;
+        })
+        this.form.people_dnis = dnis;
+      }
+
+      // console.log("Persona recibida por DNI:", nuevaPersona);
+      // console.log("Lista actualizada:", this.listDniPeople());
+      // console.log("Datos de form:", this.form);
+    }
+
+    // -------------------expansion de filas--------------
+    onRowExpandMovement(e: any) {
+      console.log("value001", e)
+      const id = e.data?.id;
+      if (id == null) return;
+      this.expandedRowsMovements.update(map => ({ ...map, [id]: true }));
+    }
+
+    onRowCollapseMovement(e: any) {
+      console.log("value002", e)
+      const id = e.data?.id;
+      if (id == null) return;
+      this.expandedRowsMovements.update(map => {
+        const { [id]: _omit, ...rest } = map;
+        return rest;
+      });
+    }
+
+    // ----------------- Firma digitla ------------------------
+
 
 }

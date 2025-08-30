@@ -8,11 +8,12 @@ use App\Http\Controllers\OrderProductoController;
 use App\Http\Controllers\OrderProductsController;
 use App\Http\Controllers\PdfControllerKardex;
 use App\Http\Controllers\PeopleController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductMovementKardexController;
-use App\Http\Controllers\ServiceController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth; 
 use Illuminate\Support\Facades\Route;
-
+use Illuminate\Support\Facades\Storage;
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {
@@ -47,34 +48,33 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ])
         ->only(['index','store'])
         ->shallow();
-
-    //orders producto routes
-    Route::get('/products/{product}/movements-kardex', [ProductMovementKardexController::class, 'index']);
-
-    Route::post('/products/{product}/kardex',[MovementKardexController::class, 'storeForProduct']);
     
-
-    /** 
-     * Lo usamos para registrar un movimiento y al mismo tiempo registrar en productos los datos obtenidoso de la enpodint de silucia,
-     * y el registro ya existe en producto, solemente se asigna un nuevo movimiento
-     */
-    // 1 movimiento
-    // Route::post('/kardex/movements/bulk', [MovementKardexController::class, 'bulk']);   // varios movimientos
 });
 
-    // Route::get('/products/{product}/movements-kardex/pdf',[ProductMovementKardexController::class, 'pdf']);
-    // Route::post('/movements-kardex', [MovementKardexController::class, 'store']); 
-
-    // =============================================================================================================================================== 
+Route::middleware(['auth:sanctum'])->group(function () {
+        // ---------------------------Revisar y eliminar estas endopitns con sus metodos----------------------------------
+    Route::get('/products/{product}/movements-kardex', [ProductMovementKardexController::class, 'index']);
     // buscamos el producto, si no lo encontramos lo creamos y al mismo tiempo guardarmos el movimiento
     Route::post('/movements-kardex', [MovementKardexController::class, 'store']);  
     // mostramos todos los movimientos que pertenecen a un producto de la base de datos de silucia
     Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex',  [MovementKardexController::class, 'indexBySiluciaIds']);
     // generamos un reporte de  todos los movimientos que pertenecen a un producto de la base de datos de silucia
     Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf']);
+    // obtenemos los productos guardados de nuestra propia base de datos
+    Route::get('/products', [ProductController::class, 'index']);
+    // ruta para recibir el pdf
+    Route::post('signatures/callback', [SignatureController::class, 'store']);
+    // ruta que se usra para la generacion de qrs y para la descarga de las mismas
+    Route::get('/signatures/{path}', [SignatureController::class, 'exportPdf']);
 
 
+    // muestra datos de una persona, ya sea consultadno a la api de reniec o consultando la propia base de datos
     Route::get('/people/{dni}', [PeopleController::class, 'showOrFetch']); // cache-first (db) → RENIEC
-    Route::get('/movements-kardex/{movement}/people', [MovementKardexController::class, 'people']);
+    // muestra todas las personas pertenecientes a un movimiento
+    // Route::get('/movements-kardex/{movement}/people', [MovementKardexController::class, 'people']);
+    // esta endpoint debe hacerse en "/movements-kardex" pues ahi es donde se guardara el dato de un 
     Route::post('/movements-kardex/{movement}/people', [MovementKardexController::class, 'attachPerson']);
-    Route::delete('/movements-kardex/{movement}/people/{dni}', [MovementKardexController::class, 'detachPerson']);
+    // endpoint no terminado - sirve para quitar una persona de un movimiento
+    // Route::delete('/movements-kardex/{movement}/people/{dni}', [MovementKardexController::class, 'detachPerson']);
+});
+

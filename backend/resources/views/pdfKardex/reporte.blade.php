@@ -2,14 +2,85 @@
 
 <html>
 <head>
-    <meta charset="UTF-8">
+<script type="text/php">
+if (isset($pdf)) {
+    // Este script corre en CADA página, pero pintamos solo en la última.
+    $pdf->page_script(function ($pageNumber, $pageCount, $canvas, $fontMetrics) {
+        if ($pageNumber !== $pageCount) {
+            return; // no dibujar en páginas intermedias
+        }
+
+        // === Medidas de la página y márgenes (SINCRONIZAR con tu CSS @page) ===
+        $w = $canvas->get_width();   // ancho total de la página
+        $h = $canvas->get_height();  // alto total de la página
+
+        $marginLeft   = 50;          // igual que @page left
+        $marginRight  = 50;          // igual que @page right
+        $marginBottom = 40 + 120;    // 40 extra + var(--sign-h)=120  -> igual que @page bottom calc(40px + var(--sign-h))
+
+        // === Geometría del bloque de firmas ===
+        $gap  = 10;                  // separación horizontal entre cajas
+        $boxH = 120;                 // altura de cada caja (== var(--sign-h) si quieres que ocupen todo)
+        $usableW = $w - ($marginLeft + $marginRight);
+        $boxW = ($usableW - 3 * $gap) / 4;
+
+        // Y = borde superior del bloque de firmas (pegado al fondo del área útil)
+        // coordenadas dompdf: (0,0) arriba-izquierda, y aumenta hacia abajo
+        $y = $h - $marginBottom + 10; // un pequeño aire de 10px dentro del margen
+
+        // Etiquetas de las 4 cajas
+        $labels = ['ALMACENERO', 'ADMINISTRADOR', 'RESIDENTE DE OBRA', 'SUPERVISOR'];
+        $font   = $fontMetrics->get_font('DejaVu Sans', 'normal');
+        $size   = 10;
+
+        for ($i = 0; $i < 4; $i++) {
+            $x = $marginLeft + $i * ($boxW + $gap);
+
+            // Dibujar el rectángulo con 4 líneas (más compatible que rectangle()+stroke() según versión)
+            $canvas->line($x,          $y,          $x + $boxW, $y);
+            $canvas->line($x + $boxW,  $y,          $x + $boxW, $y + $boxH);
+            $canvas->line($x,          $y + $boxH,  $x + $boxW, $y + $boxH);
+            $canvas->line($x,          $y,          $x,         $y + $boxH);
+
+            // Texto centrado en la parte baja de la caja
+            $text = $labels[$i];
+            $textW = $fontMetrics->getTextWidth($text, $font, $size);
+            $textX = $x + ($boxW - $textW) / 2;
+            $textY = $y + $boxH - 12;    // 12px de margen inferior dentro de la caja
+            $canvas->text($textX, $textY, $text, $font, $size);
+        }
+    });
+}
+</script>
     <title>Lista de items</title>
     <style>
+        :root { 
+            --header-h: 230px; 
+            --sign-h:   120px;   /* altura total ocupada por las firmas */
+        }  /* <- AJUSTA a la altura real del encabezado */
+
         @page {
-            /* margin: 0px 0px; top/bottom: 100px, left/right: 50px */
-            margin: 50px 50px; /* top/bottom: 100px, left/right: 50px */
+
+            /* margin: 50px 50px; 
+            margin: var(--header-h) 50px 40px 50px; */
             font-family: DejaVu Sans, sans-serif;
+            margin: var(--header-h) 50px calc(40px + var(--sign-h)) 50px;
         }
+
+         .table_01 thead { 
+            display: table-header-group; 
+            break-inside: avoid-page;      /* estándar */
+        } 
+         .table_01 tr { page-break-inside: avoid; }
+        /* Header fijo impreso en cada página, colocado dentro del margen superior */
+            #doc-header {
+            margin-top: 25px;
+            /* border: 1px solid red; */
+            position: fixed;
+            top: calc(-1 * var(--header-h));
+            left: 0; right: 0;
+            height: var(--header-h);
+            }
         /* ===== UNIFICAR BORDES: color y grosor ===== */
                                             /* Color y grosor únicos */
                                             :root { --bcolor: #3f3f3fff; --bsize: 1px; }  /* ajusta 1px si los quieres más gruesos */
@@ -262,35 +333,42 @@
   /* Encabezados y celdas de totales */
   .th-titulo { font-weight:bold; }      /* usa 700 si quieres más grueso */
   .td-valor  { height:15px; border: 1px solid black; }          /* altura de la fila de valores */
+  /* Permite cortes de página sanos en tablas y evita partir filas */
+.table_01 { page-break-inside: auto; }
+.table_01 tr { page-break-inside: avoid; page-break-after: auto; }
+.table_01 thead { display: table-header-group; }  /* opcional: para repetir cabecera de la tabla de movimientos */
+
 
 </style>
 </head>
 <body>
 
 <!-- BLOQUE SUPERIOR -->
-<table class="box">
-  <tr>
-    <td class="left-panel" rowspan="2">CONTROL DE MATERIALES</td>
-    <td class="obra">OBRA: "MEJORAMIENTO DEL SERVICIO EDUCATIVO, EN LA INSTITUCIÓN EDUCATIVA PRIMARIA"</td>
-  </tr>
-  <tr>
-    <td class="obra-empty">&nbsp;</td>
-  </tr>
-</table>
+<header id="doc-header">
+    <table class="box">
+    <tr>
+        <td class="left-panel" rowspan="2">CONTROL DE MATERIALES</td>
+        <td class="obra">OBRA: "{{ $pdf_details['product']['desmeta'] ?? '—' }}"</td>
+        
+    </tr>
+    <tr>
+        <td class="obra-empty">&nbsp;</td>
+    </tr>
+    </table>
 
-<!-- BLOQUE INFERIOR -->
-<table class="box">
-  <tr>
-    <td class="material" rowspan="2">MATERIAL: {{$pdf_details["product"]["name"]}}</td>
-    <th class="subhead">UNIDAD</th>
-    <th class="subhead">CODIGO</th>
-  </tr>
-  <tr>
-    <td class="subcell">&nbsp;</td>
-    <td class="subcell">&nbsp;</td>
-  </tr>
-</table>
-
+    <!-- BLOQUE INFERIOR -->
+    <table class="box">
+    <tr>
+        <td class="material" rowspan="2">MATERIAL001: {{$pdf_details["product"]["item"]}}</td>
+        <th class="subhead">UNIDAD</th>
+        <th class="subhead">CODIGO</th>
+    </tr>
+    <tr>
+        <td class="subcell">&nbsp;</td>
+        <td class="subcell">&nbsp;</td>
+    </tr>
+    </table>
+</header>
 
 <!-- <div class="title_container">
     <h1 class="principal_title">Control visible de almacen</h1>
@@ -321,7 +399,7 @@
 
 <table class="table_01">
     <thead>
-        <meta charset="UTF-8">
+
         <tr>
             <th class="th_table_01" rowspan="2">#</th>
             <th class="th_table_01" rowspan="2">Fecha</th>
@@ -350,11 +428,24 @@
                 <!-- <td>{{ $index + 1 }}</td> -->
                 <td class="td_table_01">{{ $item['id'] }}</td>
                 <td class="td_table_01">{{ $item['movement_date'] }}</td>
-                <td class="td_table_01">{{ $item['class'] }}</td>
-                <td class="td_table_01">{{ $item['number'] }}</td>
+                <!-- <td class="td_table_01">{{ $item['class'] }}</td> -->
+                <td class="td_table_01">O/C</td>
+                <!-- <td class="td_table_01">{{ $item['number'] }}</td> -->
+                <td class="td_table_01">{{ $pdf_details["product"]["numero"]  }}</td>
                 <td class="td_table_01">{{ $item['movement_type'] }}</td>
                 <td class="td_table_01">{{ $item['amount'] }}</td>
-                <td class="td_table_01">Julia Mamani Yampasi</td>
+                <!-- <td class="td_table_01">Julia Mamani Yampasi</td> -->
+                
+
+                <td class="td_table_01">
+                    @php
+                        $p = $item->people->first(); // primera persona adjunta
+                        $pName = $p?->full_name ?? trim(($p->names ?? '').' '.($p->first_lastname ?? '').' '.($p->second_lastname ?? ''));
+                        $pName = trim($pName);
+                    @endphp
+                    {{ $pName !== '' ? $pName : 'Julia Mamani Yampasi' }}
+                </td>
+
                 <td class="td_table_01">Ninguna</td>
             </tr>
         @endforeach
@@ -406,6 +497,28 @@
     </td>
   </tr>
 </table>
+
+<!-- <table class="lastpage" style="page-break-before: always; width:100%; border-collapse: collapse; height:100%;">
+  <tr>
+
+    <td style="height:100%; border: none;">&nbsp;</td>
+  </tr>
+  <tr>
+    <td style="border: none;">
+
+
+      <table class="firmas" style="width:100%; border-collapse:collapse; table-layout:fixed;">
+        <tr>
+          <td><div class="sigbox"><div class="siglabel">ALMACENERO</div></div></td>
+          <td><div class="sigbox"><div class="siglabel">ADMINISTRADOR</div></div></td>
+          <td><div class="sigbox"><div class="siglabel">RESIDENTE DE OBRA</div></div></td>
+          <td><div class="sigbox"><div class="siglabel">SUPERVISOR</div></div></td>
+        </tr>
+      </table>
+
+    </td>
+  </tr>
+</table> -->
 
 </body>
 <html>

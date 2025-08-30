@@ -1,0 +1,141 @@
+<!-- Caption con filtros rápidos -->
+<div
+  style="
+    display:flex;flex-wrap:wrap;gap:10px;align-items:end;
+    padding:10px;margin-bottom:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fafafa">
+  <div>
+    <label>Número</label>
+    <input pInputText [(ngModel)]="uiFilters.numero" style="width:160px"/>
+  </div>
+  <div>
+    <label>Año</label>
+    <input type="number" pInputText [(ngModel)]="uiFilters.anio" style="width:100px"/>
+  </div>
+  <div>
+    <label>RUC</label>
+    <input pInputText [(ngModel)]="uiFilters.ruc" style="width:140px"/>
+  </div>
+  <div>
+    <label>Razón social</label>
+    <input pInputText [(ngModel)]="uiFilters.rsocial" style="width:220px"/>
+  </div>
+
+  <span style="flex:1 1 auto"></span>
+
+  <p-button label="Buscar" icon="pi pi-search" (onClick)="onSearchClick()"></p-button>
+  <p-button label="Limpiar" icon="pi pi-eraser" severity="secondary" outlined (onClick)="onClearClick()"></p-button>
+</div>
+
+<p-table
+  #dt1
+  [value]="products()"
+  [paginator]="true"
+  [rows]="pageSize"
+  [totalRecords]="productsTotal()"
+  [lazy]="true"
+  (onLazyLoad)="onProductsLazyLoad($event)"
+  [loading]="loadingProducts()"
+  dataKey="product_id"
+
+  [expandedRowKeys]="expandedRowsProducts()"
+  (onRowExpand)="onRowExpandProduct($event)"
+  (onRowCollapse)="onRowCollapseProduct($event)"
+>
+  <ng-template pTemplate="header">
+    <tr>
+      <th style="width:3rem;"></th>
+      <th pSortableColumn="id_order_silucia">OC <p-sortIcon field="id_order_silucia"/></th>
+      <th pSortableColumn="id_product_silucia">Producto <p-sortIcon field="id_product_silucia"/></th>
+      <th pSortableColumn="fecha">Fecha <p-sortIcon field="fecha"/></th>
+      <th>Detalle</th>
+      <th style="width:6rem;">Reports</th>
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="body" let-row let-expanded="expanded">
+    <tr>
+      <td>
+        <p-button
+          [pRowToggler]="row"
+          [text]="true"
+          [rounded]="true"
+          severity="secondary"
+          [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'">
+        </p-button>
+      </td>
+      <td>{{ row.id_order_silucia }}</td>
+      <td>{{ row.id_product_silucia }}</td>
+      <td>{{ row.fecha || '—' }}</td>
+      <td style="padding:0;">
+        <div style="max-height:64px;overflow:auto;line-height:1.35;padding:6px 8px;text-align:justify;word-break:break-word;">
+          {{ row.detalles_orden || '—' }}
+        </div>
+      </td>
+      <td style="text-align:center;">
+        <p-tag [value]="(row.reports?.length || 0) + ''" severity="info"></p-tag>
+      </td>
+    </tr>
+  </ng-template>
+
+  <!-- Nivel 2: tabla de reports -->
+  <ng-template pTemplate="expandedrow" let-row>
+    <tr>
+      <td colspan="6">
+        <div style="padding:10px 8px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;">
+          <h4 style="margin:0 0 8px 0;font-size:1rem;">Reports del producto</h4>
+
+          <p-table [value]="row.reports || []">
+            <ng-template pTemplate="header">
+              <tr>
+                <th style="width:6rem;">ID</th>
+                <th>Tipo</th>
+                <th style="width:16rem;">Periodo</th>
+                <th style="width:10rem;">Estado</th>
+                <th style="width:14rem;">Paso actual</th>
+                <th style="width:9rem;">Puede firmar</th>
+                <th style="width:16rem;">Acciones</th>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-r>
+              <tr>
+                <td>{{ r.report_id }}</td>
+                <td>{{ r.type || '—' }}</td>
+                <td>{{ (r.period?.from || '—') }} → {{ (r.period?.to || '—') }}</td>
+                <td>
+                  <p-tag [severity]="getStatusSeverity(r.status)" [value]="r.status"></p-tag>
+                </td>
+                <td>#{{ r.current_step }} · {{ r.current_role }}</td>
+                <td>
+                  <p-tag [severity]="r.can_sign ? 'success' : 'secondary'"
+                         [value]="r.can_sign ? 'Sí' : 'No'"></p-tag>
+                </td>
+                <td>
+                  <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+                    <p-button label="Descargar" icon="pi pi-download" size="small"
+                              (onClick)="onDownloadReport(r)"></p-button>
+                    <!-- <p-button label="Firmar" icon="pi pi-pencil" size="small"
+                              [disabled]="!r.can_sign"
+                              (onClick)="onSignReport(r)"></p-button> -->
+                    <p-button label="Firmar" icon="pi pi-pencil" size="small"
+                              [disabled]="!r.can_sign"
+                              (onClick)="sign(r)">
+                    </p-button>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+              <tr><td colspan="7">Sin reports.</td></tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </td>
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="emptymessage">
+    <tr><td colspan="6">Sin productos.</td></tr>
+  </ng-template>
+</p-table>

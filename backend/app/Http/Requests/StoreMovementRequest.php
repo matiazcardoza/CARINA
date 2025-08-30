@@ -36,7 +36,7 @@ class StoreMovementRequest extends FormRequest
             'movement_type'      => ['required', Rule::in(['entrada','salida'])], // entrada/salida
             'movement_date'      => ['sometimes','date'],
             // 'movement_date'      => ['required','date'],
-            'amount'             => ['required','numeric'],      // cantidad +/-
+            'amount'             => ['numeric'],      // cantidad +/-
             'observations'       => ['nullable', 'string', 'max:5000'],      // cantidad +/-
             // 'note'               => ['nullable','string','max:500'],
 
@@ -45,6 +45,23 @@ class StoreMovementRequest extends FormRequest
             // 'heritage_code'      => ['nullable','string','max:255'],
             // 'unit_price'         => ['nullable','numeric'],
             // 'quantity'           => ['nullable','numeric'], // stock planificado, si aplica
+                    // nuevo: adjuntar personas por DNI (opcional)
+            'people_dnis'        => ['sometimes','array'],
+            'people_dnis.*'      => ['required','string','regex:/^\d{8}$/'],
+
+            // para guarddar los nuevo datos de silucia
+            'silucia_product.numero'          => ['required','string'],
+            'silucia_product.fecha'           => ['nullable','date'],
+            'silucia_product.detalles_orden'  => ['nullable','string'],
+            'silucia_product.rsocial'         => ['nullable','string'],
+            'silucia_product.ruc'             => ['nullable','string'],
+            'silucia_product.item'            => ['nullable','string'],
+            'silucia_product.detalle'         => ['nullable','string'],
+            'silucia_product.cantidad'        => ['nullable','numeric'],
+            'silucia_product.desmedida'       => ['nullable','string'],
+            'silucia_product.precio'          => ['nullable','numeric'],
+            'silucia_product.total_internado' => ['nullable','numeric'],
+            'silucia_product.saldo'           => ['nullable','numeric'],
         ];
     }
 }
