@@ -13,7 +13,9 @@ import { MatTableModule } from '@angular/material/table';
 import { CurrencyPipe } from '@angular/common';
 @Component({
   selector: 'app-products',
-  imports: [AddNewProductModal,KardexListModal, KardexAddNewModal, MatTableModule, MatButtonModule, MatIconModule, MatCardModule, MatChipsModule, CurrencyPipe],
+  imports: [AddNewProductModal,KardexListModal, KardexAddNewModal, MatTableModule, MatButtonModule, MatIconModule, MatCardModule, MatChipsModule, 
+    // CurrencyPipe
+  ],
   templateUrl: './products.html',
   styleUrl: './products.css'
 })

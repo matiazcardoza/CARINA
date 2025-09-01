@@ -58,35 +58,34 @@ Route::middleware(['auth:sanctum'])->group(function () {
 Route::middleware(['auth:sanctum'])->group(function () {
 
     // ---------------------------Revisar y eliminar estas endopitns con sus metodos----------------------------------
-    Route::get('/products/{product}/movements-kardex', [ProductMovementKardexController::class, 'index']);
+    Route::get('/products/{product}/movements-kardex', [ProductMovementKardexController::class, 'index'])->middleware(['role:almacen_almacenero']);
     // obtenemos la lista de ordenes de silucia
-    Route::get('silucia-orders', [PurchaseOrdersController::class, 'index']);
+    Route::get('silucia-orders', [PurchaseOrdersController::class, 'index'])->middleware(['role:almacen_almacenero']);
     // buscamos el producto, si no lo encontramos lo creamos y al mismo tiempo guardarmos el movimiento
-    Route::post('/movements-kardex', [MovementKardexController::class, 'store']);  
+    Route::post('/movements-kardex', [MovementKardexController::class, 'store'])->middleware(['role:almacen_almacenero']);
     // mostramos todos los movimientos que pertenecen a un producto de la base de datos de silucia
-    Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex',  [MovementKardexController::class, 'indexBySiluciaIds']);
+    Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex',  [MovementKardexController::class, 'indexBySiluciaIds'])->middleware(['role:almacen_almacenero']);
     // generamos un reporte de  todos los movimientos que pertenecen a un producto de la base de datos de silucia
-    Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf']);
+    Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen_almacenero']);
     // devuelve los productos guardados de nuestra propia base de datos
     Route::get('/products', [ProductController::class, 'index']);
     // ruta para recibir el pdf
-    Route::post('signatures/callback', [SignatureController::class, 'store']);
-
-
+    
 
     // muestra datos de una persona, ya sea consultadno a la api de reniec o consultando la propia base de datos
-    Route::get('/people/{dni}', [PeopleController::class, 'showOrFetch']); // cache-first (db) → RENIEC
+    Route::get('/people/{dni}', [PeopleController::class, 'showOrFetch'])->middleware(['role:almacen_almacenero']); // cache-first (db) → RENIEC
     // muestra todas las personas pertenecientes a un movimiento
     // Route::get('/movements-kardex/{movement}/people', [MovementKardexController::class, 'people']);
     // esta endpoint debe hacerse en "/movements-kardex" pues ahi es donde se guardara el dato de un 
-    Route::post('/movements-kardex/{movement}/people', [MovementKardexController::class, 'attachPerson']);
-    // endpoint no terminado - sirve para quitar una persona de un movimiento
+    Route::post('/movements-kardex/{movement}/people', [MovementKardexController::class, 'attachPerson'])->middleware(['role:almacen_almacenero']);
+    // endpoint no terminado - sirve para quitar una persona de un movimientoa
     // Route::delete('/movements-kardex/{movement}/people/{dni}', [MovementKardexController::class, 'detachPerson']);
-
 });
+    // recibe pdf firmado por firma perú
+    Route::post('signatures/callback', [SignatureController::class, 'store']);
     // Routa que sirve solamente para retornar pdfs, los valores se envian en el formato query params
     // Route::get('/signatures/{path}', [SignatureController::class, 'exportPdf']);
     // peticion esperada GET /files-download?name=24234234.pdf
     Route::get('/files-download', [SignatureController::class, 'filesDownload']);
     // Pruebas para generar codigo qr
-    Route::get('example-qr', [PdfControllerKardex::class, 'generateQRCcode']);
+    // Route::get('example-qr', [PdfControllerKardex::class, 'generateQRCcode']);

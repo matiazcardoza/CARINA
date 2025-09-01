@@ -10,7 +10,7 @@ import { Button } from 'primeng/button';
 import { Tag } from 'primeng/tag';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
-import { AddNewUserModal } from '../kardex-management/components/add-new-user-modal/add-new-user-modal';
+// import { AddNewUserModal } from '../kardex-management/components/add-new-user-modal/add-new-user-modal';
 import { ListboxModule } from 'primeng/listbox';
 import { KardexManagementService } from '../kardex-management/services/kardex-management.service';
 import { DigitalSignatureService } from '../../../shared/draft/digital-signature/services/digital-signature.service';
@@ -65,17 +65,17 @@ type LaravelPage<T> = {
   standalone: true,
   imports: [
     FormsModule,
-    SlicePipe,
+    // SlicePipe,
     TableModule,
     InputTextModule,
     DialogModule,
     InputNumberModule,
-    AutoComplete,
+    // AutoComplete,
     Button,
     Tag,
     IconField,
     InputIcon,
-    AddNewUserModal,
+    // AddNewUserModal,
     ListboxModule,
     CommonModule
   ],

@@ -66,7 +66,7 @@ export const routes: Routes = [
             },
             {
                 path: 'home',
-                component: Home
+                component: ReportsAndDashboards
             },
             { 
                 path: 'daily-work-log', 

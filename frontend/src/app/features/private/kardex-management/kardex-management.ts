@@ -28,12 +28,16 @@ import { Ripple } from 'primeng/ripple';
 @Component({
   selector: 'app-kardex-management',
   standalone: true,
-  imports: [Toast,Ripple,
+  imports: [Toast,
+    // Ripple,
     // Angular
-    FormsModule, SlicePipe,
+    FormsModule, 
+    // SlicePipe,
     // PrimeNG
     TableModule, InputTextModule, DialogModule, InputNumberModule,
-    AutoComplete, Button, Tag, IconField, InputIcon,AddNewUserModal, ListboxModule
+    AutoComplete, Button, 
+    // Tag, 
+    IconField, InputIcon,AddNewUserModal, ListboxModule
   ],
   providers:[MessageService],
   templateUrl: './kardex-management.html',
