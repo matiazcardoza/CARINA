@@ -28,13 +28,17 @@ use Illuminate\Support\Str;
 // use Codedge\Fpdf\Fpdf\Fpdf;
 use setasign\Fpdi\Fpdi; 
 use App\Utils\KardexReportPdf;
-
+use App\Utils\UsefulFunctionsForPdfs;
+// use App\Models\User;
+// use Illuminate\Support\Facades\Auth;
 // namespace App\Models;
 // use Codedge\Fpdf\Fpdf\Fpdf;
 // use setasign\Fpdi\Fpdf\Fpdf;
 // use setasign\Fpdi\Fpdi;
 // use App\Http\Controllers\Fpdf;
 // use Codedge\Fpdf\Fpdf\FPDF;  // Ojo: aquí la clase se llama FPDF (mayúsculas)
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+
 class MovementKardexController extends Controller
 {
 
@@ -255,13 +259,12 @@ class MovementKardexController extends Controller
     }
 
     public function pdf(Request $request, $id_order_silucia, $id_product_silucia){
+        // no se usaran estos filtros, deberan eliminarse
         $from = $request->query('from');
         $to   = $request->query('to');
         $type = $request->query('type'); // 'entrada' | 'salida'
 
-        $product = Product::where('id_order_silucia', $id_order_silucia)
-            ->where('id_product_silucia', $id_product_silucia)
-            ->firstOrFail();
+        $product = Product::where('id_order_silucia', $id_order_silucia)->where('id_product_silucia', $id_product_silucia)->firstOrFail();
 
         // Cargar relaciones con filtros/orden
         $product->load([
@@ -297,62 +300,31 @@ class MovementKardexController extends Controller
         // ============================
 
         // 1) Mapear a las filas requeridas por KardexReportPdf
+        // $nombre = auth()->user()->name;
+        $nombre = Auth::user()->name;
         $rows = [];
-        $i = 1;
-        // Log::info($movements);
         foreach ($movements as $m) {
-            $fecha   = \Illuminate\Support\Carbon::parse($m->movement_date)->format('Y-m-d');
-            // $clase   = (string)($m->class ?? '');
-            // $numero  = (string)($m->number ?? '');
+            $id = $m->id;
+            $fecha   = Carbon::parse($m->movement_date)->format('Y-m-d');
             $tipo    = (string)($m->movement_type ?? '');
             $monto   = (float)$m->amount;
-            $persona = optional($m->people->first())->full_name ?: 'Julia Mamani Yampasi';
+            // $persona = optional(  $m->people->first()  )->full_name ?: 'Julia Mamani Yampasi';
+            $personaObj = $m->people->first();
+            $persona = $personaObj
+                ? trim(($personaObj->full_name ?? '') . ' ' . ($personaObj->first_lastname ?? '') . ' ' . ($personaObj->second_lastname ?? ''))
+                // : 'Julia Mamani Yampasi';
+                : $nombre;
+            // $persona = optional($m->people->first())->full_name . optional($m->people->first())->first_lastname?: 'Julia Mamani Yampasi';
             $obs     = (string)($m->observations ?? '');
-            // $rows[]  = [$i++, $fecha, $clase, $numero, $tipo, $monto, $persona, $obs];
-            $rows[]  = [$i++, $fecha, $tipo, $monto, $persona, $obs];
+            $rows[]  = [$id, $fecha, $tipo, $monto, $persona, $obs];
+            
         }
-        // Log::info($rows);
+
 
         // 2) Texto de introducción (USA lo que tengas en product, con fallback)
         $obra       = (string)($product->desmeta ?? '—');
-        $material   = (string)($product->item ?? $product->description ?? $product->name ?? '—');
-        $comprobante= (string)($product->numero ?? "OC-{$id_order_silucia}");
-        // $intro = "OBRA: {$obra} · MATERIAL: {$material} · COMPROBANTE: {$comprobante}";
-
-        // 3) QR único por PDF (URL firmada simple)
-        $docId = "{$id_order_silucia}-{$id_product_silucia}-".now()->format('YmdHis');
-        $base  = url('/kardex/validate'); // crea esta ruta para validar si aún no existe
-        $token = hash_hmac('sha256', "{$docId}|{$type}|{$from}|{$to}", config('app.key'));
-        $qrUrl = "{$base}?doc={$docId}&t={$token}";
-
-        // 4) Generar PDF con FPDF
-        $headers = ['N', 'Fecha', 'Movimiento', 'Monto', 'Recibido / Encargado', 'Observaciones'];
-        $widths = [0.1, 0.15, 0.15, 0.15, 0.25, 0.20];
-        $styles = [
-            'lineHeight' => 6,
-            'padX'       => 2,
-            'padY'       => 1,
-            'aligns'     => ['C','L','L'],
-            'border'     => 1,
-            'headerFill' => [230,230,230],
-        ];
-
-        $pdf = new FpdfExample();
-        $pdf->drawKardexSummary(
-            $obra,
-            $material,
-            $comprobante,
-            $totalEntradas, 
-            $totalSalidas, 
-            $stockFinal,
-            ['labelW'=>38, 'lineHeight'=>6, 'padX'=>2, 'padY'=>1]
-        );
-
-        $pdf->renderTable($headers, $rows, $widths, $styles);
-        $pdf->SignatureBoxTest();
-        // $pdf->Output('D', 'reporte_kardex.pdf');
-        $bytes = $pdf->Output('S');
-
+        $material   = (string)($product->item ?? '—');
+        $comprobante= (string)("OC-{$product->id_order_silucia}" ?? "OC-{$id_order_silucia}");
 
         // ============================
         // Guardado idéntico a tu flujo
@@ -360,17 +332,49 @@ class MovementKardexController extends Controller
         $dir = 'silucia_product_reports';
         Storage::disk('local')->makeDirectory($dir);
 
-        $base   = "kardex_{$id_order_silucia}_{$id_product_silucia}";
-        $suffix = trim(implode('_', array_filter([
-            $type ? "t-{$type}" : null,
-            $from ? "from-{$from}" : null,
-            $to   ? "to-{$to}"   : null,
-            now()->format('Ymd_His'),
-        ])), '_');
-
-        $filename     = Str::slug($base . ($suffix ? "_{$suffix}" : ''), '_') . '.pdf';
+        // 3) QR único por PDF (URL firmada simple)
+        // kardex_02874_249069_20250831_021917_10.pdf  ---> id de la orden / id del item / año, mes día /  hora, minuto, segundo / milisegundos
+        $base = 'kardex_'. $id_order_silucia . '_'. $id_product_silucia.'_'. now()->format('Ymd_His_'). substr(now()->format('u'), 0, 3);
+        $filename = $base . '.pdf';
         $relativePath = "{$dir}/{$filename}";
+        // se debe crear el path para que se pueda descargar nuevamente el pdf por un codigo qr
 
+        // $qrCode = UsefulFunctionsForPdfs::generateQRcode($filename);
+        $qrCode = UsefulFunctionsForPdfs::generateQRcode(url("/api/files-download?name={$filename}"));
+
+        // 4) Generar PDF con FPDF
+        $headers = ['N', 'Fecha', 'Movimiento', 'Monto', 'Recibido / Encargado', 'Observaciones'];
+        $widths = [0.1, 0.15, 0.15, 0.15, 0.23, 0.22];
+        $styles = [
+            'lineHeight' => 4,
+            'padX'       => 2,
+            'padY'       => 1,
+            'aligns'     => ['C','L','L'],
+            'border'     => 1,
+            'headerFill' => [230,230,230],
+        ];
+
+
+        // antes de que el pdf se cree necesitamos crear el qr e insertarlo
+        // http://127.0.0.1:8000/api/files-download?name=kardex_02874_249069_20250829_213601.pdf
+
+        $pdf = new FpdfExample();
+        url($filename);
+        $pdf->setHeaderLogo($qrCode);
+        $pdf->drawKardexSummary(
+            $obra,
+            $material,
+            $comprobante,
+            $totalEntradas, 
+            $totalSalidas, 
+            $stockFinal,
+            ['labelW'=>38, 'lineHeight'=>5, 'padX'=>2, 'padY'=>1]
+        );
+        $pdf->renderTable($headers, $rows, $widths, $styles);
+        $pdf->SignatureBoxTest();
+        $bytes = $pdf->Output('S');
+        // una vez generado el binario, eliminado el codigo qr (eliminado la imagen qr)
+        unlink($qrCode); 
         $ok = Storage::disk('local')->put($relativePath, $bytes);
         if (!$ok || !Storage::disk('local')->exists($relativePath)) {
             abort(500, 'No se pudo guardar el PDF.');

@@ -1,6 +1,7 @@
 import { Component, DestroyRef, inject, Signal, signal, effect  } from '@angular/core';
 import { SlicePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpEvent } from '@angular/common/http'; // <-- HttpEvent
 
 // PrimeNG (standalone components / modules necesarios)
 import { TableModule } from 'primeng/table';
@@ -20,16 +21,21 @@ import { AddNewUserModal } from './components/add-new-user-modal/add-new-user-mo
 import { ListboxModule } from 'primeng/listbox';
 import { DigitalSignatureService } from '../../../shared/draft/digital-signature/services/digital-signature.service';
 import { SignatureParams } from '../../../shared/draft/digital-signature/interface/signature-params.interface';
+import { catchError, EMPTY, finalize, Observable, of, switchMap, tap } from 'rxjs';
+import { Toast } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+import { Ripple } from 'primeng/ripple';
 @Component({
   selector: 'app-kardex-management',
   standalone: true,
-  imports: [
+  imports: [Toast,Ripple,
     // Angular
     FormsModule, SlicePipe,
     // PrimeNG
     TableModule, InputTextModule, DialogModule, InputNumberModule,
     AutoComplete, Button, Tag, IconField, InputIcon,AddNewUserModal, ListboxModule
   ],
+  providers:[MessageService],
   templateUrl: './kardex-management.html',
   styleUrl: './kardex-management.css'
 })
@@ -44,6 +50,7 @@ export class KardexManagement {
   selectedProduct: any | null = null;
   filterProducts =  signal<string>('');
   listDniPeople = signal<any[]>([]);
+  savingMovementLoading = signal<boolean>(false);;
   // expandedRowsMovements: { [id: number]: boolean } = {};
   expandedRowsMovements = signal<Record<number, boolean>>({});
   uiFilters = {
@@ -91,7 +98,7 @@ export class KardexManagement {
   selectedProductForMovements: any | null = null;
 
   private readonly destroyRef = inject(DestroyRef); 
-  constructor(private service:KardexManagementService, private signature: DigitalSignatureService){
+  constructor(private service:KardexManagementService, private signature: DigitalSignatureService, private messageService: MessageService){
     effect(()=>{
       console.log("valor inicial del filterProducts: ", this.filterProducts());
     })
@@ -252,27 +259,44 @@ export class KardexManagement {
       ? this.movementOptionsStr.filter(o => o.toLowerCase().includes(q))
       : [...this.movementOptionsStr];
   }
-
+  
   onSubmitMovement() {
     // Captura el id del producto que estabas tocando
     this.lastSelectedKey = this.selectedProduct?.idcompradet ?? null;
 
     const page = this.lastProductsPage;
     const perPage = this.lastProductsRows;
-    console.log("datos enviado a backend: ", this.form);
+    this.savingMovementLoading.set(true);
+    console.log("datos enviado a backendd: ", this.form);
+    
     this.service.createKardexMovement(this.form)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: _ => {
-          // Refresca manteniendo misma página y filtros
-          this.getProductsOfSiluciaBackend({ ...this.uiFilters, page, per_page: perPage });
-        },
-        error: _ => {
-          this.errorLoadingProducts.set('No se pudo cargar');
-        }
-      });
+      .pipe(
+          tap((res: any) => {
+            if (res?.ok === false){
+              this.showToastMessage('error', 'Ocurrio un error', 'Por favor vuelva a intentarlo');
+              throw new Error(res?.message || 'Operación rechazada'); 
+            } 
+          }),
+          switchMap((): any => {
+            this.getProductsOfSiluciaBackend({ ...this.uiFilters, page, per_page: perPage });
+            return of(true); // devolvemos algo para que la cadena siga y llegue al subscribe(next)
+          }),
+          catchError(err => { 
+            this.errorLoadingProducts.set('No se pudo cargar'); 
+            this.showToastMessage('error', 'Ocurrio un error', 'Por favor vuelva a intentarlo');
+            // this.message = err?.error?.message || err?.message || 'Error inesperado';
+            return EMPTY; // corta la cadena: no se ejecuta el next
+          }),
+          finalize(() => { this.savingMovementLoading.set(false) }),
+          takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(res => {
+        this.closeMovementModal();
+        // this.showToastMessage('sucess', 'Operación exitosa', 'su registro fue completo con suceso');
+        this.showToastMessage('success', 'Operación exitosa', 'El registro se completó correctamente.');
 
-    this.closeMovementModal();
+      })
+    
   }
 
   // ----- Detalles de movimiento (modal) -----
@@ -347,6 +371,7 @@ export class KardexManagement {
     this.movementsKardex.set([]);
   }
 
+  // Descarga del pdf
   onSubmitMovementDetails(){
     // Debemos descargar el pdf para el reporte
       console.log("detalles de pdf: ",this.selectedProductForMovements);
@@ -368,6 +393,21 @@ export class KardexManagement {
       });
   }
 
+  // downloadPdfWithProgress(
+  //   id_order_silucia: number | string,
+  //   id_product_silucia: number
+  // ): Observable<HttpEvent<Blob>> {
+  //   return this.http.get(
+  //     `${this.apiUrl}/api/silucia-orders/${id_order_silucia}/products/${id_product_silucia}/movements-kardex/pdf`,
+  //     {
+  //       observe: 'events',          // 👈 eventos (progreso + respuesta final)
+  //       reportProgress: true,       // 👈 habilita progreso
+  //       responseType: 'blob',       // 👈 es un blob (PDF)
+  //       withCredentials: true,
+  //       headers: { Accept: 'application/pdf' }
+  //     }
+  //   );
+  // }
   
 
   // ----- Placeholder (si cierras otros modales) -----
@@ -477,7 +517,11 @@ export class KardexManagement {
       });
     }
 
-    // ----------------- Firma digitla ------------------------
+    // toast messages
+    showToastMessage(severity: 'success'|'info'|'warn'|'error', summary: string, detail: string) {
+        // this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Message Content' });
+        this.messageService.add({ severity: severity, summary: summary, detail: detail });
+    }
 
 
 }

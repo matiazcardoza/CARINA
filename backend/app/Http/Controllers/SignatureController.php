@@ -269,8 +269,10 @@ class SignatureController extends Controller
         return response()->json(['ok'=>true]);
     }
 
-    public function exportPdf($path){
-        $path = 'silucia_product_reports/' . basename($path);
+    // public function exportPdf($path){
+    public function filesDownload(Request $request){
+        $name = $request->query('name');
+        $path = 'silucia_product_reports/' . basename($name);
         if (!Storage::disk('local')->exists($path)) {
             abort(404, 'Archivo no encontrado');
         }

@@ -38,5 +38,8 @@ return [
     'reniec' => [
         'base_url' => env('RENIEC_BASE_URL'),
     ],
+    'silucia' => [
+        'base_url' => env('SILUCIA_BASE_URL'),
+    ],
 
 ];

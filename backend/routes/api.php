@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth; 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\PurchaseOrdersController; 
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {
@@ -51,21 +52,24 @@ Route::middleware(['auth:sanctum'])->group(function () {
     
 });
 
+
 Route::middleware(['auth:sanctum'])->group(function () {
-        // ---------------------------Revisar y eliminar estas endopitns con sus metodos----------------------------------
+
+    // ---------------------------Revisar y eliminar estas endopitns con sus metodos----------------------------------
     Route::get('/products/{product}/movements-kardex', [ProductMovementKardexController::class, 'index']);
+    // obtenemos la lista de ordenes de silucia
+    Route::get('silucia-orders', [PurchaseOrdersController::class, 'index']);
     // buscamos el producto, si no lo encontramos lo creamos y al mismo tiempo guardarmos el movimiento
     Route::post('/movements-kardex', [MovementKardexController::class, 'store']);  
     // mostramos todos los movimientos que pertenecen a un producto de la base de datos de silucia
     Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex',  [MovementKardexController::class, 'indexBySiluciaIds']);
     // generamos un reporte de  todos los movimientos que pertenecen a un producto de la base de datos de silucia
     Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf']);
-    // obtenemos los productos guardados de nuestra propia base de datos
+    // devuelve los productos guardados de nuestra propia base de datos
     Route::get('/products', [ProductController::class, 'index']);
     // ruta para recibir el pdf
     Route::post('signatures/callback', [SignatureController::class, 'store']);
-    // ruta que se usra para la generacion de qrs y para la descarga de las mismas
-    Route::get('/signatures/{path}', [SignatureController::class, 'exportPdf']);
+
 
 
     // muestra datos de una persona, ya sea consultadno a la api de reniec o consultando la propia base de datos
@@ -76,5 +80,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/movements-kardex/{movement}/people', [MovementKardexController::class, 'attachPerson']);
     // endpoint no terminado - sirve para quitar una persona de un movimiento
     // Route::delete('/movements-kardex/{movement}/people/{dni}', [MovementKardexController::class, 'detachPerson']);
-});
 
+});
+    // Routa que sirve solamente para retornar pdfs, los valores se envian en el formato query params
+    // Route::get('/signatures/{path}', [SignatureController::class, 'exportPdf']);
+    // peticion esperada GET /files-download?name=24234234.pdf
+    Route::get('/files-download', [SignatureController::class, 'filesDownload']);
+    // Pruebas para generar codigo qr
+    Route::get('example-qr', [PdfControllerKardex::class, 'generateQRCcode']);

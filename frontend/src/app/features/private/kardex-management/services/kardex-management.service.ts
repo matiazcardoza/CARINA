@@ -23,7 +23,9 @@ export class KardexManagementService {
       numero?: string; anio?: number; item?: string; desmeta?: string; siaf?: string;
       ruc?: string; rsocial?: string; email?: string; page?: number; per_page?: number 
     }): Observable<any> {
-      const endpoint = `https://sistemas.regionpuno.gob.pe/siluciav2-api/api/ordencompradetallado`;
+      // const endpoint = `https://sistemas.regionpuno.gob.pe/siluciav2-api/api/ordencompradetallado`;
+      const endpoint = `${this.apiUrl}/api/silucia-orders`;
+        // `${this.apiUrl}/api/silucia-orders/${encodeURIComponent(String(numero))}/products/${idcompradet}/movements-kardex`,
 
       let params = new HttpParams();
       if (filters.numero) params = params.set('numero', filters.numero);
@@ -37,7 +39,7 @@ export class KardexManagementService {
       if (filters.page)     params = params.set('page', String(filters.page));
       if (filters.per_page) params = params.set('per_page', String(filters.per_page));
       // return this.http.get<any>(endpoint, { params, ...this.options });
-      return this.http.get<any>(endpoint, {params});
+      return this.http.get<any>(endpoint, {...this.options, params});
     }
 
     createKardexMovement(body:any): Observable<any> {

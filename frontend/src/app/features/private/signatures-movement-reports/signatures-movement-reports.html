@@ -1,31 +1,36 @@
 <!-- Caption con filtros rápidos -->
-<div
+<!-- <div
   style="
-    display:flex;flex-wrap:wrap;gap:10px;align-items:end;
-    padding:10px;margin-bottom:12px;border:1px solid #e5e7eb;border-radius:10px;background:#fafafa">
-  <div>
-    <label>Número</label>
-    <input pInputText [(ngModel)]="uiFilters.numero" style="width:160px"/>
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap:12px;
+      align-items:end;
+      grid-auto-flow:dense;
+      width:100%;"
+>
+  <div style="width:100%;">
+    <input placeholder="Número" pInputText [(ngModel)]="uiFilters.numero" style="width:100%;"/>
   </div>
-  <div>
-    <label>Año</label>
-    <input type="number" pInputText [(ngModel)]="uiFilters.anio" style="width:100px"/>
+  <div style="width:100%;">
+    <input placeholder="Año" type="number" pInputText [(ngModel)]="uiFilters.anio" style="width:100%;"/>
   </div>
-  <div>
-    <label>RUC</label>
-    <input pInputText [(ngModel)]="uiFilters.ruc" style="width:140px"/>
+  <div style="width:100%;">
+    <input placeholder="RUC" pInputText [(ngModel)]="uiFilters.ruc" style="width:100%;"/>
   </div>
-  <div>
-    <label>Razón social</label>
-    <input pInputText [(ngModel)]="uiFilters.rsocial" style="width:220px"/>
+  <div style="width:100%;">
+    <input placeholder="Razón social" pInputText [(ngModel)]="uiFilters.rsocial" style="width:100%;"/>
   </div>
 
-  <span style="flex:1 1 auto"></span>
-
+  <div style="width:100%; display: flex; gap: 1rem;">
   <p-button label="Buscar" icon="pi pi-search" (onClick)="onSearchClick()"></p-button>
   <p-button label="Limpiar" icon="pi pi-eraser" severity="secondary" outlined (onClick)="onClearClick()"></p-button>
-</div>
-
+  </div>
+</div> -->
+<div class="card">
+  <div>
+    <h1 class="text-3xl font-semibold mb-2">Gestión de reportes</h1>
+    <p class="text-lg text-gray-500">Aquí usted puede firmar digitalmente sus reportes</p>
+  </div>
 <p-table
   #dt1
   [value]="products()"
@@ -41,12 +46,89 @@
   (onRowExpand)="onRowExpandProduct($event)"
   (onRowCollapse)="onRowCollapseProduct($event)"
 >
+  <ng-template pTemplate="caption">
+    <div         
+    style="
+          display:grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap:12px;
+          align-items:end;
+          grid-auto-flow:dense;
+          width:100%;
+        "
+    >
+        <!-- N° Orden -->
+        <p-iconfield style="display:block; width:100%;">
+          <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+          <input pInputText type="text" [(ngModel)]="uiFilters.numero" placeholder="N° Orden" style="width:100%;" />
+        </p-iconfield>
+
+        <!-- Año -->
+        <div style="width:100%;">
+          <input pInputText type="number" [(ngModel)]="uiFilters.anio" placeholder="Año" style="width:100%;" />
+        </div>
+
+        <!-- SIAF -->
+        <div style="width:100%;">
+          <input pInputText type="text" [(ngModel)]="uiFilters.siaf" placeholder="SIAF" style="width:100%;" />
+        </div>
+
+        <!-- RUC -->
+        <div style="width:100%;">
+          <input pInputText type="text" [(ngModel)]="uiFilters.ruc" placeholder="RUC" style="width:100%;" />
+        </div>
+
+        <!-- Razón social -->
+        <div style="width:100%;">
+          <input pInputText type="text" [(ngModel)]="uiFilters.rsocial" placeholder="Razón social" style="width:100%;" />
+        </div>
+
+        <!-- Ítem -->
+        <div style="width:100%;">
+          <input pInputText type="text" [(ngModel)]="uiFilters.item" placeholder="Ítem" style="width:100%;" />
+        </div>
+
+        <!-- Meta -->
+        <div style="width:100%;">
+          <input pInputText type="text" [(ngModel)]="uiFilters.desmeta" placeholder="Meta (desmeta)" style="width:100%;" />
+        </div>
+
+        <!-- Email -->
+        <div style="width:100%;">
+          <input pInputText type="text" [(ngModel)]="uiFilters.email" placeholder="Email proveedor" style="width:100%;" />
+        </div>
+
+        <!-- Botones (fila completa, alineados a la derecha) -->
+        <div style="grid-column:1 / -1; display:flex; gap:8px; justify-content:flex-end; margin-top:4px;">
+          <p-button label="Buscar" icon="pi pi-search" (onClick)="onSearchClick()"></p-button>
+          <p-button label="Limpiar" severity="secondary" outlined (onClick)="onClearClick()"></p-button>
+        </div>
+    </div>
+  </ng-template>
+
   <ng-template pTemplate="header">
     <tr>
       <th style="width:3rem;"></th>
-      <th pSortableColumn="id_order_silucia">OC <p-sortIcon field="id_order_silucia"/></th>
-      <th pSortableColumn="id_product_silucia">Producto <p-sortIcon field="id_product_silucia"/></th>
-      <th pSortableColumn="fecha">Fecha <p-sortIcon field="fecha"/></th>
+      <!-- pSortableColumn="id_order_silucia" -->
+      <th 
+        >N° Orden
+        <!-- <p-sortIcon field="id_order_silucia"/> -->
+      </th>
+      <!-- pSortableColumn="id_product_silucia" -->
+      <th 
+      >Id item 
+      <!-- <p-sortIcon field="id_product_silucia"/> -->
+      </th>
+
+    <!-- pSortableColumn="fecha"  -->
+      <th 
+        style="width:7rem">Fecha 
+        <!-- <p-sortIcon field="fecha"/> -->
+      </th>
+      <th 
+      >Item
+      <!-- <p-sortIcon field="id_product_silucia"/> -->
+      </th>
       <th>Detalle</th>
       <th style="width:6rem;">Reports</th>
     </tr>
@@ -66,6 +148,11 @@
       <td>{{ row.id_order_silucia }}</td>
       <td>{{ row.id_product_silucia }}</td>
       <td>{{ row.fecha || '—' }}</td>
+      <td style="padding:0; width: 25rem;">
+        <div style="max-height:64px;overflow:auto;line-height:1.35;padding:6px 8px;text-align:justify;word-break:break-word;">
+        {{ row.item}}
+        </div>
+      </td>
       <td style="padding:0;">
         <div style="max-height:64px;overflow:auto;line-height:1.35;padding:6px 8px;text-align:justify;word-break:break-word;">
           {{ row.detalles_orden || '—' }}
@@ -82,44 +169,60 @@
     <tr>
       <td colspan="6">
         <div style="padding:10px 8px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;">
-          <h4 style="margin:0 0 8px 0;font-size:1rem;">Reports del producto</h4>
+          <h4 style="margin:0 0 8px 0;font-size:1rem;">Reportes del producto</h4>
 
           <p-table [value]="row.reports || []">
             <ng-template pTemplate="header">
               <tr>
                 <th style="width:6rem;">ID</th>
-                <th>Tipo</th>
-                <th style="width:16rem;">Periodo</th>
-                <th style="width:10rem;">Estado</th>
-                <th style="width:14rem;">Paso actual</th>
-                <th style="width:9rem;">Puede firmar</th>
-                <th style="width:16rem;">Acciones</th>
+                <!-- <th>Tipo</th> -->
+                <!-- <th style="width:16rem;">Periodo</th> -->
+                <th style="width:10rem;">Estado de firma</th>
+                <th style="width:14rem;">Firmante autorizado</th>
+                <th style="width:9rem; ">Puede firmar</th>
+                <th style="width:16rem; text-align: center;">Acciones</th>
               </tr>
             </ng-template>
 
             <ng-template pTemplate="body" let-r>
               <tr>
                 <td>{{ r.report_id }}</td>
-                <td>{{ r.type || '—' }}</td>
-                <td>{{ (r.period?.from || '—') }} → {{ (r.period?.to || '—') }}</td>
                 <td>
-                  <p-tag [severity]="getStatusSeverity(r.status)" [value]="r.status"></p-tag>
+                  <!-- [value]="r.status" -->
+                  <p-tag 
+                    [severity]="getStatusSeverity(r.status)" 
+                    [value]="statusLabels[r.status] || r.status">
+                  >
+                  </p-tag>
                 </td>
-                <td>#{{ r.current_step }} · {{ r.current_role }}</td>
+
+                <td>N° {{ r.current_step }} : {{ roleLabels[r.current_role] || r.current_role }}</td>
+
                 <td>
                   <p-tag [severity]="r.can_sign ? 'success' : 'secondary'"
                          [value]="r.can_sign ? 'Sí' : 'No'"></p-tag>
                 </td>
-                <td>
-                  <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-                    <p-button label="Descargar" icon="pi pi-download" size="small"
-                              (onClick)="onDownloadReport(r)"></p-button>
-                    <!-- <p-button label="Firmar" icon="pi pi-pencil" size="small"
-                              [disabled]="!r.can_sign"
-                              (onClick)="onSignReport(r)"></p-button> -->
-                    <p-button label="Firmar" icon="pi pi-pencil" size="small"
-                              [disabled]="!r.can_sign"
-                              (onClick)="sign(r)">
+                <td style="min-width: 10rem;">
+                  <div style="display: flex; flex-direction: row; justify-content: center; gap: 0.5rem; align-items: center;">
+                    <!-- [style]="{flexGrow: 1, width: 1rem}"  -->
+                    <p-button
+                      [style]="{flexGrow: 1, width: '8rem'}"
+
+                      label="Descargar" 
+                      icon="pi pi-download" 
+                      size="small"
+                      (onClick)="onDownloadReport(r)">
+                    </p-button>
+
+                    <p-button
+                      [style]="{flexGrow: 1, width: '8rem'}"
+                      severity="warn"
+                      label="Firmar" 
+                      icon="pi pi-pencil" 
+                      size="small"
+                      [disabled]="!r.can_sign"
+                      (onClick)="sign(r)"
+                    >
                     </p-button>
                   </div>
                 </td>
@@ -139,3 +242,4 @@
     <tr><td colspan="6">Sin productos.</td></tr>
   </ng-template>
 </p-table>
+</div>

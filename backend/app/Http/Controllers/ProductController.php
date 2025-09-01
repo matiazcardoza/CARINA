@@ -68,7 +68,7 @@ class ProductController extends Controller
                     ]);
                 },
             ])
-            ->select('id','name','id_order_silucia','id_product_silucia', 'detalles_orden','desmeta', 'fecha') // campos que muestres
+            ->select('id','name','item','id_order_silucia','id_product_silucia', 'detalles_orden','desmeta', 'fecha') // campos que muestres
             ->orderByDesc('id')
             ->paginate((int)$req->query('per_page', 20));
 
@@ -116,7 +116,7 @@ class ProductController extends Controller
                                     ] : null,
                     'can_sign'    => $canSign,                  // <- para habilitar/deshabilitar botón
                     // 'download_url'=> url("/api/signatures/{$flow->id}/download-current"),
-                    'download_url'=> url("/api/signatures/{$report->pdf_path}"),
+                    'download_url'=> url("/api/files-download?name={$report->pdf_path}"),
                     'sign_callback_url' => $userStep
                         ? url("/api/signatures/callback?flow_id={$flow->id}&step_id={$userStep->id}&token={$userStep->callback_token}")
                         : null,
@@ -126,6 +126,7 @@ class ProductController extends Controller
             return [
                 'product_id'        => $product->id,
                 'name'              => $product->name,
+                'item'              => $product->item,
                 'id_order_silucia'  => $product->id_order_silucia,
                 'id_product_silucia'=> $product->id_product_silucia,
                 'reports'           => $product->reports,
