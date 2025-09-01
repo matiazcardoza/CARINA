@@ -68,13 +68,52 @@
         </ng-template>
 
         <ng-template #end>
-            <div class="flex items-center gap-2" style="display: flex; align-items: center; gap: 0.5rem;">
+            <!-- <div class="flex items-center gap-2" style="display: flex; align-items: center; gap: 0.5rem;">
                 <p-button label="Share" severity="contrast" size="small" />
                 <p-avatar
                     image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png"
                     [style]="{ width: '32px', height: '32px' }"
                 />
+            </div> -->
+  
+            <div class="right-wrap">
+                <!-- Buscador tipo pill con icono a la izquierda -->
+                <p-iconfield iconPosition="left" class="search-pill">
+                <!-- <p-inputicon styleClass="pi pi-search"></p-inputicon> -->
+                <input pInputText type="text" placeholder="Search" />
+                </p-iconfield>
+
+                <!-- Botón redondo (morado del tema) -->
+                <!-- <p-button
+                [rounded]="true"
+                [raised]="true"
+                severity="help"
+                icon="pi pi-sparkles"
+                class="brain-btn"
+                (click)="onAiClick()">
+                </p-button> -->
+
+                <!-- Avatar que abre el menú popup -->
+                <button
+                type="button"
+                class="avatar-trigger"
+                (click)="profileMenu.toggle($event)"
+                aria-haspopup="true"
+                aria-controls="profile_menu">
+                <p-avatar
+                    image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png"
+                    [style]="{ width: '32px', height: '32px' }">
+                </p-avatar>
+                </button>
             </div>
         </ng-template>
     </p-toolbar>
+      <!-- Menú emergente anclado al avatar -->
+  <p-menu
+    #profileMenu
+    id="profile_menu"
+    [popup]="true"
+    [model]="profileItems"
+    [baseZIndex]="1100">
+  </p-menu>
 </div>

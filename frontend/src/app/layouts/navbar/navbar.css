@@ -6,3 +6,69 @@
     right: 0;
     z-index: 5;
 }
+
+
+/* --------------------------------------------- */
+
+/* Contenedor lado derecho (alineación y separaciones) */
+.right-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Buscador en forma de “pill” */
+.search-pill {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--p-content-border-color, #e5e7eb);
+  background: var(--p-content-background, #fff);
+}
+
+.search-pill .p-inputtext {
+  border: 0;
+  outline: 0;
+  box-shadow: none !important;
+  background: transparent;
+  width: 220px;
+  font-size: 0.95rem;
+  padding-left: 6px;
+}
+
+.search-pill .p-inputtext::placeholder {
+  color: var(--p-text-muted-color, #94a3b8);
+}
+
+/* Botón redondo del cerebro */
+.brain-btn.p-button {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  padding: 0;
+}
+
+/* Trigger accesible del avatar */
+.avatar-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 999px;
+  line-height: 0;
+  cursor: pointer;
+}
+
+.avatar-trigger:focus-visible {
+  outline: 2px solid var(--p-primary-color);
+  outline-offset: 2px;
+  border-radius: 999px;
+}
+
+/* Menu un poco más compacto (opcional) */
+.p-menu { min-width: 190px; }
+.p-menu .p-menuitem-link { padding: .55rem .75rem; }
