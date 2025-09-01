@@ -4,20 +4,19 @@ use App\Http\Controllers\DailyPartController;
 use App\Http\Controllers\MechanicalEquipmentController;
 use App\Http\Controllers\MovementKardexController;
 use App\Http\Controllers\OrderSiluciaController;
-use App\Http\Controllers\OrderProductoController;
 use App\Http\Controllers\OrderProductsController;
-use App\Http\Controllers\PdfControllerKardex;
 use App\Http\Controllers\PeopleController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductMovementKardexController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SignatureController;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\PurchaseOrdersController;
-use App\Http\Controllers\SignatureController;
+// use App\Http\Controllers\PdfControllerKardex;
+// use Illuminate\Support\Facades\Auth;
+// use App\Http\Controllers\OrderProductoController;
+// use Illuminate\Support\Facades\Storage;
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {
