@@ -5,26 +5,26 @@
   </div>
 
   <p-table
-  #dt1
-  [value]="products()"
-  [paginator]="true"
-  [rows]="pageSize"
-  [totalRecords]="productsTotal()"
-  [lazy]="true"
-  (onLazyLoad)="onProductsLazyLoad($event)"
+    #dt1
+    [value]="products()"
+    [paginator]="true"
+    [rows]="pageSize"
+    [totalRecords]="productsTotal()"
+    [lazy]="true"
+    (onLazyLoad)="onProductsLazyLoad($event)"
 
-  [globalFilterFields]="['numero','fecha','detalles_orden','rsocial','ruc','item','detalle','cantidad','desmedida','precio','total_internado','saldo']"
-  selectionMode="single"
-  [(selection)]="selectedProduct"
-  dataKey="idcompradet"
+    [globalFilterFields]="['numero','fecha','detalles_orden','rsocial','ruc','item','detalle','cantidad','desmedida','precio','total_internado','saldo']"
+    selectionMode="single"
+    [(selection)]="selectedProduct"
+    dataKey="idcompradet"
 
 
-  stateStorage="session"
-  stateKey="statedemo-session"
-  [scrollable]="true"
-  scrollDirection="both"
-  [tableStyle]="{ 'min-width': '100rem' }"
-  [loading]="loadingProducts()"
+    stateStorage="session"
+    stateKey="statedemo-session"
+    [scrollable]="true"
+    scrollDirection="both"
+    [tableStyle]="{ 'min-width': '100rem' }"
+    [loading]="loadingProducts()"
   
   >
   <!-- scrollHeight="flex"  -->
@@ -44,104 +44,155 @@
       </p-iconfield>
     </ng-template> -->
 
-<ng-template pTemplate="caption">
-  <div
-    style="
-      display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap:12px;
-      align-items:end;
-      grid-auto-flow:dense;
-      width:100%;
-    "
-  >
-    <!-- N° Orden -->
-    <p-iconfield style="display:block; width:100%;">
-      <p-inputicon><i class="pi pi-search"></i></p-inputicon>
-      <input pInputText type="text" [(ngModel)]="uiFilters.numero" placeholder="N° Orden" style="width:100%;" />
-    </p-iconfield>
+    <ng-template pTemplate="caption">
+      <div
+        style="
+          display:grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap:12px;
+          align-items:end;
+          grid-auto-flow:dense;
+          width:100%;
+        "
+      >
+        <!-- N° Orden -->
+        <p-iconfield style="display:block; width:100%;">
+          <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+          <input pInputText type="text" [(ngModel)]="uiFilters.numero" placeholder="N° Orden" style="width:100%;" />
+        </p-iconfield>
 
-    <!-- Año -->
-    <div style="width:100%;">
-      <input pInputText type="number" [(ngModel)]="uiFilters.anio" placeholder="Año" style="width:100%;" />
-    </div>
+        <!-- Año -->
+        <div style="width:100%;">
+          <input pInputText type="number" [(ngModel)]="uiFilters.anio" placeholder="Año" style="width:100%;" />
+        </div>
 
-    <!-- SIAF -->
-    <div style="width:100%;">
-      <input pInputText type="text" [(ngModel)]="uiFilters.siaf" placeholder="SIAF" style="width:100%;" />
-    </div>
+        <!-- SIAF -->
+        <div style="width:100%;">
+          <input pInputText type="text" [(ngModel)]="uiFilters.siaf" placeholder="SIAF" style="width:100%;" />
+        </div>
 
-    <!-- RUC -->
-    <div style="width:100%;">
-      <input pInputText type="text" [(ngModel)]="uiFilters.ruc" placeholder="RUC" style="width:100%;" />
-    </div>
+        <!-- RUC -->
+        <div style="width:100%;">
+          <input pInputText type="text" [(ngModel)]="uiFilters.ruc" placeholder="RUC" style="width:100%;" />
+        </div>
 
-    <!-- Razón social -->
-    <div style="width:100%;">
-      <input pInputText type="text" [(ngModel)]="uiFilters.rsocial" placeholder="Razón social" style="width:100%;" />
-    </div>
+        <!-- Razón social -->
+        <div style="width:100%;">
+          <input pInputText type="text" [(ngModel)]="uiFilters.rsocial" placeholder="Razón social" style="width:100%;" />
+        </div>
 
-    <!-- Ítem -->
-    <div style="width:100%;">
-      <input pInputText type="text" [(ngModel)]="uiFilters.item" placeholder="Ítem" style="width:100%;" />
-    </div>
+        <!-- Ítem -->
+        <div style="width:100%;">
+          <input pInputText type="text" [(ngModel)]="uiFilters.item" placeholder="Ítem" style="width:100%;" />
+        </div>
 
-    <!-- Meta -->
-    <div style="width:100%;">
-      <input pInputText type="text" [(ngModel)]="uiFilters.desmeta" placeholder="Meta (desmeta)" style="width:100%;" />
-    </div>
+        <!-- Meta -->
+        <div style="width:100%;">
+          <input pInputText type="text" [(ngModel)]="uiFilters.desmeta" placeholder="Meta (desmeta)" style="width:100%;" />
+        </div>
 
-    <!-- Email -->
-    <div style="width:100%;">
-      <input pInputText type="text" [(ngModel)]="uiFilters.email" placeholder="Email proveedor" style="width:100%;" />
-    </div>
+        <!-- Email -->
+        <div style="width:100%;">
+          <input pInputText type="text" [(ngModel)]="uiFilters.email" placeholder="Email proveedor" style="width:100%;" />
+        </div>
 
-    <!-- Botones (fila completa, alineados a la derecha) -->
-    <div style="grid-column:1 / -1; display:flex; gap:8px; justify-content:flex-end; margin-top:4px;">
-      <p-button label="Buscar" icon="pi pi-search" (onClick)="onSearchClick()"></p-button>
-      <p-button label="Limpiar" severity="secondary" outlined (onClick)="onClearClick()"></p-button>
-    </div>
-  </div>
-</ng-template>
+        <!-- Botones (fila completa, alineados a la derecha) -->
+        <div style="grid-column:1 / -1; display:flex; gap:8px; justify-content:flex-end; margin-top:4px;">
+          <p-button label="Buscar" icon="pi pi-search" (onClick)="onSearchClick()"></p-button>
+          <p-button label="Limpiar" severity="secondary" outlined (onClick)="onClearClick()"></p-button>
+        </div>
+      </div>
+    </ng-template>
 
 
     <!-- Header -->
     <ng-template pTemplate="header">
       <tr>
-        <th pSortableColumn="numero" style="width:7.7%">
-          <div class="item_head">N° de Orden <p-sortIcon field="numero"/></div>
+        <!-- pSortableColumn="numero"  -->
+        <th 
+          style="width:7.7%">
+          <div class="item_head">N° de Orden 
+            <!-- <p-sortIcon field="numero"/> -->
+          </div>
         </th>
-        <th pSortableColumn="fecha" style="width:7.7%">
-          <div class="item_head">Fecha <p-sortIcon field="fecha"/></div>
+        <!-- pSortableColumn="fecha"  -->
+        <th 
+        >Id item 
+        <!-- <p-sortIcon field="id_product_silucia"/> -->
         </th>
-        <th pSortableColumn="detalles_orden" style="width:7.7%">
-          <div class="item_head">Detalle de orden <p-sortIcon field="detalles_orden"/></div>
+        <th 
+        style="width:7.7%">
+          <div class="item_head">Fecha 
+            <!-- <p-sortIcon field="fecha"/> -->
+          </div>
         </th>
-        <th pSortableColumn="rsocial" style="width:7.7%">
-          <div class="item_head">Proveedor <p-sortIcon field="rsocial"/></div>
+        <!-- pSortableColumn="detalles_orden"  -->
+        <th 
+        style="width:7.7%">
+          <div class="item_head">Detalle de orden 
+            <!-- <p-sortIcon field="detalles_orden"/> -->
+          </div>
         </th>
-        <th pSortableColumn="ruc" style="width:7.7%">
-          <div class="item_head">RUC <p-sortIcon field="ruc"/></div>
+        <th 
+        style="width:7.7%">
+          <div class="item_head">Unidad de medida 
+            <!-- <p-sortIcon field="desmedida"/> -->
+          </div>
         </th>
-        <th pSortableColumn="item" style="width:7.7%">
-          <div class="item_head">Ítem <p-sortIcon field="item"/></div>
+        <!-- pSortableColumn="rsocial"  -->
+        <th 
+        style="width:7.7%">
+          <div class="item_head">Proveedor 
+            <!-- <p-sortIcon field="rsocial"/> -->
+          </div>
         </th>
-        <th pSortableColumn="detalle" style="width:7.7%">
-          <div class="item_head">Ítem (detalle) <p-sortIcon field="detalle"/></div>
+        <!-- pSortableColumn="ruc"  -->
+        <th 
+        style="width:7.7%">
+          <div class="item_head">RUC 
+            <!-- <p-sortIcon field="ruc"/> -->
+          </div>
         </th>
-        <th pSortableColumn="cantidad" style="width:7.7%">
-          <div class="item_head">Cantidad pedida <p-sortIcon field="cantidad"/></div>
+        <!-- pSortableColumn="item"  -->
+        <th 
+        style="width:7.7%">
+          <div class="item_head">Ítem 
+            <!-- <p-sortIcon field="item"/> -->
+          </div>
         </th>
-        <th pSortableColumn="desmedida" style="width:7.7%">
-          <div class="item_head">Unidad de medida <p-sortIcon field="desmedida"/></div>
+        <!-- pSortableColumn="detalle"  -->
+        <th 
+        style="width:7.7%">
+          <div class="item_head">Ítem (detalle) 
+            <!-- <p-sortIcon field="detalle"/> -->
+          </div>
         </th>
-        <th pSortableColumn="precio" style="width:7.7%">
-          <div class="item_head">Precio <p-sortIcon field="precio"/></div>
+        <!-- pSortableColumn="cantidad"  -->
+        <th 
+        style="width:7.7%">
+          <div class="item_head">Cantidad pedida 
+            <!-- <p-sortIcon field="cantidad"/> -->
+          </div>
         </th>
-        <th pSortableColumn="total_internado" style="width:7.7%"  >
-          <div class="item_head">Total internado <p-sortIcon field="total_internado"/></div>
+        <!-- pSortableColumn="desmedida"  -->
+
+        <!-- pSortableColumn="precio"  -->
+        <th 
+        style="width:7.7%">
+          <div class="item_head">Precio 
+            <!-- <p-sortIcon field="precio"/> -->
+          </div>
+        </th>
+        <!-- pSortableColumn="total_internado"  -->
+        <th 
+        style="width:7.7%"  >
+          <div class="item_head">Total internado 
+            <!-- <p-sortIcon field="total_internado"/> -->
+          </div>
         </th >
-        <th pSortableColumn="saldo" style="width:7.7%">
+        <!-- pSortableColumn="saldo"  -->
+        <th 
+        style="width:7.7%">
           <div class="item_head">Saldo (pendiente) <p-sortIcon field="saldo"/></div>
         </th>
         <th pFrozenColumn alignFrozen="right" [style]="{ width: '150px', textAlign: 'center' }">
@@ -157,14 +208,29 @@
     <ng-template pTemplate="body" let-product>
       <tr>
         <td>{{ product.numero }}</td>
+        <td>{{ product.idcompradet }}</td>
         <td>{{ product.fecha }}</td>
-        <td>{{ product.detalles_orden.length > 50 ? (product.detalles_orden | slice:0:50) + '...' : product.detalles_orden }}</td>
+        <!-- <td>{{ product.detalles_orden.length > 50 ? (product.detalles_orden | slice:0:50) + '...' : product.detalles_orden }}</td> -->
+        <td style="padding:0; min-width: 12rem;">
+          <div style="max-height:120px;overflow:auto;line-height:1.35;padding:6px 8px;text-align:justify;word-break:break-word;">
+          {{ product.detalles_orden}}
+          </div>
+        </td>
+        <td>{{ product.desmedida }}</td>
         <td>{{ product.rsocial }}</td>
         <td>{{ product.ruc }}</td>
-        <td>{{ product.item }}</td>
-        <td>{{ product.detalle }}</td>
+        <td style="padding:0; min-width: 12rem;">
+          <div style="max-height:120px;overflow:auto;line-height:1.35;padding:6px 8px;text-align:justify;word-break:break-word;">
+          {{ product.item }}
+          </div>
+        </td>
+        <td style="padding:0; min-width: 12rem;">
+          <div style="max-height:120px;overflow:auto;line-height:1.35;padding:6px 8px;text-align:justify;word-break:break-word;">
+          {{ product.detalle }}
+          </div>
+        </td>
         <td>{{ product.cantidad }}</td>
-        <td>{{ product.desmedida }}</td>
+        
         <td>{{ product.precio }}</td>
         <td>{{ product.total_internado }}</td>
         <td>{{ product.saldo }}</td>
@@ -265,7 +331,7 @@
         ></p-button>
       </div>
       <!-- Aquí podrías listar las personas seleccionadas si lo necesitas -->
-      <small class="text-gray-500">Añade personas con el botón.</small>
+      <!-- <small class="text-gray-500">Añade personas con el botón.</small> -->
     </div>
 
 
@@ -297,6 +363,7 @@
         icon="pi pi-check"
         (onClick)="onSubmitMovement()"
         [disabled]="!form.movement_type || !form.amount"
+        [loading]="savingMovementLoading()"
       ></p-button>
     </div>
   </ng-template>
@@ -413,7 +480,8 @@
           <th pSortableColumn="id">ID <p-sortIcon field="id"/></th>
           <th pSortableColumn="movement_type">Tipo <p-sortIcon field="movement_type"/></th>
           <th pSortableColumn="amount">Cantidad <p-sortIcon field="amount"/></th>
-          <th pSortableColumn="amount" style="max-width: 300px; width:300px;">Observaciones <p-sortIcon field="amount"/></th>
+          <!-- <th pSortableColumn="amount">Unidad Medida <p-sortIcon field="amount"/></th> -->
+          <th pSortableColumn="amount" style="max-width: 200px; width:200px;">Observaciones <p-sortIcon field="amount"/></th>
           <th pSortableColumn="movement_date">Fecha <p-sortIcon field="movement_date"/></th>
           <!-- <th pSortableColumn="final_balance">Saldo final <p-sortIcon field="final_balance"/></th> -->
         </tr>
@@ -491,8 +559,8 @@
                   <tr>
                     <th style="width:8rem;">DNI</th>
                     <th>Nombre completo</th>
-                    <th style="width:8rem;">Rol</th>
-                    <th>Nota</th>
+                    <!-- <th style="width:8rem;">Rol</th> -->
+                    <!-- <th>Nota</th> -->
                     <th style="width:11rem;">Adjuntado</th>
                   </tr>
                 </ng-template>
@@ -500,9 +568,10 @@
                 <ng-template pTemplate="body" let-person>
                   <tr>
                     <td>{{ person.dni }}</td>
-                    <td>{{ person.full_name || ((person.names || '') + ' ' + (person.first_lastname || '') + ' ' + (person.second_lastname || '')) }}</td>
-                    <td>{{ person.pivot?.role || '—' }}</td>
-                    <td>{{ person.pivot?.note || '—' }}</td>
+                    
+                    <td>{{ person.full_name + ' ' + (person.first_lastname || '')  + ' ' +(person.second_lastname || '')    }}</td>
+                    <!-- <td>{{ person.pivot?.role || '—' }}</td> -->
+                    <!-- <td>{{ person.pivot?.note || '—' }}</td> -->
                     <td>{{ person.pivot?.attached_at || '—' }}</td>
                   </tr>
                 </ng-template>
@@ -531,7 +600,7 @@
     <!-- <div class="flex justify-end gap-2 w-full"> -->
       <div style="display: flex; justify-content: flex-end; gap: 0.5rem; width: 100%;">
       <p-button label="Cerrar" severity="secondary" outlined (onClick)="closeMovementDetailsModal()"></p-button>
-      <p-button label="Descargar informe" icon="pi pi-download" (onClick)="onSubmitMovementDetails()"></p-button>
+      <p-button label="Generar informe (pdf)" icon="pi pi-download" (onClick)="onSubmitMovementDetails()"></p-button>
     </div>
   </ng-template>
 </p-dialog>
@@ -543,3 +612,4 @@
   (onListPeopleByDni)="handleListPeopleByDni($event)"
 />
 
+<p-toast />

@@ -7,26 +7,20 @@ import { defer, filter, finalize, fromEvent, map, Observable, take, throwError, 
   providedIn: 'root'
 })
 export class DigitalSignatureService {
+
     environment = {
-      production: false,
-      // API_FIRMA_DIGITAL: 'https://firma.tu-proveedor.com/firmar', // <- URL base del proveedor
       API_FIRMA_DIGITAL: 'https://sistemas.regionpuno.gob.pe/firma-api/', // <- URL base del proveedor
-      STORAGE_URL: 'https://cdn.tu-app.com/',                     // <- donde está tu PDF
-      // API_URL: 'https://api.tu-app.com/'                          // <- tu backend
-      API_URL: 'https://sistemas.regionpuno.gob.pe/sisplan-api/logo_firma_digital.png'                          // <- tu backend
+      LOGO: 'https://sistemas.regionpuno.gob.pe/sisplan-api/logo_firma_digital.png'                          // <- tu backend
     };
-  openSignatureWindow$(
-    params: SignatureParams,
-    apiUrl: string = this.environment.API_FIRMA_DIGITAL,
-    timeoutMs = 5 * 60 * 1000
-  ): Observable<void> {
+
+  openSignatureWindow$(params: SignatureParams,  apiUrl: string = this.environment.API_FIRMA_DIGITAL, timeoutMs = 5 * 60 * 1000): Observable<void> {
     return defer(() => {
+
       const trustedOrigin = new URL(apiUrl).origin;
 
       const qs = new URLSearchParams({
         location_url_pdf: params.location_url_pdf,
-        // location_logo: `${this.environment.API_URL}logo_firma_digital.png`,
-        location_logo: this.environment.API_URL,
+        location_logo: this.environment.LOGO,
         post_location_upload: params.post_location_upload,
         asunto: params.asunto ?? '',
         rol: params.rol ?? '',
@@ -44,6 +38,7 @@ export class DigitalSignatureService {
       }).toString();
 
       const popup = window.open(`${apiUrl}?${qs}`, '_blank', 'width=500,height=300');
+
       if (!popup) return throwError(() => new Error('No se pudo abrir la ventana de firma.'));
 
       return fromEvent<MessageEvent>(window, 'message').pipe(
@@ -59,6 +54,7 @@ export class DigitalSignatureService {
         }),
         finalize(() => { try { popup.close(); } catch {} })
       );
+      
     });
   }
 }

@@ -34,8 +34,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('kardex_reports', function (Blueprint $table) {
-            //
-        });
+        if (Schema::hasTable('kardex_reports') && Schema::hasColumn('kardex_reports', 'pdf_page_number')) {
+            Schema::table('kardex_reports', function (Blueprint $table) {
+                $table->dropColumn('pdf_page_number');
+            });
+        }
     }
 };

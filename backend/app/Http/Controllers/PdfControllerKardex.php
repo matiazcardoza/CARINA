@@ -1,6 +1,9 @@
 <?php
 
 namespace App\Http\Controllers;
+
+// use BaconQrCode\Encoder\QrCode;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
@@ -135,5 +138,26 @@ class PdfControllerKardex extends Controller
         return $pdf->download("orden.pdf");
         // $pdf = Pdf::loadView('pdfKardex.reporte', compact('personas'))
         //   ->setPaper('a4', 'portrait');
+    }
+
+    public function generateQRCcode(){
+        // $filename = 'this is an example name';
+        // $qrPng = QrCode::format('png')
+        // ->size(300)           // tamaño del QR
+        // ->margin(1)           // borde
+        // ->errorCorrection('H')// robustez
+        // ->generate($filename);
+        // return $qrPng;
+        // QrCode::format('png')->merge($rutaLogo,0.3)->size(300)->errorCorrection('H')->generate($url)
+        $contenido = 'https://ejemplo.com/recurso?id=123';
+        $qrPng = QrCode::format('png')
+            ->size(300)
+            ->margin(1)
+            ->errorCorrection('H')
+            ->generate($contenido);
+
+        return response($qrPng)
+            ->header('Content-Type', 'image/png');
+
     }
 }

@@ -172,7 +172,8 @@ export class SignaturesMovementReports {
       sort_order
     } as const;
 
-    this.dataSrv.getPdfReporter(payload).subscribe({
+    // this.dataSrv.getPdfReporter(payload).subscribe({
+    this.dataSrv.getProductsFromOwnDatabase(payload).subscribe({
       next: (res: LaravelPage<ProductRow>) => {
         this.products.set(res.data ?? []);
         this.productsTotal.set(res.total ?? 0);
@@ -272,8 +273,8 @@ export class SignaturesMovementReports {
       // posx: 120,
       posx: r?.user_step?.pos_x,
       // posx: 445,
-      // posy: r?.user_step?.pos_y,
-      posy: 745,
+      posy: r?.user_step?.pos_y,
+      // posy: 745,
       // posy: 725,
       token: ''
     };
@@ -298,4 +299,19 @@ export class SignaturesMovementReports {
         }
     });
   }
+
+  roleLabels: Record<string, string> = {
+    almacen_supervisor: 'Supervisor',
+    almacen_residente: 'Residente',
+    almacen_administrador: 'Administrador',
+    almacen_almacenero: 'Almacenero',
+    // agrega más según tu sistema
+  };
+// in_progress|completed|cancelled
+  statusLabels: Record<string, string> = {
+    in_progress: 'En progreso',
+    completed: 'Completado',
+    cancelled: 'Cancelado',
+  };
+
 }

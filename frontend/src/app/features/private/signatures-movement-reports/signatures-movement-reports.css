@@ -1,6 +1,13 @@
 .card{
-    padding: 1.5rem;
+    /* background: rgb(236, 236, 236); */
+    padding: 2rem;
 }
+    .container_action_buttons{
+        /* background: pink; */
+        display: flex;
+        gap: 0.5rem;
+    }
+
 
 /* Estilo equivalente a text-green-500 */
 .text-green-500 {

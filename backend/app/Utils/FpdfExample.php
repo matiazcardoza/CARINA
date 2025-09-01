@@ -4,6 +4,8 @@ namespace App\Utils;
 
 
 class FpdfExample extends \FPDF {
+
+    protected string $headerLogoPath = '';
     function Header() {
 
 
@@ -18,6 +20,12 @@ class FpdfExample extends \FPDF {
         $rutaImagen = 'img/gr-puno-escudo.png';
         $ancho_image = 14;
         $this->Image($rutaImagen, $x, $y, $ancho_image);
+
+        // Imagen del codigo rq
+        $rutaImagenQr = $this->headerLogoPath;
+        $ancho_image = 14;
+        $this->Image($rutaImagenQr, $x + 173, $y+0.5, $ancho_image + 3);
+        
 
         // Insertar titulos
         $y_vertical_titles = 3 + $y;
@@ -35,7 +43,7 @@ class FpdfExample extends \FPDF {
         $this->Cell($ancho_titulos,$alto_titulos, 'RUC: 20406325815',0,1,'L',false);
         // $this->SetX($ancho_titulos + $x + $ancho_image);
         // $this->SetY($y);
-        $this->SetXY($ancho_titulos + $x + $ancho_image +10,  $y+1);
+        $this->SetXY($ancho_titulos + $x + $ancho_image +21,  $y+1);
 
         // Insertar texto QR
         $texto = "Esta es una representación impresa cuya autenticidad puede ser contrastada con la representación imprimible localizada en la sede digital del Gobierno Regional Puno, aplicando lo dispuesto por el Art. 25 de D.S. 070-2013-PCM y la Tercera Disposición Complementaria Final del D.S. 026-2016-PCM. Su autenticidad e integridad pueden ser contrastadas a través de este QR:";
@@ -64,6 +72,13 @@ class FpdfExample extends \FPDF {
         // $this->Cell(0, 50, 'Mi primer PDF con FPDF', 1, 1, 'C');
 
     }
+
+    public function setHeaderLogo(?string $path): self
+    {
+        $this->headerLogoPath = $path;
+        return $this;
+    }
+
 
     // function Footer() {
     //     // Pie de página con número de página
@@ -209,19 +224,25 @@ class FpdfExample extends \FPDF {
         $pageBreakTrigger = $this->GetPageHeight() - $this->bMargin;
 
         // --- Contador de líneas (medición con texto convertido) ---
+        // --- Contador de líneas (medición con texto convertido) ---
         $countLines = function(string $text, float $cellW) use ($padX) {
-            $text = $this->enc($text);               // ¡convertir antes de medir!
-            $maxW = max(0.1, $cellW - 2*$padX);
-            $segs = preg_split("/\r?\n/", $text);
+            $text = $this->enc($text);
+            $cm   = $this->cMargin;   // <-- NUEVO: margen interno de MultiCell
+            $eps  = 0.1;              // <-- NUEVO: margen por redondeos en mm
+
+            // El ancho efectivo que realmente usa MultiCell:
+            $maxW = max(0.1, $cellW - 2*$padX - 2*$cm);  // <-- CAMBIO CLAVE
+
+            $segs  = preg_split("/\r?\n/", $text);
             $lines = 0;
             foreach ($segs as $seg) {
                 $seg = trim($seg);
                 if ($seg === '') { $lines++; continue; }
                 $lineW = 0;
                 foreach (preg_split('/\s+/', $seg) as $i => $word) {
-                    $token = ($i>0?' ':'').$word;
+                    $token = ($i>0 ? ' ' : '').$word;
                     $wTok  = $this->GetStringWidth($token);
-                    if ($lineW + $wTok <= $maxW) {
+                    if ($lineW + $wTok <= $maxW + $eps) {   // <-- usa eps
                         $lineW += $wTok;
                     } else {
                         $lines++;
@@ -232,6 +253,7 @@ class FpdfExample extends \FPDF {
             }
             return max(1, $lines);
         };
+
 
         // --- Dibuja una fila completa ---
         $drawRow = function(array $cells) use ($widths, $aligns, $lineH, $padX, $padY, $border, &$pageBreakTrigger, $countLines) {
@@ -350,7 +372,6 @@ class FpdfExample extends \FPDF {
         array $opt = []
     ){
         if ($this->PageNo() === 0) $this->AddPage();
-
 
         // Opciones
         $lineH     = $opt['lineHeight'] ?? 6;
@@ -491,7 +512,7 @@ class FpdfExample extends \FPDF {
         $y0 = $this->GetPageHeight() - $this->bMargin - $h; // pegado abajo
 
         // Dibujo
-        $this->SetFont('Arial','B',11);
+        $this->SetFont('Arial','B',8);
         for ($i = 0; $i < count($labels); $i++) {
             $xi = $x0 + $i * $w;
             $this->Rect($xi, $y0, $w, $h);                                     // marco
