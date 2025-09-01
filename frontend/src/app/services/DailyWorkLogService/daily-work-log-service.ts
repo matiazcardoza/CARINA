@@ -34,7 +34,7 @@ export class DailyWorkLogService {
   private apiUrl = environment.BACKEND_URL;
 
   getOrdersWorkLogData(): Observable<WorkLogElement[]> {
-    return this.http.get<WorkLogApiResponse>(`${this.apiUrl}/api/sevices`, {
+    return this.http.get<WorkLogApiResponse>(`${this.apiUrl}/api/services`, {
       withCredentials: true
     }).pipe(
       map(response => response.data)

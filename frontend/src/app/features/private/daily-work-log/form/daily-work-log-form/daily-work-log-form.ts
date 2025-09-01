@@ -13,7 +13,7 @@ import { DailyWorkLogService } from '../../../../../services/DailyWorkLogService
 export interface DialogData {
   isEdit: boolean;
   workLog: any;
-  workLogId?: string | number;
+  serviceId?: string | number;
 }
 
 @Component({
@@ -32,10 +32,10 @@ export interface DialogData {
   ]
 })
 export class DailyWorkLogForm implements OnInit {
-  
+
   workLogForm: FormGroup;
   isLoading = false;
-  
+
   private fb = inject(FormBuilder);
   private dailyWorkLogService = inject(DailyWorkLogService);
 
@@ -61,12 +61,17 @@ export class DailyWorkLogForm implements OnInit {
         initial_fuel: this.data.workLog.initial_fuel,
         description: this.data.workLog.description || ''
       });
+      this.workLogForm.get('work_date')?.disable();
+      this.workLogForm.get('start_time')?.disable();
     } else {
       const now = new Date();
       this.workLogForm.patchValue({
         work_date: now
       });
       this.setCurrentTime();
+
+      this.workLogForm.get('work_date')?.disable();
+      this.workLogForm.get('start_time')?.disable();
     }
   }
 
@@ -75,7 +80,7 @@ export class DailyWorkLogForm implements OnInit {
     const hours = now.getHours().toString().padStart(2, '0');
     const minutes = now.getMinutes().toString().padStart(2, '0');
     const currentTime = `${hours}:${minutes}`;
-    
+
     this.workLogForm.patchValue({
       start_time: currentTime
     });
@@ -97,14 +102,14 @@ export class DailyWorkLogForm implements OnInit {
   onSubmit() {
     if (this.workLogForm.valid && !this.isLoading) {
       this.isLoading = true;
-      
-      const formValue = this.workLogForm.value;
+
+      const formValue = this.workLogForm.getRawValue();
       const workLogData = {
         work_date: this.formatDate(formValue.work_date),
         start_time: formValue.start_time,
         initial_fuel: parseFloat(formValue.initial_fuel),
         description: formValue.description,
-        work_log_id: this.data.workLogId ? Number(this.data.workLogId) : null
+        service_id: this.data.serviceId ? Number(this.data.serviceId) : null
       };
 
       if (this.data.isEdit && this.data.workLog?.id) {
@@ -160,10 +165,10 @@ export class DailyWorkLogForm implements OnInit {
   private compareTime(time1: string, time2: string): number {
     const [h1, m1] = time1.split(':').map(Number);
     const [h2, m2] = time2.split(':').map(Number);
-    
+
     const minutes1 = h1 * 60 + m1;
     const minutes2 = h2 * 60 + m2;
-    
+
     return minutes1 - minutes2;
   }
 

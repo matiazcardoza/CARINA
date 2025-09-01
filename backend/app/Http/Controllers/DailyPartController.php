@@ -25,8 +25,9 @@ class DailyPartController extends Controller
 
     function store(Request $request)
     {
+        Log:info('request: ', $request->all());
         $dailyPart = DailyPart::create([
-            'service_id' => $request->work_log_id,
+            'service_id' => $request->service_id,
             'work_date' => $request->work_date,
             'start_time' => $request->start_time,
             'initial_fuel' => $request->initial_fuel,
@@ -76,7 +77,7 @@ class DailyPartController extends Controller
 
     public function completeWork(Request $request)
     {
-        $worlkLogId = $request->workLogId;        
+        $worlkLogId = $request->workLogId;
             $dailyPart = DailyPart::find($worlkLogId);
             $dailyPart->end_time = $request->end_time;
             $dailyPart->final_fuel = $request->final_fuel;
@@ -121,10 +122,10 @@ class DailyPartController extends Controller
         ];
 
         $pdf = Pdf::loadView('pdf.daily_part', $data);
-        
+
         // Configurar opciones del PDF si es necesario
         $pdf->setPaper('A4', 'portrait');
-        
+
         return $pdf->stream('anexo_01_planilla.pdf');
     }
 }

@@ -37,7 +37,8 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::disableForeignKeyConstraints();
         Schema::dropIfExists('movement_person');
-        
+        Schema::enableForeignKeyConstraints();
     }
 };

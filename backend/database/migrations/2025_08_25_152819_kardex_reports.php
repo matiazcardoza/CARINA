@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('status', 20)->default('in_progress'); // in_progress|completed|cancelled
             $table->unsignedBigInteger('created_by')->nullable();
             $table->timestamps();
-            $table->foreign('product_id')->references('id')->on('products')->cascadeOnDelete();
+            $table->foreign('product_id')->references('id')->on('products')->OnDelete('cascade');
         });
 
     }
@@ -32,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('kardex_reports');
     }
 };

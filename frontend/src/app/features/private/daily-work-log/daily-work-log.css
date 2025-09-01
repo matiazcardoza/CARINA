@@ -317,39 +317,39 @@
   .daily-work-log-container {
     padding: 16px;
   }
-  
+
   .header-section {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .header-actions {
     justify-content: flex-start;
   }
-  
+
   .action-button {
     flex: 1;
     min-width: auto;
   }
-  
+
   .page-title h1 {
     font-size: 1.5rem;
   }
-  
+
   .action-buttons {
     justify-content: center;
   }
-  
+
   .records-count {
     font-size: 0.8rem;
   }
-  
+
   /* Ocultar algunas columnas en móvil */
   .id-column,
   .id-cell {
     display: none;
   }
-  
+
   .fuel-column,
   .fuel-cell {
     display: none;
@@ -361,15 +361,15 @@
     flex-direction: column;
     gap: 8px;
   }
-  
+
   .action-button {
     width: 100%;
   }
-  
+
   .state-container {
     padding: 32px 16px;
   }
-  
+
   .state-icon {
     font-size: 3rem;
     height: 3rem;

@@ -11,8 +11,9 @@ use App\Http\Controllers\PeopleController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductMovementKardexController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\SignatureController;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
@@ -20,7 +21,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
-    
+
 
     //orders silucia routes
     Route::post('orders-silucia/import-order', [OrderSiluciaController::class, 'importOrder']);
@@ -49,14 +50,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ])
         ->only(['index','store'])
         ->shallow();
-    
+
 });
 
 Route::middleware(['auth:sanctum'])->group(function () {
         // ---------------------------Revisar y eliminar estas endopitns con sus metodos----------------------------------
     Route::get('/products/{product}/movements-kardex', [ProductMovementKardexController::class, 'index']);
     // buscamos el producto, si no lo encontramos lo creamos y al mismo tiempo guardarmos el movimiento
-    Route::post('/movements-kardex', [MovementKardexController::class, 'store']);  
+    Route::post('/movements-kardex', [MovementKardexController::class, 'store']);
     // mostramos todos los movimientos que pertenecen a un producto de la base de datos de silucia
     Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex',  [MovementKardexController::class, 'indexBySiluciaIds']);
     // generamos un reporte de  todos los movimientos que pertenecen a un producto de la base de datos de silucia
@@ -73,7 +74,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/people/{dni}', [PeopleController::class, 'showOrFetch']); // cache-first (db) → RENIEC
     // muestra todas las personas pertenecientes a un movimiento
     // Route::get('/movements-kardex/{movement}/people', [MovementKardexController::class, 'people']);
-    // esta endpoint debe hacerse en "/movements-kardex" pues ahi es donde se guardara el dato de un 
+    // esta endpoint debe hacerse en "/movements-kardex" pues ahi es donde se guardara el dato de un
     Route::post('/movements-kardex/{movement}/people', [MovementKardexController::class, 'attachPerson']);
     // endpoint no terminado - sirve para quitar una persona de un movimiento
     // Route::delete('/movements-kardex/{movement}/people/{dni}', [MovementKardexController::class, 'detachPerson']);
