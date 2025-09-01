@@ -9,8 +9,12 @@ class ServiceController extends Controller
 {
     function index(Request $request)
     {
-        $services = Service::select('orders_silucia.*', 'services.state', 'services.description')
-                                    ->leftjoin('services', 'orders_silucia.id', '=', 'services.order_id')
+        $services = Service::select('services.*',
+                                        'orders_silucia.supplier',
+                                        'orders_silucia.machinery_equipment',
+                                        'mechanical_equipment.machinery_equipment as mechanicalEquipment')
+                                    ->leftJoin('orders_silucia', 'services.order_id', '=', 'orders_silucia.id')
+                                    ->leftJoin('mechanical_equipment', 'services.mechanical_equipment_id', '=', 'mechanical_equipment.id')
                                     ->get();
         return response()->json([
             'message' => 'Daily work log retrieved successfully',

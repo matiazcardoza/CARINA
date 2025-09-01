@@ -15,7 +15,6 @@ import { Router } from '@angular/router';
 export interface WorkLogElement {
   id: number;
   description: string;
-  order_type: string;
   state: number;
 }
 
@@ -36,13 +35,13 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
 
   constructor(private cdr: ChangeDetectorRef) {}
 
-  displayedColumns: string[] = ['id', 'description', 'order_type', 'state', 'actions'];
+  displayedColumns: string[] = ['id', 'description', 'state', 'actions'];
   dataSource = new MatTableDataSource<WorkLogElement>([]);
-  
+
   private dailyWorkLogService = inject(DailyWorkLogService);
   private dialog = inject(MatDialog);
   private router = inject(Router);
-  
+
   isLoading = false;  // Cambiar el estado inicial
   error: string | null = null;
 
@@ -52,7 +51,7 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
     this.isLoading = false;
     this.error = null;
     this.cdr.detectChanges();
-    
+
     Promise.resolve().then(() => {
       this.loadWorkLogData();
     });
@@ -67,10 +66,11 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
       this.isLoading = true;
       this.error = null;
       this.cdr.detectChanges();
-      
+
       this.dailyWorkLogService.getOrdersWorkLogData()
         .subscribe({
           next: (data) => {
+            console.log('este es el data que llega del servidor', data)
             this.dataSource.data = data;
             this.isLoading = false;
             this.cdr.detectChanges();
@@ -95,7 +95,7 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
       Promise.resolve().then(() => {
         this.isLoading = true;
         this.cdr.detectChanges();
-        
+
         this.dailyWorkLogService.deleteWorkLog(id)
           .subscribe({
             next: () => {
@@ -118,7 +118,7 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
       width: '700px',
       maxWidth: '90vw',
       maxHeight: '90vh',
-      data: { 
+      data: {
         isEdit: true,
         workLog: { id } as WorkLogElement
       }

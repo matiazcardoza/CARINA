@@ -16,6 +16,7 @@ export interface WorkLogIdElement {
   work_date: string;
   start_time: string;
   initial_fuel: string;
+  end_time: string;
   state: number;
 }
 
@@ -33,39 +34,39 @@ export interface WorkLogIdElement {
   styleUrl: './daily-work-log-id.css'
 })
 export class DailyWorkLogId implements AfterViewInit, OnInit {
-  
-  workLogId: string | null = null;
-  
+
+  serviceId: string | null = null;
+
   constructor(private route: ActivatedRoute, private cdr: ChangeDetectorRef) {}
-  
+
   displayedColumns: string[] = ['id', 'work_date', 'start_time', 'initial_fuel', 'actions'];
   dataSource = new MatTableDataSource<WorkLogIdElement>([]);
   private dailyWorkLogService = inject(DailyWorkLogService);
   private dialog = inject(MatDialog);
-  
+
   // Estado de carga inicial
-  isLoading = false; 
+  isLoading = false;
   error: string | null = null;
-  
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
-  
+
   ngOnInit() {
-    this.workLogId = this.route.snapshot.paramMap.get('id');
+    this.serviceId = this.route.snapshot.paramMap.get('id');
     Promise.resolve().then(() => this.loadWorkLogData());
   }
-  
+
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
   }
-  
+
   loadWorkLogData(): void {
     this.isLoading = true;
     this.error = null;
     this.cdr.detectChanges();
-    
-    const workLogIdNumber = Number(this.workLogId);
-    
-    this.dailyWorkLogService.getWorkLogData(workLogIdNumber)
+
+    const serviceIdNumber = Number(this.serviceId);
+
+    this.dailyWorkLogService.getWorkLogData(serviceIdNumber)
       .subscribe({
         next: (data) => {
           this.dataSource.data = data;
@@ -79,69 +80,69 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
         }
       });
   }
-  
+
   reloadData() {
     Promise.resolve().then(() => this.loadWorkLogData());
   }
-  
+
   openCreateDialog() {
     const dialogRef = this.dialog.open(DailyWorkLogForm, {
       width: '500px',
-      data: { 
+      data: {
         isEdit: false,
         workLog: null,
-        workLogId: this.workLogId
+        serviceId: this.serviceId
       }
     });
-    
+
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.reloadData();
       }
     });
   }
-  
+
   openEditDialog(workLog: WorkLogIdElement) {
     const dialogRef = this.dialog.open(DailyWorkLogForm, {
       width: '500px',
-      data: { 
+      data: {
         isEdit: true,
         workLog: workLog,
-        workLogId: this.workLogId
+        serviceId: this.serviceId
       }
     });
-    
+
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.reloadData();
       }
     });
   }
-  
+
   openCompleteModal(id: number) {
     const dialogRef = this.dialog.open(DailyWorkLogUpload, {
       width: '700px',
       maxWidth: '90vw',
       maxHeight: '90vh',
-      data: { 
+      data: {
         isEdit: true,
         workLog: { id } as WorkLogIdElement
       }
     });
-    
+
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.reloadData();
       }
     });
   }
-  
+
   deleteWorkLog(id: number) {
     if (confirm('¿Estás seguro de que deseas eliminar este registro?')) {
       Promise.resolve().then(() => {
         this.isLoading = true;
         this.cdr.detectChanges();
-        
+
         this.dailyWorkLogService.deleteWorkLog(id)
           .subscribe({
             next: () => {
@@ -162,7 +163,7 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
   convertWorkLogId(id: any): number {
     return Number(id);
   }
-  
+
   generatePdf(id: number) {
     this.dailyWorkLogService.generatePdf(id).subscribe({
       next: (response: Blob) => {

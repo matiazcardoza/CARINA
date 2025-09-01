@@ -11,8 +11,9 @@ use App\Http\Controllers\PeopleController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductMovementKardexController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\SignatureController;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\PurchaseOrdersController;
@@ -22,7 +23,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
-    
+
 
     //orders silucia routes
     Route::post('orders-silucia/import-order', [OrderSiluciaController::class, 'importOrder']);
@@ -51,7 +52,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         ])
         ->only(['index','store'])
         ->shallow();
-    
+
 });
 
 
@@ -76,7 +77,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/people/{dni}', [PeopleController::class, 'showOrFetch'])->middleware(['role:almacen_almacenero']); // cache-first (db) → RENIEC
     // muestra todas las personas pertenecientes a un movimiento
     // Route::get('/movements-kardex/{movement}/people', [MovementKardexController::class, 'people']);
-    // esta endpoint debe hacerse en "/movements-kardex" pues ahi es donde se guardara el dato de un 
+    // esta endpoint debe hacerse en "/movements-kardex" pues ahi es donde se guardara el dato de un
     Route::post('/movements-kardex/{movement}/people', [MovementKardexController::class, 'attachPerson'])->middleware(['role:almacen_almacenero']);
     // endpoint no terminado - sirve para quitar una persona de un movimientoa
     // Route::delete('/movements-kardex/{movement}/people/{dni}', [MovementKardexController::class, 'detachPerson']);
