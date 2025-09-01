@@ -1,374 +1,244 @@
 <div class="dialog-container">
-  <div class="header-section">
-    <h2 class="dialog-title">
-      <mat-icon>cloud_download</mat-icon>
-      Importar Orden desde SILUCIA
-    </h2>
-    <p class="dialog-subtitle">
-      Ingrese el número de orden para obtener los datos desde el sistema SILUCIA
-    </p>
-  </div>
-
-  <div class="content-section">
-    <div class="search-header">
-      <mat-icon>search</mat-icon>
-      <h3>Buscar Orden</h3>
+    <div class="header-section">
+      <h2 class="dialog-title">
+        <mat-icon>cloud_download</mat-icon>
+        Importar Orden desde SILUCIA
+      </h2>
+      <p class="dialog-subtitle">
+        Ingrese el número de orden para obtener los datos desde el sistema SILUCIA
+      </p>
     </div>
-    
-    <form [formGroup]="orderForm" class="order-form">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Número de Orden</mat-label>
-        <input 
-          matInput 
-          formControlName="numeroOrden"
-          placeholder="Ej: 00401"
-          maxlength="5"
-        >
-        <mat-icon matSuffix>tag</mat-icon>
-        <mat-hint>Ingrese el número de orden de 5 dígitos</mat-hint>
+  
+    <div class="content-section">
+      <div class="search-header">
+        <mat-icon>search</mat-icon>
+        <h3>Buscar Orden</h3>
+      </div>
+      
+      <form [formGroup]="orderForm" class="order-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Número de Orden</mat-label>
+          <input 
+            matInput 
+            formControlName="numeroOrden"
+            placeholder="Ej: 00401"
+            maxlength="5"
+          >
+          <mat-icon matSuffix>tag</mat-icon>
+          <mat-hint>Ingrese el número de orden de 5 dígitos</mat-hint>
+          
+          <mat-error *ngIf="hasFieldError('numeroOrden')">
+            {{ getFieldError('numeroOrden') }}
+          </mat-error>
+          
+          <mat-error *ngIf="numeroOrdenErrors">
+            {{ numeroOrdenErrors }}
+          </mat-error>
+        </mat-form-field>
         
-        <mat-error *ngIf="hasFieldError('numeroOrden')">
-          {{ getFieldError('numeroOrden') }}
-        </mat-error>
-        
-        <mat-error *ngIf="numeroOrdenErrors">
-          {{ numeroOrdenErrors }}
-        </mat-error>
-      </mat-form-field>
-      
-      <div class="form-actions">
-        <button 
-          mat-raised-button 
-          color="primary" 
-          type="button"
-          (click)="searchOrder()"
-          [disabled]="isLoading" 
-          class="search-button">
-          <mat-icon *ngIf="!isLoading">search</mat-icon>
-          <mat-icon *ngIf="isLoading" class="spinning">refresh</mat-icon>
-          {{ isLoading ? 'Buscando...' : 'Buscar' }}
-        </button>
-        
-        <button 
-          mat-button 
-          type="button"
-          (click)="clearData()"
-          [disabled]="isLoading">
-          <mat-icon>clear</mat-icon>
-          Limpiar
-        </button>
-      </div>
-    </form>
-
-    <!-- Loading Spinner -->
-    <div *ngIf="isLoading" class="loading-container">
-      <mat-spinner diameter="50"></mat-spinner>
-      <p>Buscando orden en SILUCIA...</p>
-    </div>
-
-    <!-- Results Section -->
-    <div *ngIf="showResults && orderData" class="results-section">
-      <div class="results-header">
-        <mat-icon>assignment</mat-icon>
-        <h3>Detalles de la orden para importar</h3>
-      </div>
-
-      <mat-card class="order-card">
-        <mat-card-header>
-          <div mat-card-avatar class="order-avatar">
-            <mat-icon>description</mat-icon>
-          </div>
-          <mat-card-title>Orden N° {{ orderData.numero }}/{{ orderData.anio }}</mat-card-title>
-          <mat-card-subtitle>SIAF: {{ orderData.siaf }}</mat-card-subtitle>
-        </mat-card-header>
-
-        <mat-card-content>
-          <!-- Reemplaza la sección order-details con este código -->
-<div class="order-details">
-  <!-- Información General -->
-  <div class="detail-section">
-    <h4>
-      <mat-icon>info</mat-icon>
-      Información General
-    </h4>
-    <div class="detail-grid">
-      <mat-form-field appearance="outline" class="detail-item">
-        <mat-label>Fecha de Prestación</mat-label>
-        <input 
-          matInput 
-          [value]="formatDate(orderData.fecha_prestacion)" 
-          readonly>
-        <mat-icon matSuffix>schedule</mat-icon>
-      </mat-form-field>
-      
-      <mat-form-field appearance="outline" class="detail-item">
-        <mat-label>Plazo de Prestación (días)</mat-label>
-        <input 
-          matInput 
-          type="number"
-          [value]="orderData.plazo_prestacion"
-          readonly>
-        <mat-icon matSuffix>timer</mat-icon>
-      </mat-form-field>
-      
-      <mat-form-field appearance="outline" class="detail-item">
-        <mat-label>Tipo de Maquinaria</mat-label>
-        <input 
-          matInput 
-          [value]="getTipoMaquinaria()" 
-          readonly>
-        <mat-icon matSuffix>build</mat-icon>
-      </mat-form-field>
-      <mat-form-field appearance="outline" class="detail-item">
-        <mat-label>Tipo de Maquinaria</mat-label>
-        <input 
-          matInput 
-          [value]="" 
-          readonly>
-        <mat-icon matSuffix>build</mat-icon>
-      </mat-form-field>
-    </div>
-  </div>
-
-  <mat-divider></mat-divider>
-
-  <!-- Información del Proveedor -->
-  <div class="detail-section">
-    <h4>
-      <mat-icon>business</mat-icon>
-      Información del Proveedor
-    </h4>
-    <div class="detail-grid">
-      <mat-form-field appearance="outline" class="detail-item">
-        <mat-label>RUC</mat-label>
-        <input 
-          matInput 
-          [value]="orderData.ruc" 
-          readonly>
-        <mat-icon matSuffix>badge</mat-icon>
-      </mat-form-field>
-      
-      <mat-form-field appearance="outline" class="detail-item full-width">
-        <mat-label>Razón Social</mat-label>
-        <input 
-          matInput 
-          [value]="orderData.rsocial" 
-          readonly>
-        <mat-icon matSuffix>domain</mat-icon>
-      </mat-form-field>
-      
-      <mat-form-field appearance="outline" class="detail-item">
-        <mat-label>Teléfono Principal</mat-label>
-        <input 
-          matInput 
-          [value]="orderData.telefono1" 
-          readonly>
-        <mat-icon matSuffix>phone</mat-icon>
-      </mat-form-field>
-      
-      <mat-form-field appearance="outline" class="detail-item" *ngIf="orderData.telefono2">
-        <mat-label>Teléfono Secundario</mat-label>
-        <input 
-          matInput 
-          [value]="orderData.telefono2" 
-          readonly>
-        <mat-icon matSuffix>phone</mat-icon>
-      </mat-form-field>
-      
-      <mat-form-field appearance="outline" class="detail-item full-width">
-        <mat-label>Email</mat-label>
-        <input 
-          matInput 
-          [value]="orderData.email" 
-          readonly>
-        <mat-icon matSuffix>email</mat-icon>
-      </mat-form-field>
-    </div>
-  </div>
-
-  <mat-divider></mat-divider>
-
-  <!-- Información del Servicio -->
-  <div class="detail-section">
-    <h4>
-      <mat-icon>construction</mat-icon>
-      Información del Servicio
-    </h4>
-    <div class="detail-grid">
-      <mat-form-field appearance="outline" class="detail-item full-width">
-        <mat-label>Catálogo del Servicio</mat-label>
-        <input 
-          matInput 
-          [value]="orderData.name_catalog" 
-          readonly>
-        <mat-icon matSuffix>category</mat-icon>
-      </mat-form-field>
-      
-      <mat-form-field appearance="outline" class="detail-item">
-        <mat-label>Unidad de Medida</mat-label>
-        <input 
-          matInput 
-          [value]="orderData.desmedida" 
-          readonly>
-        <mat-icon matSuffix>straighten</mat-icon>
-      </mat-form-field>
-      
-      <mat-form-field appearance="outline" class="detail-item">
-        <mat-label>Cantidad</mat-label>
-        <input 
-          matInput 
-          type="number"
-          [value]="orderData.cantidad"
-          readonly>
-        <mat-icon matSuffix>format_list_numbered</mat-icon>
-      </mat-form-field>
-      
-      <mat-form-field appearance="outline" class="detail-item">
-        <mat-label>Precio Unitario</mat-label>
-        <input 
-          matInput 
-          [value]="formatCurrency(orderData.precio)"
-          readonly>
-        <mat-icon matSuffix>attach_money</mat-icon>
-      </mat-form-field>
-    </div>
-    
-    <!-- Detalles del Item -->
-    <mat-form-field appearance="outline" class="detail-item full-width">
-      <mat-label>Detalles del Servicio</mat-label>
-      <textarea 
-        matInput 
-        [value]="orderData.item"
-        readonly
-        rows="4"
-        cdkTextareaAutosize
-        #autosize="cdkTextareaAutosize"
-        cdkAutosizeMinRows="4"
-        cdkAutosizeMaxRows="8">
-      </textarea>
-      <mat-icon matSuffix>description</mat-icon>
-    </mat-form-field>
-  </div>
-
-  <mat-divider></mat-divider>
-
-  <!-- Información del Proyecto -->
-  <div class="detail-section">
-    <h4>
-      <mat-icon>account_tree</mat-icon>
-      Información del Proyecto
-    </h4>
-    <div class="detail-grid">
-      <mat-form-field appearance="outline" class="detail-item">
-        <mat-label>Código de Meta</mat-label>
-        <input 
-          matInput 
-          [value]="orderData.cod_meta" 
-          readonly>
-        <mat-icon matSuffix>code</mat-icon>
-      </mat-form-field>
-      
-      <mat-form-field appearance="outline" class="detail-item full-width">
-        <mat-label>Descripción de Meta</mat-label>
-        <textarea 
-          matInput 
-          [value]="orderData.desmeta"
-          readonly
-          rows="3"
-          cdkTextareaAutosize
-          cdkAutosizeMinRows="3"
-          cdkAutosizeMaxRows="5">
-        </textarea>
-        <mat-icon matSuffix>flag</mat-icon>
-      </mat-form-field>
-      
-      <mat-form-field appearance="outline" class="detail-item">
-        <mat-label>Fuente de Financiamiento</mat-label>
-        <input 
-          matInput 
-          [value]="orderData.desrubro" 
-          readonly>
-        <mat-icon matSuffix>account_balance</mat-icon>
-      </mat-form-field>
-      
-      <mat-form-field appearance="outline" class="detail-item">
-        <mat-label>Procedimiento</mat-label>
-        <input 
-          matInput 
-          [value]="orderData.desprocedim" 
-          readonly>
-        <mat-icon matSuffix>gavel</mat-icon>
-      </mat-form-field>
-    </div>
-  </div>
-
-  <mat-divider></mat-divider>
-
-  <!-- Detalles de la Orden -->
-  <div class="detail-section">
-    <h4>
-      <mat-icon>notes</mat-icon>
-      Detalles Adicionales de la Orden
-    </h4>
-    <mat-form-field appearance="outline" class="detail-item full-width">
-      <mat-label>Detalles de la Orden</mat-label>
-      <textarea 
-        matInput 
-        [value]="orderData.detalles_orden"
-        readonly
-        rows="6"
-        cdkTextareaAutosize
-        cdkAutosizeMinRows="6"
-        cdkAutosizeMaxRows="10">
-      </textarea>
-      <mat-icon matSuffix>article</mat-icon>
-    </mat-form-field>
-  </div>
-
-  <mat-divider></mat-divider>
-
-  <!-- Resumen de Costos -->
-  <div class="detail-section">
-    <h4>
-      <mat-icon>calculate</mat-icon>
-      Resumen de Costos
-    </h4>
-    <div class="cost-summary">
-      <div class="cost-item">
-        <span class="cost-label">Cantidad:</span>
-        <span class="cost-value">{{ orderData.cantidad }} {{ orderData.desmedida }}</span>
-      </div>
-      <div class="cost-item">
-        <span class="cost-label">Precio Unitario:</span>
-        <span class="cost-value">{{ formatCurrency(orderData.precio) }}</span>
-      </div>
-      <div class="cost-item total">
-        <span class="cost-label">Total:</span>
-        <span class="cost-value">{{ formatCurrency(getTotal()) }}</span>
-      </div>
-    </div>
-  </div>
-</div>
-        </mat-card-content>
-
-        <mat-card-actions class="card-actions">
+        <div class="form-actions">
           <button 
             mat-raised-button 
-            color="primary"
-            (click)="importOrder()"
-            [disabled]="isLoading">
-            <mat-icon>download</mat-icon>
-            Importar Orden
+            color="primary" 
+            type="button"
+            (click)="searchOrder()"
+            [disabled]="isLoading" 
+            class="search-button">
+            <mat-icon *ngIf="!isLoading">search</mat-icon>
+            <mat-icon *ngIf="isLoading" class="spinning">refresh</mat-icon>
+            {{ isLoading ? 'Buscando...' : 'Buscar' }}
           </button>
+          
           <button 
-            mat-button
+            mat-button 
+            type="button"
             (click)="clearData()"
             [disabled]="isLoading">
-            <mat-icon>refresh</mat-icon>
-            Nueva Búsqueda
+            <mat-icon>clear</mat-icon>
+            Limpiar
           </button>
-        </mat-card-actions>
-      </mat-card>
+        </div>
+      </form>
+  
+      <div *ngIf="isLoading" class="loading-container">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Buscando orden en SILUCIA...</p>
+      </div>
+  
+      <div *ngIf="showResults && orderData" class="results-section">
+        <div class="results-header">
+          <mat-icon>assignment</mat-icon>
+          <h3>Detalles de la orden para importar</h3>
+        </div>
+  
+        <mat-card class="order-card">
+          <mat-card-header>
+            <div mat-card-avatar class="order-avatar">
+              <mat-icon>description</mat-icon>
+            </div>
+            <mat-card-title>Orden N° {{ orderData.numero }}/{{ orderData.anio }}</mat-card-title>
+            <mat-card-subtitle>SIAF: {{ orderData.siaf }}</mat-card-subtitle>
+          </mat-card-header>
+  
+          <mat-card-content>
+            <form [formGroup]="importForm" class="import-form">
+              <div class="order-details">
+                
+                <div class="detail-section">
+                  <h4 class="section-title">
+                    <mat-icon>assignment</mat-icon>
+                    Información de la Orden
+                  </h4>
+                  <div class="detail-row">
+                    <div class="detail-item">
+                      <strong>Fecha de Prestación:</strong>
+                      <span>{{ formatDate(orderData.fecha_prestacion) }}</span>
+                    </div>
+                    <div class="detail-item">
+                      <strong>Plazo de Prestación:</strong>
+                      <span>{{ orderData.plazo_prestacion }} días</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="detail-section">
+                  <h4 class="section-title">
+                    <mat-icon>business</mat-icon>
+                    Información del Proveedor
+                  </h4>
+                  <div class="detail-row">
+
+                    <div class="detail-item">
+                      <strong>Ruc Proveedor:</strong>
+                      <span>{{ orderData.ruc }}</span>
+                    </div>
+                    <div class="detail-item">
+                      <strong>Razon Social:</strong>
+                      <span>{{ orderData.rsocial }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="detail-section">
+                  <h4 class="section-title">
+                    <mat-icon>account_tree</mat-icon>
+                    Información del Proyecto
+                  </h4>
+                  <div class="detail-row">
+                    <div class="detail-item">
+                      <strong>Razon Social:</strong>
+                      <span>{{ orderData.cod_meta }}</span>
+                    </div>
+                    
+                    <div class="detail-item">
+                      <strong>Razon Social:</strong>
+                      <span>{{ orderData.desmeta }}</span>
+                    </div>
+                  </div>
+                </div>
+  
+                <div class="detail-section">
+                  <h4 class="section-title">
+                    <mat-icon>person</mat-icon>
+                    Información del Operador
+                  </h4>
+                  <div class="detail-row">
+                    <mat-form-field appearance="outline" class="field-full">
+                      <mat-label>Operador</mat-label>
+                      <input matInput formControlName="operador">
+                      <mat-icon matSuffix>person</mat-icon>
+                    </mat-form-field>
+                  </div>
+                </div>
+
+                <div class="detail-section">
+                  <h4 class="section-title">
+                    <mat-icon>build</mat-icon>
+                    Información de la Maquinaria
+                  </h4>
+                  
+                  <div class="detail-row">
+                    <mat-form-field appearance="outline" class="field-medium">
+                      <mat-label>Tipo de Maquinaria</mat-label>
+                      <mat-select formControlName="tipoMaquinaria">
+                        <mat-option *ngFor="let option of tipoMaquinariaOptions" [value]="option.value">
+                          {{ option.label }}
+                        </mat-option>
+                      </mat-select>
+                      <mat-icon matSuffix>category</mat-icon>
+                    </mat-form-field>
+                    
+                    <mat-form-field appearance="outline" class="field-medium">
+                      <mat-label>Máquina/Equipo</mat-label>
+                      <input matInput formControlName="maquinaria">
+                      <mat-icon matSuffix>precision_manufacturing</mat-icon>
+                    </mat-form-field>
+                  </div>
+  
+                  <div class="detail-row">
+                    <mat-form-field appearance="outline" class="field-medium">
+                      <mat-label>Marca</mat-label>
+                      <input matInput formControlName="marca">
+                      <mat-icon matSuffix>business_center</mat-icon>
+                    </mat-form-field>
+                    
+                    <mat-form-field appearance="outline" class="field-medium">
+                      <mat-label>Modelo</mat-label>
+                      <input matInput formControlName="modelo">
+                      <mat-icon matSuffix>inventory_2</mat-icon>
+                    </mat-form-field>
+                  </div>
+  
+                  <div class="detail-row">
+                    <mat-form-field appearance="outline" class="field-medium">
+                      <mat-label>Motor/Capacidad</mat-label>
+                      <input matInput formControlName="capacidad">
+                      <mat-icon matSuffix>settings</mat-icon>
+                    </mat-form-field>
+                    
+                    <mat-form-field appearance="outline" class="field-small">
+                      <mat-label>Año</mat-label>
+                      <input matInput formControlName="year">
+                      <mat-icon matSuffix>calendar_today</mat-icon>
+                    </mat-form-field>
+                  </div>
+  
+                  <div class="detail-row">
+                    <mat-form-field appearance="outline" class="field-medium">
+                      <mat-label>Número de Serie</mat-label>
+                      <input matInput formControlName="serie">
+                      <mat-icon matSuffix>confirmation_number</mat-icon>
+                    </mat-form-field>
+                    
+                    <mat-form-field appearance="outline" class="field-medium">
+                      <mat-label>Placa</mat-label>
+                      <input matInput formControlName="placa">
+                      <mat-icon matSuffix>local_shipping</mat-icon>
+                    </mat-form-field>
+                  </div>
+                </div>
+  
+              </div>
+            </form>
+          </mat-card-content>
+  
+          <mat-card-actions class="card-actions">
+            <button 
+              mat-raised-button 
+              color="primary"
+              (click)="importOrder()"
+              [disabled]="isLoading || importForm.invalid">
+              <mat-icon>download</mat-icon>
+              Importar Orden
+            </button>
+            <button 
+              mat-button
+              (click)="clearData()"
+              [disabled]="isLoading">
+              <mat-icon>refresh</mat-icon>
+              Nueva Búsqueda
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
     </div>
   </div>
-</div>

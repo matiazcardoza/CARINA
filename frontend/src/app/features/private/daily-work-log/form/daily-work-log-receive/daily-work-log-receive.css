@@ -347,3 +347,59 @@
 .mat-mdc-form-field .mat-mdc-form-field-icon-suffix {
   color: #666;
 }
+
+.detail-section {
+  margin-bottom: 24px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  color: #1976d2;
+  font-weight: 500;
+}
+
+.section-divider {
+  margin: 24px 0;
+}
+
+.detail-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.field-small {
+  flex: 0 1 150px;
+  min-width: 150px;
+}
+
+.field-medium {
+  flex: 1 1 250px;
+  min-width: 200px;
+}
+
+.field-large {
+  flex: 2 1 300px;
+  min-width: 250px;
+}
+
+.field-full {
+  flex: 1 1 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .detail-row {
+    flex-direction: column;
+  }
+  
+  .field-small,
+  .field-medium,
+  .field-large {
+    flex: 1 1 100%;
+  }
+}

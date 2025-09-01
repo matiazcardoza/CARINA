@@ -10,8 +10,7 @@ use App\Http\Controllers\PdfControllerKardex;
 use App\Http\Controllers\PeopleController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductMovementKardexController;
-use App\Http\Controllers\SignatureCallbackController;
-use App\Http\Controllers\SignatureController;
+use App\Http\Controllers\ServiceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth; 
 use Illuminate\Support\Facades\Route;
@@ -25,8 +24,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     
 
     //orders silucia routes
-    Route::get('/orders-silucia', [OrderSiluciaController::class, 'index']);
     Route::post('orders-silucia/import-order', [OrderSiluciaController::class, 'importOrder']);
+
+    //Services
+    Route::get('/services', [ServiceController::class, 'index']);
 
     //daily work log routes
     Route::get('/daily-work-log/{id}', [DailyPartController::class, 'index']);

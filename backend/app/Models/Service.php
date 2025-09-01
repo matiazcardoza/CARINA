@@ -14,7 +14,12 @@ class Service extends Model
 
     protected $fillable = [
         'order_id',
+        'mechanical_equipment_id',
+        'goal_id',
+        'operator',
         'description',
-        'state',
+        'goal_project',
+        'goal_detail',
+        'state'
     ];
 }

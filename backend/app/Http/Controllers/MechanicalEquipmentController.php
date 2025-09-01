@@ -18,7 +18,7 @@ class MechanicalEquipmentController extends Controller
 
     function store(Request $request){
         $newEquipment = MechanicalEquipment::create([
-            'machinery_equipment' => $request->mechanicalEquipment,
+            'machinery_equipment' => $request->machinery_equipment,
             'ability' => $request->ability,
             'brand' => $request->brand,
             'model' => $request->model,
@@ -35,7 +35,6 @@ class MechanicalEquipmentController extends Controller
     }
 
     function update(Request $request, $id){
-        Log::info('esta es el request', $request->all());
         $updateEquipment = MechanicalEquipment::find($id);
 
         $updateEquipment->update([

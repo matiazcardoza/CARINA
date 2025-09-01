@@ -1,0 +1,251 @@
+<div class="dialog-container">
+    <div class="header-section">
+        <h2 class="dialog-title">
+            <mat-icon>precision_manufacturing</mat-icon>
+            Importar Maquinaria/Equipo
+        </h2>
+        <p class="dialog-subtitle">
+            Ingrese los datos requeridos para la importacion de la maquinaria/equipo
+        </p>
+    </div>
+
+    <div class="content-section">
+        <div class="search-header">
+            <mat-icon>search</mat-icon>
+            <h3>Buscar Maquinaria/Equipo</h3>
+        </div>
+        
+        <div *ngIf="isLoading" class="loading-container">
+            <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
+            <p>Cargando equipos...</p>
+        </div>
+
+        <mat-card *ngIf="errorMessage && !isLoading" class="error-card">
+            <mat-card-content>
+                <div class="error-content">
+                    <mat-icon color="warn">error</mat-icon>
+                    <div>
+                        <p>{{errorMessage}}</p>
+                        <button mat-button color="primary" (click)="retryLoadEquipment()">
+                            <mat-icon>refresh</mat-icon>
+                            Reintentar
+                        </button>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+        
+        <form [formGroup]="searchForm" class="order-form" (ngSubmit)="buscarMaquinaria()" *ngIf="!isLoading && !errorMessage">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Seleccionar Maquinaria/Equipo</mat-label>
+                <input 
+                type="text"
+                placeholder="Escriba para buscar o seleccione..."
+                matInput
+                formControlName="maquinariaSearch"
+                [matAutocomplete]="auto">
+                <mat-icon matSuffix>search</mat-icon>
+                
+                <mat-autocomplete 
+                #auto="matAutocomplete" 
+                [displayWith]="displayMaquinaria"
+                (optionSelected)="onMaquinariaSelected($event.option.value)">
+                
+                <mat-option 
+                    *ngFor="let maquinaria of filteredMaquinaria | async" 
+                    [value]="maquinaria"
+                    class="maquinaria-option">
+                    
+                    <div class="option-content">
+                    <div class="option-header">
+                        <strong>{{maquinaria.plate || 'Sin Placa'}}</strong>
+                        <mat-chip 
+                        [color]="getEstadoInfo(maquinaria.state).color"
+                        selected>
+                        {{getEstadoInfo(maquinaria.state).label}}
+                        </mat-chip>
+                    </div>
+                    <div class="option-title">{{maquinaria.machinery_equipment}}</div>
+                    <div class="option-details">
+                        <span class="marca">{{maquinaria.brand}}</span> • 
+                        <span class="modelo">{{maquinaria.model}}</span> • 
+                        <span class="capacidad">{{maquinaria.ability}}</span>
+                    </div>
+                    <div class="option-serial" *ngIf="maquinaria.serial_number">
+                        <small>S/N: {{maquinaria.serial_number}}</small>
+                    </div>
+                    </div>
+                </mat-option>
+                
+                <mat-option *ngIf="(filteredMaquinaria | async)?.length === 0" disabled>
+                    <div class="no-results">
+                    <mat-icon>search_off</mat-icon>
+                    <span>No se encontraron equipos</span>
+                    </div>
+                </mat-option>
+                </mat-autocomplete>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Nombre del Operador</mat-label>
+                <input 
+                    matInput 
+                    type="text"
+                    formControlName="operador"
+                    placeholder="Ingrese nombre completo del operador">
+            </mat-form-field>
+        </form>
+
+        <div class="selected-machinery" *ngIf="selectedMaquinaria">
+            <h4>
+                <mat-icon>info</mat-icon>
+                Maquinaria Seleccionada
+            </h4>
+            <mat-card class="machinery-card">
+                <mat-card-header>
+                    <mat-card-title>{{selectedMaquinaria.machinery_equipment}}</mat-card-title>
+                    <mat-card-subtitle>
+                        Placa: {{selectedMaquinaria.plate || 'Sin Placa'}} • 
+                        ID: {{selectedMaquinaria.id}}
+                    </mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                    <div class="machinery-details">
+                        <div class="detail-item">
+                            <strong>Marca:</strong> {{selectedMaquinaria.brand}}
+                        </div>
+                        <div class="detail-item">
+                            <strong>Modelo:</strong> {{selectedMaquinaria.model}}
+                        </div>
+                        <div class="detail-item">
+                            <strong>Capacidad:</strong> {{selectedMaquinaria.ability}}
+                        </div>
+                        <div class="detail-item">
+                            <strong>Año:</strong> {{selectedMaquinaria.year}}
+                        </div>
+                        <div class="detail-item" *ngIf="selectedMaquinaria.serial_number">
+                            <strong>Nº Serie:</strong> {{selectedMaquinaria.serial_number}}
+                        </div>
+                        <div class="detail-item">
+                            <strong>Estado:</strong> 
+                            <mat-chip 
+                                [color]="getEstadoInfo(selectedMaquinaria.state).color"
+                                selected>
+                                {{getEstadoInfo(selectedMaquinaria.state).label}}
+                            </mat-chip>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <h4>
+                <mat-icon>code</mat-icon>
+                Buscar Meta
+            </h4>
+            <mat-card class="meta-card">
+                <mat-card-header>
+                    <mat-card-title>Código de Meta</mat-card-title>
+                    <mat-card-subtitle>Ingrese el código para extraer los datos de Meta</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                    <form [formGroup]="metaSearchForm" (ngSubmit)="buscarMeta()" class="meta-search-form">
+                        <div class="search-input-container">
+                            <mat-form-field appearance="outline" class="meta-search-field">
+                                <mat-label>Código de Meta</mat-label>
+                                <input 
+                                    matInput 
+                                    formControlName="metaCode"
+                                    placeholder="Ej: META001"
+                                    (keyup.enter)="buscarMeta()">
+                                <mat-error *ngIf="metaSearchForm.get('metaCode')?.hasError('required')">
+                                    El código es requerido
+                                </mat-error>
+                                <mat-error *ngIf="metaSearchForm.get('metaCode')?.hasError('minlength')">
+                                    Mínimo 3 caracteres
+                                </mat-error>
+                            </mat-form-field>
+                            <button 
+                                mat-icon-button 
+                                color="primary"
+                                type="submit"
+                                [disabled]="metaSearchForm.invalid || isLoadingMeta"
+                                class="search-button">
+                                <mat-icon *ngIf="!isLoadingMeta">search</mat-icon>
+                                <mat-progress-spinner 
+                                    *ngIf="isLoadingMeta" 
+                                    mode="indeterminate" 
+                                    diameter="20">
+                                </mat-progress-spinner>
+                            </button>
+                        </div>
+                    </form>
+
+                    <div *ngIf="metaErrorMessage" class="meta-error">
+                        <mat-icon color="warn">warning</mat-icon>
+                        <span>{{metaErrorMessage}}</span>
+                    </div>
+
+                    <div *ngIf="selectedMeta" class="meta-results">
+                        <mat-divider></mat-divider>
+                        <h5>
+                            <mat-icon color="primary">check_circle</mat-icon>
+                            Meta Encontrada
+                        </h5>
+                        <div class="meta-details">
+                            <div class="meta-item">
+                                <strong>ID Meta:</strong> {{selectedMeta.idmeta}}
+                            </div>
+                            <div class="meta-item">
+                                <strong>Código:</strong> {{selectedMeta.codmeta}}
+                            </div>
+                            <div class="meta-item meta-description">
+                                <strong>Descripción:</strong> 
+                                <span>{{selectedMeta.desmeta}}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="meta-actions">
+                            <button 
+                                mat-button 
+                                color="accent"
+                                (click)="limpiarBusquedaMeta()">
+                                <mat-icon>clear</mat-icon>
+                                Limpiar
+                            </button>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <mat-card class="order-card">
+                <mat-card-actions class="card-actions">
+                    <button 
+                        mat-raised-button 
+                        color="primary"
+                        (click)="importarOrden()"
+                        [disabled]="!canImportOrder">
+                        <mat-icon>download</mat-icon>
+                        Importar Orden
+                    </button>
+                    <button 
+                        mat-button
+                        (click)="nuevaBusqueda()">
+                        <mat-icon>refresh</mat-icon>
+                        Nueva Búsqueda
+                    </button>
+                </mat-card-actions>
+                
+                <mat-card-content *ngIf="!canImportOrder" class="import-status">
+                    <div class="status-message">
+                        <mat-icon color="accent">info</mat-icon>
+                        <span>
+                            Para importar necesita: 
+                            <strong *ngIf="!selectedMaquinaria">Seleccionar Maquinaria</strong>
+                            <strong *ngIf="selectedMaquinaria && !selectedMeta">Buscar Meta</strong>
+                        </span>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        </div>
+    </div>
+</div>

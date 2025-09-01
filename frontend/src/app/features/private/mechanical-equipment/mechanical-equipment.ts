@@ -16,6 +16,8 @@ export interface MechanicalEquipmentElement {
   ability: string;
   brand: string;
   model: string;
+  plate: string;
+  year: string;
   serial_number: string;
   state: number;
 }
