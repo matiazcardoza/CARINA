@@ -335,6 +335,41 @@ class FpdfExample extends \FPDF {
         }
     }
 
+    function renderTitle(string $text = 'CONTROL DE MATERIALES', array $opt = []): void
+    {
+        // Asegura que exista página (pero NO agregues otra)
+        if ($this->PageNo() === 0) {
+            $this->AddPage(); // Header se dibuja aquí
+        }
+
+        // Opciones
+        $gapBefore = $opt['gapBefore'] ?? 2;   // espacio antes (mm)
+        $gapAfter  = $opt['gapAfter']  ?? 3;   // espacio después (mm)
+        [$fam,$sty,$sz] = $opt['font'] ?? ['Arial','B',14];
+        $align = $opt['align'] ?? 'C';         // 'L' | 'C' | 'R'
+        $underline = $opt['underline'] ?? false;
+
+        if ($gapBefore > 0) $this->Ln($gapBefore);
+
+        // Fuente y, si quieres, subrayado por estilo
+        $this->SetFont($fam, $underline ? ($sty.'U') : $sty, $sz);
+
+        // Alto de la línea del título
+        $lineH = $opt['lineHeight'] ?? 10;
+
+        // Título centrado usando enc() para tildes
+        $y0 = $this->GetY();
+        $this->Cell(0, $lineH, $this->enc($text), 0, 1, $align);
+
+        // Alternativa: una línea horizontal bajo el título (si prefieres)
+        if (! $underline && ($opt['rule'] ?? false)) {
+            $xL = $this->lMargin;
+            $xR = $this->GetPageWidth() - $this->rMargin;
+            $this->Line($xL, $y0 + $lineH + 0.5, $xR, $y0 + $lineH + 0.5);
+        }
+
+        if ($gapAfter > 0) $this->Ln($gapAfter);
+    }
 
     /**
      * Convierte UTF-8 a Windows-1252 preservando tildes y comillas tipográficas.

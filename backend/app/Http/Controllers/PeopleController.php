@@ -11,8 +11,8 @@ use Illuminate\Support\Facades\Log;
 class PeopleController extends Controller
 {
     // public function __construct(private ReniecClient $reniec) {}
-    // public function __construct(private PersonFinder $finder) {}
-    public function __construct(private DecolectaClient $decolecta) {}
+    public function __construct(private PersonFinder $finder) {}
+    // public function __construct(private DecolectaClient $decolecta) {}
     // Esta funcion sirve para recuperar un dni de nuestra propia base de datos, y si esta no existe, busca el registro del
     // dni en la base de datos de la reniec, guarda el registro en nuestra propia base de datos y nos entrega el registro
     public function showOrFetchx(string $dni)
@@ -81,7 +81,7 @@ class PeopleController extends Controller
     }
 
 
-    public function showOrFetchy(string $dni)
+    public function showOrFetch(string $dni)
     {
         $dni = str_pad(preg_replace('/\D/', '', $dni), 8, '0', STR_PAD_LEFT);
 
@@ -119,7 +119,7 @@ class PeopleController extends Controller
 
         return response()->json(['from' => $data->source, 'data' => $person], 201);
     }
-    public function showOrFetch(string $dni)
+    public function showOrFetchz(string $dni)
     {
         // Normaliza DNI a 8 dígitos
         $dni = str_pad(preg_replace('/\D/', '', $dni), 8, '0', STR_PAD_LEFT);
