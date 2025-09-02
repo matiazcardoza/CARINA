@@ -47,15 +47,19 @@ export class DailyWorkLogUpload implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: UploadDialogData,
     private cdr: ChangeDetectorRef
   ) {
+    // CAMBIO PRINCIPAL: Inicializar el formulario igual que en el componente principal
     this.uploadForm = this.fb.group({
-      end_time: [{value: '', disabled: true}, Validators.required],
+      end_time: ['', Validators.required], // Sin disabled: true aquí
       occurrence: [''] // Campo opcional para notas adicionales
     });
   }
 
   ngOnInit() {
-    // Establecer la hora actual como hora de finalización por defecto
+    // APLICAR LA MISMA LÓGICA: Establecer la hora actual y luego deshabilitar
     this.setCurrentTime();
+    
+    // Deshabilitar el campo después de establecer el valor, igual que en el componente principal
+    this.uploadForm.get('end_time')?.disable();
   }
 
   private setCurrentTime() {
@@ -67,6 +71,7 @@ export class DailyWorkLogUpload implements OnInit {
     this.uploadForm.patchValue({
       end_time: currentTime
     });
+    this.cdr.detectChanges();
   }
 
   onFileSelect(event: any) {
@@ -127,8 +132,6 @@ export class DailyWorkLogUpload implements OnInit {
 
   onSubmit() {
     if (this.uploadForm.valid && !this.isLoading) {
-
-      // Validar que se hayan seleccionado archivos
       if (this.selectedFiles.length === 0) {
         alert('Debes seleccionar al menos una imagen para completar el registro.');
         return;
@@ -136,38 +139,39 @@ export class DailyWorkLogUpload implements OnInit {
 
       this.isLoading = true;
 
-      // Obtener valores incluyendo campos deshabilitados
       const formValue = this.uploadForm.getRawValue();
-
-      // Crear FormData para envío multipart
       const formData = new FormData();
+      
       formData.append('workLogId', this.data.workLog.id.toString());
       formData.append('end_time', formValue.end_time);
-      formData.append('occurrence', formValue.occurrence);
+      formData.append('occurrence', formValue.occurrence || '');
 
-      // Agregar todas las imágenes
       this.selectedFiles.forEach((file, index) => {
         formData.append(`images[]`, file);
       });
 
-      this.dailyWorkLogService.completeWorkLog(formData)
-        .subscribe({
-          next: (response) => {
-            this.isLoading = false;
-            this.cdr.detectChanges();
-            this.dialogRef.close(response);
-          },
-          error: (error) => {
-            this.isLoading = false;
-            this.cdr.detectChanges();
-            console.error('Error al completar el registro:', error);
-            alert('Error al completar el registro. Por favor, intenta nuevamente.');
-          }
-        });
+      setTimeout(() => {
+        this.dailyWorkLogService.completeWorkLog(formData)
+          .subscribe({
+            next: (response) => {
+              this.isLoading = false;
+              this.cdr.detectChanges();
+              setTimeout(() => {
+                this.dialogRef.close(response || true);
+              }, 100);
+            },
+            error: (error) => {
+              this.isLoading = false;
+              this.cdr.detectChanges();
+              console.error('Error al completar el registro:', error);
+              alert('Error al completar el registro. Por favor, intenta nuevamente.');
+            }
+          });
+      }, 0);
     }
   }
 
-  // Getters para mostrar errores
+  // AGREGAR: Getters para errores igual que en el componente principal
   get endTimeError() {
     const control = this.uploadForm.get('end_time');
     if (control?.hasError('required') && control?.touched) {
@@ -176,14 +180,8 @@ export class DailyWorkLogUpload implements OnInit {
     return '';
   }
 
-  get finalFuelError() {
-    const control = this.uploadForm.get('final_fuel');
-    if (control?.hasError('required') && control?.touched) {
-      return 'El combustible final es requerido';
-    }
-    if (control?.hasError('min') && control?.touched) {
-      return 'El combustible final debe ser mayor o igual a 0';
-    }
+  get occurrenceError() {
+    const control = this.uploadForm.get('occurrence');
     return '';
   }
 

@@ -14,14 +14,14 @@ class DailyPart extends Model
 
     protected $fillable = [
         'service_id',
+        'products_id',
         'description',
+        'occurrences',
         'work_date',
         'start_time',
         'end_time',
         'initial_fuel',
-        'final_fuel',
         'time_worked',
-        'fuel_consumed',
         'state',
     ];
 }

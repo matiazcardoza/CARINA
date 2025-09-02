@@ -14,6 +14,6 @@ class WorkEvidence extends Model
 
     protected $fillable = [
         'daily_part_id',
-        'evidence_path',
+        'evidence_path'
     ];
 }

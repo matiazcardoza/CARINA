@@ -94,7 +94,7 @@
         }
 
         .date-cell {
-            width: 140px;
+            width: 170px;
             text-align: center;
         }
 
@@ -426,7 +426,7 @@
 
                 <td class="title-cell">
                     <h1>GOBIERNO REGIONAL PUNO</h1>
-                    <h2>{{ $orderSilucia->goal_detail }}</h2>
+                    <h2>{{ $service->goal_detail }}</h2>
                 </td>
 
                 <td class="date-cell">
@@ -465,39 +465,39 @@
         <tr>
             <td class="info-label">OBRA:</td>
             <td colspan="3">
-                <span class="info-line">{{ $orderSilucia->goal_detail }}</span>
+                <span class="info-line">{{ $service->goal_detail }}</span>
             </td>
         </tr>
         <tr>
             <td class="info-label">PROPIETARIO:</td>
             <td colspan="3">
-                <span class="info-line">TENAY COMPAY EIRL</span>
+                <span class="info-line">{{ $orderSilucia->supplier ?? 'GOBIERNO REGIONAL - EQUIPO MECANICO' }}</span>
             </td>
         </tr>
         <tr>
             <td class="info-label">NOMBRE DEL OPERADOR:</td>
             <td colspan="3">
-                <span class="info-line">VALVERDE VILCA CHOQUE</span>
+                <span class="info-line">{{ $service->operator }}</span>
             </td>
         </tr>
         <tr>
             <td class="info-label">EQUIPO O MAQUINARIA:</td>
             <td style="width: 45%;">
-                <span class="info-line">CATERPILLAR</span>
+                <span class="info-line">{{ $orderSilucia->machinery_equipment ?? $mechanicalEquipment->machinery_equipment }}</span>
             </td>
             <td class="info-label" style="width: 10%;">CAPACIDAD:</td>
             <td style="width:65%;">
-                <span class="info-line">Cat C4.4</span>
+                <span class="info-line">{{  $orderSilucia->ability ?? $mechanicalEquipment->ability }}</span>
             </td>
         </tr>
         <tr>
             <td class="info-label">MARCA:</td>
             <td style="width: 45%;">
-                <span class="info-line"> CATERPILLAR MODELO: 416F2</span>
+                <span class="info-line">{{ $orderSilucia->brand ?? $mechanicalEquipment->brand }}</span>
             </td>
             <td class="info-label" style="width: 10%;">PLACA:</td>
             <td style="width: 65%">
-                <span class="info-line">BCG-205</span>
+                <span class="info-line">{{ $orderSilucia->plate ?? $mechanicalEquipment->plate }}</span>
             </td>
         </tr>
     </table>
@@ -593,7 +593,9 @@
     <div class="observations">
         <div class="observations-label">Ocurrencias:</div>
         <div style="min-height: 18px; padding: 2px 0;">
-            Trabajo ejecutado según especificaciones técnicas. Condiciones climáticas favorables.
+            @foreach($dailyPart as $part)
+                {{ $part->occurrences }}.
+            @endforeach
         </div>
     </div>
 
