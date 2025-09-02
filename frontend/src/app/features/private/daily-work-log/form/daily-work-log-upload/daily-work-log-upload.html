@@ -2,7 +2,7 @@
 
 <mat-dialog-content>
   <form [formGroup]="uploadForm" class="upload-form">
-    
+
     <!-- Información del registro -->
     <div class="work-log-info">
       <p><strong>ID del Registro:</strong> #{{data.workLog?.id}}</p>
@@ -12,33 +12,20 @@
     <div class="form-row-container">
         <mat-form-field appearance="outline" class="full-width">
             <mat-label>Hora de Finalización</mat-label>
-            <input 
-            matInput 
-            type="time" 
+            <input
+            matInput
+            type="time"
             formControlName="end_time"
             readonly>
             <mat-hint>Se establece automáticamente con la hora actual</mat-hint>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Combustible Final</mat-label>
-            <input 
-            matInput 
-            type="number" 
-            step="0.1"
-            min="0"
-            formControlName="final_fuel"
-            placeholder="Ej: 85.5"
-            [class.error]="finalFuelError">
-            <mat-error>{{finalFuelError}}</mat-error>
         </mat-form-field>
     </div>
 
     <div class="form-row">
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Ocurrencias </mat-label>
-        <textarea 
-          matInput 
+        <textarea
+          matInput
           formControlName="occurrence"
           rows="3"
           placeholder="Escribe cualquier observación adicional..."></textarea>
@@ -54,17 +41,17 @@
 
       <!-- Botón de selección de archivos -->
       <div class="file-input-container">
-        <input 
+        <input
           #fileInput
-          type="file" 
-          multiple 
+          type="file"
+          multiple
           accept="image/jpeg,image/jpg,image/png,image/webp"
           (change)="onFileSelect($event)"
           class="file-input">
-        
-        <button 
-          type="button" 
-          mat-raised-button 
+
+        <button
+          type="button"
+          mat-raised-button
           color="primary"
           (click)="fileInput.click()"
           [disabled]="selectedFiles.length >= maxFiles">
@@ -76,25 +63,25 @@
       <!-- Vista previa de archivos seleccionados -->
       <div class="file-preview-container" *ngIf="selectedFiles.length > 0">
         <h4>Imágenes Seleccionadas ({{selectedFiles.length}}/{{maxFiles}})</h4>
-        
+
         <div class="preview-grid">
-          <div 
-            class="preview-item" 
+          <div
+            class="preview-item"
             *ngFor="let previewUrl of previewUrls; let i = index">
-            
+
             <div class="image-container">
               <img [src]="previewUrl" [alt]="selectedFiles[i].name">
-              
-              <button 
+
+              <button
                 type="button"
-                mat-icon-button 
+                mat-icon-button
                 class="remove-button"
                 (click)="removeFile(i)"
                 color="warn">
                 <mat-icon>close</mat-icon>
               </button>
             </div>
-            
+
             <div class="file-info">
               <p class="file-name">{{selectedFiles[i].name}}</p>
               <p class="file-size">{{formatFileSize(selectedFiles[i].size)}}</p>
@@ -115,19 +102,19 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button 
-    mat-button 
+  <button
+    mat-button
     (click)="onCancel()"
     [disabled]="isLoading">
     Cancelar
   </button>
-  
-  <button 
-    mat-raised-button 
+
+  <button
+    mat-raised-button
     color="primary"
     (click)="onSubmit()"
     [disabled]="!uploadForm.valid || selectedFiles.length === 0 || isLoading">
-    
+
     <span *ngIf="!isLoading">Completar Registro</span>
     <span *ngIf="isLoading">
       <mat-icon class="spinning">refresh</mat-icon>

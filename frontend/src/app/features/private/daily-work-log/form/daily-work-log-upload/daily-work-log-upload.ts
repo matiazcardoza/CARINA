@@ -30,7 +30,7 @@ export interface UploadDialogData {
   ]
 })
 export class DailyWorkLogUpload implements OnInit {
-  
+
   uploadForm: FormGroup;
   isLoading = false;
   selectedFiles: File[] = [];
@@ -38,7 +38,7 @@ export class DailyWorkLogUpload implements OnInit {
   maxFiles = 5; // Máximo número de archivos
   maxFileSize = 5 * 1024 * 1024; // 5MB por archivo
   allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-  
+
   private fb = inject(FormBuilder);
   private dailyWorkLogService = inject(DailyWorkLogService);
 
@@ -49,7 +49,6 @@ export class DailyWorkLogUpload implements OnInit {
   ) {
     this.uploadForm = this.fb.group({
       end_time: [{value: '', disabled: true}, Validators.required],
-      final_fuel: ['', [Validators.required, Validators.min(0)]],
       occurrence: [''] // Campo opcional para notas adicionales
     });
   }
@@ -64,7 +63,7 @@ export class DailyWorkLogUpload implements OnInit {
     const hours = now.getHours().toString().padStart(2, '0');
     const minutes = now.getMinutes().toString().padStart(2, '0');
     const currentTime = `${hours}:${minutes}`;
-    
+
     this.uploadForm.patchValue({
       end_time: currentTime
     });
@@ -72,7 +71,7 @@ export class DailyWorkLogUpload implements OnInit {
 
   onFileSelect(event: any) {
     const files = Array.from(event.target.files) as File[];
-    
+
     // Validar número máximo de archivos
     if (this.selectedFiles.length + files.length > this.maxFiles) {
       alert(`Solo puedes subir un máximo de ${this.maxFiles} imágenes`);
@@ -86,7 +85,7 @@ export class DailyWorkLogUpload implements OnInit {
       }
 
       this.selectedFiles.push(file);
-      
+
       // Crear preview de la imagen
       const reader = new FileReader();
       reader.onload = (e: any) => {
@@ -128,7 +127,7 @@ export class DailyWorkLogUpload implements OnInit {
 
   onSubmit() {
     if (this.uploadForm.valid && !this.isLoading) {
-      
+
       // Validar que se hayan seleccionado archivos
       if (this.selectedFiles.length === 0) {
         alert('Debes seleccionar al menos una imagen para completar el registro.');
@@ -136,15 +135,14 @@ export class DailyWorkLogUpload implements OnInit {
       }
 
       this.isLoading = true;
-      
+
       // Obtener valores incluyendo campos deshabilitados
       const formValue = this.uploadForm.getRawValue();
-      
+
       // Crear FormData para envío multipart
       const formData = new FormData();
       formData.append('workLogId', this.data.workLog.id.toString());
       formData.append('end_time', formValue.end_time);
-      formData.append('final_fuel', formValue.final_fuel.toString());
       formData.append('occurrence', formValue.occurrence);
 
       // Agregar todas las imágenes

@@ -39,7 +39,7 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
 
   constructor(private route: ActivatedRoute, private cdr: ChangeDetectorRef) {}
 
-  displayedColumns: string[] = ['id', 'work_date', 'start_time', 'initial_fuel', 'actions'];
+  displayedColumns: string[] = ['id', 'work_date', 'start_time', 'initial_fuel', 'end_time', 'actions'];
   dataSource = new MatTableDataSource<WorkLogIdElement>([]);
   private dailyWorkLogService = inject(DailyWorkLogService);
   private dialog = inject(MatDialog);
