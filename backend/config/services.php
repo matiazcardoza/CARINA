@@ -38,6 +38,10 @@ return [
     'reniec' => [
         'base_url' => env('RENIEC_BASE_URL'),
     ],
+    'decolecta' => [
+        'base_url' => env('DECOLECTA_BASE_URL', 'https://api.decolecta.com'),
+        'token'    => env('DECOLECTA_TOKEN'),
+    ],
     'silucia' => [
         'base_url' => env('SILUCIA_BASE_URL'),
     ],

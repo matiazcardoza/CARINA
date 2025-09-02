@@ -55,7 +55,7 @@ export const routes: Routes = [
     },
     // Rutas protegidas que requieren autenticación (dashboard y sus hijos)
     {
-        path: 'carina', 
+        path: 'private', 
         component: Dashboard,
         canActivate: [authGuard], // <--- ¡Esta es la línea clave que añadimos!
         children: [

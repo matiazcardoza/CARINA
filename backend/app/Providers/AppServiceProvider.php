@@ -12,7 +12,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $providers = config('person.providers', []);
+        if (!empty($providers)) {
+            $this->app->tag($providers, 'person.providers');
+        }
+
+        $this->app->bind(\App\Services\PersonFinder::class, function ($app) {
+            $tagged = $app->tagged('person.providers'); // iterable en el orden del config
+            return new \App\Services\PersonFinder($tagged);
+        });
     }
 
     /**
