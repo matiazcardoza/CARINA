@@ -70,7 +70,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // devuelve los productos guardados de nuestra propia base de datos
     Route::get('/products', [ProductController::class, 'index']);
     // ruta para recibir el pdf
-    
+
 
     // muestra datos de una persona, ya sea consultadno a la api de reniec o consultando la propia base de datos
     Route::get('/people/{dni}', [PeopleController::class, 'showOrFetch'])->middleware(['role:almacen_almacenero']); // cache-first (db) → RENIEC
