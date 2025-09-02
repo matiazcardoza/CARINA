@@ -27,7 +27,6 @@ class DailyPartController extends Controller
 
     function store(Request $request)
     {
-        Log:info('request: ', $request->all());
         $dailyPart = DailyPart::create([
             'service_id' => $request->service_id,
             'work_date' => $request->work_date,
