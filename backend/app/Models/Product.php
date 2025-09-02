@@ -24,11 +24,16 @@ class Product extends Model
         'category_id',
         'numero','fecha','detalles_orden','rsocial','ruc','item','detalle',
         'cantidad','desmedida','precio','total_internado','saldo','pdf_filename','desmeta',
+        'in_qty','out_qty','stock_qty','last_movement_at',
     ];
 
     protected $casts = [
         'id_order_silucia'   => 'string',
         'id_product_silucia' => 'integer',
+        'in_qty'     => 'decimal:4',
+        'out_qty'    => 'decimal:4',
+        'stock_qty'  => 'decimal:4',
+        'unit_price' => 'decimal:2',
     ];
 
 
@@ -44,5 +49,16 @@ class Product extends Model
     
     public function reports() {
         return $this->hasMany(\App\Models\KardexReport::class, 'product_id');
+    }
+
+    public function recalcCounters(): void
+    {
+        $in  = $this->movements()->where('movement_type','entrada')->sum('amount');
+        $out = $this->movements()->where('movement_type','salida')->sum('amount');
+        $this->forceFill([
+            'in_qty'    => $in,
+            'out_qty'   => $out,
+            'stock_qty' => $in - $out,
+        ])->save();
     }
 }
