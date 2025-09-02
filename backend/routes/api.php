@@ -89,4 +89,3 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/files-download', [SignatureController::class, 'filesDownload']);
     // Pruebas para generar codigo qr
     // Route::get('example-qr', [PdfControllerKardex::class, 'generateQRCcode']);
-// Route::get('/people/{dni}', [PeopleController::class, 'showOrFetch']); 

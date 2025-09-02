@@ -361,6 +361,9 @@ class MovementKardexController extends Controller
         $pdf = new FpdfExample();
         url($filename);
         $pdf->setHeaderLogo($qrCode);
+        // $opt = ['rule'=>true];
+        // $pdf->renderTitle(opt: ['underline' => true]);
+        $pdf->renderTitle();
         $pdf->drawKardexSummary(
             $obra,
             $material,
@@ -370,6 +373,7 @@ class MovementKardexController extends Controller
             $stockFinal,
             ['labelW'=>38, 'lineHeight'=>5, 'padX'=>2, 'padY'=>1]
         );
+        
         $pdf->renderTable($headers, $rows, $widths, $styles);
         $pdf->SignatureBoxTest();
         $bytes = $pdf->Output('S');
