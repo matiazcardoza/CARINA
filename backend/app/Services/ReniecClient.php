@@ -9,7 +9,7 @@ class ReniecClient
 
     public function fetchByDni(string $dni): array
     {
-        $resp = Http::withoutVerifying()->retry(2, 200)
+        $resp = Http::withoutVerifying()->retry(1, 200)->timeout(5)
             ->get(config('services.reniec.base_url', env('RENIEC_BASE_URL')), [
                 'nuDniConsulta' => $dni,
                 'nuDniUsuario'  => env('RENIEC_USER_DNI'),
