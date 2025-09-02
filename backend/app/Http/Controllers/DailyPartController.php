@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\DailyPart;
+use App\Models\MechanicalEquipment;
 use App\Models\OrderSilucia;
 use App\Models\Service;
+use App\Models\WorkEvidence;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -77,45 +79,60 @@ class DailyPartController extends Controller
 
     public function completeWork(Request $request)
     {
-        $worlkLogId = $request->workLogId;
-            $dailyPart = DailyPart::find($worlkLogId);
-            $dailyPart->end_time = $request->end_time;
-            $dailyPart->final_fuel = $request->final_fuel;
-            $start = Carbon::parse($dailyPart->start_time);
-            $end = Carbon::parse($dailyPart->end_time);
-            $interval = $start->diff($end);
-            $hours = $interval->h;
-            $minutes = $interval->i;
-            $timeWorked = $hours + ($minutes / 60);
-            $dailyPart->time_worked = $timeWorked;
-            $dailyPart->fuel_consumed = $dailyPart->final_fuel - $dailyPart->initial_fuel;
-        $dailyPart->save();
+        $dailyPart = DailyPart::find($request->workLogId);
 
-        $service = Service::find($dailyPart->service_id);
-        $service->occurrences = $request->occurrence;
-        $service->save();
+        $start = Carbon::createFromFormat('H:i:s', $dailyPart->start_time);
+        $end = Carbon::createFromFormat('H:i', $request->end_time);
 
+        if ($end->lessThan($start)) {
+            $end->addDay(); 
+        }
 
+        $diffInSeconds = $end->diffInSeconds($start);
+        $workedTime = gmdate('H:i:s', $diffInSeconds);
+
+        $dailyPart->update([
+            'end_time'    => $request->end_time,
+            'occurrences' => $request->occurrence,
+            'time_worked' => $workedTime,
+        ]);
+
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $index => $image) {
+                $timestamp = now()->format('YmdHis');
+                $extension = $image->getClientOriginalExtension();
+                $fileName = "{$dailyPart->id}_evidence_{$index}_{$timestamp}.{$extension}";
+                
+                $path = $image->storeAs('work_evidences', $fileName, 'public');
+                
+                WorkEvidence::create([
+                    'daily_part_id' => $dailyPart->id,
+                    'evidence_path' => $path
+                ]);
+            }
+        }
 
         return response()->json([
             'message' => 'Daily work log completed successfully',
-            'data' => $dailyPart
         ], 200);
     }
 
     public function generatePdf($serviceId)
     {
+
         $service = Service::find($serviceId);
         $orderSilucia = OrderSilucia::find($service->order_id);
         $dailyPart = DailyPart::where('service_id', $serviceId)->get();
-        Log::info("infomacion de pdf". $dailyPart);
+        $mechanicalEquipment = MechanicalEquipment::find($service->mechanical_equipment_id);
         $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
         $logoWorkPath = storage_path('app/public/image_pdf_template/logo_work.png');
         $qr_code = base64_encode("data_qr_example");
         $data = [
             'logoPath' => $logoPath,
-            'orderSilucia' => $orderSilucia,
             'logoWorkPath' => $logoWorkPath,
+            'orderSilucia' => $orderSilucia,
+            'mechanicalEquipment' => $mechanicalEquipment,
+            'service' => $service,
             'dailyPart' => $dailyPart,
             'pdf' => true,
             'qr_code' => $qr_code
@@ -123,7 +140,6 @@ class DailyPartController extends Controller
 
         $pdf = Pdf::loadView('pdf.daily_part', $data);
 
-        // Configurar opciones del PDF si es necesario
         $pdf->setPaper('A4', 'portrait');
 
         return $pdf->stream('anexo_01_planilla.pdf');

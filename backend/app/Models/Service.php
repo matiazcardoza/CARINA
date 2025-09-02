@@ -20,6 +20,7 @@ class Service extends Model
         'description',
         'goal_project',
         'goal_detail',
+        'fuel_consumed',
         'state'
     ];
 }

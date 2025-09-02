@@ -1,3 +1,5 @@
+/* daily-work-log-upload.css */
+
 .upload-form {
   display: flex;
   flex-direction: column;
@@ -24,6 +26,19 @@
 
 .full-width {
   width: 100%;
+}
+
+/* CAMBIO PRINCIPAL: Aplicar los mismos estilos que en el formulario principal */
+/* Estilo para el campo de hora que es readonly - IGUAL QUE EN EL COMPONENTE PRINCIPAL */
+.upload-form input[readonly] {
+  cursor: default;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+/* Estilo para el hint de hora automática - IGUAL QUE EN EL COMPONENTE PRINCIPAL */
+.upload-form mat-hint {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.6);
 }
 
 .upload-section {
@@ -206,18 +221,6 @@ mat-form-field {
   margin-bottom: 8px;
 }
 
-/* Campo deshabilitado */
-mat-form-field input[readonly] {
-  background-color: #f5f5f5;
-  color: #666;
-  cursor: not-allowed;
-}
-
-mat-form-field .mat-mdc-form-field-hint {
-  color: #666;
-  font-size: 12px;
-}
-
 textarea {
   resize: vertical;
   min-height: 60px;
@@ -232,6 +235,6 @@ button[mat-raised-button] {
 
 .form-row-container {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* Dos columnas de igual tamaño */
-  gap: 16px; /* Espacio entre los campos */
+  grid-template-columns: 1fr; /* Una sola columna para el campo de hora */
+  gap: 16px;
 }

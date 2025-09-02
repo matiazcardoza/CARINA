@@ -10,25 +10,29 @@
 
     <!-- Campos del formulario -->
     <div class="form-row-container">
+        <!-- CAMBIO PRINCIPAL: Aplicar la misma estructura que en el formulario principal -->
         <mat-form-field appearance="outline" class="full-width">
             <mat-label>Hora de Finalización</mat-label>
-            <input
-            matInput
-            type="time"
-            formControlName="end_time"
-            readonly>
-            <mat-hint>Se establece automáticamente con la hora actual</mat-hint>
+            <input matInput
+                   formControlName="end_time"
+                   readonly
+                   placeholder="HH:MM">
+            <mat-hint>La hora se asigna automáticamente</mat-hint>
+            <mat-error>{{ endTimeError }}</mat-error>
         </mat-form-field>
     </div>
 
     <div class="form-row">
       <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Ocurrencias </mat-label>
+        <mat-label>Ocurrencias</mat-label>
         <textarea
           matInput
           formControlName="occurrence"
           rows="3"
-          placeholder="Escribe cualquier observación adicional..."></textarea>
+          placeholder="Escribe cualquier observación adicional..."
+          maxlength="500"></textarea>
+        <mat-hint>Máximo 500 caracteres</mat-hint>
+        <mat-error>{{ occurrenceError }}</mat-error>
       </mat-form-field>
     </div>
 
