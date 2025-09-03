@@ -69,6 +69,7 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
     this.dailyWorkLogService.getWorkLogData(serviceIdNumber)
       .subscribe({
         next: (data) => {
+          console.log(data);
           this.dataSource.data = data;
           this.isLoading = false;
           this.cdr.detectChanges();

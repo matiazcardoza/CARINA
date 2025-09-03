@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\DailyPart;
 use App\Models\MechanicalEquipment;
+use App\Models\MovementKardex;
 use App\Models\OrderSilucia;
+use App\Models\Product;
 use App\Models\Service;
 use App\Models\WorkEvidence;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -17,7 +19,10 @@ class DailyPartController extends Controller
     function index(Request $request)
     {
         $serviceId = $request->id;
-        $dailyParts = DailyPart::where('service_id', $serviceId)->get();
+        $dailyParts = DailyPart::select('daily_parts.*', 'products.numero', 'products.item')
+            ->where('service_id', $serviceId)
+            ->leftJoin('products', 'products.id', '=', 'daily_parts.products_id')
+            ->get();
 
         return response()->json([
             'message' => 'Daily work log retrieved successfully',
@@ -29,10 +34,27 @@ class DailyPartController extends Controller
     {
         $dailyPart = DailyPart::create([
             'service_id' => $request->service_id,
+            'products_id' => $request->product_id,
             'work_date' => $request->work_date,
             'start_time' => $request->start_time,
             'initial_fuel' => $request->initial_fuel,
             'description' => $request->description
+        ]);
+
+        $product = Product::find($request->product_id);
+        
+        $product->update([
+            'out_qty' => $request->initial_fuel,
+            'stock_qty' => $product->stock_qty - $request->initial_fuel,
+            'last_movement_at'=> now(),
+        ]);
+
+        MovementKardex::create([
+            'product_id' => $product->id,
+            'movement_type' => 'salida',
+            'movement_date' => now(),
+            'amount' => $request->initial_fuel,
+            'observations' => 'salida a parte diaria'
         ]);
 
         return response()->json([
@@ -41,29 +63,39 @@ class DailyPartController extends Controller
         ], 201);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
-        $dailyPart = DailyPart::findOrFail($id);
+        $dailyPart = DailyPart::findOrFail($request->id);
 
-            $validatedData = $request->validate([
-                'work_date' => 'required|date',
-                'start_time' => 'required|date_format:H:i:s',
-                'initial_fuel' => 'nullable|numeric|min:0',
-            ]);
+        $product = Product::find($request->product_id);
+        $diferentFuel = $request->initial_fuel - $dailyPart->initial_fuel;
 
-            if (isset($validatedData['start_time'])) {
-                $time = $validatedData['start_time'];
-                if (substr_count($time, ':') === 1) {
-                    $validatedData['start_time'] = $time . ':00';
-                }
-            }
+        if(){
+            
+        }
 
-            $dailyPart->refresh();
+        $product->update([
+            'out_qty' => $request->initial_fuel,
+            'stock_qty' => $product->stock_qty + $diferentFuel
+        ]);
 
-            return response()->json([
-                'message' => 'Daily work log updated successfully',
-                'data' => $dailyPart
-            ], 200);
+        $dailyPart->update([
+            'products_id' => $request->product_id,
+            'initial_fuel' => $request->initial_fuel,
+            'description' => $request->description
+        ]);
+
+        $MovementKardex = MovementKardex::where('product_id', $product->id)->first();
+
+        $MovementKardex->update([
+            'product_id' => $product->id,
+            'amount' => $request->initial_fuel
+        ]);
+
+        return response()->json([
+            'message' => 'Daily work log actualised successfully',
+            'data' => $dailyPart
+        ], 201);
     }
 
     public function destroy($id)

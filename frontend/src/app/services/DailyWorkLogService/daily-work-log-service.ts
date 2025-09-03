@@ -64,8 +64,8 @@ export class DailyWorkLogService {
     );
   }
 
-  updateWorkLog(id: number, workLogData: CreateWorkLogData): Observable<WorkLogElement> {
-    return this.http.put<SingleApiResponse>(`${this.apiUrl}/api/daily-work-log/${id}`, workLogData, {
+  updateWorkLog( workLogData: CreateWorkLogData): Observable<WorkLogElement> {
+    return this.http.put<SingleApiResponse>(`${this.apiUrl}/api/daily-work-log/`, workLogData, {
       withCredentials: true
     }).pipe(
       map(response => response.data)

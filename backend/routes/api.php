@@ -33,7 +33,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //daily work log routes
     Route::get('/daily-work-log/{id}', [DailyPartController::class, 'index']);
     Route::post('/daily-work-log', [DailyPartController::class, 'store']);
-    Route::put('/daily-work-log/{id}', [DailyPartController::class, 'update']);
+    Route::put('/daily-work-log', [DailyPartController::class, 'update']);
     Route::delete('/daily-work-log/{id}', [DailyPartController::class, 'destroy']);
     Route::post('/daily-work-log/complete', [DailyPartController::class, 'completeWork']);
     Route::post('/daily-work-log/{id}/generate-pdf', [DailyPartController::class, 'generatePdf']);
@@ -43,6 +43,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/mechanical-equipment', [MechanicalEquipmentController::class, 'store']);
     Route::put('/mechanical-equipment/{id}', [MechanicalEquipmentController::class, 'update']);
     Route::delete('/mechanical-equipment/{id}', [MechanicalEquipmentController::class, 'destroy']);
+
+    //products
+    Route::get('/products-select', [ProductController::class, 'consultaProductSelect']);
 
     // recurso anidado se obtiene productos pertenecientes a una orden sillucia
     Route::apiResource('orders-silucia.products', OrderProductsController::class)
