@@ -9,6 +9,13 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
 import { DailyWorkLogService } from '../../../../../services/DailyWorkLogService/daily-work-log-service';
+import { MatSelectModule } from '@angular/material/select';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+
+import { startWith, map } from 'rxjs/operators';
+import { FormControl } from '@angular/forms';
+
+import { ProductsService, ProductsElement } from '../../../../../services/productsService/products-service';
 
 export interface DialogData {
   isEdit: boolean;
@@ -28,7 +35,14 @@ export interface DialogData {
     MatFormFieldModule,
     MatInputModule,
     MatDatepickerModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    MatSelectModule,
+    MatAutocompleteModule
+  ],
+  standalone: true,
+  providers: [
+    DailyWorkLogService,
+    ProductsService
   ]
 })
 export class DailyWorkLogForm implements OnInit {
@@ -36,8 +50,16 @@ export class DailyWorkLogForm implements OnInit {
   workLogForm: FormGroup;
   isLoading = false;
 
+  products: ProductsElement[] = [];
+
+  filteredProducts: ProductsElement[] = [];
+  private productsControl = new FormControl();
+
+  isLoadingProducts = false;
+
   private fb = inject(FormBuilder);
   private dailyWorkLogService = inject(DailyWorkLogService);
+  private productsService = inject(ProductsService);
 
   constructor(
     public dialogRef: MatDialogRef<DailyWorkLogForm>,
@@ -48,19 +70,40 @@ export class DailyWorkLogForm implements OnInit {
       work_date: ['', Validators.required],
       start_time: ['', Validators.required],
       initial_fuel: ['', [Validators.required, Validators.min(0)]],
+      product_id: ['', Validators.required],
       description: ['']
     });
   }
 
   ngOnInit() {
-    if (this.data.isEdit && this.data.workLog) {
+    this.loadProducts();
 
+    this.workLogForm.get('initial_fuel')?.disable();
+
+    this.workLogForm.get('product_id')?.valueChanges.pipe(
+      startWith(''),
+      map(value => (typeof value === 'string' ? value : value?.numero))
+    ).subscribe(numero => {
+      this.filteredProducts = this._filter(numero || '');
+      const currentValue = this.workLogForm.get('product_id')?.value;
+      if (currentValue && typeof currentValue === 'object' && currentValue.id) {
+        this.workLogForm.get('initial_fuel')?.enable();
+      } else {
+        this.workLogForm.get('initial_fuel')?.disable();
+        this.workLogForm.get('initial_fuel')?.setValue('');
+      }
+    });
+
+    if (this.data.isEdit && this.data.workLog) {
+      const product = { id: this.data.workLog.products_id, numero: this.data.workLog.numero, item: this.data.workLog.item } as ProductsElement;
       this.workLogForm.patchValue({
         work_date: this.data.workLog.work_date ? new Date(this.data.workLog.work_date) : null,
         start_time: this.data.workLog.start_time,
+        product_id: product,
         initial_fuel: this.data.workLog.initial_fuel,
         description: this.data.workLog.description || ''
       });
+      this.workLogForm.get('initial_fuel')?.enable();
       this.workLogForm.get('work_date')?.disable();
       this.workLogForm.get('start_time')?.disable();
     } else {
@@ -73,6 +116,46 @@ export class DailyWorkLogForm implements OnInit {
       this.workLogForm.get('work_date')?.disable();
       this.workLogForm.get('start_time')?.disable();
     }
+  }
+
+  get isProductSelected(): boolean {
+    const product = this.workLogForm.get('product_id')?.value;
+    return product && typeof product === 'object' && product.id;
+  }
+
+  onProductSelected(product: ProductsElement) {
+    this.workLogForm.get('product_id')?.setValue(product);
+    this.workLogForm.get('initial_fuel')?.enable();
+  }
+
+  displayProduct(product: ProductsElement | null): string {
+    return product ? `${product.numero} - ${product.item}` : '';
+  }
+
+  private _filter(value: string): ProductsElement[] {
+    const filterValue = value.toLowerCase();
+    return this.products.filter(product =>
+      product.numero.toLowerCase().includes(filterValue) ||
+      product.item.toLowerCase().includes(filterValue)
+    );
+  }
+
+  private loadProducts() {
+    this.isLoadingProducts = true;
+    this.productsService.getProducts().subscribe({
+      next: (products) => {
+        console.log('Productos cargados:', products);
+        this.products = products;
+        this.isLoadingProducts = false;
+        this.filteredProducts = [...this.products];
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error al cargar productos:', error);
+        this.isLoadingProducts = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   private setCurrentTime() {
@@ -104,10 +187,14 @@ export class DailyWorkLogForm implements OnInit {
       this.isLoading = true;
 
       const formValue = this.workLogForm.getRawValue();
+      const productObject = formValue.product_id;
+      
       const workLogData = {
+        id: this.data.workLog?.id,
         work_date: this.formatDate(formValue.work_date),
         start_time: formValue.start_time,
         initial_fuel: parseFloat(formValue.initial_fuel),
+        product_id: productObject.id,
         description: formValue.description,
         service_id: this.data.serviceId ? Number(this.data.serviceId) : null
       };
@@ -115,7 +202,7 @@ export class DailyWorkLogForm implements OnInit {
       if (this.data.isEdit && this.data.workLog?.id) {
 
         setTimeout(() => {
-          this.dailyWorkLogService.updateWorkLog(this.data.workLog.id, workLogData)
+          this.dailyWorkLogService.updateWorkLog(workLogData)
             .subscribe({
               next: (updatedWorkLog) => {
                 this.isLoading = false;
@@ -185,6 +272,14 @@ export class DailyWorkLogForm implements OnInit {
     const control = this.workLogForm.get('start_time');
     if (control?.hasError('required') && control?.touched) {
       return 'La hora inicial es requerida';
+    }
+    return '';
+  }
+
+  get productError() {
+    const control = this.workLogForm.get('product_id');
+    if (control?.hasError('required') && control?.touched) {
+      return 'El producto es requerido';
     }
     return '';
   }

@@ -128,7 +128,7 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
     // Aquí irá la lógica para ver los detalles
   }
   
-  openMaintenanceDialog(equipment: MechanicalEquipmentElement) {
+  openWorkDialog(equipment: MechanicalEquipmentElement) {
     console.log('Abrir mantenimiento para:', equipment);
     // Aquí irá la lógica para programar mantenimiento
   }

@@ -139,4 +139,11 @@ class ProductController extends Controller
         return response()->json($products);
     }
 
+    function consultaProductSelect(Request $request){
+        $products = Product::select('id', 'numero', 'item')->get();
+        return response()->json([
+            'message' => 'productos cargados correctamente',
+            'data' => $products
+        ]);
+    }
 }

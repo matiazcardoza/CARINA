@@ -27,3 +27,9 @@
   font-size: 12px;
   color: rgba(0, 0, 0, 0.6);
 }
+
+/* Estilo para el estado de carga del autocomplete */
+.mat-option.is-loading {
+  color: rgba(0, 0, 0, 0.54);
+  pointer-events: none;
+}
