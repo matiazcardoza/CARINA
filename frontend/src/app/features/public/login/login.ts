@@ -1,21 +1,19 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/AuthService/auth';
 import { CommonModule } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { environment } from '../../../../environments/environment'; // ajusta la ruta si tu estructura difiere
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.html',
   styleUrls: ['./login.css'],
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule
-  ]
+  imports: [CommonModule, ReactiveFormsModule]
 })
-export class Login {
+export class Login implements OnInit {
   loginForm: FormGroup;
   isLoading = false;
   errorMessage = '';
@@ -23,12 +21,19 @@ export class Login {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private http: HttpClient
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
+  }
+
+  ngOnInit(): void {
+    // Al cargar la vista de login: prepara cookies CSRF/sesión para evitar 419 en el POST /login
+    this.http.get(`${environment.BACKEND_URL}/sanctum/csrf-cookie`, { withCredentials: true })
+      .subscribe({ next: () => {}, error: () => {} });
   }
 
   onLogin(): void {
@@ -75,15 +80,9 @@ export class Login {
   getFieldError(fieldName: string): string {
     const field = this.loginForm.get(fieldName);
     if (field?.errors && field.touched) {
-      if (field.errors['required']) {
-        return `${fieldName} es requerido`;
-      }
-      if (field.errors['email']) {
-        return 'Email no válido';
-      }
-      if (field.errors['minlength']) {
-        return `${fieldName} debe tener al menos ${field.errors['minlength'].requiredLength} caracteres`;
-      }
+      if (field.errors['required']) return `${fieldName} es requerido`;
+      if (field.errors['email']) return 'Email no válido';
+      if (field.errors['minlength']) return `${fieldName} debe tener al menos ${field.errors['minlength'].requiredLength} caracteres`;
     }
     return '';
   }

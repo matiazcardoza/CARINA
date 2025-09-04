@@ -210,10 +210,11 @@ class MovementKardexController extends Controller
             ], 201);
         });
     }
+    
     public function store(StoreMovementRequest $request)
     {
+        // Log::info(request);
         $data = $request->validated();
-
         return DB::transaction(function () use ($request, $data) {
 
             $sil = $request->input('silucia_product', []);

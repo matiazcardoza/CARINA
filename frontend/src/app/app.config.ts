@@ -15,6 +15,7 @@ import Aura from '@primeuix/themes/aura';
 import Material from '@primeuix/themes/material';
 import Lara from '@primeuix/themes/lara';
 import Nora from '@primeuix/themes/nora';
+import { authExpirationInterceptor } from './services/AuthService/auth-expiration.interceptor';
 // Aura – look moderno por defecto.
 
 // Material – inspirado en Material Design v2.
@@ -41,7 +42,7 @@ export const appConfig: ApplicationConfig = {
     // provideAnimationsAsync(),
     provideAnimations(),
     provideHttpClient(
-      withInterceptors([csrfInterceptor]),
+      withInterceptors([csrfInterceptor, authExpirationInterceptor]),
       withXsrfConfiguration({
         cookieName: 'XSRF-TOKEN',
         headerName: 'X-XSRF-TOKEN'

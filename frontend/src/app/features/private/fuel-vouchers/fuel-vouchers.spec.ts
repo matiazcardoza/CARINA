@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ValuedKardex } from './valued-kardex';
+import { FuelVouchers } from './fuel-vouchers';
 
-describe('ValuedKardex', () => {
-  let component: ValuedKardex;
-  let fixture: ComponentFixture<ValuedKardex>;
+describe('FuelVouchers', () => {
+  let component: FuelVouchers;
+  let fixture: ComponentFixture<FuelVouchers>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ValuedKardex]
+      imports: [FuelVouchers]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(ValuedKardex);
+    fixture = TestBed.createComponent(FuelVouchers);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
