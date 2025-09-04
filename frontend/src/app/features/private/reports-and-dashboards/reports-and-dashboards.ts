@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
@@ -10,7 +10,13 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormsModule, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MatAutocomplete, MatAutocompleteModule } from '@angular/material/autocomplete';
+import { Observable, startWith, map, catchError, of } from 'rxjs';
+import { WorkLogElement } from '../../../features/private/daily-work-log/daily-work-log';
+import { WorkLogIdElement } from '../daily-work-log/daily-work-log-id/daily-work-log-id';
+import { DailyWorkLogService } from '../../../services/DailyWorkLogService/daily-work-log-service';
+import { MatInputModule } from '@angular/material/input';
 
 interface ParteDiario {
   id: number;
@@ -54,12 +60,24 @@ interface ResumenDashboard {
     MatProgressBarModule,
     MatBadgeModule,
     MatFormFieldModule,
-    FormsModule
+    MatInputModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatAutocompleteModule
   ],
   templateUrl: './reports-and-dashboards.html',
   styleUrl: './reports-and-dashboards.css'
 })
 export class ReportsAndDashboards implements OnInit {
+
+  searchForm: FormGroup;
+  filteredServicio!: Observable<WorkLogElement[]>;
+  selectedServicio: WorkLogElement | null = null;
+  servicioList: WorkLogElement[] = [];
+
+  isLoading = false;
+  errorMessage = '';
+
 
   // Datos falsos para el dashboard
   resumenDashboard: ResumenDashboard = {
@@ -185,9 +203,62 @@ export class ReportsAndDashboards implements OnInit {
     'Mejoramiento Carretera Sur'
   ];
 
+  constructor(
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef,
+    private dailyWorkLogService: DailyWorkLogService
+  ) {
+    this.searchForm = this.fb.group({
+      maquinariaSearch: ['']
+    });
+  }
+
   ngOnInit(): void {
     // Inicialización del componente
+    
+    this.loadServices();
     this.calcularResumenDashboard();
+  }
+
+  loadServices(): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+    
+    this.dailyWorkLogService.getSelectedServiceData()
+      .pipe(
+        catchError(error => {
+          console.error('Error loading mechanical equipment:', error);
+          this.errorMessage = 'Error al cargar la maquinaria. Por favor, intente nuevamente.';
+          return of([]);
+        })
+      )
+      .subscribe(service => {
+        this.servicioList = service;
+        this.isLoading = false;
+        this.filteredServicio = this.searchForm.get('maquinariaSearch')!.valueChanges.pipe(
+          startWith(''),
+          map(value => this._filterServicio(typeof value === 'string' ? value : value?.goal_detail || ''))
+        );
+        this.cdr.detectChanges();
+      });
+  }
+
+  getDailyPartsData(servicio: WorkLogElement): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+    
+    this.dailyWorkLogService.getDailyPartData(servicio.goal_id)
+    .pipe(
+      catchError(error => {
+        console.error('Error al cargar los partes diarios:', error);
+        this.errorMessage = 'Error al cargar los partes diarios. Por favor, intente nuevamente.';
+        return of([]);
+      })
+    )
+    .subscribe((data: WorkLogIdElement[]) => {
+      console.log('Estos son los datos que llegan:', data);
+      this.isLoading = false;
+    });
   }
 
   calcularResumenDashboard(): void {
@@ -246,5 +317,26 @@ export class ReportsAndDashboards implements OnInit {
   onProyectoChange(): void {
     console.log('Proyecto seleccionado:', this.proyectoSeleccionado);
     // Aquí implementarías la lógica de filtrado por proyecto
+  }
+
+  displayServicio(servicio: WorkLogElement): string {
+    return servicio ? `${servicio.goal_project || 'N/A'} - ${servicio.goal_detail}` : '';
+  }
+
+  onServicioSelected(servicio: WorkLogElement): void {
+    this.selectedServicio = servicio;
+    this.getDailyPartsData(servicio);
+  }
+
+  private _filterServicio(value: string): WorkLogElement[] {
+    if (!value) {
+      return this.servicioList;
+    }
+
+    const filterValue = value.toLowerCase();
+    return this.servicioList.filter(servicio => 
+      servicio.goal_project?.toLowerCase().includes(filterValue) ||
+      servicio.goal_detail?.toLowerCase().includes(filterValue)
+    );
   }
 }

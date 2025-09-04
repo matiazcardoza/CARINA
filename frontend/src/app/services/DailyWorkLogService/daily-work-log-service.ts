@@ -98,4 +98,20 @@ export class DailyWorkLogService {
     const apiUrl = `https://sistemas.regionpuno.gob.pe/siluciav2-api/api/ordenserviciodetallado?numero=${orderNumber}`;
     return this.http.get<any>(apiUrl);
   }
+
+  getSelectedServiceData(): Observable<WorkLogElement[]> {
+    return this.http.get<WorkLogApiResponse>(`${this.apiUrl}/api/services/selected`, {
+      withCredentials: true
+    }).pipe(
+      map(response => response.data)
+    );
+  }
+
+  getDailyPartData(codGoal: number): Observable<WorkLogIdElement[]> {
+    return this.http.get<WorkLogIdApiResponse>(`${this.apiUrl}/api/services/daily-parts/${codGoal}`, {
+      withCredentials: true,
+    }).pipe(
+      map(response => response.data)
+    );
+  }
 }

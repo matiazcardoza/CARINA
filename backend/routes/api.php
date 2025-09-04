@@ -13,6 +13,8 @@ use App\Http\Controllers\SignatureController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PurchaseOrdersController;
+use App\Models\Service;
+
 // use App\Http\Controllers\PdfControllerKardex;
 // use Illuminate\Support\Facades\Auth;
 // use App\Http\Controllers\OrderProductoController;
@@ -29,6 +31,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //Services
     Route::get('/services', [ServiceController::class, 'index']);
+    Route::get('/services/selected', [ServiceController::class, 'selectedData']);
+    Route::get('/services/daily-parts/{idGoal}', [ServiceController::class, 'getDailyPartsData']);
 
     //daily work log routes
     Route::get('/daily-work-log/{id}', [DailyPartController::class, 'index']);

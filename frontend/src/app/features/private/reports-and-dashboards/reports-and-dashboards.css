@@ -4,6 +4,15 @@
   min-height: 100vh;
 }
 
+.full-width {
+  width: 95%;
+}
+
+form{
+  display: flex;
+  justify-content: center;
+}
+
 .dashboard-header {
   display: flex;
   justify-content: space-between;
@@ -89,7 +98,7 @@
 /* Header Card Styles */
 .header-card {
   margin-bottom: 20px;
-  background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+  background: linear-gradient(135deg, #4a9fe9 0%, #8db2db 100%);
   color: white;
 }
 
@@ -250,3 +259,4 @@
 ::ng-deep .mat-badge-content {
   font-size: 10px;
 }
+
