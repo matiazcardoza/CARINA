@@ -376,3 +376,92 @@
     width: 3rem;
   }
 }
+
+/* Contenedor del grupo de navegación */
+.date-controls.compact {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Reducimos el espacio entre elementos */
+  flex-wrap: nowrap; /* Evitamos que se rompa la línea si hay poco espacio */
+}
+
+.date-nav-group {
+  display: flex;
+  align-items: center;
+  gap: 0; /* Eliminamos el espacio entre los elementos del grupo para que se vean unidos */
+  border-radius: 4px;
+}
+
+/* Estilos para el campo de fecha compacto */
+.date-picker-field.compact-field {
+  width: 140px; /* Reducimos el ancho del input */
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 0.9em;
+}
+
+/* Ajustes finos para el input y el mat-label */
+.date-picker-field.compact-field .mat-form-field-wrapper {
+  padding-bottom: 0;
+}
+
+.date-picker-field.compact-field .mat-form-field-flex {
+  padding: 0 8px; /* Reducimos el padding interno */
+}
+
+.date-picker-field.compact-field .mat-form-field-appearance-outline .mat-form-field-infix {
+  padding: 8px 0; /* Ajustamos el padding para reducir la altura */
+}
+
+/* Reducimos el tamaño de los botones de navegación para que coincidan con la altura del input */
+.date-nav-group button.mat-icon-button {
+  width: 36px;
+  height: 36px;
+  line-height: 36px;
+}
+
+/* Eliminamos bordes redundantes para una apariencia unificada */
+.date-nav-group button:first-child {
+  border-right: none;
+}
+.date-nav-group button:last-child {
+  border-left: none;
+}
+.date-picker-field.compact-field {
+  .mat-form-field-appearance-outline .mat-form-field-outline-start,
+  .mat-form-field-appearance-outline .mat-form-field-outline-end,
+  .mat-form-field-appearance-outline .mat-form-field-outline-gap {
+    border-color: transparent !important; /* Escondemos el borde del input para que el borde del grupo sea el principal */
+  }
+}
+
+/* Ajuste del botón 'Hoy' */
+.today-button {
+  height: 36px; /* Hacemos que la altura coincida con el grupo de navegación */
+  font-size: 0.8em;
+  padding: 0 12px;
+}
+
+.date-picker-field.small-date-field {
+  width: 150px; /* Define un ancho fijo para que no sea muy largo */
+  font-size: 0.9em; /* Reduce el tamaño de la fuente para que se vea más pequeño */
+}
+
+/* Ajusta el padding interno del mat-form-field para reducir la altura.
+  La clave es el .mat-form-field-wrapper
+*/
+.date-picker-field.small-date-field .mat-form-field-wrapper {
+  padding-bottom: 0;
+}
+
+/* Ajusta el padding de la sección del input (.mat-form-field-infix)
+  Esto directamente afecta la altura del campo de entrada
+*/
+.date-picker-field.small-date-field .mat-form-field-appearance-outline .mat-form-field-infix {
+  padding: 8px 0; /* Reduce el padding vertical, haciendo el input más "delgado" */
+}
+
+/* Opcional: Ajusta el tamaño de la etiqueta si es necesario */
+.date-picker-field.small-date-field .mat-form-field-label-wrapper {
+  padding-top: 8px; /* Reduce el espacio sobre la etiqueta flotante */
+}

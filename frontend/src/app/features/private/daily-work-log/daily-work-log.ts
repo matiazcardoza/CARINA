@@ -70,7 +70,6 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
       this.dailyWorkLogService.getOrdersWorkLogData()
         .subscribe({
           next: (data) => {
-            console.log('este es el data que llega del servidor', data)
             this.dataSource.data = data;
             this.isLoading = false;
             this.cdr.detectChanges();

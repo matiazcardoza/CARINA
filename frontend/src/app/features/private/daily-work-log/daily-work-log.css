@@ -281,6 +281,14 @@
   background-color: #fff3e0;
 }
 
+.generate-btn {
+  color: #9dad40;
+}
+
+.generate-btn:hover {
+  background-color: #ffebee;
+}
+
 .delete-btn {
   color: #d32f2f;
 }

@@ -102,53 +102,24 @@
     <!-- Tab 2: Reportes Detallados -->
     <mat-tab label="Reportes Detallados">
       
-      <!-- Filtros -->
-      <mat-card class="filters-card">
+      <!-- Header Card con Selector -->
+      <mat-card class="header-card">
         <mat-card-header>
-          <mat-card-title>Filtros de Búsqueda</mat-card-title>
+          <div mat-card-avatar class="header-avatar">
+            <mat-icon>local_gas_station</mat-icon>
+          </div>
+          <mat-card-title>Control de Combustible</mat-card-title>
+          <mat-card-subtitle>Gestión de consumo para maquinarias secas</mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>
-          <div class="filters-row">
-            
-            <mat-form-field appearance="outline">
-              <mat-label>Fecha</mat-label>
-              <input matInput [matDatepicker]="picker" [(ngModel)]="filtroFecha">
-              <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-              <mat-datepicker #picker></mat-datepicker>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Proyecto</mat-label>
-              <mat-select [(ngModel)]="filtroProyecto">
-                <mat-option value="">Todos los proyectos</mat-option>
-                <mat-option *ngFor="let proyecto of proyectosDisponibles" [value]="proyecto">
-                  {{ proyecto }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Estado de Firmas</mat-label>
-              <mat-select [(ngModel)]="filtroEstadoFirmas">
-                <mat-option value="">Todos los estados</mat-option>
-                <mat-option *ngFor="let estado of estadosFirmas" [value]="estado">
-                  {{ estado }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <div class="filter-actions">
-              <button mat-raised-button color="primary" (click)="aplicarFiltros()">
-                <mat-icon>search</mat-icon>
-                Aplicar
-              </button>
-              <button mat-button (click)="limpiarFiltros()">
-                <mat-icon>clear</mat-icon>
-                Limpiar
-              </button>
-            </div>
-
-          </div>
+          <mat-form-field appearance="outline" class="project-selector">
+            <mat-label>Seleccionar Proyecto</mat-label>
+            <mat-select [(ngModel)]="proyectoSeleccionado" (selectionChange)="onProyectoChange()">
+              <mat-option *ngFor="let proyecto of proyectosDisponibles" [value]="proyecto">
+                {{ proyecto }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
         </mat-card-content>
       </mat-card>
 

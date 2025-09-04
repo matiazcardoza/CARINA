@@ -86,22 +86,56 @@
   margin-bottom: 10px;
 }
 
-/* Filters Styles */
-.filters-card {
+/* Header Card Styles */
+.header-card {
   margin-bottom: 20px;
+  background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+  color: white;
 }
 
-.filters-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  align-items: end;
+.header-card .mat-mdc-card-header {
+  padding-bottom: 8px;
 }
 
-.filter-actions {
+.header-avatar {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
   display: flex;
-  gap: 10px;
   align-items: center;
+  justify-content: center;
+}
+
+.header-avatar mat-icon {
+  font-size: 1.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.header-card mat-card-title {
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.header-card mat-card-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.875rem;
+}
+
+.project-selector {
+  max-width: 300px;
+}
+
+.project-selector .mat-mdc-form-field {
+  --mdc-outlined-text-field-label-text-color: rgba(255, 255, 255, 0.8);
+  --mdc-outlined-text-field-input-text-color: white;
+  --mdc-outlined-text-field-outline-color: rgba(255, 255, 255, 0.5);
+  --mdc-outlined-text-field-hover-outline-color: rgba(255, 255, 255, 0.8);
+  --mdc-outlined-text-field-focused-outline-color: white;
+}
+
+.project-selector .mat-mdc-select-arrow {
+  color: white;
 }
 
 /* Table Styles */
@@ -193,12 +227,8 @@
     grid-template-columns: 1fr;
   }
   
-  .filters-row {
-    grid-template-columns: 1fr;
-  }
-  
-  .filter-actions {
-    justify-content: center;
+  .project-selector {
+    max-width: 100%;
   }
 }
 

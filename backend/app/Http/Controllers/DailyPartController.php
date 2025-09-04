@@ -19,7 +19,9 @@ class DailyPartController extends Controller
     function index(Request $request)
     {
         $serviceId = $request->id;
+        $date = $request->query('date', now()->format('Y-m-d'));
         $dailyParts = DailyPart::select('daily_parts.*', 'products.numero', 'products.item')
+            ->whereDate('work_date', $date)
             ->where('service_id', $serviceId)
             ->leftJoin('products', 'products.id', '=', 'daily_parts.products_id')
             ->get();
@@ -41,6 +43,11 @@ class DailyPartController extends Controller
             'description' => $request->description
         ]);
 
+        $servicio = Service::find($request->service_id);
+        $servicio->update([
+            'fuel_consumed' => $servicio->fuel_consumed + $request->initial_fuel
+        ]);
+
         $product = Product::find($request->product_id);
         
         $product->update([
@@ -49,13 +56,19 @@ class DailyPartController extends Controller
             'last_movement_at'=> now(),
         ]);
 
-        MovementKardex::create([
-            'product_id' => $product->id,
-            'movement_type' => 'salida',
-            'movement_date' => now(),
-            'amount' => $request->initial_fuel,
-            'observations' => 'salida a parte diaria'
-        ]);
+        if($request->initial_fuel){
+            $MovementKardex = MovementKardex::create([
+                'product_id' => $product->id,
+                'movement_type' => 'salida',
+                'movement_date' => now(),
+                'amount' => $request->initial_fuel,
+                'observations' => 'salida a parte diaria'
+            ]);
+
+            $dailyPart->update([
+                'movement_kardex_id' => $MovementKardex->id
+            ]);
+        }
 
         return response()->json([
             'message' => 'Daily work log created successfully',
@@ -67,16 +80,27 @@ class DailyPartController extends Controller
     {
         $dailyPart = DailyPart::findOrFail($request->id);
 
-        $product = Product::find($request->product_id);
-        $diferentFuel = $request->initial_fuel - $dailyPart->initial_fuel;
+        if($dailyPart->products_id != $request->product_id){
+            $prevProduct = Product::find($dailyPart->products_id);
 
-        if(){
-            
+            $prevProduct->update([
+                'in_qty' => $dailyPart->initial_fuel,
+                'stock_qty' => $prevProduct->stock_qty + $dailyPart->initial_fuel
+            ]);
+        } else {
+            $product = Product::find($request->product_id);
+            $diferentFuel = $request->initial_fuel - $dailyPart->initial_fuel;
+            $product->update([
+                'out_qty' => $request->initial_fuel,
+                'stock_qty' => $product->stock_qty + $diferentFuel
+            ]);
         }
 
-        $product->update([
-            'out_qty' => $request->initial_fuel,
-            'stock_qty' => $product->stock_qty + $diferentFuel
+        $diferentFuelService = $request->initial_fuel - $dailyPart->initial_fuel;
+        
+        $servicio = Service::find($dailyPart->service_id);
+        $servicio->update([
+            'fuel_consumed' => $servicio->fuel_consumed + $diferentFuelService
         ]);
 
         $dailyPart->update([
@@ -85,15 +109,14 @@ class DailyPartController extends Controller
             'description' => $request->description
         ]);
 
-        $MovementKardex = MovementKardex::where('product_id', $product->id)->first();
-
+        $MovementKardex = MovementKardex::find($dailyPart->movement_kardex_id);
         $MovementKardex->update([
-            'product_id' => $product->id,
+            'product_id' => $request->product_id,
             'amount' => $request->initial_fuel
         ]);
 
         return response()->json([
-            'message' => 'Daily work log actualised successfully',
+            'message' => 'Daily work log successfully',
             'data' => $dailyPart
         ], 201);
     }
@@ -148,12 +171,13 @@ class DailyPartController extends Controller
         ], 200);
     }
 
-    public function generatePdf($serviceId)
+    public function generatePdf(Request $request, $serviceId)
     {
-
+        Log::info('request', $request->all());        
         $service = Service::find($serviceId);
         $orderSilucia = OrderSilucia::find($service->order_id);
-        $dailyPart = DailyPart::where('service_id', $serviceId)->get();
+        $dailyPart = DailyPart::where('work_date', $request->date)
+                ->where('service_id', $serviceId)->get();
         $mechanicalEquipment = MechanicalEquipment::find($service->mechanical_equipment_id);
         $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
         $logoWorkPath = storage_path('app/public/image_pdf_template/logo_work.png');
