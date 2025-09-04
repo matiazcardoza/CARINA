@@ -19,11 +19,10 @@ import { FuelControl } from './features/private/fuel-control/fuel-control';
 import { EvidenceManagement } from './features/private/evidence-management/evidence-management';
 import { DigitalSignatureWorkflow } from './features/private/digital-signature-workflow/digital-signature-workflow';
 import { ReportsAndDashboards } from './features/private/reports-and-dashboards/reports-and-dashboards';
-import { ValuedKardex } from './features/private/valued-kardex/valued-kardex';
+// import { ValuedKardex } from './features/private/valued-kardex/valued-kardex';
 import { PhysicalBincard } from './features/private/physical-bincard/physical-bincard';
-import { WarrantyControl } from './features/private/warranty-control/warranty-control';
 import { InventoryReports } from './features/private/inventory-reports/inventory-reports';
-import { ProjectBasedTraceability } from './features/private/project-based-traceability/project-based-traceability';
+// import { ProjectBasedTraceability } from './features/private/project-based-traceability/project-based-traceability';
 import { NotFound } from './layouts/not-found/not-found';
 import { authGuard } from './services/AuthService/auth.guard';
 import { publicGuard } from './services/AuthService/public.guard';
@@ -92,20 +91,12 @@ export const routes: Routes = [
                 component: FuelControl
             },
             {
-                path: 'evidence-management',
+                path: 'evidence-management',   // <---------
                 component: EvidenceManagement
             },
             {
                 path: 'digital-signature-workflow',
                 component: DigitalSignatureWorkflow
-            },
-            {
-                path: 'reports-and-dashboards',
-                component: ReportsAndDashboards
-            },
-            {
-                path: 'valued-kardex',
-                component: ValuedKardex
             },
             {
                 path: 'kardex-management',
@@ -155,27 +146,6 @@ export const routes: Routes = [
 
                 ]
                 
-            },
-            // {
-            //     // muestra los productos del bicard fisico con el id "id"
-            //     path: 'physical-bincard/:id/products',          
-            //     component: Products,
-            // },
-            {
-                path: 'warranty-control',
-                component: WarrantyControl
-            },
-            {
-                path: 'inventory-reports',
-                component: SignaturesMovementReports
-            },
-            {
-                path: 'project-based-traveability',
-                component: ProjectBasedTraceability
-            },
-            {
-                path: 'conformity',
-                component: Conformity
             },
             {
                 path: 'fuel-vaucher',
