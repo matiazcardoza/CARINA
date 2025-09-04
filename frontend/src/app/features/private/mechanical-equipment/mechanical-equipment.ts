@@ -7,6 +7,7 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatDialog } from '@angular/material/dialog';
 
 import { MechanicalEquipmentForm } from './form/mechanical-equipment-form/mechanical-equipment-form';
+import { MechanicalEquipmentWork } from './form/mechanical-equipment-work/mechanical-equipment-work';
 import { MechanicalEquipmentService } from '../../../services/MechanicalEquipmentService/mechanical-equipment-service';
 
 
@@ -128,9 +129,20 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
     // Aquí irá la lógica para ver los detalles
   }
   
-  openWorkDialog(equipment: MechanicalEquipmentElement) {
-    console.log('Abrir mantenimiento para:', equipment);
-    // Aquí irá la lógica para programar mantenimiento
+  openWorkDialog(mechanicalEquipment: MechanicalEquipmentElement) {
+    console.log('Abrir mantenimiento para:', mechanicalEquipment);
+    const dialogRef = this.dialog.open(MechanicalEquipmentWork, {
+      width: '900px',
+      data: {
+        mechanicalEquipment: mechanicalEquipment
+      }
+    });
+      
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.reloadData();
+      }
+    });
   }
   
   deleteMechanicalEquipment(id: number) {

@@ -3,6 +3,11 @@ import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatNativeDateModule } from '@angular/material/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { DailyWorkLogService } from '../../../../services/DailyWorkLogService/daily-work-log-service';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -10,6 +15,8 @@ import { ChangeDetectorRef } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { DailyWorkLogForm } from '../form/daily-work-log-form/daily-work-log-form';
 import { DailyWorkLogUpload } from '../form/daily-work-log-upload/daily-work-log-upload';
+import { startWith } from 'rxjs/operators';
+
 
 export interface WorkLogIdElement {
   id: number;
@@ -28,7 +35,12 @@ export interface WorkLogIdElement {
     MatButtonModule,
     MatIconModule,
     MatTableModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatDatepickerModule,
+    MatInputModule,
+    MatFormFieldModule,
+    MatNativeDateModule,
+    ReactiveFormsModule
   ],
   templateUrl: './daily-work-log-id.html',
   styleUrl: './daily-work-log-id.css'
@@ -36,6 +48,9 @@ export interface WorkLogIdElement {
 export class DailyWorkLogId implements AfterViewInit, OnInit {
 
   serviceId: string | null = null;
+
+  dateControl = new FormControl(new Date());
+  selectedDate: string = this.formatDate(new Date());
 
   constructor(private route: ActivatedRoute, private cdr: ChangeDetectorRef) {}
 
@@ -51,9 +66,20 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   ngOnInit() {
-    this.serviceId = this.route.snapshot.paramMap.get('id');
-    Promise.resolve().then(() => this.loadWorkLogData());
-  }
+  this.serviceId = this.route.snapshot.paramMap.get('id');
+
+  this.dateControl.valueChanges
+    .pipe(
+      // startWith() emite el valor inicial del FormControl al iniciar la suscripción
+      startWith(this.dateControl.value) 
+    )
+    .subscribe(date => {
+      if (date) {
+        this.selectedDate = this.formatDate(date);
+        this.loadWorkLogData();
+      }
+    });
+}
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
@@ -66,7 +92,7 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
 
     const serviceIdNumber = Number(this.serviceId);
 
-    this.dailyWorkLogService.getWorkLogData(serviceIdNumber)
+    this.dailyWorkLogService.getWorkLogData(serviceIdNumber, this.selectedDate)
       .subscribe({
         next: (data) => {
           console.log(data);
@@ -80,6 +106,33 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
           this.cdr.detectChanges();
         }
       });
+  }
+
+  private formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  goToToday() {
+    const today = new Date();
+    this.dateControl.setValue(today);
+    // El loadWorkLogData se ejecutará automáticamente por la suscripción
+  }
+
+  goToPreviousDay() {
+    const currentDate = this.dateControl.value || new Date();
+    const previousDay = new Date(currentDate);
+    previousDay.setDate(previousDay.getDate() - 1);
+    this.dateControl.setValue(previousDay);
+  }
+
+  goToNextDay() {
+    const currentDate = this.dateControl.value || new Date();
+    const nextDay = new Date(currentDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    this.dateControl.setValue(nextDay);
   }
 
   reloadData() {
@@ -166,7 +219,7 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
   }
 
   generatePdf(id: number) {
-    this.dailyWorkLogService.generatePdf(id).subscribe({
+    this.dailyWorkLogService.generatePdf(id, this.selectedDate).subscribe({
       next: (response: Blob) => {
         const fileURL = URL.createObjectURL(response);
         window.open(fileURL, '_blank');

@@ -47,16 +47,16 @@ export class DailyWorkLogService {
     });
   }
 
-  getWorkLogData(id: number): Observable<WorkLogIdElement[]> {
+  getWorkLogData(id: number, date?: string): Observable<WorkLogIdElement[]> {
     return this.http.get<WorkLogIdApiResponse>(`${this.apiUrl}/api/daily-work-log/${id}`, {
-      withCredentials: true
+      withCredentials: true,
+      params: date ? { date } : {}
     }).pipe(
       map(response => response.data)
     );
   }
 
   createWorkLog(workLogData: CreateWorkLogData): Observable<WorkLogElement> {
-    console.log('workLogData:', workLogData);
     return this.http.post<SingleApiResponse>(`${this.apiUrl}/api/daily-work-log`, workLogData, {
       withCredentials: true
     }).pipe(
@@ -86,10 +86,11 @@ export class DailyWorkLogService {
     );
   }
 
-  generatePdf(id: number): Observable<Blob> {
+  generatePdf(id: number, date?: string): Observable<Blob> {
     return this.http.post(`${this.apiUrl}/api/daily-work-log/${id}/generate-pdf`, {}, {
       responseType: 'blob',
-      withCredentials: true
+      withCredentials: true,
+      params: date ? { date } : {}
     });
   }
 

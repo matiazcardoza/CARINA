@@ -5,14 +5,12 @@ import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatBadgeModule } from '@angular/material/badge';
-import { FormsModule } from '@angular/forms'; // Importa FormsModule
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { FormsModule } from '@angular/forms';
 
 interface ParteDiario {
   id: number;
@@ -51,14 +49,12 @@ interface ResumenDashboard {
     MatButtonModule,
     MatIconModule,
     MatChipsModule,
-    MatDatepickerModule,
-    MatFormFieldModule,
-    MatInputModule,
     MatSelectModule,
     MatTabsModule,
     MatProgressBarModule,
     MatBadgeModule,
-    FormsModule // Agrega FormsModule al array imports
+    MatFormFieldModule,
+    FormsModule
   ],
   templateUrl: './reports-and-dashboards.html',
   styleUrl: './reports-and-dashboards.css'
@@ -180,21 +176,13 @@ export class ReportsAndDashboards implements OnInit {
     'acciones'
   ];
 
-  // Filtros
-  filtroFecha: Date | null = null;
-  filtroProyecto: string = '';
-  filtroEstadoFirmas: string = '';
-
+  // Selector de proyecto
+  proyectoSeleccionado: string = '';
   proyectosDisponibles: string[] = [
+    'Todos los proyectos',
     'Construcción Puente Norte',
     'Pavimentación Av. Principal',
     'Mejoramiento Carretera Sur'
-  ];
-
-  estadosFirmas: string[] = [
-    'Completo',
-    'Pendiente',
-    'Parcial'
   ];
 
   ngOnInit(): void {
@@ -255,18 +243,8 @@ export class ReportsAndDashboards implements OnInit {
     // Aquí implementarías la funcionalidad de descarga
   }
 
-  aplicarFiltros(): void {
-    console.log('Aplicando filtros:', {
-      fecha: this.filtroFecha,
-      proyecto: this.filtroProyecto,
-      estadoFirmas: this.filtroEstadoFirmas
-    });
-    // Aquí implementarías la lógica de filtrado
-  }
-
-  limpiarFiltros(): void {
-    this.filtroFecha = null;
-    this.filtroProyecto = '';
-    this.filtroEstadoFirmas = '';
+  onProyectoChange(): void {
+    console.log('Proyecto seleccionado:', this.proyectoSeleccionado);
+    // Aquí implementarías la lógica de filtrado por proyecto
   }
 }

@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('daily_parts', function (Blueprint $table) {
             $table->id('id');
             $table->unsignedBigInteger('service_id');
+            $table->unsignedBigInteger('movement_kardex_id')->nullable();
             $table->string('description')->nullable();
             $table->string('occurrences')->nullable();
             $table->date('work_date')->nullable();

@@ -7,6 +7,27 @@
     </div>
 
     <div class="header-actions">
+      <div class="date-controls compact">
+        <div class="date-nav-group">
+          <button mat-raised-button (click)="goToToday()" class="today-button">
+            <mat-icon>today</mat-icon>
+            Hoy
+          </button>
+          <button mat-icon-button (click)="goToPreviousDay()" matTooltip="Día anterior">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <mat-form-field appearance="outline" class="date-picker-field small-date-field">
+            <mat-label>Fecha</mat-label>
+            <input matInput [matDatepicker]="picker" [formControl]="dateControl" readonly>
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+          </mat-form-field>
+          <button mat-icon-button (click)="goToNextDay()" matTooltip="Día siguiente">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+        
+      </div>
       <button mat-raised-button color="primary" (click)="openCreateDialog()" class="action-button">
         <mat-icon>add</mat-icon>
         Nuevo Registro

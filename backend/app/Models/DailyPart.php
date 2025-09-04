@@ -14,6 +14,7 @@ class DailyPart extends Model
 
     protected $fillable = [
         'service_id',
+        'movement_kardex_id',
         'products_id',
         'description',
         'occurrences',

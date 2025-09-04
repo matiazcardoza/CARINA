@@ -1,0 +1,130 @@
+<div class="work-container">
+    <div class="header-section">
+        <h2 class="page-title">
+            <mat-icon>precision_manufacturing</mat-icon>
+            Trabajo de Equipos Mecánicos
+        </h2>
+        <p class="page-subtitle">
+            Gestión de trabajos y códigos de meta para equipos mecánicos
+        </p>
+    </div>
+
+    <div class="content-section">
+        <mat-card class="equipment-details-card" *ngIf="data.mechanicalEquipment">
+          <mat-card-header>
+            <mat-card-title>Detalles del Equipo</mat-card-title>
+            <mat-card-subtitle>{{ data.mechanicalEquipment.machinery_equipment }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content class="equipment-details-content">
+            <div class="detail-item">
+              <strong>Marca:</strong> {{ data.mechanicalEquipment.brand }}
+            </div>
+            <div class="detail-item">
+              <strong>Modelo:</strong> {{ data.mechanicalEquipment.model }}
+            </div>
+          </mat-card-content>
+          <form [formGroup]="operatorForm">
+            <mat-form-field appearance="outline" class="full-width" style="width: 100%;">
+                    <mat-label>Nombre del Operador</mat-label>
+                    <input 
+                        matInput 
+                        type="text"
+                        formControlName="operatorName"
+                        placeholder="Ingrese nombre completo del operador">
+            </mat-form-field>
+          </form>
+        </mat-card>
+
+        <h4>
+            <mat-icon>code</mat-icon>
+            Buscar Meta
+        </h4>
+        <mat-card class="meta-card">
+            <mat-card-header>
+                <mat-card-title>Código de Meta</mat-card-title>
+                <mat-card-subtitle>Ingrese el código para extraer los datos de Meta</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+                <form [formGroup]="metaSearchForm" (ngSubmit)="buscarMeta()" class="meta-search-form">
+                    <div class="search-input-container">
+                        <mat-form-field appearance="outline" class="meta-search-field">
+                            <mat-label>Código de Meta</mat-label>
+                            <input 
+                                matInput 
+                                formControlName="metaCode"
+                                placeholder="Ej: META001"
+                                (keyup.enter)="buscarMeta()">
+                            <mat-error *ngIf="metaSearchForm.get('metaCode')?.hasError('required')">
+                                El código es requerido
+                            </mat-error>
+                            <mat-error *ngIf="metaSearchForm.get('metaCode')?.hasError('minlength')">
+                                Mínimo 3 caracteres
+                            </mat-error>
+                        </mat-form-field>
+                        <button 
+                            mat-icon-button 
+                            color="primary"
+                            type="submit"
+                            [disabled]="metaSearchForm.invalid || isLoadingMeta"
+                            class="search-button">
+                            <mat-icon *ngIf="!isLoadingMeta">search</mat-icon>
+                            <mat-progress-spinner 
+                                *ngIf="isLoadingMeta" 
+                                mode="indeterminate" 
+                                diameter="20">
+                            </mat-progress-spinner>
+                        </button>
+                    </div>
+                </form>
+
+                <div *ngIf="metaErrorMessage" class="meta-error">
+                    <mat-icon color="warn">warning</mat-icon>
+                    <span>{{metaErrorMessage}}</span>
+                </div>
+
+                <div *ngIf="selectedMeta" class="meta-results">
+                    <h5>
+                        <mat-icon color="primary">check_circle</mat-icon>
+                        Meta Encontrada
+                    </h5>
+                    <div class="meta-details">
+                        <div class="meta-item">
+                            <strong>ID Meta:</strong> {{selectedMeta.idmeta}}
+                        </div>
+                        <div class="meta-item">
+                            <strong>Código:</strong> {{selectedMeta.codmeta}}
+                        </div>
+                        <div class="meta-item meta-description">
+                            <strong>Descripción:</strong> 
+                            <span>{{selectedMeta.desmeta}}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="meta-actions">
+                        <button 
+                            mat-raised-button 
+                            color="primary"
+                            (click)="procesarMeta()"
+                            >
+                            <mat-icon>build</mat-icon>
+                            Procesar Meta
+                        </button>
+                        <button 
+                            mat-button
+                            (click)="limpiarBusquedaMeta()">
+                            <mat-icon>refresh</mat-icon>
+                            Nueva Búsqueda
+                        </button>
+                        <button 
+                            mat-button 
+                            color="accent"
+                            (click)="limpiarBusquedaMeta()">
+                            <mat-icon>clear</mat-icon>
+                            Limpiar
+                        </button>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+</div>
