@@ -35,6 +35,7 @@ import { DigitalSignature } from './shared/draft/digital-signature/digital-signa
 import { Sidebar } from './layouts/sidebar/sidebar';
 import { SignaturesMovementReports } from './features/private/signatures-movement-reports/signatures-movement-reports';
 import { TestResquests } from './shared/draft/test-resquests/test-resquests';
+import { FuelVouchers } from './features/private/fuel-vouchers/fuel-vouchers';
 export const routes: Routes = [
     // Redirige la ruta raíz a la página de login
     {
@@ -175,6 +176,10 @@ export const routes: Routes = [
             {
                 path: 'conformity',
                 component: Conformity
+            },
+            {
+                path: 'fuel-vaucher',
+                component: FuelVouchers
             }
         ]
     },

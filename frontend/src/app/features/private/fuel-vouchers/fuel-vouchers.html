@@ -1,0 +1,115 @@
+<form class="orden-card" [formGroup]="form" (ngSubmit)="onSubmit()">
+  <div class="orden-header">
+    <div class="titulo">ORDEN DE ATENCIÓN DE COMBUSTIBLE</div>
+    <div class="header-right">
+      <label class="lbl">Fecha</label>
+      <p-datepicker inputId="fecha"
+                    formControlName="fecha"
+                    [showIcon]="true"
+                    dateFormat="dd/mm/yy"></p-datepicker>
+
+      <label class="lbl">N°</label>
+      <input pInputText inputmode="numeric" formControlName="numero" class="w-18">
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="field">
+      <label>Orden de Compra N°</label>
+      <input pInputText formControlName="ordenCompra">
+    </div>
+    <div class="field">
+      <label>Componente</label>
+      <input pInputText formControlName="componente">
+    </div>
+    <div class="field">
+      <label>Sr.(es) Grifo</label>
+      <input pInputText formControlName="grifo">
+    </div>
+    <div class="field">
+      <label>Chofer</label>
+      <input pInputText formControlName="chofer">
+    </div>
+  </div>
+
+  <fieldset class="bloque">
+    <legend>SÍRVASE ATENDER LO SIGUIENTE</legend>
+
+    <!-- IMPORTANTE: contenedor del FormArray -->
+    <div formArrayName="combustibles">
+      <div class="combustible-row"
+           *ngFor="let c of combustibles.controls; let i = index"
+           [formGroupName]="i">
+        <div class="combustible-etiqueta">
+          <span>{{ c.get('etiqueta')?.value }}</span>
+        </div>
+
+        <div class="combustible-campos">
+          <div class="field">
+            <label>Glns.</label>
+            <p-inputgroup>
+              <p-inputnumber formControlName="glns"
+                             mode="decimal"
+                             [min]="0"
+                             [minFractionDigits]="0"
+                             [maxFractionDigits]="2"
+                             inputId="glns-{{i}}"></p-inputnumber>
+              <span pInputGroupAddon>glns</span>
+            </p-inputgroup>
+          </div>
+
+          <div class="field">
+            <label>Importe (S/.)</label>
+            <p-inputgroup>
+              <span pInputGroupAddon>S/</span>
+              <p-inputnumber formControlName="precio"
+                             mode="decimal"
+                             [min]="0"
+                             [minFractionDigits]="2"
+                             [maxFractionDigits]="2"
+                             inputId="precio-{{i}}"></p-inputnumber>
+            </p-inputgroup>
+          </div>
+        </div>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="bloque">
+    <legend>ANTECEDENTES DEL VEHÍCULO</legend>
+
+    <!-- IMPORTANTE: contenedor del FormGroup anidado -->
+    <div formGroupName="vehiculo" class="grid-3">
+      <div class="field">
+        <label>Marca</label>
+        <input pInputText formControlName="marca">
+      </div>
+
+      <div class="field">
+        <label>Placa</label>
+        <input pInputText formControlName="placa"
+               placeholder="ABC-123"
+               style="text-transform: uppercase;">
+      </div>
+
+      <div class="field">
+        <label>Dependencia</label>
+        <input pInputText formControlName="dependencia">
+      </div>
+
+      <div class="field field-span-3">
+        <label>Motivo</label>
+        <textarea pTextarea rows="3" [autoResize]="true" formControlName="motivo"></textarea>
+      </div>
+
+      <div class="field">
+        <label>Hoja de Viaje N°</label>
+        <input pInputText formControlName="hojaViaje">
+      </div>
+    </div>
+  </fieldset>
+
+  <div class="acciones">
+    <p-button type="submit" label="Guardar" icon="pi pi-save"></p-button>
+  </div>
+</form>
