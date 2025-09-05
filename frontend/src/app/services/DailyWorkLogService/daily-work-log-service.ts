@@ -4,6 +4,7 @@ import { map, Observable } from 'rxjs';
 import { WorkLogElement } from '../../features/private/daily-work-log/daily-work-log';
 import { environment } from '../../../environments/environment';
 import { WorkLogIdElement } from '../../features/private/daily-work-log/daily-work-log-id/daily-work-log-id';
+import { WorkLogDataElement } from '../../features/private/reports-and-dashboards/reports-and-dashboards';
 
 interface WorkLogApiResponse {
   message: string;
@@ -14,6 +15,12 @@ interface WorkLogIdApiResponse {
   message: string;
   data: WorkLogIdElement[];
 }
+
+interface WorkLogDataApiResponse {
+  message: string;
+  data: WorkLogDataElement[];
+}
+
 interface SingleApiResponse {
   message: string;
   data: WorkLogElement;
@@ -107,8 +114,8 @@ export class DailyWorkLogService {
     );
   }
 
-  getDailyPartData(codGoal: number): Observable<WorkLogIdElement[]> {
-    return this.http.get<WorkLogIdApiResponse>(`${this.apiUrl}/api/services/daily-parts/${codGoal}`, {
+  getDailyPartData(codGoal: number): Observable<WorkLogDataElement[]> {
+    return this.http.get<WorkLogDataApiResponse>(`${this.apiUrl}/api/services/daily-parts/${codGoal}`, {
       withCredentials: true,
     }).pipe(
       map(response => response.data)

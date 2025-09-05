@@ -47,7 +47,7 @@
           </mat-card-header>
           <mat-card-content>
             <div class="metric-value">{{ resumenDashboard.partesCompletados }}</div>
-            <div class="metric-label">de {{ partesDiarios.length }} Partes</div>
+            <div class="metric-label">de {{ partesDiariosReales.length || 0 }} Partes</div>
           </mat-card-content>
         </mat-card>
 
@@ -118,9 +118,14 @@
               type="text"
               placeholder="Escriba para buscar o seleccione..."
               matInput
-              formControlName="maquinariaSearch"
+              formControlName="servicioSearch"
               [matAutocomplete]="auto">
               <mat-icon matSuffix>search</mat-icon>
+              <button mat-icon-button matSuffix (click)="limpiarSelector()" 
+                      matTooltip="Limpiar selección" 
+                      type="button">
+                <mat-icon>clear</mat-icon>
+              </button>
                   
               <mat-autocomplete 
               #auto="matAutocomplete" 
@@ -130,7 +135,7 @@
               <mat-option 
                   *ngFor="let servicio of filteredServicio| async" 
                   [value]="servicio"
-                  class="maquinaria-option">
+                  class="servicio-option">
                       
                   <div class="option-content">
                     <div class="option-header">
@@ -151,32 +156,49 @@
         </form>
       </mat-card>
 
+      <!-- Mensaje de loading -->
+      <div *ngIf="isLoading" class="loading-container">
+        <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+        <p>Cargando datos...</p>
+      </div>
+
+      <!-- Mensaje de error -->
+      <div *ngIf="errorMessage" class="error-container">
+        <mat-icon color="warn">error</mat-icon>
+        <p>{{ errorMessage }}</p>
+      </div>
+
       <!-- Tabla de Partes Diarios -->
-      <mat-card class="table-card">
+      <mat-card class="table-card" *ngIf="!isLoading && !errorMessage">
         <mat-card-header>
           <mat-card-title>Partes Diarios Registrados</mat-card-title>
-          <mat-card-subtitle>{{ partesDiarios.length }} registros encontrados</mat-card-subtitle>
+          <mat-card-subtitle>{{ partesDiariosReales.length }} registros encontrados</mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>
           
-          <table mat-table [dataSource]="partesDiarios" class="parts-table">
+          <table mat-table [dataSource]="partesDiariosReales" class="parts-table">
             
-            <!-- Columna Fecha -->
-            <ng-container matColumnDef="fecha">
-              <th mat-header-cell *matHeaderCellDef>Fecha</th>
+            <!-- Columna Estado (reemplaza Fecha) -->
+            <ng-container matColumnDef="estado">
+              <th mat-header-cell *matHeaderCellDef>Estado</th>
               <td mat-cell *matCellDef="let parte">
-                {{ parte.fecha | date:'dd/MM/yyyy' }}
+                <mat-chip-set>
+                  <mat-chip [color]="obtenerColorEstado(parte.state)" selected>
+                    {{ obtenerTextoEstado(parte.state) }}
+                  </mat-chip>
+                </mat-chip-set>
               </td>
             </ng-container>
 
-            <!-- Columna Servicio -->
+            <!-- Columna Servicio/Maquinaria -->
             <ng-container matColumnDef="servicio">
               <th mat-header-cell *matHeaderCellDef>Servicio/Maquinaria</th>
               <td mat-cell *matCellDef="let parte">
                 <div class="service-info">
-                  <strong>{{ parte.servicio }}</strong>
-                  <div class="service-hours">
-                    {{ parte.horaInicio }} - {{ parte.horaFin }}
+                  <strong>{{ parte.description }}</strong>
+                  <div class="service-operator">
+                    <mat-icon>person</mat-icon>
+                    {{ parte.operator }}
                   </div>
                 </div>
               </td>
@@ -188,66 +210,59 @@
               <td mat-cell *matCellDef="let parte">
                 <div class="hours-info">
                   <mat-icon>schedule</mat-icon>
-                  {{ parte.horasTrabajadas | number:'1.1-1' }}h
+                  {{ convertirTiempoAHoras(parte.total_time_worked) | number:'1.2-2' }}h
+                </div>
+                <div class="time-detail">
+                  {{ parte.total_time_worked }}
                 </div>
               </td>
             </ng-container>
 
-            <!-- Columna Combustible -->
+            <!-- Columna Combustible Consumido -->
             <ng-container matColumnDef="combustibleConsumido">
-              <th mat-header-cell *matHeaderCellDef>Combustible</th>
+              <th mat-header-cell *matHeaderCellDef>Combustible Consumido</th>
               <td mat-cell *matCellDef="let parte">
                 <div class="fuel-info">
                   <mat-icon>local_gas_station</mat-icon>
-                  {{ parte.combustibleConsumido | number:'1.2-2' }}L
+                  {{ parte.fuel_consumed | number:'1.2-2' }}L
                 </div>
               </td>
             </ng-container>
 
-            <!-- Columna Estado Firmas -->
+            <!-- Columna Estado Firmas (datos falsos temporales) -->
             <ng-container matColumnDef="estadoFirmas">
               <th mat-header-cell *matHeaderCellDef>Estado Firmas</th>
               <td mat-cell *matCellDef="let parte">
                 <mat-chip-set>
-                  <mat-chip [color]="obtenerColorEstadoFirmas(parte.estadoFirmas)" selected>
-                    {{ obtenerEstadoFirmas(parte.estadoFirmas) }}
+                  <mat-chip [color]="obtenerColorEstadoFirmas(obtenerDatosFalsos(parte.id).estadoFirmas)" selected>
+                    {{ obtenerEstadoFirmas(obtenerDatosFalsos(parte.id).estadoFirmas) }}
                   </mat-chip>
                 </mat-chip-set>
                 <div class="signatures-detail">
-                  <mat-icon [class.signed]="parte.estadoFirmas.controlador">
-                    {{ parte.estadoFirmas.controlador ? 'check_circle' : 'radio_button_unchecked' }}
+                  <mat-icon [class.signed]="obtenerDatosFalsos(parte.id).estadoFirmas.controlador">
+                    {{ obtenerDatosFalsos(parte.id).estadoFirmas.controlador ? 'check_circle' : 'radio_button_unchecked' }}
                   </mat-icon>
                   <span>C</span>
-                  <mat-icon [class.signed]="parte.estadoFirmas.residente">
-                    {{ parte.estadoFirmas.residente ? 'check_circle' : 'radio_button_unchecked' }}
+                  <mat-icon [class.signed]="obtenerDatosFalsos(parte.id).estadoFirmas.residente">
+                    {{ obtenerDatosFalsos(parte.id).estadoFirmas.residente ? 'check_circle' : 'radio_button_unchecked' }}
                   </mat-icon>
                   <span>R</span>
-                  <mat-icon [class.signed]="parte.estadoFirmas.supervisor">
-                    {{ parte.estadoFirmas.supervisor ? 'check_circle' : 'radio_button_unchecked' }}
+                  <mat-icon [class.signed]="obtenerDatosFalsos(parte.id).estadoFirmas.supervisor">
+                    {{ obtenerDatosFalsos(parte.id).estadoFirmas.supervisor ? 'check_circle' : 'radio_button_unchecked' }}
                   </mat-icon>
                   <span>S</span>
                 </div>
               </td>
             </ng-container>
 
-            <!-- Columna Evidencias -->
+            <!-- Columna Evidencias (datos falsos temporales) -->
             <ng-container matColumnDef="evidencias">
               <th mat-header-cell *matHeaderCellDef>Evidencias</th>
               <td mat-cell *matCellDef="let parte">
                 <div class="evidence-info">
-                  <mat-icon [matBadge]="parte.evidencias" matBadgeColor="primary" aria-hidden="false">
-                      photo_camera
-                  </mat-icon>
-                </div>
-              </td>
-            </ng-container>
-
-            <!-- Columna Proyecto -->
-            <ng-container matColumnDef="proyecto">
-              <th mat-header-cell *matHeaderCellDef>Proyecto</th>
-              <td mat-cell *matCellDef="let parte">
-                <div class="project-info">
-                  {{ parte.proyecto }}
+                  <button mat-icon-button color="primary" (click)="viewEvidenceData(parte.id, parte)">
+                    <mat-icon>photo_camera</mat-icon>
+                  </button>
                 </div>
               </td>
             </ng-container>
@@ -266,6 +281,18 @@
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
             
           </table>
+
+          <!-- Mensaje cuando no hay datos -->
+          <div *ngIf="partesDiariosReales.length === 0 && selectedServicio" class="no-data-message">
+            <mat-icon>info</mat-icon>
+            <p>No se encontraron partes diarios para el servicio seleccionado.</p>
+          </div>
+
+          <!-- Mensaje cuando no se ha seleccionado servicio -->
+          <div *ngIf="!selectedServicio && !isLoading" class="no-selection-message">
+            <mat-icon>search</mat-icon>
+            <p>Seleccione un servicio para ver los partes diarios correspondientes.</p>
+          </div>
 
         </mat-card-content>
       </mat-card>

@@ -45,18 +45,13 @@ class ServiceController extends Controller
             $dailyParts = DailyPart::where('service_id', $service->id)->get();
 
             $totalSeconds = $dailyParts->reduce(function ($carry, $item) {
-                // Validar que el valor no es nulo y tiene el formato correcto
                 if ($item->time_worked && str_contains($item->time_worked, ':')) {
                     [$hours, $minutes, $seconds] = explode(':', $item->time_worked);
-                    
-                    // Asegurar que las partes son numéricas y no nulas
                     $hours = is_numeric($hours) ? (int)$hours : 0;
                     $minutes = is_numeric($minutes) ? (int)$minutes : 0;
                     $seconds = is_numeric($seconds) ? (int)$seconds : 0;
-
                     return $carry + ($hours * 3600) + ($minutes * 60) + $seconds;
                 }
-
                 return $carry;
             }, 0);
 
