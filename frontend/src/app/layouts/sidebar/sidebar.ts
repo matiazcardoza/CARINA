@@ -26,12 +26,14 @@ export class Sidebar {
   reportsOpen = signal(false);
   revenueOpen = signal(false);
   appOpen     = signal(true);
+  transportVouchersOpen     = signal(true);
 
-  toggle(s: 'fav'|'reports'|'revenue'|'app') {
+  toggle(s: 'fav'|'reports'|'revenue'|'app'|'transportVouchers') {
     if (s === 'fav') this.favOpen.update(v => !v);
     if (s === 'reports') this.reportsOpen.update(v => !v);
     if (s === 'revenue') this.revenueOpen.update(v => !v);
     if (s === 'app') this.appOpen.update(v => !v);
+    if (s === 'transportVouchers') this.transportVouchersOpen.update(v => !v);
   }
 
   close(drawerRef: any, e: Event) { drawerRef.close(e); }

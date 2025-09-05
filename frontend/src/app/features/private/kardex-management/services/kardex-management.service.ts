@@ -13,16 +13,12 @@ export class KardexManagementService {
     private options = {withCredentials: true};
 
     constructor(private http:HttpClient){}
-
+    // https://sistemas.regionpuno.gob.pe/siluciav2-api/api/ordencompradetallado  //api original de silucia
     getSiluciaProducts(filters: filter): Observable<any> {
-      // const endpoint = `https://sistemas.regionpuno.gob.pe/siluciav2-api/api/ordencompradetallado`;
       const endpoint = `${this.apiUrl}/api/silucia-orders`;
-        // `${this.apiUrl}/api/silucia-orders/${encodeURIComponent(String(numero))}/products/${idcompradet}/movements-kardex`,
-
       let params = new HttpParams();
-      if (filters.numero) params = params.set('numero', filters.numero);
-      if (filters.anio) params = params.set('anio', filters.anio.toString());
-      // if (filters.estado) params = params.set('estado', filters.estado);
+      if (filters.numero)   params = params.set('numero', filters.numero);
+      if (filters.anio)     params = params.set('anio', filters.anio.toString());
       if (filters.desmeta)  params = params.set('desmeta', filters.desmeta);
       if (filters.siaf)     params = params.set('siaf', filters.siaf);
       if (filters.ruc)      params = params.set('ruc', filters.ruc);
@@ -30,20 +26,14 @@ export class KardexManagementService {
       if (filters.email)    params = params.set('email', filters.email);
       if (filters.page)     params = params.set('page', String(filters.page));
       if (filters.per_page) params = params.set('per_page', String(filters.per_page));
-      // return this.http.get<any>(endpoint, { params, ...this.options });
+
       return this.http.get<any>(endpoint, {...this.options, params});
     }
 
     createKardexMovement(body:any): Observable<any> {
-      // return this.http.post<any>(`${this.apiUrl}/api/products/${id}/kardex`,body,this.options)
       return this.http.post<any>(`${this.apiUrl}/api/movements-kardex`,body,this.options)
     }
 
-    // getKardexMovementBySiluciaBackend(orderSiluciaId: number, productSiluciaId: number): Observable<any> {
-    //   // http://localhost:8000/api/silucia-orders/2874/products/249069/movements-kardex
-    //   // return this.http.get<any>(`${this.apiUrl}/api/products/${productId}/movements-kardex`, this.options);
-    //   return this.http.get<any>(`${this.apiUrl}/api/silucia-orders/${orderSiluciaId}/products/${productSiluciaId}/movements-kardex`, this.options);
-    // }
     getKardexMovementBySiluciaBackend(
       numero: number | string,
       idcompradet: number,
@@ -110,5 +100,7 @@ export class KardexManagementService {
       // return this.http.get<any>(`${this.apiUrl}/api/get_user_roles`,this.options);
       return this.http.get<any>(`${this.apiUrl}/api/products`,this.options);
     }
-    
+
+
+
 }

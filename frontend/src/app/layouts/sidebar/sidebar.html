@@ -33,6 +33,7 @@
 
       <!-- Scroll -->
       <div class="drawer__scroll">
+
         <ul class="menu">
           <li>
             <!-- FAVORITES -->
@@ -111,6 +112,26 @@
             }
           </li>
         </ul>
+
+        <ul class="menu">
+          <li>
+            <!-- APPLICATION -->
+            <button class="menu__toggle" (click)="toggle('transportVouchers')">
+              <span class="menu__section">VALES DE TRANSPORTE</span>
+              <i class="pi" [class.pi-chevron-down]="!transportVouchersOpen()" [class.pi-chevron-up]="transportVouchersOpen()"></i>
+            </button>
+
+            @if (transportVouchersOpen()) {
+              <ul class="menu__list" animate.enter="slide-down" animate.leave="slide-up">
+                <li routerLink="fuel-vaucher"><a class="menu__link"><i class="pi pi-folder" ></i><span>First item</span></a></li>
+                <!-- <li routerLink="digital-signatures"><a class="menu__link"><i class="pi pi-chart-bar"></i><span>Second item</span></a></li> -->
+                <!-- <li routerLink="test-requests"><a class="menu__link"><i class="pi pi-cog"></i><span>Third item</span></a></li> -->
+              </ul>
+            }
+          </li>
+        </ul>
+
+
       </div>
 
       <!-- Footer -->

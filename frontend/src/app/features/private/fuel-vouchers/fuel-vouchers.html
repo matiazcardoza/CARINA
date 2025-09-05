@@ -1,115 +1,196 @@
-<form class="orden-card" [formGroup]="form" (ngSubmit)="onSubmit()">
-  <div class="orden-header">
-    <div class="titulo">ORDEN DE ATENCIÓN DE COMBUSTIBLE</div>
-    <div class="header-right">
-      <label class="lbl">Fecha</label>
-      <p-datepicker inputId="fecha"
-                    formControlName="fecha"
-                    [showIcon]="true"
-                    dateFormat="dd/mm/yy"></p-datepicker>
-
-      <label class="lbl">N°</label>
-      <input pInputText inputmode="numeric" formControlName="numero" class="w-18">
-    </div>
+<div class="card">
+  <div>
+    <h1 class="text-3xl font-semibold mb-2">Órdenes de Combustible</h1>
+    <p class="text-lg text-gray-500">Lista y estado de aprobación de las órdenes de atención de combustible.</p>
+  </div>
+  
+  <div class="flex justify-end mb-3">
+    <p-button
+      label="Nueva orden"
+      icon="pi pi-plus"
+      (onClick)="openNewModal()">
+    </p-button>
   </div>
 
-  <div class="grid-2">
-    <div class="field">
-      <label>Orden de Compra N°</label>
-      <input pInputText formControlName="ordenCompra">
-    </div>
-    <div class="field">
-      <label>Componente</label>
-      <input pInputText formControlName="componente">
-    </div>
-    <div class="field">
-      <label>Sr.(es) Grifo</label>
-      <input pInputText formControlName="grifo">
-    </div>
-    <div class="field">
-      <label>Chofer</label>
-      <input pInputText formControlName="chofer">
-    </div>
-  </div>
 
-  <fieldset class="bloque">
-    <legend>SÍRVASE ATENDER LO SIGUIENTE</legend>
+  <p-table
+    #dt1
+    [value]="orders()"
+    [paginator]="true"
+    [rows]="pageSize"
+    [totalRecords]="ordersTotal()"
+    [lazy]="true"
+    (onLazyLoad)="onOrdersLazyLoad($event)"
 
-    <!-- IMPORTANTE: contenedor del FormArray -->
-    <div formArrayName="combustibles">
-      <div class="combustible-row"
-           *ngFor="let c of combustibles.controls; let i = index"
-           [formGroupName]="i">
-        <div class="combustible-etiqueta">
-          <span>{{ c.get('etiqueta')?.value }}</span>
+    [globalFilterFields]="['numero','fecha','vehiculo_placa','fuel_type','quantity_gal','amount_soles','supervisor_status','manager_status']"
+    selectionMode="single"
+    [(selection)]="selectedOrder"
+    dataKey="id"
+
+    stateStorage="session"
+    stateKey="fuelorders-session"
+    [scrollable]="true"
+    scrollDirection="both"
+    [tableStyle]="{ 'min-width': '70rem' }"
+    [loading]="loadingOrders()"
+  >
+    <!-- CAPTION (filtros) -->
+    <ng-template pTemplate="caption">
+      <div
+        style="
+          display:grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap:12px;
+          align-items:end;
+          grid-auto-flow:dense;
+          width:100%;
+        "
+      >
+        <!-- N° Orden -->
+        <p-iconfield style="display:block; width:100%;">
+          <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+          <input
+            pInputText
+            type="text"
+            name="numero"                        
+            [(ngModel)]="uiFilters.numero"
+            placeholder="N° Orden"
+            style="width:100%;"
+          />
+        </p-iconfield>
+
+        <!-- Placa -->
+        <div style="width:100%;">
+          <input
+            pInputText
+            type="text"
+            name="placa"                         
+            [(ngModel)]="uiFilters.placa"
+            placeholder="Placa"
+            style="width:100%;"
+          />
         </div>
 
-        <div class="combustible-campos">
-          <div class="field">
-            <label>Glns.</label>
-            <p-inputgroup>
-              <p-inputnumber formControlName="glns"
-                             mode="decimal"
-                             [min]="0"
-                             [minFractionDigits]="0"
-                             [maxFractionDigits]="2"
-                             inputId="glns-{{i}}"></p-inputnumber>
-              <span pInputGroupAddon>glns</span>
-            </p-inputgroup>
-          </div>
+        <!-- Ver todo -->
+        <div class="flex items-center gap-2" style="width:100%;">
+          <p-checkbox
+            inputId="all"
+            name="all"                             
+            [(ngModel)]="uiFilters.all"
+            binary="true"
+            label="Ver todo">
+          </p-checkbox>
+        </div>
 
-          <div class="field">
-            <label>Importe (S/.)</label>
-            <p-inputgroup>
-              <span pInputGroupAddon>S/</span>
-              <p-inputnumber formControlName="precio"
-                             mode="decimal"
-                             [min]="0"
-                             [minFractionDigits]="2"
-                             [maxFractionDigits]="2"
-                             inputId="precio-{{i}}"></p-inputnumber>
-            </p-inputgroup>
-          </div>
+
+        <!-- Botones -->
+        <div style="grid-column:1 / -1; display:flex; gap:8px; justify-content:flex-end; margin-top:4px;">
+          <p-button label="Buscar" icon="pi pi-search" (onClick)="onSearchClick()"></p-button>
+          <p-button label="Limpiar" severity="secondary" outlined (onClick)="onClearClick()"></p-button>
         </div>
       </div>
-    </div>
-  </fieldset>
+    </ng-template>
 
-  <fieldset class="bloque">
-    <legend>ANTECEDENTES DEL VEHÍCULO</legend>
+    <!-- HEADER -->
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="width:8%"><div class="item_head">N° Orden</div></th>
+        <th style="width:9%"><div class="item_head">Fecha</div></th>
+        <th style="width:10%"><div class="item_head">Placa</div></th>
+        <th style="width:10%"><div class="item_head">Combustible</div></th>
+        <th style="width:8%"><div class="item_head">Glns</div></th>
+        <th style="width:10%"><div class="item_head">Importe (S/)</div></th>
+        <th style="width:12%"><div class="item_head">Supervisor</div></th>
+        <th style="width:12%"><div class="item_head">Jefe</div></th>
+        <th pFrozenColumn alignFrozen="right" [style]="{ width: '160px', textAlign: 'center' }">
+          <span class="flex items-center gap-2">
+            Acciones
+            <i class="pi pi-cog text-gray-500"></i>
+          </span>
+        </th>
+      </tr>
+    </ng-template>
 
-    <!-- IMPORTANTE: contenedor del FormGroup anidado -->
-    <div formGroupName="vehiculo" class="grid-3">
-      <div class="field">
-        <label>Marca</label>
-        <input pInputText formControlName="marca">
-      </div>
+    <!-- BODY -->
+    <ng-template pTemplate="body" let-order>
+      <tr>
+        <td>{{ order.numero || '—' }}</td>
+        <td>{{ order.fecha | date:'dd/MM/yyyy' }}</td>
+        <td>{{ order.vehiculo_placa || order.vehicle?.plate }}</td>
+        <td class="text-capitalize">{{ order.fuel_type }}</td>
+        <td>{{ order.quantity_gal }}</td>
+        <td>{{ order.amount_soles }}</td>
 
-      <div class="field">
-        <label>Placa</label>
-        <input pInputText formControlName="placa"
-               placeholder="ABC-123"
-               style="text-transform: uppercase;">
-      </div>
+        <td>
+          <p-tag
+            [value]="(order.supervisor_status ?? 'pendiente')"
+            [severity]="order.supervisor_status === 'approved' ? 'success' :
+                        order.supervisor_status === 'rejected' ? 'danger' : 'warning'">
+          </p-tag>
+        </td>
+        <td>
+          <p-tag
+            [value]="(order.manager_status ?? 'pendiente')"
+            [severity]="order.manager_status === 'approved' ? 'success' :
+                        order.manager_status === 'rejected' ? 'danger' : 'warning'">
+          </p-tag>
+        </td>
 
-      <div class="field">
-        <label>Dependencia</label>
-        <input pInputText formControlName="dependencia">
-      </div>
+        <!-- Acciones -->
+        <td pFrozenColumn alignFrozen="right">
+          <div class="flex container_action_buttons gap-2">
+            <p-button
+              icon="pi pi-eye"
+              severity="info"
+              pTooltip="Ver detalle"
+              (onClick)="openOrderDetails(order)">
+            </p-button>
 
-      <div class="field field-span-3">
-        <label>Motivo</label>
-        <textarea pTextarea rows="3" [autoResize]="true" formControlName="motivo"></textarea>
-      </div>
+            <!-- Botón aprobar (visible según rol y estado) -->
+            <!-- *ngIf="canApprove(order)" -->
+            <p-button
+              icon="pi pi-check"
+              severity="success"
+              pTooltip="Aprobar">
+            </p-button>
+            <!-- (onClick)="onDecision(order, 'approved')"> -->
 
-      <div class="field">
-        <label>Hoja de Viaje N°</label>
-        <input pInputText formControlName="hojaViaje">
-      </div>
-    </div>
-  </fieldset>
+            <!-- Botón rechazar (visible según rol y estado) -->
+            <!-- *ngIf="canApprove(order)" -->
+            <p-button
+              icon="pi pi-times"
+              severity="danger"
+              pTooltip="Rechazar"
+              >
+            </p-button>
+            <!-- (onClick)="onDecision(order, 'rejected')" -->
+          </div>
+        </td>
+      </tr>
+    </ng-template>
 
-  <div class="acciones">
-    <p-button type="submit" label="Guardar" icon="pi pi-save"></p-button>
-  </div>
-</form>
+    <!-- EMPTY -->
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="9">No se encontraron órdenes.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+  <!-- MODAL DE CREACIÓN -->
+  <p-dialog
+    [(visible)]="showNewModal"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '60rem', maxWidth: '95vw' }"
+    header="Nueva Orden de Combustible"
+    (onHide)="closeNewModal()">
+
+    <!-- Form embebido; emite (saved) y (cancel) -->
+    <app-new-fuel-voucher
+      (saved)="onCreated($event)"
+      (cancel)="closeNewModal()">
+    </app-new-fuel-voucher>
+  </p-dialog>

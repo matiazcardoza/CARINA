@@ -1,7 +1,4 @@
 /* src/app/fuel-order-form/fuel-order-form.component.css */
-.card{
-  padding: 1.5rem;
-}
 :host { display: block; }
 
 .orden-card {
