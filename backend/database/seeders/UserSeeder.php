@@ -3,10 +3,12 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Vehicle;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class UserSeeder extends Seeder
 {
@@ -75,6 +77,62 @@ class UserSeeder extends Seeder
             ]
         );
         $supervisor->syncRoles(['almacen_supervisor']);
+
+        // usuarios para vales de transporte
+                // Chofer dedicado
+        $chofer = User::updateOrCreate(
+            ['email' => 'chofer@gmail.com'],
+            [
+                'name' => 'JACKSON',
+                'email_verified_at' => now(),
+                'password' => Hash::make('12345678'),
+            ]
+        );
+        $chofer->syncRoles(['chofer']);
+
+        // Supervisor de obra dedicado
+        $supObra = User::updateOrCreate(
+            ['email' => 'supervisor-obra@gmail.com'],
+            [
+                'name' => 'MARÍA LUQUE',
+                'email_verified_at' => now(),
+                'password' => Hash::make('12345678'),
+            ]
+        );
+        $supObra->syncRoles(['supervisor']); // o 'inspector' según tu preferencia
+
+        // Jefe de gerencia regional dedicado
+        $jefe = User::updateOrCreate(
+            ['email' => 'jefe-gerencia@gmail.com'],
+            [
+                'name' => 'ELMER QUISPE',
+                'email_verified_at' => now(),
+                'password' => Hash::make('12345678'),
+            ]
+        );
+        $jefe->syncRoles(['jefe']);
+
+        if (class_exists(Vehicle::class)) {
+            Vehicle::updateOrCreate(
+                ['plate' => 'ABC-123'],
+                [
+                    'brand' => 'Toyota',
+                    // 'dependencia' => 'Infraestructura',
+                    'user_id' => $chofer->id,
+                ]
+            );
+
+            Vehicle::updateOrCreate(
+                ['plate' => 'XYZ-987'],
+                [
+                    'brand' => 'Nissan',
+                    // 'dependencia' => 'Logística',
+                    'user_id' => $chofer->id,
+                ]
+            );
+        }
+        
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
     }
 }

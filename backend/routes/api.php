@@ -13,6 +13,8 @@ use App\Http\Controllers\SignatureController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PurchaseOrdersController;
+use App\Http\Controllers\PecosaController;
+use App\Http\Controllers\FuelOrderController;
 // use App\Http\Controllers\PdfControllerKardex;
 // use Illuminate\Support\Facades\Auth;
 // use App\Http\Controllers\OrderProductoController;
@@ -72,8 +74,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen_almacenero']);
     // devuelve los productos guardados de nuestra propia base de datos
     Route::get('/products', [ProductController::class, 'index']);
-    // ruta para recibir el pdf
 
+    // ******************* refactorizacion de codigo: pasar de datos de ordenes a pecosas *******************
+    Route::get('silucia-pecosas', [PecosaController::class, 'index'])->middleware(['role:almacen_almacenero']);
 
     // muestra datos de una persona, ya sea consultadno a la api de reniec o consultando la propia base de datos
     Route::get('/people/{dni}', [PeopleController::class, 'showOrFetch'])->middleware(['role:almacen_almacenero']); // cache-first (db) → RENIEC
@@ -92,3 +95,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/files-download', [SignatureController::class, 'filesDownload']);
     // Pruebas para generar codigo qr
     // Route::get('example-qr', [PdfControllerKardex::class, 'generateQRCcode']);
+
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('fuel-orders', FuelOrderController::class);
+    Route::patch('fuel-orders/{fuelOrder}/decision', [FuelOrderController::class, 'decision']);
+});

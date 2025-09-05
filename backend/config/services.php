@@ -45,5 +45,8 @@ return [
     'silucia' => [
         'base_url' => env('SILUCIA_BASE_URL'),
     ],
+    'pecosa' => [
+        'base_url' => env('SILUCIA_BASE_URL'),
+    ],
 
 ];
