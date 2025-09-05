@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DailyPartController;
+use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\MechanicalEquipmentController;
 use App\Http\Controllers\MovementKardexController;
 use App\Http\Controllers\OrderSiluciaController;
@@ -50,6 +51,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //products
     Route::get('/products-select', [ProductController::class, 'consultaProductSelect']);
+
+    //evendence
+    Route::get('/daily-work-evendece/{serviceId}', [EvidenceController::class, 'getEvidence']);
 
     // recurso anidado se obtiene productos pertenecientes a una orden sillucia
     Route::apiResource('orders-silucia.products', OrderProductsController::class)

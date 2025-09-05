@@ -5,6 +5,7 @@ import { WorkLogElement } from '../../features/private/daily-work-log/daily-work
 import { environment } from '../../../environments/environment';
 import { WorkLogIdElement } from '../../features/private/daily-work-log/daily-work-log-id/daily-work-log-id';
 import { WorkLogDataElement } from '../../features/private/reports-and-dashboards/reports-and-dashboards';
+import { EvidenceDataElement } from '../../features/private/reports-and-dashboards/view/view-evidence/view-evidence';
 
 interface WorkLogApiResponse {
   message: string;
@@ -19,6 +20,11 @@ interface WorkLogIdApiResponse {
 interface WorkLogDataApiResponse {
   message: string;
   data: WorkLogDataElement[];
+}
+
+interface EvidenceDataApiResponse {
+  message: string;
+  data: EvidenceDataElement[];
 }
 
 interface SingleApiResponse {
@@ -116,6 +122,14 @@ export class DailyWorkLogService {
 
   getDailyPartData(codGoal: number): Observable<WorkLogDataElement[]> {
     return this.http.get<WorkLogDataApiResponse>(`${this.apiUrl}/api/services/daily-parts/${codGoal}`, {
+      withCredentials: true,
+    }).pipe(
+      map(response => response.data)
+    );
+  }
+
+  getEvidenceData(serviceId: number): Observable<EvidenceDataElement[]> {
+    return this.http.get<EvidenceDataApiResponse>(`${this.apiUrl}/api/daily-work-evendece/${serviceId}`, {
       withCredentials: true,
     }).pipe(
       map(response => response.data)
