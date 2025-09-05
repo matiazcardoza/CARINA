@@ -3,6 +3,7 @@ import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 import { HttpParams } from '@angular/common/http';
+import { filter } from '../interfaces/kardex-management.interface';
 @Injectable({
   providedIn: 'root'
 })
@@ -11,18 +12,9 @@ export class KardexManagementService {
     private apiUrl = environment.BACKEND_URL;
     private options = {withCredentials: true};
 
-
     constructor(private http:HttpClient){}
 
-    // createKardexMovement(orderId:any): Observable<any> {
-    //   const apiSilucia_ProductByOrder = `https://sistemas.regionpuno.gob.pe/siluciav2-api/api/ordencompradetallado?numero=${orderId}`;
-    //   return this.http.get<any>(apiSilucia_ProductByOrder)
-    // }
-    getSiluciaProducts(filters: { 
-      // numero?: string; anio?: number; estado?: string
-      numero?: string; anio?: number; item?: string; desmeta?: string; siaf?: string;
-      ruc?: string; rsocial?: string; email?: string; page?: number; per_page?: number 
-    }): Observable<any> {
+    getSiluciaProducts(filters: filter): Observable<any> {
       // const endpoint = `https://sistemas.regionpuno.gob.pe/siluciav2-api/api/ordencompradetallado`;
       const endpoint = `${this.apiUrl}/api/silucia-orders`;
         // `${this.apiUrl}/api/silucia-orders/${encodeURIComponent(String(numero))}/products/${idcompradet}/movements-kardex`,
@@ -118,4 +110,5 @@ export class KardexManagementService {
       // return this.http.get<any>(`${this.apiUrl}/api/get_user_roles`,this.options);
       return this.http.get<any>(`${this.apiUrl}/api/products`,this.options);
     }
+    
 }
