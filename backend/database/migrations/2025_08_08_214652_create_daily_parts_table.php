@@ -21,7 +21,7 @@ return new class extends Migration
             $table->time('start_time')->nullable();
             $table->time('end_time')->nullable();
             $table->decimal('initial_fuel', 8, 2)->nullable();
-            $table->time('time_worked')->nullable();
+            $table->time('time_worked')->default('00:00:00')->nullable();
             $table->integer('state')->default(1);
             $table->foreign('service_id')->references('id')->on('services')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();

@@ -271,9 +271,54 @@
             <ng-container matColumnDef="acciones">
               <th mat-header-cell *matHeaderCellDef>Acciones</th>
               <td mat-cell *matCellDef="let parte">
-                <button mat-icon-button color="primary" (click)="verDetalleParte(parte)">
-                  <mat-icon>visibility</mat-icon>
-                </button>
+                <div class="actions-container">
+                  @if(parte.state_closure == 1){
+                    <button mat-icon-button 
+                            color="primary" 
+                            (click)="liquidarServicio(parte.id, parte)"
+                            matTooltip="Liquidar Servicio">
+                      <mat-icon>request_quote</mat-icon>
+                    </button>
+                  } @else if(parte.state_closure == 2){
+                    <button mat-icon-button 
+                            [matMenuTriggerFor]="menuAcciones"
+                            matTooltip="Generar documentos">
+                      <mat-icon>more_vert</mat-icon>
+                    </button>
+                  } @else if (parte.state_closure == 3) {
+                    <button mat-icon-button 
+                            [matMenuTriggerFor]="menuAcciones"
+                            matTooltip="Más opciones">
+                      <mat-icon>attach_money</mat-icon>
+                    </button>
+                  } @else {
+                    Sin proceso activo
+                  }
+
+                  <!-- Menú contextual -->
+                  <mat-menu #menuAcciones="matMenu">
+                    <!-- Exportar Solicitud -->
+                    <button mat-menu-item (click)="generateRequest(parte.id)">
+                      <mat-icon>upload_file</mat-icon>
+                      <span>Exportar Solicitud</span>
+                    </button>
+
+                    <!-- Reporte de Autorización -->
+                    <button mat-menu-item (click)="generateAuth(parte.id)">
+                      <mat-icon>assignment</mat-icon>
+                      <span>Reporte de Autorización</span>
+                    </button>
+
+                    <!-- Liquidación de Servicio -->
+                    <button mat-menu-item (click)="generateLiquidation(parte.id)">
+                      <mat-icon>receipt_long</mat-icon>
+                      <span>Liquidación de Servicio</span>
+                    </button>
+                  </mat-menu>
+
+
+                  
+                </div>
               </td>
             </ng-container>
 

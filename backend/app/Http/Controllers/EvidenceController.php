@@ -11,16 +11,22 @@ class EvidenceController extends Controller
 {
     function getEvidence($serviceId)
     {
-        // Traer todos los daily_parts del servicio
-        $dailyParts = DailyPart::where('service_id', $serviceId)->pluck('id');
-
-        // Traer evidencias relacionadas y agruparlas por daily_part_id
-        $evidence = WorkEvidence::whereIn('daily_part_id', $dailyParts)
-                    ->get()
-                    ->groupBy('daily_part_id');
-
-        Log::info('evidence: ', $evidence->toArray());
-
-        return $evidence;
+        $dailyParts = DailyPart::where('service_id', $serviceId)
+            ->select('id', 'description')
+            ->get();
+        $dailyPartsWithEvidence = $dailyParts->map(function ($dailyPart) {
+            $evidences = WorkEvidence::where('daily_part_id', $dailyPart->id)
+                ->select('id', 'daily_part_id', 'evidence_path', 'created_at')
+                ->get();
+            $dailyPart->evidences = $evidences->toArray();
+            return $dailyPart;
+        });
+        
+        Log::info('dailyParts with evidences: ', $dailyPartsWithEvidence->toArray());
+        
+        return response()->json([
+            'message' => 'Evidence fetched successfully',
+            'data' => $dailyPartsWithEvidence
+        ]);
     }
 }

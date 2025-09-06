@@ -21,6 +21,7 @@ return new class extends Migration
             $table->longText('goal_detail')->nullable();
             $table->decimal('fuel_consumed', 8, 2)->nullable();
             $table->integer('state')->default(1);
+            $table->integer('state_closure')->default(1);
             $table->foreign('order_id')->references('id')->on('orders_silucia')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
         });

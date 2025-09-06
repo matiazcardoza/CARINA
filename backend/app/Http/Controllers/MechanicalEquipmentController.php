@@ -25,6 +25,7 @@ class MechanicalEquipmentController extends Controller
             'serial_number' => $request->serial_number,
             'year' => $request->year,
             'plate' => $request->plate,
+            'cost_hour' => $request->cost_hour,
             'state' => $request->state,
         ]);
         return response()->json([
@@ -36,7 +37,6 @@ class MechanicalEquipmentController extends Controller
 
     function update(Request $request, $id){
         $updateEquipment = MechanicalEquipment::find($id);
-
         $updateEquipment->update([
             'machinery_equipment' => $request->machinery_equipment,
             'ability' => $request->ability,
@@ -45,6 +45,7 @@ class MechanicalEquipmentController extends Controller
             'serial_number' => $request->serial_number,
             'year' => $request->year,
             'plate' => $request->plate,
+            'cost_hour' => $request->cost_hour,
             'state' => $request->state,
         ]);
 

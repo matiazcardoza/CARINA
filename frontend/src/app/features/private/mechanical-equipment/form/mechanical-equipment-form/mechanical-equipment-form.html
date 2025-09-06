@@ -88,6 +88,16 @@
         </mat-select>
         <mat-error>{{ stateError }}</mat-error>
       </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Costo por Hora (S/.)</mat-label>
+        <input matInput 
+              type="number"
+              formControlName="cost_hour"
+              placeholder="Ej: 50.00"
+              min="0">
+        <mat-error>{{ costPerHourError }}</mat-error>
+      </mat-form-field>
     </form>
     
   </mat-dialog-content>

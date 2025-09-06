@@ -56,7 +56,8 @@ export class MechanicalEquipmentForm implements OnInit {
       serial_number: ['', [Validators.required, Validators.maxLength(50)]],
       year: ['', [Validators.required, Validators.min(1900), Validators.max(new Date().getFullYear())]],
       plate: ['', Validators.maxLength(20)],
-      state: ['', Validators.required]
+      state: ['', Validators.required],
+      cost_hour: [null, [Validators.required, Validators.min(0)]]
     });
   }
   
@@ -70,7 +71,8 @@ export class MechanicalEquipmentForm implements OnInit {
         serial_number: this.data.mechanicalEquipment.serial_number,
         year: this.data.mechanicalEquipment.year,
         plate: this.data.mechanicalEquipment.plate,
-        state: this.data.mechanicalEquipment.state
+        state: this.data.mechanicalEquipment.state,
+        cost_hour: this.data.mechanicalEquipment.cost_hour
       });
     }
   }
@@ -173,6 +175,13 @@ export class MechanicalEquipmentForm implements OnInit {
   get stateError(): string {
     const control = this.mechanicalEquipmentForm.get('state');
     if (control?.hasError('required')) return 'El estado es requerido';
+    return '';
+  }
+
+  get costPerHourError(): string {
+    const control = this.mechanicalEquipmentForm.get('cost_hour');
+    if (control?.hasError('required')) return 'El costo por hora es requerido';
+    if (control?.hasError('min')) return 'El costo no puede ser negativo';
     return '';
   }
 

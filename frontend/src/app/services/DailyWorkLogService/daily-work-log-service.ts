@@ -135,4 +135,12 @@ export class DailyWorkLogService {
       map(response => response.data)
     );
   }
+
+  liquidarServicio(serviceId: number): Observable<WorkLogDataElement[]> {
+    return this.http.post<WorkLogDataApiResponse>(`${this.apiUrl}/api/services/liquidar-servicio/${serviceId}`, {}, {
+      withCredentials: true,
+    }).pipe(
+      map(response => response.data)
+    );
+  }
 }

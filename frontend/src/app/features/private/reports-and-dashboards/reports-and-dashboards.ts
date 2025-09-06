@@ -15,9 +15,13 @@ import { MatAutocomplete, MatAutocompleteModule } from '@angular/material/autoco
 import { Observable, startWith, map, catchError, of } from 'rxjs';
 import { WorkLogElement } from '../../../features/private/daily-work-log/daily-work-log';
 import { DailyWorkLogService } from '../../../services/DailyWorkLogService/daily-work-log-service';
+import { ReportsServicesService } from '../../../services/RepostsServicesService/reports-services-service';
 import { MatInputModule } from '@angular/material/input';
 import { MatDialog } from '@angular/material/dialog';
 import { ViewEvidence } from './view/view-evidence/view-evidence';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 export interface WorkLogDataElement {
   id: number;
@@ -71,7 +75,10 @@ interface ResumenDashboard {
     MatInputModule,
     FormsModule,
     ReactiveFormsModule,
-    MatAutocompleteModule
+    MatAutocompleteModule,
+    MatMenuModule,
+    MatDividerModule,
+    MatTooltipModule
   ],
   templateUrl: './reports-and-dashboards.html',
   styleUrl: './reports-and-dashboards.css'
@@ -129,6 +136,7 @@ export class ReportsAndDashboards implements OnInit {
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef,
     private dailyWorkLogService: DailyWorkLogService,
+    private reportsServicesService: ReportsServicesService
   ) {
     this.searchForm = this.fb.group({
       servicioSearch: ['']
@@ -292,9 +300,28 @@ export class ReportsAndDashboards implements OnInit {
     }
   }
 
-  verDetalleParte(parte: WorkLogDataElement): void {
-    console.log('Ver detalle del parte:', parte);
-    // Aquí implementarías la navegación al detalle del parte
+  liquidarServicio(id: number, servicio: WorkLogElement) {
+    console.log('id de liquidar servicio:', id);
+    if (confirm('¿Estás seguro de que deseas liquidar este registro?')) {
+      Promise.resolve().then(() => {
+        this.isLoading = true;
+        this.cdr.detectChanges();
+
+        this.dailyWorkLogService.liquidarServicio(id)
+          .subscribe({
+            next: () => {
+              this.isLoading = false;
+              this.cdr.detectChanges();
+              this.getDailyPartsData(servicio);
+            },
+            error: (error) => {
+              this.isLoading = false;
+              this.errorMessage = 'Error al eliminar el registro. Por favor, intenta nuevamente.';
+              this.cdr.detectChanges();
+            }
+          });
+      });
+    }
   }
 
   viewEvidenceData(id: number, servicio: WorkLogElement){
@@ -350,5 +377,54 @@ export class ReportsAndDashboards implements OnInit {
       servicio.goal_project?.toLowerCase().includes(filterValue) ||
       servicio.goal_detail?.toLowerCase().includes(filterValue)
     );
+  }
+
+  obtenerColorBotonFirmas(parteId: any): string {
+    const estadoFirmas = this.obtenerDatosFalsos(parteId).estadoFirmas;
+    const todasFirmadas = estadoFirmas.controlador && estadoFirmas.residente && estadoFirmas.supervisor;
+    
+    if (todasFirmadas) {
+      return 'primary';
+    } else if (estadoFirmas.controlador || estadoFirmas.residente || estadoFirmas.supervisor) {
+      return 'accent';
+    } else {
+      return 'warn';
+    }
+  }
+
+  generateRequest(id: number) {
+    this.reportsServicesService.generateRequest(id).subscribe({
+      next: (response: Blob) => {
+        const fileURL = URL.createObjectURL(response);
+        window.open(fileURL, '_blank');
+      },
+      error: () => {
+        this.errorMessage = 'Error al generar el PDF. Por favor, intenta nuevamente.';
+      }
+    });
+  }
+
+  generateAuth(id: number) {
+    this.reportsServicesService.generateAuth(id).subscribe({
+      next: (response: Blob) => {
+        const fileURL = URL.createObjectURL(response);
+        window.open(fileURL, '_blank');
+      },
+      error: () => {
+        this.errorMessage = 'Error al generar el PDF. Por favor, intenta nuevamente.';
+      }
+    });
+  }
+
+  generateLiquidation(id: number) {
+    this.reportsServicesService.generateLiquidation(id).subscribe({
+      next: (response: Blob) => {
+        const fileURL = URL.createObjectURL(response);
+        window.open(fileURL, '_blank');
+      },
+      error: () => {
+        this.errorMessage = 'Error al generar el PDF. Por favor, intenta nuevamente.';
+      }
+    });
   }
 }

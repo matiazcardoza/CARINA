@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('serial_number')->nullable();
             $table->string('year')->nullable();
             $table->string('plate')->nullable();
+            $table->integer('cost_hour')->nullable();
             $table->integer('state')->default(1);
             $table->timestamps();
         });
