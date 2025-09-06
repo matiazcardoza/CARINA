@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('path_report_auth')->nullable();
             $table->string('path_liquidation')->nullable();
             $table->string('path_valorizacion')->nullable();
+            $table->integer('state')->default(1);
             $table->foreign('service_id')->references('id')->on('services')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
         });
