@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PurchaseOrdersController;
 use App\Http\Controllers\PecosaController;
 use App\Http\Controllers\FuelOrderController;
+use App\Models\SignatureFlow;
+use App\Models\SignatureStep;
+
 // use App\Http\Controllers\PdfControllerKardex;
 // use Illuminate\Support\Facades\Auth;
 // use App\Http\Controllers\OrderProductoController;
@@ -95,7 +98,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/files-download', [SignatureController::class, 'filesDownload']);
     // Pruebas para generar codigo qr
     // Route::get('example-qr', [PdfControllerKardex::class, 'generateQRCcode']);
-
 
 
 Route::middleware('auth:sanctum')->group(function () {

@@ -36,7 +36,13 @@ class SignatureController extends Controller
             'signed_file' => 'nullable|mimetypes:application/pdf,application/octet-stream|max:30720',
             'pdf'         => 'nullable|mimetypes:application/pdf,application/octet-stream|max:30720',
         ]);
+        // $uploaded es el archivo pdf, qui se guarda el primer archivo devuelto por el firmador
         $uploaded = $req->file('file') ?? $req->file('signed_file') ?? $req->file('pdf');
+        /**
+         * abort_unless sirve para abortar la peticion si el valor del primer parametro es falso. ejemplo:
+         * abort_unless($condición, $codigoHttp, $mensajeOpcional, $headersOpcionales);
+         */
+
         abort_unless($uploaded, 422, 'Archivo PDF requerido.');
 
         // 2) Carga entidades
@@ -44,9 +50,21 @@ class SignatureController extends Controller
         $step = SignatureStep::findOrFail($stepId);
 
         // 3) Autorización del paso/turno
+        // verificamos si stespSignature pertenece a signatureFlow
         abort_unless($step->signature_flow_id === $flow->id, 404);
+        // verificamos si el flujo "flow" esta en progreso
         abort_if($flow->status !== 'in_progress', 409, 'Flujo no activo.');
+        /**
+         * si el paso actual (step) es diferente de pendign abortamos el firmado,
+         * verificamos si en el flujo el step actual puede firmar es el esperado para firmar
+         */
         abort_if($step->status !== 'pending' || (int)$step->order !== (int)$flow->current_step, 409, 'Paso no activo.');
+        /**
+         * verificamos si el step actual es quien ha enviado el token para firmar (es una seguridad ), aqui podemos adicionar un control de seguridad más
+         * es decir en el paso actual puedo obtener el hash del pdf que espero y lo comparo con el hash del pdf que ha llegado, si ambos son iguales se procede a 
+         * firmar si son diferentes no se firma. posteriormente cuando la firma se realice, para el siguiente paso le datos e hash del pdf ya firmado, actualmente
+         * en la columna sha256 se guarda el hash del pdf firmado
+         */
         abort_unless(hash_equals((string)$step->callback_token, $token), 403, 'Token inválido.');
 
         // 4) Normaliza ruta: SIEMPRE en app/private/silucia_product_reports/<filename>
@@ -85,6 +103,10 @@ class SignatureController extends Controller
             ]);
 
             // Avanzar o completar flujo
+            /**
+             * actualizamos la columna current step verificanso si todavia hay firmantes, si no hay firmantes
+             * cerramos todo, es decir a todo le damos el valor completado
+             */
             $next = $flow->steps()->where('order','>', $step->order)->orderBy('order')->first();
             if ($next) {
                 $flow->update(['current_step' => $next->order]);
