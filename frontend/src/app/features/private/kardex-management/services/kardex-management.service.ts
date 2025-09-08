@@ -3,7 +3,8 @@ import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 import { HttpParams } from '@angular/common/http';
-import { filter } from '../interfaces/kardex-management.interface';
+import { filter, LaravelPagination } from '../interfaces/kardex-management.interface';
+import { Pecosa } from '../interfaces/kardex-management.interface';
 @Injectable({
   providedIn: 'root'
 })
@@ -101,6 +102,20 @@ export class KardexManagementService {
       return this.http.get<any>(`${this.apiUrl}/api/products`,this.options);
     }
 
+    getSiluciaPecosas(filters: filter): Observable<LaravelPagination<Pecosa>>{
+      const endpoint = `${this.apiUrl}/api/silucia-pecosas`;
+      let params = new HttpParams();
+      if (filters.numero)   params = params.set('numero', filters.numero);
+      if (filters.anio)     params = params.set('anio', filters.anio.toString());
+      if (filters.desmeta)  params = params.set('desmeta', filters.desmeta);
+      if (filters.siaf)     params = params.set('siaf', filters.siaf);
+      if (filters.ruc)      params = params.set('ruc', filters.ruc);
+      if (filters.rsocial)  params = params.set('rsocial', filters.rsocial);
+      if (filters.email)    params = params.set('email', filters.email);
+      if (filters.page)     params = params.set('page', String(filters.page));
+      if (filters.per_page) params = params.set('per_page', String(filters.per_page));
 
+      return this.http.get<LaravelPagination<Pecosa>>(endpoint, {...this.options, params});
+    }
 
 }

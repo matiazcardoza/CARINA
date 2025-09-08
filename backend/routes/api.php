@@ -75,8 +75,18 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // devuelve los productos guardados de nuestra propia base de datos
     Route::get('/products', [ProductController::class, 'index']);
 
-    // ******************* refactorizacion de codigo: pasar de datos de ordenes a pecosas *******************
+
+
+
+    // ******************* refactorizacion de codigo: pasar de datos de ordenes a pecosas - (inicio) *******************
     Route::get('silucia-pecosas', [PecosaController::class, 'index'])->middleware(['role:almacen_almacenero']);
+
+    // cuando la migracion de partes diarios finalice se debe cambiar la ruta a "movements-kardex" y el metodo del controlador debe cambiarse a store
+    // buscamos la pecosa, si no se encuentra lo guardamos. si no lo encontramos lo creamos y al mismo tiempo guardarmos el movimiento
+    Route::post('/movements-kardex-for_pecosas', [MovementKardexController::class, 'storeForPecosas'])->middleware(['role:almacen_almacenero']);
+    // ******************* refactorizacion de codigo: pasar de datos de ordenes a pecosas -    (fin) *******************
+
+
 
     // muestra datos de una persona, ya sea consultadno a la api de reniec o consultando la propia base de datos
     Route::get('/people/{dni}', [PeopleController::class, 'showOrFetch'])->middleware(['role:almacen_almacenero']); // cache-first (db) → RENIEC

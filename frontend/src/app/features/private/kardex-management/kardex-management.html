@@ -6,7 +6,7 @@
 
   <p-table
     #dt1
-    [value]="products()"
+    [value]="pecosas()"
     [paginator]="true"
     [rows]="pageSize"
     [totalRecords]="productsTotal()"
@@ -24,7 +24,7 @@
     [scrollable]="true"
     scrollDirection="both"
     [tableStyle]="{ 'min-width': '100rem' }"
-    [loading]="loadingProducts()"
+    [loading]="loadingPecosas()"
   
   >
   <!-- scrollHeight="flex"  -->
@@ -58,7 +58,7 @@
         <!-- N° Orden -->
         <p-iconfield style="display:block; width:100%;">
           <p-inputicon><i class="pi pi-search"></i></p-inputicon>
-          <input pInputText type="text" [(ngModel)]="uiFilters.numero" placeholder="N° Orden" style="width:100%;" />
+          <input pInputText type="text" [(ngModel)]="uiFilters.numero" placeholder="N° de Pecosa" style="width:100%;" />
         </p-iconfield>
 
         <!-- Año -->
@@ -67,34 +67,34 @@
         </div>
 
         <!-- SIAF -->
-        <div style="width:100%;">
+        <!-- <div style="width:100%;">
           <input pInputText type="text" [(ngModel)]="uiFilters.siaf" placeholder="SIAF" style="width:100%;" />
-        </div>
+        </div> -->
 
         <!-- RUC -->
-        <div style="width:100%;">
+        <!-- <div style="width:100%;">
           <input pInputText type="text" [(ngModel)]="uiFilters.ruc" placeholder="RUC" style="width:100%;" />
-        </div>
+        </div> -->
 
         <!-- Razón social -->
-        <div style="width:100%;">
+        <!-- <div style="width:100%;">
           <input pInputText type="text" [(ngModel)]="uiFilters.rsocial" placeholder="Razón social" style="width:100%;" />
-        </div>
+        </div> -->
 
         <!-- Ítem -->
         <div style="width:100%;">
-          <input pInputText type="text" [(ngModel)]="uiFilters.item" placeholder="Ítem" style="width:100%;" />
+          <input pInputText type="text" [(ngModel)]="uiFilters.item" placeholder="Ítem" style="width:100%;" disabled/>
         </div>
 
         <!-- Meta -->
         <div style="width:100%;">
-          <input pInputText type="text" [(ngModel)]="uiFilters.desmeta" placeholder="Meta (desmeta)" style="width:100%;" />
+          <input pInputText type="text" [(ngModel)]="uiFilters.desmeta" placeholder="Meta (desmeta)" style="width:100%;" disabled/>
         </div>
 
         <!-- Email -->
-        <div style="width:100%;">
+        <!-- <div style="width:100%;">
           <input pInputText type="text" [(ngModel)]="uiFilters.email" placeholder="Email proveedor" style="width:100%;" />
-        </div>
+        </div> -->
 
         <!-- Botones (fila completa, alineados a la derecha) -->
         <div style="grid-column:1 / -1; display:flex; gap:8px; justify-content:flex-end; margin-top:4px;">
@@ -109,92 +109,20 @@
     <ng-template pTemplate="header">
       <tr>
         <!-- pSortableColumn="numero"  -->
-        <th 
-          style="width:7.7%">
-          <div class="item_head">N° de Orden 
-            <!-- <p-sortIcon field="numero"/> -->
-          </div>
-        </th>
-        <!-- pSortableColumn="fecha"  -->
-        <th 
-        >Id item 
-        <!-- <p-sortIcon field="id_product_silucia"/> -->
-        </th>
-        <th 
-        style="width:7.7%">
-          <div class="item_head">Fecha 
-            <!-- <p-sortIcon field="fecha"/> -->
-          </div>
-        </th>
-        <!-- pSortableColumn="detalles_orden"  -->
-        <th 
-        style="width:7.7%">
-          <div class="item_head">Detalle de orden 
-            <!-- <p-sortIcon field="detalles_orden"/> -->
-          </div>
-        </th>
-        <th 
-        style="width:7.7%">
-          <div class="item_head">Unidad de medida 
-            <!-- <p-sortIcon field="desmedida"/> -->
-          </div>
-        </th>
-        <!-- pSortableColumn="rsocial"  -->
-        <th 
-        style="width:7.7%">
-          <div class="item_head">Proveedor 
-            <!-- <p-sortIcon field="rsocial"/> -->
-          </div>
-        </th>
-        <!-- pSortableColumn="ruc"  -->
-        <th 
-        style="width:7.7%">
-          <div class="item_head">RUC 
-            <!-- <p-sortIcon field="ruc"/> -->
-          </div>
-        </th>
-        <!-- pSortableColumn="item"  -->
-        <th 
-        style="width:7.7%">
-          <div class="item_head">Ítem 
-            <!-- <p-sortIcon field="item"/> -->
-          </div>
-        </th>
-        <!-- pSortableColumn="detalle"  -->
-        <th 
-        style="width:7.7%">
-          <div class="item_head">Ítem (detalle) 
-            <!-- <p-sortIcon field="detalle"/> -->
-          </div>
-        </th>
-        <!-- pSortableColumn="cantidad"  -->
-        <th 
-        style="width:7.7%">
-          <div class="item_head">Cantidad pedida 
-            <!-- <p-sortIcon field="cantidad"/> -->
-          </div>
-        </th>
-        <!-- pSortableColumn="desmedida"  -->
+        <th style=""> <div class="item_head">Año <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style="min-width: 7rem;"> <div class="item_head">Fecha <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style="min-width: 8rem;"> <div class="item_head">N° de Pecosa <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style="min-width: 7rem;"> <div class="item_head">N° de Item <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style=""> <div class="item_head">Cantidad <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style=""> <div class="item_head">Precio <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style=""> <div class="item_head">Medidad <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style=""> <div class="item_head">Item <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style=""> <div class="item_head">prod_proy <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style="min-width: 7rem;"> <div class="item_head">N° de Meta <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style=""> <div class="item_head">Meta <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style=""> <div class="item_head">desuoper <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style=""> <div class="item_head">destipodestino <!-- <p-sortIcon field="numero"/> -->  </div> </th>
 
-        <!-- pSortableColumn="precio"  -->
-        <th 
-        style="width:7.7%">
-          <div class="item_head">Precio 
-            <!-- <p-sortIcon field="precio"/> -->
-          </div>
-        </th>
-        <!-- pSortableColumn="total_internado"  -->
-        <th 
-        style="width:7.7%"  >
-          <div class="item_head">Total internado 
-            <!-- <p-sortIcon field="total_internado"/> -->
-          </div>
-        </th >
-        <!-- pSortableColumn="saldo"  -->
-        <th 
-        style="width:7.7%">
-          <div class="item_head">Saldo (pendiente) <p-sortIcon field="saldo"/></div>
-        </th>
         <th pFrozenColumn alignFrozen="right" [style]="{ width: '150px', textAlign: 'center' }">
             <span class="flex items-center gap-2">
                 Acciones
@@ -205,52 +133,44 @@
     </ng-template>
 
     <!-- Body -->
-    <ng-template pTemplate="body" let-product>
+    <ng-template pTemplate="body" let-pecosa>
       <tr>
-        <td>{{ product.numero }}</td>
-        <td>{{ product.idcompradet }}</td>
-        <td>{{ product.fecha }}</td>
-        <!-- <td>{{ product.detalles_orden.length > 50 ? (product.detalles_orden | slice:0:50) + '...' : product.detalles_orden }}</td> -->
+        <td>{{ pecosa.anio }}</td>
+        <td>{{ pecosa.fecha }}</td>
+        <td>{{ pecosa.numero }}</td>
+        <td>{{ pecosa.idsalidadet }}</td>
+        <td>{{ pecosa.cantidad }}</td>
+        <td>{{ pecosa.precio }}</td>
+        <td>{{ pecosa.desmedida }}</td>
         <td style="padding:0; min-width: 12rem;">
           <div style="max-height:120px;overflow:auto;line-height:1.35;padding:6px 8px;text-align:justify;word-break:break-word;">
-          {{ product.detalles_orden}}
+          {{ pecosa.item}}
           </div>
         </td>
-        <td>{{ product.desmedida }}</td>
-        <td>{{ product.rsocial }}</td>
-        <td>{{ product.ruc }}</td>
-        <td style="padding:0; min-width: 12rem;">
-          <div style="max-height:120px;overflow:auto;line-height:1.35;padding:6px 8px;text-align:justify;word-break:break-word;">
-          {{ product.item }}
-          </div>
-        </td>
-        <td style="padding:0; min-width: 12rem;">
-          <div style="max-height:120px;overflow:auto;line-height:1.35;padding:6px 8px;text-align:justify;word-break:break-word;">
-          {{ product.detalle }}
-          </div>
-        </td>
-        <td>{{ product.cantidad }}</td>
+        <td>{{ pecosa.prod_proy }}</td>
+        <td>{{ pecosa.cod_meta }}</td>
+        <td>{{ pecosa.desmeta }}</td>
+        <td>{{ pecosa.desuoper }}</td>
         
-        <td>{{ product.precio }}</td>
-        <td>{{ product.total_internado }}</td>
-        <td>{{ product.saldo }}</td>
-    <!-- Celda congelada a la derecha -->
-    <td pFrozenColumn alignFrozen="right">
-      <div class="flex container_action_buttons gap-2">
-          <!-- label="Ver" -->
-        <p-button
-          icon="pi pi-eye"
-          severity="info"
-          (onClick)="openMovementDetailsModal(product)">
-        </p-button>
-        <!-- label="Agregar" -->
-        <p-button
-          icon="pi pi-plus"
-          severity="success"
-          (onClick)="openMovementModal(product)">
-        </p-button>
-      </div>
-    </td>
+        <td>{{ pecosa.destipodestino }}</td>
+
+        <!-- Celda congelada a la derecha -->
+        <td pFrozenColumn alignFrozen="right">
+          <div class="flex container_action_buttons gap-2">
+              <!-- label="Ver" -->
+            <p-button
+              icon="pi pi-eye"
+              severity="info"
+              (onClick)="openMovementDetailsModal(pecosa)">
+            </p-button>
+            <!-- label="Agregar" -->
+            <p-button
+              icon="pi pi-plus"
+              severity="success"
+              (onClick)="openMovementModal(pecosa)">
+            </p-button>
+          </div>
+        </td>
       </tr>
     </ng-template>
 
@@ -270,30 +190,40 @@
   header="Registrar movimiento"
   [(visible)]="showMovementModal"
   [modal]="true"
-  [closable]="false"
-  [style]="{ width: '420px' }"
+  [closable]="true"
+  [style]="{ width: '450px' }"
 >
-  <div class="p-fluid flex flex-col gap-3 container_dialog">
+  <div class="p-fluid container_dialog">
 
     <!-- Tipo de movimiento -->
     <div class="field dialog_item">
-      <label class="font-medium mb-1 block">Tipo de movimiento</label>
-
-      <p-autoComplete
-          [(ngModel)]="form.movement_type"
-          [suggestions]="filteredMovementOptions"
-          (completeMethod)="searchMovement($event)"
-          [dropdown]="true"
-          [forceSelection]="true"
-          [minLength]="0"
-          placeholder="Selecciona una opción"
-          appendTo="body"
-      ></p-autoComplete>
+      <!-- <label class="">Tipo de movimiento</label> -->
+      <span  style="display: block; font-weight: bold; margin-bottom: 0.5rem;">Tipo de movimiento</span>
+      <div style="display: flex;">
+          <div style="flex-grow: 1; display: flex; gap: 0.5rem; align-items: center;">
+              <p-radiobutton 
+                [inputId]="'movEntrada'"
+                name="movement_type"
+                [value]="'entrada'"
+                [(ngModel)]="form.movement_type" 
+              />
+              <label for="category1">Entrada</label>
+          </div>
+          <div style="flex-grow: 1; display: flex; gap: 0.5rem; align-items: center; align-content: center;">
+              <p-radiobutton 
+                [inputId]="'movSalida'"
+                name="movement_type"
+                [value]="'salida'"
+                [(ngModel)]="form.movement_type"
+              />
+              <label for="category2">Salida</label>
+          </div>
+      </div>
     </div>
 
     <!-- Cantidad -->
     <div class="field dialog_item">
-      <label for="cantidad" class="font-medium mb-1 block">Cantidad</label>
+      <label for="cantidad" style="display: block; font-weight: bold; margin-bottom: 0.5rem;">Cantidad</label>
       <p-inputNumber
         inputId="cantidad"
         [(ngModel)]="form.amount"
@@ -305,7 +235,7 @@
 
     <!-- Comentario -->
     <div class="field dialog_item">
-      <label for="observations" class="font-medium mb-1 block">Observaciones</label>
+      <label for="observations" style="display: block; font-weight: bold; margin-bottom: 0.5rem;">Observaciones</label>
       <textarea
         id="observations"
         pInputTextarea
@@ -313,10 +243,11 @@
         rows="3"
         cols="30"
         placeholder="Escribe tus observaciones aquí"
-        style="resize: vertical; border: 1px solid rgb(178, 191, 194); border-radius: 8px;"
-
-      ></textarea>
+        class="text-area"
+        ></textarea>
+        <!-- style="resize: vertical; border: 1px solid rgb(178, 191, 194); border-radius: 8px; font-family: 'Courier New', Courier, monospace; font-size: 1.2rem;" -->
     </div>
+
 
     <!-- Personas -->
     <div class="field dialog_people">
@@ -333,7 +264,7 @@
       <!-- Aquí podrías listar las personas seleccionadas si lo necesitas -->
       <!-- <small class="text-gray-500">Añade personas con el botón.</small> -->
     </div>
-
+    <button (click)="seeDataSelected()">see data selected</button>
 
   @if (listDniPeople().length > 0) {
     <p-listbox [options]="listDniPeople()" [style]="{ width: '100%' }" [filter]="false">
@@ -372,7 +303,7 @@
 
 <!-- ------------------ Modal para mostrar movimientos-------------------- -->
 
-<p-dialog
+<p-dialog 
   header="Detalles de movimientos"
   [(visible)]="showMovementDetailsModal"
   [modal]="true"
@@ -402,7 +333,7 @@
       [expandedRowKeys]="expandedRowsMovements()"
       (onRowExpand)="onRowExpandMovement($event)"
       (onRowCollapse)="onRowCollapseMovement($event)"
-      >
+    >
       <!-- [expandedRowKeys]="expandedRowsMovements" -->
 
         <!-- RESUMEN ARRIBA -->

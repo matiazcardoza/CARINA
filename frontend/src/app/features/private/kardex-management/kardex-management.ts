@@ -26,20 +26,20 @@ import { Toast } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { Ripple } from 'primeng/ripple';
 import { filter } from './interfaces/kardex-management.interface';
+import { RadioButton } from "primeng/radiobutton";
 @Component({
   selector: 'app-kardex-management',
   standalone: true,
   imports: [Toast,
     // Ripple,
     // Angular
-    FormsModule, 
+    FormsModule,
     // SlicePipe,
     // PrimeNG
     TableModule, InputTextModule, DialogModule, InputNumberModule,
-    AutoComplete, Button, 
+    AutoComplete, Button,
     // Tag, 
-    IconField, InputIcon,AddNewUserModal, ListboxModule
-  ],
+    IconField, InputIcon, AddNewUserModal, ListboxModule, RadioButton],
   providers:[MessageService],
   templateUrl: './kardex-management.html',
   styleUrl: './kardex-management.css'
@@ -48,8 +48,8 @@ import { filter } from './interfaces/kardex-management.interface';
 export class KardexManagement {
   // ----- State (signals / props) -----
   customers = signal<any[]>([]);
-  products = signal<any[]>([]);
-  loadingProducts = signal<boolean>(false);
+  pecosas = signal<any[]>([]);
+  loadingPecosas = signal<boolean>(false);
   errorLoadingProducts = signal<string>('');
   selectedCustomers!: any;
   selectedProduct: any | null = null;
@@ -89,7 +89,11 @@ export class KardexManagement {
   form = {
     movement_type: null as 'entrada' | 'salida' | null,
     amount: null as number | null,
+
     id_order_silucia: null as string | null,
+    // id_product_silucia: null as number |null,
+
+    id_pecosa_silucia: null as string | null,
     id_product_silucia: null as number |null,
     observations: null as string |null,
     people_dnis: [] as string[],
@@ -153,22 +157,23 @@ export class KardexManagement {
   }
 
   getProductsOfSiluciaBackend(filters:filter){
-    this.loadingProducts.set(true);
-    this.service.getSiluciaProducts(filters)
+    this.loadingPecosas.set(true);
+    // this.service.getSiluciaProducts(filters)
+    this.service.getSiluciaPecosas(filters)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
-          this.products.set(res.data);
+          this.pecosas.set(res.data);
           this.productsTotal.set(res.total ?? res.data?.length ?? 0);
           this.pageSize = res.per_page ?? this.pageSize;
-          this.loadingProducts.set(false);
+          this.loadingPecosas.set(false);
           // Restaura selección si el producto está en la página actual
           if (this.lastSelectedKey != null) {
             const match = (res.data ?? []).find((r: any) => r.idcompradet === this.lastSelectedKey);
             this.selectedProduct = match || null;
           }
         },
-        error: _ => { this.errorLoadingProducts.set('No se pudo cargar'); this.loadingProducts.set(false); }
+        error: _ => { this.errorLoadingProducts.set('No se pudo cargar'); this.loadingPecosas.set(false); }
       });
   }
 
@@ -231,6 +236,7 @@ export class KardexManagement {
      * un programador no modifique valores como cantidad de producsot que ya existian
      */
     this.form.id_order_silucia =  _row.numero;
+    this.form.id_pecosa_silucia =  _row.numero;
     this.form.id_product_silucia=  _row.idcompradet;
     this.showMovementModal = true;
     this.form.silucia_product = JSON.parse(JSON.stringify(_row))
@@ -242,7 +248,8 @@ export class KardexManagement {
     this.form = { 
       movement_type: null, 
       amount: null, 
-      id_order_silucia: null ,
+      id_order_silucia: null,
+      id_pecosa_silucia: null,
       id_product_silucia: null ,
       observations: null,
       people_dnis: [],
@@ -317,14 +324,14 @@ export class KardexManagement {
   //     this.showMovementDetailsModal = true;
   //     this.fetchMovements(1, this.movementsPageSize);
   //   }
-    openMovementDetailsModal(row?: any) {
+  openMovementDetailsModal(row?: any) {
     this.selectedProductForMovements = row;
     this.showMovementDetailsModal = true;
     this.expandedRowsMovements.set({});   // ← reset al abrir
     this.fetchMovements(1, this.movementsPageSize);
   }
     
-    private fetchMovements(page: number, perPage: number) {
+  private fetchMovements(page: number, perPage: number) {
     if (!this.selectedProductForMovements) return;
 
     const orderNum = this.selectedProductForMovements.numero;
@@ -375,6 +382,7 @@ export class KardexManagement {
     // Debemos descargar el pdf para el reporte
       console.log("detalles de pdf: ",this.selectedProductForMovements);
       const id_order_silucia = this.selectedProductForMovements.numero;
+      const id_pecosa_silucia = this.selectedProductForMovements.numero;
       const id_product_silucia = this.selectedProductForMovements.idcompradet;
       // this.service.downloadPdf(2874,249069).subscribe(res => {
       this.service.downloadPdf(id_order_silucia,id_product_silucia).subscribe(res => {
@@ -520,6 +528,10 @@ export class KardexManagement {
     showToastMessage(severity: 'success'|'info'|'warn'|'error', summary: string, detail: string) {
         // this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Message Content' });
         this.messageService.add({ severity: severity, summary: summary, detail: detail });
+    }
+
+    seeDataSelected(){
+      console.log(this.form);
     }
 
 

@@ -327,6 +327,122 @@ class MovementKardexController extends Controller
         });
     }
 
+    public function storeForPecosas(StoreMovementRequest $request)
+    {
+        // Log::info(request);
+        $data = $request->validated();
+        return DB::transaction(function () use ($request, $data) {
+
+            $sil = $request->input('silucia_product', []);
+
+            // 1) Buscar producto por par SILUCIA con LOCK para consistencia
+            $product = Product::where('id_order_silucia', $data['id_order_silucia'])
+                ->where('id_product_silucia', $data['id_product_silucia'])
+                ->lockForUpdate()
+                ->first();
+
+            if (!$product) {
+                // Si no existe, lo creamos (ya "bloqueado" por la transacción)
+                $product = Product::create([
+                    'id_order_silucia'   => $data['id_order_silucia'],
+                    'id_product_silucia' => $data['id_product_silucia'],
+
+                    'name'          => $data['name']          ?? null,
+                    'heritage_code' => $data['heritage_code'] ?? null,
+                    'unit_price'    => $data['unit_price']    ?? null,
+                    'state'         => 1,
+
+                    'numero'          => $sil['numero']          ?? null,
+                    'fecha'           => $sil['fecha']           ?? null,
+                    'detalles_orden'  => $sil['detalles_orden']  ?? null,
+                    'rsocial'         => $sil['rsocial']         ?? null,
+                    'ruc'             => $sil['ruc']             ?? null,
+                    'item'            => $sil['item']            ?? null,
+                    'detalle'         => $sil['detalle']         ?? null,
+                    'cantidad'        => $sil['cantidad']        ?? null,
+                    'desmedida'       => $sil['desmedida']       ?? null,
+                    'precio'          => $sil['precio']          ?? null,
+                    'total_internado' => $sil['total_internado'] ?? null,
+                    'saldo'           => $sil['saldo']           ?? null,
+                    'desmeta'         => $sil['desmeta']         ?? null,
+                ]);
+            } else {
+                // Actualiza esenciales si vienen
+                $product->fill(array_filter([
+                    'name'          => $data['name']          ?? null,
+                    'heritage_code' => $data['heritage_code'] ?? null,
+                    'unit_price'    => $data['unit_price']    ?? null,
+                    'desmeta'       => $sil['desmeta']        ?? null,
+                ], fn($v) => !is_null($v)))->save();
+            }
+
+            // 2) Deltas según tipo
+            $isEntrada = $data['movement_type'] === 'entrada';
+            $amount    = (float) $data['amount'];
+
+            $deltaIn  = $isEntrada ? $amount : 0;
+            $deltaOut = $isEntrada ? 0       : $amount;
+
+            // 3) Validación de stock (no permitir negativos)
+            $newIn   = (float) $product->in_qty  + $deltaIn;
+            $newOut  = (float) $product->out_qty + $deltaOut;
+            $newStock= $newIn - $newOut;
+
+            if ($newStock < 0) {
+                abort(422, 'El movimiento genera stock negativo.');
+            }
+
+            // 4) Crear movimiento
+            $movement = MovementKardex::create([
+                'product_id'    => $product->id,
+                'movement_date' => now(),
+                'movement_type' => $data['movement_type'],   // 'entrada' | 'salida'
+                'amount'        => $amount,
+                'observations'  => $data['observations'] ?? null,
+                // Si tu tabla tiene 'final_balance', guarda el stock luego de aplicar el movimiento:
+                // 'final_balance'  => $newStock,
+            ]);
+
+            // 5) Actualizar contadores en products
+            $product->forceFill([
+                'in_qty'          => $newIn,
+                'out_qty'         => $newOut,
+                'stock_qty'       => $newStock,
+                'last_movement_at'=> now(),
+            ])->save();
+
+            // 6) Adjuntar personas (tu bloque actual tal cual)
+            $attached = [];
+            $missing  = [];
+            if (!empty($data['people_dnis']) && is_array($data['people_dnis'])) {
+                $peopleDnis = collect($data['people_dnis'])
+                    ->filter()
+                    ->map(fn ($dni) => str_pad(preg_replace('/\D/','', $dni), 8, '0', STR_PAD_LEFT))
+                    ->unique()
+                    ->values();
+
+                if ($peopleDnis->isNotEmpty()) {
+                    $found = \App\Models\Person::whereIn('dni', $peopleDnis)->pluck('dni');
+                    $movement->people()->syncWithoutDetaching(
+                        $found->mapWithKeys(fn ($dni) => [$dni => ['attached_at' => now()]])->all()
+                    );
+                    $attached = $found->values()->all();
+                    $missing  = $peopleDnis->diff($found)->values()->all();
+                }
+            }
+
+            return response()->json([
+                'ok'       => true,
+                'product'  => $product->only(['id','id_order_silucia','id_product_silucia','in_qty','out_qty','stock_qty']),
+                'movement' => $movement,
+                'people'   => [
+                    'attached_dnis' => $attached,
+                    'missing_dnis'  => $missing,
+                ],
+            ], 201);
+        });
+    }
+
 
     public function indexBySiluciaIds(Request $request, $id_order_silucia, $id_product_silucia)
     {
