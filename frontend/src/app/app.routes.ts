@@ -55,29 +55,29 @@ export const routes: Routes = [
     },
     // Rutas protegidas que requieren autenticación (dashboard y sus hijos)
     {
-        path: 'private', 
+        path: 'private',
         component: Dashboard,
         canActivate: [authGuard], // <--- ¡Esta es la línea clave que añadimos!
         children: [
             {
-                path: '',          
-                redirectTo: 'home',    
-                pathMatch: 'full'      
+                path: '',
+                redirectTo: 'home',
+                pathMatch: 'full'
             },
             {
                 path: 'home',
                 component: ReportsAndDashboards
             },
-            { 
-                path: 'daily-work-log', 
+            {
+                path: 'daily-work-log',
                 children: [
-                    { 
-                    path: '', 
-                    component: DailyWorkLog 
+                    {
+                    path: '',
+                    component: DailyWorkLog
                     },
-                    { 
-                    path: 'daily-work-log-id/:id', 
-                    component: DailyWorkLogId 
+                    {
+                    path: 'daily-work-log-id/:id',
+                    component: DailyWorkLogId
                     }
                 ]
             },
@@ -85,7 +85,7 @@ export const routes: Routes = [
                 path: 'mechanical_equipment',
                 component: MechanicalEquipment
             },
-            
+
             {
                 path: 'fuel-control',
                 component: FuelControl
@@ -102,7 +102,7 @@ export const routes: Routes = [
                 path: 'kardex-management',
                 children: [
                     {
-                        path: '',   
+                        path: '',
                         component: KardexManagement,
                     }
                 ]
@@ -111,7 +111,7 @@ export const routes: Routes = [
                 path: 'digital-signatures',
                 children: [
                     {
-                        path: '',   
+                        path: '',
                         component: SignaturesMovementReports,
                     },
                 ]
@@ -124,7 +124,7 @@ export const routes: Routes = [
                 path: 'physical-bincard',
                 children: [
                     {
-                        path: '',   
+                        path: '',
                         component: PhysicalBincard,
                     },
                     {
@@ -145,7 +145,7 @@ export const routes: Routes = [
                     },
 
                 ]
-                
+
             },
             {
                 path: 'fuel-vaucher',
@@ -158,9 +158,9 @@ export const routes: Routes = [
         path: 'draft',
         children:[
             {
-                path: '',          
-                redirectTo: 'how-send-values',    
-                pathMatch: 'full'      
+                path: '',
+                redirectTo: 'how-send-values',
+                pathMatch: 'full'
             },
             {
                 path: 'how-send-values',
@@ -189,7 +189,7 @@ export const routes: Routes = [
         ]
     },
     // {
-    //     path: '**',  
+    //     path: '**',
     //     component: NotFound
     // }
 ];

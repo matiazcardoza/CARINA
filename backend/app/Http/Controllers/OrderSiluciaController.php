@@ -17,7 +17,7 @@ class OrderSiluciaController extends Controller
                 'mechanical_equipment_id' => $request->maquinaria_id,
                 'goal_id' => $request->meta_id,
                 'operator' => $request->operador,
-                'description' => $request->maquinaria_equipo . ' ' . $request->maquinaria_marca . ' ' . $request->maquinaria_modelo . ' ' . $request->maquinaria_serie,
+                'description' => $request->maquinaria_equipo . ' ' . $request->maquinaria_marca . ' ' . $request->maquinaria_modelo . ' ' . $request->maquinaria_placa,
                 'goal_project' => $request->meta_codigo,
                 'goal_detail' => $request->meta_descripcion,
                 'state' => 3
@@ -49,7 +49,7 @@ class OrderSiluciaController extends Controller
                 'order_id' => $newOrderSilucia->id,
                 'goal_id' => $request->idmeta,
                 'operator' => $request->operador,
-                'description' => $request->description,
+                'description' => $request->description . ' ' . $request->placa,
                 'goal_project' => $request->cod_meta,
                 'goal_detail' => $request->desmeta,
                 'state' => $request->tipoMaquinaria

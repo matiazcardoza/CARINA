@@ -14,7 +14,11 @@ import { Router } from '@angular/router';
 
 export interface WorkLogElement {
   id: number;
+  goal_id:number;
   description: string;
+  goal_project: string;
+  goal_detail: string;
+  operator: string;
   state: number;
 }
 
