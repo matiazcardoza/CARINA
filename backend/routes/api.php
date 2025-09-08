@@ -18,6 +18,7 @@ use App\Models\Service;
 
 use App\Http\Controllers\PecosaController;
 use App\Http\Controllers\FuelOrderController;
+use App\Http\Controllers\SignaturesController;
 use App\Models\SignatureFlow;
 use App\Models\SignatureStep;
 
@@ -101,6 +102,25 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/movements-kardex/{movement}/people', [MovementKardexController::class, 'attachPerson'])->middleware(['role:almacen_almacenero']);
     // endpoint no terminado - sirve para quitar una persona de un movimientoa
     // Route::delete('/movements-kardex/{movement}/people/{dni}', [MovementKardexController::class, 'detachPerson']);
+
+
+
+    // rutas para vales de transporte
+    
+    // LISTA
+    Route::get('/fuel-orders', [FuelOrderController::class, 'index']);
+
+    // GENERAR PDF + FLUJO
+    Route::post('/fuel-orders/{order}/generate-report', [FuelOrderController::class, 'generateReport']);
+
+    // ESTADO DE REPORTE/FLUJO
+    Route::get('/fuel-orders/{order}/report', [FuelOrderController::class, 'showReport']);
+
+    // DESCARGA PDF
+    Route::get('/fuel-orders/{order}/report/download', [FuelOrderController::class, 'downloadReport']);
+
+    // FIRMA (callback genérico)
+    Route::post('/signatures/callback', [SignaturesController::class, 'callback']);
 });
     // recibe pdf firmado por firma perú
     Route::post('signatures/callback', [SignatureController::class, 'store']);
