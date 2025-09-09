@@ -65,7 +65,7 @@ class UserController extends Controller
                 $tokenApiPeru = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InJvaHVhbmNhY2FAZXN0LnVuYXAuZWR1LnBlIn0.5vsbSt9uYHpYTTEHoc9ttwoT4p2kc0DxL1zCrK2NVWo';
                 $urlApiPeru = "https://dniruc.apisperu.com/api/v1/dni/$numDoc?token=$tokenApiPeru";
 
-                $responseApiPeru = Http::timeout(7)->get($urlApiPeru);
+                $responseApiPeru = Http::timeout(15)->get($urlApiPeru);
 
                 if ($responseApiPeru->successful() && isset($responseApiPeru['nombres'])) {
                     $data = $responseApiPeru->json();
@@ -78,7 +78,7 @@ class UserController extends Controller
                 Log::error("Error en APISPERU: ".$e->getMessage());
             }
         }
-        
+
         if($nombreCompleto){
             return response()->json([
                 'success' => true,
