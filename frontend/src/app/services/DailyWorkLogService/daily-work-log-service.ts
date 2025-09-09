@@ -4,6 +4,8 @@ import { map, Observable } from 'rxjs';
 import { WorkLogElement } from '../../features/private/daily-work-log/daily-work-log';
 import { environment } from '../../../environments/environment';
 import { WorkLogIdElement } from '../../features/private/daily-work-log/daily-work-log-id/daily-work-log-id';
+import { WorkLogDataElement } from '../../features/private/reports-and-dashboards/reports-and-dashboards';
+import { EvidenceDataElement } from '../../features/private/reports-and-dashboards/view/view-evidence/view-evidence';
 
 interface WorkLogApiResponse {
   message: string;
@@ -14,6 +16,17 @@ interface WorkLogIdApiResponse {
   message: string;
   data: WorkLogIdElement[];
 }
+
+interface WorkLogDataApiResponse {
+  message: string;
+  data: WorkLogDataElement[];
+}
+
+interface EvidenceDataApiResponse {
+  message: string;
+  data: EvidenceDataElement[];
+}
+
 interface SingleApiResponse {
   message: string;
   data: WorkLogElement;
@@ -97,5 +110,37 @@ export class DailyWorkLogService {
   getOrderByNumber(orderNumber: string): Observable<any> {
     const apiUrl = `https://sistemas.regionpuno.gob.pe/siluciav2-api/api/ordenserviciodetallado?numero=${orderNumber}`;
     return this.http.get<any>(apiUrl);
+  }
+
+  getSelectedServiceData(): Observable<WorkLogElement[]> {
+    return this.http.get<WorkLogApiResponse>(`${this.apiUrl}/api/services/selected`, {
+      withCredentials: true
+    }).pipe(
+      map(response => response.data)
+    );
+  }
+
+  getDailyPartData(codGoal: number): Observable<WorkLogDataElement[]> {
+    return this.http.get<WorkLogDataApiResponse>(`${this.apiUrl}/api/services/daily-parts/${codGoal}`, {
+      withCredentials: true,
+    }).pipe(
+      map(response => response.data)
+    );
+  }
+
+  getEvidenceData(serviceId: number): Observable<EvidenceDataElement[]> {
+    return this.http.get<EvidenceDataApiResponse>(`${this.apiUrl}/api/daily-work-evendece/${serviceId}`, {
+      withCredentials: true,
+    }).pipe(
+      map(response => response.data)
+    );
+  }
+
+  liquidarServicio(serviceId: number): Observable<WorkLogDataElement[]> {
+    return this.http.post<WorkLogDataApiResponse>(`${this.apiUrl}/api/services/liquidar-servicio/${serviceId}`, {}, {
+      withCredentials: true,
+    }).pipe(
+      map(response => response.data)
+    );
   }
 }

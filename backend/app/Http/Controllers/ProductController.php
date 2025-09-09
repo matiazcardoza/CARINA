@@ -55,7 +55,9 @@ class ProductController extends Controller
             ->whereHas('reports.flow') 
             ->with([
                 'reports' => function ($q) {
-                    $q->select('id','product_id','pdf_path','from_date','to_date','type','status','pdf_page_number','created_at')
+                    // $q->select('id','product_id','pdf_path','from_date','to_date','type','status','pdf_page_number','created_at')
+                    $q->select('id','reportable_id','reportable_type','pdf_path','status','pdf_page_number','category','subtype','created_at')
+
                     // ->whereHas('flow', fn($f) => $f->where('status','in_progress'))
                     ->whereHas('flow')
                     // ->with([
@@ -63,7 +65,7 @@ class ProductController extends Controller
                     //     'flow.steps:id,signature_flow_id,order,role,status,callback_token'
                     // ]);
                     ->with([
-                        'flow:id,kardex_report_id,current_step,status',
+                        'flow:id,report_id,current_step,status',
                         'flow.steps:id,signature_flow_id,order,role,status,callback_token,page,pos_x,pos_y,width,height',
                     ]);
                 },

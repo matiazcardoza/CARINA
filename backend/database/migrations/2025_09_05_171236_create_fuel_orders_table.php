@@ -35,20 +35,20 @@ return new class extends Migration
 
             // Combustible (UN SOLO registro, como pediste)
             $table->enum('fuel_type', ['gasolina', 'diesel', 'glp']);
-            $table->decimal('quantity_gal', 10, 2);   // Glns
+            $table->decimal('quantity_gal', 10, 3);   // Glns
             $table->decimal('amount_soles', 12, 2);   // Importe S/
 
             // Aprobaciones (Supervisor/Inspector y Jefe de Gerencia)
             // NULL = pendiente, 'approved' = aprobado, 'rejected' = rechazado
-            $table->enum('supervisor_status', ['approved', 'rejected'])->nullable();
-            $table->foreignId('supervisor_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('supervisor_at')->nullable();
-            $table->text('supervisor_note')->nullable();
+            // $table->enum('supervisor_status', ['approved', 'rejected'])->nullable();
+            // $table->foreignId('supervisor_id')->nullable()->constrained('users')->nullOnDelete();
+            // $table->timestamp('supervisor_at')->nullable();
+            // $table->text('supervisor_note')->nullable();
 
-            $table->enum('manager_status', ['approved', 'rejected'])->nullable();
-            $table->foreignId('manager_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('manager_at')->nullable();
-            $table->text('manager_note')->nullable();
+            // $table->enum('manager_status', ['approved', 'rejected'])->nullable();
+            // $table->foreignId('manager_id')->nullable()->constrained('users')->nullOnDelete();
+            // $table->timestamp('manager_at')->nullable();
+            // $table->text('manager_note')->nullable();
 
             // Índices útiles
             $table->index(['fecha']);

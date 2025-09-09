@@ -40,7 +40,12 @@ class FuelOrder extends Model
         'manager_at' => 'datetime',
     ];
 
-    public function driver(): BelongsTo { return $this->belongsTo(User::class, 'driver_id'); }
+    public function driver(): BelongsTo { 
+        return $this->belongsTo(User::class, 'driver_id'); 
+    }
+    // public function driver(){ 
+    //     return $this->belongsTo(User::class, 'driver_id'); 
+    // }
     public function vehicle(): BelongsTo { return $this->belongsTo(Vehicle::class); }
     public function supervisor(): BelongsTo { return $this->belongsTo(User::class, 'supervisor_id'); }
     public function manager(): BelongsTo { return $this->belongsTo(User::class, 'manager_id'); }
@@ -58,4 +63,20 @@ class FuelOrder extends Model
         }
         return 'pending';
     }
+
+        public function reports()
+    {
+        return $this->morphMany(Report::class, 'reportable');
+    }
+
+    // El último reporte del tipo "fuel_order"
+    public function latestFuelReport()
+    {
+        // Laravel 9+:
+        return $this->morphOne(Report::class, 'reportable')
+            ->where('category', 'fuel_order')
+            ->latestOfMany(); // usa created_at/id para traer el más reciente
+    }
+
+    
 }

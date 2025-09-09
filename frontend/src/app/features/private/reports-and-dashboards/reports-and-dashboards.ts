@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
@@ -10,25 +10,43 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormsModule, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MatAutocomplete, MatAutocompleteModule } from '@angular/material/autocomplete';
+import { Observable, startWith, map, catchError, of } from 'rxjs';
+import { WorkLogElement } from '../../../features/private/daily-work-log/daily-work-log';
+import { DailyWorkLogService } from '../../../services/DailyWorkLogService/daily-work-log-service';
+import { ReportsServicesService } from '../../../services/RepostsServicesService/reports-services-service';
+import { MatInputModule } from '@angular/material/input';
+import { MatDialog } from '@angular/material/dialog';
+import { ViewEvidence } from './view/view-evidence/view-evidence';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
-interface ParteDiario {
+export interface WorkLogDataElement {
   id: number;
-  fecha: Date;
-  servicio: string;
-  horaInicio: string;
-  horaFin: string;
-  horasTrabajadas: number;
-  combustibleInicial: number;
-  combustibleFinal: number;
-  combustibleConsumido: number;
+  description: string;
+  total_time_worked: string;
+  fuel_consumed: string;
+  state: number;
+  operator: string;
+  created_at: string;
+  updated_at: string;
+  goal_detail: string;
+  goal_project: string;
+  goal_id: number;
+  mechanical_equipment_id: number;
+  order_id: number | null;
+}
+
+// Interfaz para datos falsos de firmas y evidencias
+interface ParteDiarioFalso {
+  id: number;
   estadoFirmas: {
     controlador: boolean;
     residente: boolean;
     supervisor: boolean;
   };
-  evidencias: number;
-  proyecto: string;
 }
 
 interface ResumenDashboard {
@@ -54,12 +72,45 @@ interface ResumenDashboard {
     MatProgressBarModule,
     MatBadgeModule,
     MatFormFieldModule,
-    FormsModule
+    MatInputModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatAutocompleteModule,
+    MatMenuModule,
+    MatDividerModule,
+    MatTooltipModule
   ],
   templateUrl: './reports-and-dashboards.html',
   styleUrl: './reports-and-dashboards.css'
 })
 export class ReportsAndDashboards implements OnInit {
+
+  searchForm: FormGroup;
+  filteredServicio!: Observable<WorkLogElement[]>;
+  selectedServicio: WorkLogElement | null = null;
+  servicioList: WorkLogElement[] = [];
+
+  isLoading = false;
+  errorMessage = '';
+
+  // Datos reales de la API
+  partesDiariosReales: WorkLogDataElement[] = [];
+
+  // Datos falsos para firmas y evidencias (temporal)
+  datosFalsos: ParteDiarioFalso[] = [
+    {
+      id: 1,
+      estadoFirmas: { controlador: true, residente: true, supervisor: false },
+    },
+    {
+      id: 2,
+      estadoFirmas: { controlador: true, residente: true, supervisor: true },
+    },
+    {
+      id: 3,
+      estadoFirmas: { controlador: true, residente: false, supervisor: false },
+    }
+  ];
 
   // Datos falsos para el dashboard
   resumenDashboard: ResumenDashboard = {
@@ -70,141 +121,157 @@ export class ReportsAndDashboards implements OnInit {
     porcentajeEficiencia: 78.2
   };
 
-  // Datos falsos para los partes diarios
-  partesDiarios: ParteDiario[] = [
-    {
-      id: 1,
-      fecha: new Date('2024-01-15'),
-      servicio: 'Excavadora CAT 320D',
-      horaInicio: '07:00',
-      horaFin: '17:00',
-      horasTrabajadas: 9.5,
-      combustibleInicial: 180.5,
-      combustibleFinal: 95.2,
-      combustibleConsumido: 85.3,
-      estadoFirmas: {
-        controlador: true,
-        residente: true,
-        supervisor: false
-      },
-      evidencias: 4,
-      proyecto: 'Construcción Puente Norte'
-    },
-    {
-      id: 2,
-      fecha: new Date('2024-01-14'),
-      servicio: 'Volquete Mercedes 2635',
-      horaInicio: '06:30',
-      horaFin: '16:30',
-      horasTrabajadas: 10.0,
-      combustibleInicial: 200.0,
-      combustibleFinal: 125.8,
-      combustibleConsumido: 74.2,
-      estadoFirmas: {
-        controlador: true,
-        residente: true,
-        supervisor: true
-      },
-      evidencias: 6,
-      proyecto: 'Pavimentación Av. Principal'
-    },
-    {
-      id: 3,
-      fecha: new Date('2024-01-13'),
-      servicio: 'Motoniveladora John Deere 670G',
-      horaInicio: '08:00',
-      horaFin: '18:00',
-      horasTrabajadas: 9.0,
-      combustibleInicial: 150.0,
-      combustibleFinal: 75.5,
-      combustibleConsumido: 74.5,
-      estadoFirmas: {
-        controlador: true,
-        residente: false,
-        supervisor: false
-      },
-      evidencias: 3,
-      proyecto: 'Mejoramiento Carretera Sur'
-    },
-    {
-      id: 4,
-      fecha: new Date('2024-01-12'),
-      servicio: 'Compactadora Dynapac CA25',
-      horaInicio: '07:30',
-      horaFin: '15:30',
-      horasTrabajadas: 8.0,
-      combustibleInicial: 120.0,
-      combustibleFinal: 65.0,
-      combustibleConsumido: 55.0,
-      estadoFirmas: {
-        controlador: true,
-        residente: true,
-        supervisor: true
-      },
-      evidencias: 5,
-      proyecto: 'Construcción Puente Norte'
-    },
-    {
-      id: 5,
-      fecha: new Date('2024-01-11'),
-      servicio: 'Retroexcavadora JCB 3CX',
-      horaInicio: '09:00',
-      horaFin: '17:00',
-      horasTrabajadas: 7.5,
-      combustibleInicial: 100.0,
-      combustibleFinal: 42.3,
-      combustibleConsumido: 57.7,
-      estadoFirmas: {
-        controlador: true,
-        residente: true,
-        supervisor: false
-      },
-      evidencias: 2,
-      proyecto: 'Pavimentación Av. Principal'
-    }
-  ];
-
-  // Columnas para la tabla de partes diarios
+  // Columnas actualizadas para la tabla
   displayedColumns: string[] = [
-    'fecha', 
+    'estado',
     'servicio', 
     'horasTrabajadas', 
     'combustibleConsumido', 
     'estadoFirmas', 
-    'evidencias', 
-    'proyecto',
+    'evidencias',
     'acciones'
   ];
 
-  // Selector de proyecto
-  proyectoSeleccionado: string = '';
-  proyectosDisponibles: string[] = [
-    'Todos los proyectos',
-    'Construcción Puente Norte',
-    'Pavimentación Av. Principal',
-    'Mejoramiento Carretera Sur'
-  ];
+  constructor(
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef,
+    private dailyWorkLogService: DailyWorkLogService,
+    private reportsServicesService: ReportsServicesService
+  ) {
+    this.searchForm = this.fb.group({
+      servicioSearch: ['']
+    });
+  }
+
+  private dialog = inject(MatDialog);
 
   ngOnInit(): void {
-    // Inicialización del componente
+    this.loadServices();
     this.calcularResumenDashboard();
   }
 
-  calcularResumenDashboard(): void {
-    // Simular cálculos del dashboard basado en los datos
-    this.resumenDashboard.totalHorasTrabajadas = this.partesDiarios
-      .reduce((total, parte) => total + parte.horasTrabajadas, 0);
+  loadServices(): void {
+    this.isLoading = true;
+    this.errorMessage = '';
     
-    this.resumenDashboard.totalCombustibleConsumido = this.partesDiarios
-      .reduce((total, parte) => total + parte.combustibleConsumido, 0);
+    this.dailyWorkLogService.getSelectedServiceData()
+      .pipe(
+        catchError(error => {
+          console.error('Error loading mechanical equipment:', error);
+          this.errorMessage = 'Error al cargar la servicio. Por favor, intente nuevamente.';
+          return of([]);
+        })
+      )
+      .subscribe(service => {
+        this.servicioList = service;
+        this.isLoading = false;
+        this.filteredServicio = this.searchForm.get('servicioSearch')!.valueChanges.pipe(
+          startWith(''),
+          map(value => this._filterServicio(typeof value === 'string' ? value : value?.goal_detail || ''))
+        );
+        this.cdr.detectChanges();
+      });
+  }
+
+  getDailyPartsData(servicio: WorkLogElement): void {
+    this.isLoading = true;
+    this.errorMessage = '';
     
-    this.resumenDashboard.partesCompletados = this.partesDiarios
-      .filter(parte => this.todasLasFirmasCompletas(parte.estadoFirmas)).length;
+    this.dailyWorkLogService.getDailyPartData(servicio.goal_id)
+    .pipe(
+      catchError(error => {
+        console.error('Error al cargar los partes diarios:', error);
+        this.errorMessage = 'Error al cargar los partes diarios. Por favor, intente nuevamente.';
+        return of([]);
+      })
+    )
+    .subscribe((data: WorkLogDataElement[]) => {
+      console.log('Estos son los datos que llegan:', data);
+      this.partesDiariosReales = data;
+      this.calcularResumenDashboardReal();
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    });
+  }
+
+  // Método para obtener el texto del estado
+  obtenerTextoEstado(state: number): string {
+    switch (state) {
+      case 1:
+        return 'Máquina Seca';
+      case 2:
+        return 'Máquina Servida';
+      case 3:
+        return 'Equipo Mecánico';
+      default:
+        return 'Estado Desconocido';
+    }
+  }
+
+  // Método para obtener el color del estado
+  obtenerColorEstado(state: number): string {
+    switch (state) {
+      case 1:
+        return 'warn'; // Amarillo/naranja
+      case 2:
+        return 'primary'; // Azul
+      case 3:
+        return 'accent'; // Verde/otro color
+      default:
+        return 'basic';
+    }
+  }
+
+  // Método para convertir tiempo trabajado a horas decimales
+  convertirTiempoAHoras(tiempo: string): number {
+    if (!tiempo) return 0;
     
-    this.resumenDashboard.partesPendientes = this.partesDiarios.length - this.resumenDashboard.partesCompletados;
+    const partes = tiempo.split(':');
+    if (partes.length !== 3) return 0;
+    
+    const horas = parseInt(partes[0]);
+    const minutos = parseInt(partes[1]);
+    const segundos = parseInt(partes[2]);
+    
+    return horas + (minutos / 60) + (segundos / 3600);
+  }
+
+  // Calcular resumen basado en datos reales
+  calcularResumenDashboardReal(): void {
+    if (this.partesDiariosReales.length === 0) {
+      return;
+    }
+
+    this.resumenDashboard.totalHorasTrabajadas = this.partesDiariosReales
+      .reduce((total, parte) => {
+        return total + this.convertirTiempoAHoras(parte.total_time_worked);
+      }, 0);
+    
+    this.resumenDashboard.totalCombustibleConsumido = this.partesDiariosReales
+      .reduce((total, parte) => {
+        return total + parseFloat(parte.fuel_consumed || '0');
+      }, 0);
+    
+    // Para los completados usamos datos falsos por ahora
+    this.resumenDashboard.partesCompletados = Math.floor(this.partesDiariosReales.length * 0.7);
+    this.resumenDashboard.partesPendientes = this.partesDiariosReales.length - this.resumenDashboard.partesCompletados;
     
     this.resumenDashboard.porcentajeEficiencia = 
-      (this.resumenDashboard.partesCompletados / this.partesDiarios.length) * 100;
+      this.partesDiariosReales.length > 0 
+        ? (this.resumenDashboard.partesCompletados / this.partesDiariosReales.length) * 100
+        : 0;
+  }
+
+  // Mantener método original para datos falsos del dashboard inicial
+  calcularResumenDashboard(): void {
+    // Este método se mantiene para el dashboard inicial con datos falsos
+    // Se puede eliminar cuando tengas datos reales para el dashboard
+  }
+
+  // Métodos para datos falsos de firmas (temporal)
+  obtenerDatosFalsos(id: number): ParteDiarioFalso {
+    const datosFalso = this.datosFalsos.find(d => d.id === (id % 3) + 1);
+    return datosFalso || this.datosFalsos[0];
   }
 
   todasLasFirmasCompletas(estadoFirmas: any): boolean {
@@ -233,18 +300,131 @@ export class ReportsAndDashboards implements OnInit {
     }
   }
 
-  verDetalleParte(parte: ParteDiario): void {
-    console.log('Ver detalle del parte:', parte);
-    // Aquí implementarías la navegación al detalle del parte
+  liquidarServicio(id: number, servicio: WorkLogElement) {
+    console.log('id de liquidar servicio:', id);
+    if (confirm('¿Estás seguro de que deseas liquidar este registro?')) {
+      Promise.resolve().then(() => {
+        this.isLoading = true;
+        this.cdr.detectChanges();
+
+        this.dailyWorkLogService.liquidarServicio(id)
+          .subscribe({
+            next: () => {
+              this.isLoading = false;
+              this.cdr.detectChanges();
+              this.getDailyPartsData(servicio);
+            },
+            error: (error) => {
+              this.isLoading = false;
+              this.errorMessage = 'Error al eliminar el registro. Por favor, intenta nuevamente.';
+              this.cdr.detectChanges();
+            }
+          });
+      });
+    }
+  }
+
+  viewEvidenceData(id: number, servicio: WorkLogElement){
+    const dialogRef = this.dialog.open(ViewEvidence, {
+      width: '700px',
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+      data: {
+        ServiceId: id
+      }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.getDailyPartsData(servicio);
+      }
+    });
   }
 
   descargarReporte(): void {
     console.log('Descargando reporte...');
     // Aquí implementarías la funcionalidad de descarga
   }
+  limpiarSelector(): void {
+    this.searchForm.get('servicioSearch')?.setValue('');
+    this.selectedServicio = null;
+    this.partesDiariosReales = [];
+    this.resumenDashboard = {
+      totalHorasTrabajadas: 245.5,
+      totalCombustibleConsumido: 1250.75,
+      partesCompletados: 18,
+      partesPendientes: 5,
+      porcentajeEficiencia: 78.2
+    };
+    this.cdr.detectChanges();
+  }
 
-  onProyectoChange(): void {
-    console.log('Proyecto seleccionado:', this.proyectoSeleccionado);
-    // Aquí implementarías la lógica de filtrado por proyecto
+  displayServicio(servicio: WorkLogElement): string {
+    return servicio ? `${servicio.goal_project || 'N/A'} - ${servicio.goal_detail}` : '';
+  }
+
+  onServicioSelected(servicio: WorkLogElement): void {
+    this.selectedServicio = servicio;
+    this.getDailyPartsData(servicio);
+  }
+
+  private _filterServicio(value: string): WorkLogElement[] {
+    if (!value) {
+      return this.servicioList;
+    }
+
+    const filterValue = value.toLowerCase();
+    return this.servicioList.filter(servicio => 
+      servicio.goal_project?.toLowerCase().includes(filterValue) ||
+      servicio.goal_detail?.toLowerCase().includes(filterValue)
+    );
+  }
+
+  obtenerColorBotonFirmas(parteId: any): string {
+    const estadoFirmas = this.obtenerDatosFalsos(parteId).estadoFirmas;
+    const todasFirmadas = estadoFirmas.controlador && estadoFirmas.residente && estadoFirmas.supervisor;
+    
+    if (todasFirmadas) {
+      return 'primary';
+    } else if (estadoFirmas.controlador || estadoFirmas.residente || estadoFirmas.supervisor) {
+      return 'accent';
+    } else {
+      return 'warn';
+    }
+  }
+
+  generateRequest(id: number) {
+    this.reportsServicesService.generateRequest(id).subscribe({
+      next: (response: Blob) => {
+        const fileURL = URL.createObjectURL(response);
+        window.open(fileURL, '_blank');
+      },
+      error: () => {
+        this.errorMessage = 'Error al generar el PDF. Por favor, intenta nuevamente.';
+      }
+    });
+  }
+
+  generateAuth(id: number) {
+    this.reportsServicesService.generateAuth(id).subscribe({
+      next: (response: Blob) => {
+        const fileURL = URL.createObjectURL(response);
+        window.open(fileURL, '_blank');
+      },
+      error: () => {
+        this.errorMessage = 'Error al generar el PDF. Por favor, intenta nuevamente.';
+      }
+    });
+  }
+
+  generateLiquidation(id: number) {
+    this.reportsServicesService.generateLiquidation(id).subscribe({
+      next: (response: Blob) => {
+        const fileURL = URL.createObjectURL(response);
+        window.open(fileURL, '_blank');
+      },
+      error: () => {
+        this.errorMessage = 'Error al generar el PDF. Por favor, intenta nuevamente.';
+      }
+    });
   }
 }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DailyPartController;
+use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\MechanicalEquipmentController;
 use App\Http\Controllers\MovementKardexController;
 use App\Http\Controllers\OrderSiluciaController;
@@ -13,8 +14,14 @@ use App\Http\Controllers\SignatureController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PurchaseOrdersController;
+use App\Models\Service;
+
 use App\Http\Controllers\PecosaController;
 use App\Http\Controllers\FuelOrderController;
+use App\Http\Controllers\SignaturesController;
+use App\Models\SignatureFlow;
+use App\Models\SignatureStep;
+
 // use App\Http\Controllers\PdfControllerKardex;
 // use Illuminate\Support\Facades\Auth;
 // use App\Http\Controllers\OrderProductoController;
@@ -31,6 +38,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //Services
     Route::get('/services', [ServiceController::class, 'index']);
+    Route::get('/services/selected', [ServiceController::class, 'selectedData']);
+    Route::get('/services/daily-parts/{idGoal}', [ServiceController::class, 'getDailyPartsData']);
+    Route::post('services/liquidar-servicio/{serviceId}', [ServiceController::class, 'liquidarServicio']);
+    Route::post('/services/{id}/generate-request', [ServiceController::class, 'generateRequest']);
+    Route::post('/services/{id}/generate-auth', [ServiceController::class, 'generateAuth']);
+    Route::post('/services/{id}/generate-liquidation', [ServiceController::class, 'generateLiquidation']);
 
     //daily work log routes
     Route::get('/daily-work-log/{id}', [DailyPartController::class, 'index']);
@@ -48,6 +61,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //products
     Route::get('/products-select', [ProductController::class, 'consultaProductSelect']);
+
+    //evendence
+    Route::get('/daily-work-evendece/{serviceId}', [EvidenceController::class, 'getEvidence']);
 
     // recurso anidado se obtiene productos pertenecientes a una orden sillucia
     Route::apiResource('orders-silucia.products', OrderProductsController::class)
@@ -96,6 +112,25 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/movements-kardex/{movement}/people', [MovementKardexController::class, 'attachPerson'])->middleware(['role:almacen_almacenero']);
     // endpoint no terminado - sirve para quitar una persona de un movimientoa
     // Route::delete('/movements-kardex/{movement}/people/{dni}', [MovementKardexController::class, 'detachPerson']);
+
+
+
+    // rutas para vales de transporte
+    
+    // LISTA
+    Route::get('/fuel-orders', [FuelOrderController::class, 'index']);
+
+    // GENERAR PDF + FLUJO
+    Route::post('/fuel-orders/{order}/generate-report', [FuelOrderController::class, 'generateReport']);
+
+    // ESTADO DE REPORTE/FLUJO
+    Route::get('/fuel-orders/{order}/report', [FuelOrderController::class, 'showReport']);
+
+    // DESCARGA PDF
+    Route::get('/fuel-orders/{order}/report/download', [FuelOrderController::class, 'downloadReport']);
+
+    // FIRMA (callback genérico)
+    Route::post('/signatures/callback', [SignaturesController::class, 'callback']);
 });
     // recibe pdf firmado por firma perú
     Route::post('signatures/callback', [SignatureController::class, 'store']);
@@ -105,7 +140,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/files-download', [SignatureController::class, 'filesDownload']);
     // Pruebas para generar codigo qr
     // Route::get('example-qr', [PdfControllerKardex::class, 'generateQRCcode']);
-
 
 
 Route::middleware('auth:sanctum')->group(function () {

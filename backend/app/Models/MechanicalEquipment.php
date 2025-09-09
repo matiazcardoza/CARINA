@@ -20,6 +20,7 @@ class MechanicalEquipment extends Model
         'serial_number',
         'year',
         'plate',
+        'cost_hour',
         'state'
     ];
 }
