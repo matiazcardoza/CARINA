@@ -58,6 +58,12 @@ class ItemPecosa extends Model
         'total'                 => 'decimal:2',
     ];
 
+    public function movements()
+    {
+        return $this->hasMany(MovementKardex::class, 'item_pecosa_id');
+    }
+
+
     /* ================================
      * Scopes de ayuda para filtrar
      * ================================ */
@@ -109,6 +115,15 @@ class ItemPecosa extends Model
                 $q->where('desmeta', 'like', '%' . $filters['desmeta'] . '%');
             });
     }
+
+    // public function reports()
+    // {
+    //     return $this->morphMany(\App\Models\KardexReport::class, 'reportable');
+    // }
+    public function reports() { 
+        return $this->morphMany(Report::class, 'reportable'); 
+    }
+
 
     /* ================================
      * Relaciones (si las necesitas)

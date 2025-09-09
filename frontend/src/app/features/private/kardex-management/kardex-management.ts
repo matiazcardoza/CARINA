@@ -101,7 +101,7 @@ export class KardexManagement {
   movementsLoading   = signal<boolean>(false);
   movementsTotal     = signal<number>(0);
   movementsPageSize  = 50; // lo ajustaremos con lo que devuelva el backend
-  selectedProductForMovements: any | null = null;
+  selectedPecosaForMovements: any | null = null;
 
   private readonly destroyRef = inject(DestroyRef); 
   constructor(private service:KardexManagementService, private signature: DigitalSignatureService, private messageService: MessageService){
@@ -323,17 +323,19 @@ export class KardexManagement {
   //     this.fetchMovements(1, this.movementsPageSize);
   //   }
   openMovementDetailsModal(row?: any) {
-    this.selectedProductForMovements = row;
+    console.log("mostrar movimientos:", row);
+    this.selectedPecosaForMovements = row;
     this.showMovementDetailsModal = true;
     this.expandedRowsMovements.set({});   // ← reset al abrir
     this.fetchMovements(1, this.movementsPageSize);
   }
     
   private fetchMovements(page: number, perPage: number) {
-    if (!this.selectedProductForMovements) return;
+    if (!this.selectedPecosaForMovements) return;
 
-    const orderNum = this.selectedProductForMovements.numero;
-    const productIdSilucia = this.selectedProductForMovements.idcompradet;
+    const orderNum = this.selectedPecosaForMovements.numero;
+    // const productIdSilucia = this.selectedProductForMovements.idcompradet;
+    const productIdSilucia = this.selectedPecosaForMovements.idsalidadet;
 
     this.movementsLoading.set(true);
 
@@ -378,12 +380,14 @@ export class KardexManagement {
   // Descarga del pdf
   onSubmitMovementDetails(){
     // Debemos descargar el pdf para el reporte
-      console.log("detalles de pdf: ",this.selectedProductForMovements);
-      const id_order_silucia = this.selectedProductForMovements.numero;
-      const id_pecosa_silucia = this.selectedProductForMovements.numero;
-      const id_product_silucia = this.selectedProductForMovements.idcompradet;
+      console.log("detalles de pdf: ",this.selectedPecosaForMovements);
+      // const id_order_silucia = this.selectedPecosaForMovements.numero;
+      const id_pecosa_silucia = this.selectedPecosaForMovements.numero;
+      // const id_product_silucia = this.selectedPecosaForMovements.idcompradet;
+      const id_item_pecosa_silucia = this.selectedPecosaForMovements.idsalidadet;
+      console.log("ide enviado: ", id_item_pecosa_silucia );
       // this.service.downloadPdf(2874,249069).subscribe(res => {
-      this.service.downloadPdf(id_order_silucia,id_product_silucia).subscribe(res => {
+      this.service.downloadPdf(id_pecosa_silucia, id_item_pecosa_silucia).subscribe(res => {
         const blob = res.body!;
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreMovementPecosaRequest;
 use App\Http\Requests\StoreMovementRequest;
 use App\Models\FuelOrder;
+use App\Models\ItemPecosa;
 // use App\Http\Requests\StoreMovementPecosaRequest;
 use App\Models\KardexReport;
 use App\Models\MovementKardex;
 use App\Models\Person;
 use App\Models\Product;
+use App\Models\Report;
 use App\Models\SignatureEvent;
 use App\Models\SignatureFlow;
 use App\Models\SignatureStep;
@@ -214,7 +217,7 @@ class MovementKardexController extends Controller
         });
     }
     
-    public function store(StoreMovementRequest $request)
+    public function store_version_para_producto(StoreMovementRequest $request)
     {
         // Log::info(request);
         $data = $request->validated();
@@ -330,13 +333,19 @@ class MovementKardexController extends Controller
         });
     }
 
-    public function storeForPecosas(StoreMovementPecosaRequest $request)
+    public function store(StoreMovementPecosaRequest $request)
     {
-        // Log::info(request);
+
+        
         $data = $request->validated();
         return DB::transaction(function () use ($request, $data) {
 
             $sil = $request->input('silucia_pecosa', []);
+
+            // Normaliza tipos clave
+            $data['id_container_silucia'] = (int) $data['id_container_silucia'];
+            $amount = (float) $data['amount'];
+            $isEntrada = $data['movement_type'] === 'entrada';
 
             // 1) Buscar producto por par SILUCIA con LOCK para consistencia
 
@@ -345,16 +354,18 @@ class MovementKardexController extends Controller
                 ->lockForUpdate()
                 ->first();
 
+            $wasCreated = false;
+
             if (!$item_pecosa) {
                 // Si no existe, lo creamos (ya "bloqueado" por la transacción)
                 $item_pecosa = ItemPecosa::create([
                     'id_container_silucia'   => $data['id_container_silucia'],
                     'id_item_pecosa_silucia' => $data['id_item_pecosa_silucia'],
 
-                    'anio'              => $data['anio']          ?? null,
-                    'numero'            => $data['numero']        ?? null,
-                    'fecha'             => $data['fecha']         ?? null,
-                    'prod_proy'         => $data['prod_proy']     ?? null,
+                    'anio'              => $sil['anio']          ?? null,
+                    'numero'            => $sil['numero']        ?? null,
+                    'fecha'             => $sil['fecha']         ?? null,
+                    'prod_proy'         => $sil['prod_proy']     ?? null,
                     'cod_meta'          => $sil['cod_meta']       ?? null,
                     'desmeta'           => $sil['desmeta']        ?? null,
                     'desuoper'          => $sil['desuoper']       ?? null,
@@ -369,15 +380,22 @@ class MovementKardexController extends Controller
                     'total'             => $sil['total']          ?? null,
                     'numero_origen'     => $sil['numero_origen']  ?? null,
                 ]);
+                $wasCreated = false;
+                $initial = (float) ($sil['cantidad'] ?? 0);
+                $item_pecosa->forceFill([
+                    'quantity_received' => $initial,
+                    'quantity_issued'   => 0,
+                    'quantity_on_hand'  => $initial,
+                ])->save();
             } else {
                 // Actualiza esenciales si vienen
                 $item_pecosa->fill(array_filter([
                     'id_container_silucia'   => $data['id_container_silucia'],
                     'id_item_pecosa_silucia' => $data['id_item_pecosa_silucia'],
-                    'anio'              => $data['anio']          ?? null,
-                    'numero'            => $data['numero']        ?? null,
-                    'fecha'             => $data['fecha']         ?? null,
-                    'prod_proy'         => $data['prod_proy']     ?? null,
+                    'anio'              => $sil['anio']          ?? null,
+                    'numero'            => $sil['numero']        ?? null,
+                    'fecha'             => $sil['fecha']         ?? null,
+                    'prod_proy'         => $sil['prod_proy']     ?? null,
                     'cod_meta'          => $sil['cod_meta']       ?? null,
                     'desmeta'           => $sil['desmeta']        ?? null,
                     'desuoper'          => $sil['desuoper']       ?? null,
@@ -392,8 +410,23 @@ class MovementKardexController extends Controller
                     'total'             => $sil['total']          ?? null,
                     'numero_origen'     => $sil['numero_origen']  ?? null,
                 ], fn($v) => !is_null($v)))->save();
+                // Si nunca se inicializaron contadores y ahora sí tenemos 'cantidad', haz bootstrap una vez
+                if (($item_pecosa->quantity_received ?? 0) == 0 
+                    && ($item_pecosa->quantity_issued ?? 0) == 0 
+                    && ($item_pecosa->cantidad ?? null) !== null) {
+                    $initial = (float) $item_pecosa->cantidad;
+                    $item_pecosa->forceFill([
+                        'quantity_received' => $initial,
+                        'quantity_issued'   => 0,
+                        'quantity_on_hand'  => $initial,
+                    ])->save();
+                }
             }
+            
+            
 
+
+            // Log::info($item_pecosa);
             // 2) Deltas según tipo
             $isEntrada = $data['movement_type'] === 'entrada';
             $amount    = (float) $data['amount'];
@@ -402,9 +435,18 @@ class MovementKardexController extends Controller
             $deltaOut = $isEntrada ? 0       : $amount;
 
             // 3) Validación de stock (no permitir negativos)
-            $newIn   = (float) $item_pecosa->in_qty  + $deltaIn;
-            $newOut  = (float) $item_pecosa->out_qty + $deltaOut;
-            $newStock= $newIn - $newOut;
+            // $newIn   = (float) $item_pecosa->in_qty  + $deltaIn;
+            // $newOut  = (float) $item_pecosa->out_qty + $deltaOut;
+            // $newStock= $newIn - $newOut;
+
+            $currentIn   = (float) ($item_pecosa->quantity_received ?? 0);
+            $currentOut  = (float) ($item_pecosa->quantity_issued   ?? 0);
+
+            $newIn    = $currentIn  + $deltaIn;
+            $newOut   = $currentOut + $deltaOut;
+            $newStock = $newIn - $newOut;
+
+
 
             if ($newStock < 0) {
                 abort(422, 'El movimiento genera stock negativo.');
@@ -412,7 +454,8 @@ class MovementKardexController extends Controller
 
             // 4) Crear movimiento
             $movement = MovementKardex::create([
-                'product_id'    => $item_pecosa->id,
+                // 'product_id'    => $item_pecosa->id,
+                'item_pecosa_id'   => $item_pecosa->id,
                 'movement_date' => now(),
                 'movement_type' => $data['movement_type'],   // 'entrada' | 'salida'
                 'amount'        => $amount,
@@ -423,11 +466,12 @@ class MovementKardexController extends Controller
 
             // 5) Actualizar contadores en products
             $item_pecosa->forceFill([
-                'in_qty'          => $newIn,
-                'out_qty'         => $newOut,
-                'stock_qty'       => $newStock,
-                'last_movement_at'=> now(),
+                'quantity_received' => $newIn,
+                'quantity_issued'   => $newOut,
+                'quantity_on_hand'  => $newStock,
+                'last_movement_at'  => now(),
             ])->save();
+
 
             // 6) Adjuntar personas (tu bloque actual tal cual)
             $attached = [];
@@ -451,7 +495,7 @@ class MovementKardexController extends Controller
 
             return response()->json([
                 'ok'       => true,
-                'product'  => $item_pecosa->only(['id','id_order_silucia','id_product_silucia','in_qty','out_qty','stock_qty']),
+                'item_pecosa'  => $item_pecosa->only(['id','id_container_silucia','id_item_pecosa_silucia','quantity_received','quantity_issued','quantity_on_hand']),
                 'movement' => $movement,
                 'people'   => [
                     'attached_dnis' => $attached,
@@ -462,20 +506,20 @@ class MovementKardexController extends Controller
     }
 
 
-    public function indexBySiluciaIds(Request $request, $id_order_silucia, $id_product_silucia)
+    // public function indexBySiluciaIds(Request $request, $id_order_silucia, $id_product_silucia)
+    public function indexBySiluciaIds(Request $request, $id_container_silucia, $id_item_pecosa_silucia)
     {
-
         // 1) Buscar el “gancho” Product por la pareja de SILUCIA
-        $product = Product::where('id_order_silucia', $id_order_silucia)
-            ->where('id_product_silucia', $id_product_silucia)
-            ->firstOrFail(); // 404 si no existe
+        // $product = Product::where('id_order_silucia', $id_order_silucia)
+        // $product = ItemPecosa::where('id_order_silucia', $id_order_silucia)->where('id_product_silucia', $id_product_silucia)->firstOrFail(); // 404 si no existe
+        $itemPecosa = ItemPecosa::where('id_container_silucia', $id_container_silucia)->where('id_item_pecosa_silucia', $id_item_pecosa_silucia)->firstOrFail(); // 404 si no existe
 
         // 2) Traer movimientos (puedes paginar si quieres)
         //    Si quieres TODO: ->get();
         //    Si prefieres paginar: ?per_page=20
         $perPage = (int) $request->query('per_page', 50);
 
-        $query = $product->movements()
+        $query = $itemPecosa->movements()
             ->with([
                     'people' => function ($q) {
                         // IMPORTANTE: incluye la PK 'dni' del related para hidratar bien el modelo
@@ -498,31 +542,33 @@ class MovementKardexController extends Controller
         }
 
         return response()->json([
-            'product'   => [
-                'id'                  => $product->id,
-                'id_order_silucia'    => $product->id_order_silucia,
-                'id_product_silucia'  => $product->id_product_silucia,
-                'name'                => $product->name,
+            'item_pecosa'   => [
+                'id'                  => $itemPecosa->id,
+                'id_order_silucia'    => $itemPecosa->id_order_silucia,
+                'id_product_silucia'  => $itemPecosa->id_product_silucia,
+                'name'                => $itemPecosa->name,
             ],
             'movements' => $movements,
         ]);
     }
 
-    public function pdf(Request $request, $id_order_silucia, $id_product_silucia){
-        // no se usaran estos filtros, deberan eliminarse
-        // $from = $request->query('from');
-        // $to   = $request->query('to');
-        // $type = $request->query('type'); // 'entrada' | 'salida'
+    public function pdf(Request $request, $id_container_silucia, $id_item_pecosa_silucia){
 
-        $product = Product::where('id_order_silucia', $id_order_silucia)->where('id_product_silucia', $id_product_silucia)->firstOrFail();
+
+        // no se usaran estos filtros, deberan eliminarse
+        // orden -> producto
+        // orden ->itemPecosa
+        // $pecosa = Product::where('id_order_silucia', $id_order_silucia)->where('id_product_silucia', $id_product_silucia)->firstOrFail();
+        $pecosa = ItemPecosa::where('id_container_silucia', $id_container_silucia)->where('id_item_pecosa_silucia', $id_item_pecosa_silucia)->firstOrFail();
+        Log::info($pecosa);
 
         // Cargar relaciones con filtros/orden
-        $product->load([
+        $pecosa->load([
             // 'movements' => function ($q) use ($from, $to, $type) {
             'movements' => function ($q) {
                 $q->orderBy('movement_date', 'asc')
                 ->select([
-                    'id','product_id','movement_date','class','number',
+                    'id','item_pecosa_id','movement_date',
                     'movement_type','amount','observations'
                 ]);
             },
@@ -537,7 +583,7 @@ class MovementKardexController extends Controller
             },
         ]);
 
-        $movements = $product->movements;
+        $movements = $pecosa->movements;
         $totalEntradas = $movements->where('movement_type','entrada')->sum('amount');
         $totalSalidas  = $movements->where('movement_type','salida')->sum('amount');
         $stockFinal    = $totalEntradas - $totalSalidas;
@@ -569,9 +615,9 @@ class MovementKardexController extends Controller
 
 
         // 2) Texto de introducción (USA lo que tengas en product, con fallback)
-        $obra       = (string)($product->desmeta ?? '—');
-        $material   = (string)($product->item ?? '—');
-        $comprobante= (string)("OC-{$product->id_order_silucia}" ?? "OC-{$id_order_silucia}");
+        $obra       = (string)($pecosa->desmeta ?? '—');
+        $material   = (string)($pecosa->item ?? '—');
+        $comprobante= (string)("OC-{$pecosa->id_order_silucia}" ?? "OC-{$id_container_silucia}");
 
         // ============================
         // Guardado idéntico a tu flujo
@@ -581,7 +627,7 @@ class MovementKardexController extends Controller
 
         // 3) QR único por PDF (URL firmada simple)
         // kardex_02874_249069_20250831_021917_10.pdf  ---> id de la orden / id del item / año, mes día /  hora, minuto, segundo / milisegundos
-        $base = 'kardex_'. $id_order_silucia . '_'. $id_product_silucia.'_'. now()->format('Ymd_His_'). substr(now()->format('u'), 0, 3);
+        $base = 'kardex_'. $id_container_silucia . '_'. $id_item_pecosa_silucia.'_'. now()->format('Ymd_His_'). substr(now()->format('u'), 0, 3);
         $filename = $base . '.pdf';
         $relativePath = "{$dir}/{$filename}";
         // se debe crear el path para que se pueda descargar nuevamente el pdf por un codigo qr
@@ -650,8 +696,9 @@ class MovementKardexController extends Controller
         //     'created_by'       => Auth::id(),
         // ]);
         $report = Report::create([
-            'reportable_id'    => $product->id,
-            'reportable_type'  => \App\Models\Product::class,
+            'reportable_id'    => $pecosa->id,
+            'reportable_type'  => \App\Models\ItemPecosa::class,
+            // 'reportable_type'  => \App\Models\Product::class,
             'pdf_path'         => $relativePath,   // << guarda la ruta RELATIVA completa
             'pdf_page_number'  => $pageCount,
             'status'           => 'in_progress',

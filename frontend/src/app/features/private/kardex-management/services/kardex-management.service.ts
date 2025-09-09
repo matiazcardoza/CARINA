@@ -32,8 +32,8 @@ export class KardexManagementService {
     }
 
     createKardexMovement(body:any): Observable<any> {
-      // return this.http.post<any>(`${this.apiUrl}/api/movements-kardex`,body,this.options)
-      return this.http.post<any>(`${this.apiUrl}/api/movements-kardex-for-pecosas`,body,this.options)
+      return this.http.post<any>(`${this.apiUrl}/api/movements-kardex`,body,this.options)
+      // return this.http.post<any>(`${this.apiUrl}/api/movements-kardex-for-pecosas`,body,this.options)
     }
 
     getKardexMovementBySiluciaBackend(
@@ -49,7 +49,8 @@ export class KardexManagementService {
       });
 
       return this.http.get<any>(
-        `${this.apiUrl}/api/silucia-orders/${encodeURIComponent(String(numero))}/products/${idcompradet}/movements-kardex`,
+        // `${this.apiUrl}/api/silucia-orders/${encodeURIComponent(String(numero))}/products/${idcompradet}/movements-kardex`,
+        `${this.apiUrl}/api/silucia-pecosas/${encodeURIComponent(String(numero))}/id-item-pecosa/${idcompradet}/movements-kardex`,
         {
           ...this.options, 
           params 
@@ -57,10 +58,11 @@ export class KardexManagementService {
       );
     }
 
-    downloadPdf(id_order_silucia:number,id_product_silucia:number ): Observable<HttpResponse<Blob>> {
+    downloadPdf(id_pecosa_silucia:number,id_item_pecosa_silucia:number ): Observable<HttpResponse<Blob>> {
       // return this.http.get(`${this.apiUrl}/api/pdf`, {
       // return this.http.get(`${this.apiUrl}/api/products/${id}/movements-kardex/pdf`, {
-      return this.http.get(`${this.apiUrl}/api/silucia-orders/${id_order_silucia}/products/${id_product_silucia}/movements-kardex/pdf`, {
+      // return this.http.get(`${this.apiUrl}/api/silucia-orders/${id_order_silucia}/products/${id_product_silucia}/movements-kardex/pdf`, {
+      return this.http.get(`${this.apiUrl}/api/silucia-pecosas/${id_pecosa_silucia}/id-item-pecosa/${id_item_pecosa_silucia}/movements-kardex/pdf`, {
         responseType: 'blob',
         observe: 'response',
         withCredentials: true,                 // si usas cookies/Sanctum

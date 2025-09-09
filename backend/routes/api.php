@@ -84,14 +84,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('silucia-orders', [PurchaseOrdersController::class, 'index'])->middleware(['role:almacen_almacenero']);
     // buscamos el producto, si no lo encontramos lo creamos y al mismo tiempo guardarmos el movimiento
     Route::post('/movements-kardex', [MovementKardexController::class, 'store'])->middleware(['role:almacen_almacenero']);
-    // mostramos todos los movimientos que pertenecen a un producto de la base de datos de silucia
-    Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex',  [MovementKardexController::class, 'indexBySiluciaIds'])->middleware(['role:almacen_almacenero']);
-    // generamos un reporte de  todos los movimientos que pertenecen a un producto de la base de datos de silucia
-    Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen_almacenero']);
+
+    // mostramos todos los movimientos que pertenecen a un producto de la base de datos de silucia ----- (CAMBIAMOS PARA OBTENER LOS MOVIMIENTOS DE LAS PECOSAS)
+    // Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex',  [MovementKardexController::class, 'indexBySiluciaIds'])->middleware(['role:almacen_almacenero']);
+    Route::get( 'silucia-pecosas/{id_container_silucia}/id-item-pecosa/{id_item_pecosa_silucia}/movements-kardex',  [MovementKardexController::class, 'indexBySiluciaIds'])->middleware(['role:almacen_almacenero']);
+    
+    // generamos un reporte de  todos los movimientos que pertenecen a un producto de la base de datos de silucia ----- (CAMBIAMOS PARA OBTENER LOS MOVIMIENTOS DE LAS PECOSAS)
+    // Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen_almacenero']);
+    Route::get( 'silucia-pecosas/{id_container_silucia}/id-item-pecosa/{id_item_pecosa_silucia}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen_almacenero']);
     // devuelve los productos guardados de nuestra propia base de datos
     Route::get('/products', [ProductController::class, 'index']);
-
-
 
 
     // ******************* refactorizacion de codigo: pasar de datos de ordenes a pecosas - (inicio) *******************
@@ -99,7 +101,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // cuando la migracion de partes diarios finalice se debe cambiar la ruta a "movements-kardex" y el metodo del controlador debe cambiarse a store
     // buscamos la pecosa, si no se encuentra lo guardamos. si no lo encontramos lo creamos y al mismo tiempo guardarmos el movimiento
-    Route::post('/movements-kardex-for-pecosas', [MovementKardexController::class, 'storeForPecosas'])->middleware(['role:almacen_almacenero']);
+    // Route::post('/movements-kardex-for-pecosas', [MovementKardexController::class, 'storeForPecosas'])->middleware(['role:almacen_almacenero']);
     // ******************* refactorizacion de codigo: pasar de datos de ordenes a pecosas -    (fin) *******************
 
 

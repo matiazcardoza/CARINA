@@ -40,17 +40,11 @@ return new class extends Migration
 };
 
 
-// $table->decimal('received_quantity', 20, 4)
-//           ->default(0)
-//           ->after('precio')
-//           ->comment('Total quantity received (entries) for this item');
-
-//     $table->decimal('issued_quantity', 20, 4)
-//           ->default(0)
-//           ->after('received_quantity')
-//           ->comment('Total quantity issued (outputs) for this item');
-
-//     $table->decimal('on_hand_quantity', 20, 4)
-//           ->default(0)
-//           ->after('issued_quantity')
-//           ->comment('Current available stock for this item');
+            // $table->id('id');
+            // $table->unsignedBigInteger('product_id');
+            // $table->string('movement_type')->nullable();
+            // $table->date('movement_date')->nullable();
+            // $table->decimal('amount')->nullable();
+            // $table->decimal('final_balance')->nullable();
+            // $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade')->onUpdate('cascade');
+            // $table->timestamps();
