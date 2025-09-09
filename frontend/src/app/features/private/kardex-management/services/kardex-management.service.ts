@@ -32,7 +32,8 @@ export class KardexManagementService {
     }
 
     createKardexMovement(body:any): Observable<any> {
-      return this.http.post<any>(`${this.apiUrl}/api/movements-kardex`,body,this.options)
+      // return this.http.post<any>(`${this.apiUrl}/api/movements-kardex`,body,this.options)
+      return this.http.post<any>(`${this.apiUrl}/api/movements-kardex-for-pecosas`,body,this.options)
     }
 
     getKardexMovementBySiluciaBackend(

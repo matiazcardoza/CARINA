@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreMovementRequest;
+use App\Http\Requests\StoreMovementPecosaRequest;
 use App\Models\KardexReport;
 use App\Models\MovementKardex;
 use App\Models\Person;
 use App\Models\Product;
+use App\Models\ItemPecosa;
 use App\Models\SignatureEvent;
 use App\Models\SignatureFlow;
 use App\Models\SignatureStep;
@@ -327,52 +329,67 @@ class MovementKardexController extends Controller
         });
     }
 
-    public function storeForPecosas(StoreMovementRequest $request)
+    public function storeForPecosas(StoreMovementPecosaRequest $request)
     {
         // Log::info(request);
         $data = $request->validated();
         return DB::transaction(function () use ($request, $data) {
 
-            $sil = $request->input('silucia_product', []);
+            $sil = $request->input('silucia_pecosa', []);
 
             // 1) Buscar producto por par SILUCIA con LOCK para consistencia
-            $product = Product::where('id_order_silucia', $data['id_order_silucia'])
-                ->where('id_product_silucia', $data['id_product_silucia'])
+
+            $item_pecosa = ItemPecosa::where('id_container_silucia', $data['id_container_silucia'])
+                ->where('id_item_pecosa_silucia', $data['id_item_pecosa_silucia'])
                 ->lockForUpdate()
                 ->first();
 
-            if (!$product) {
+            if (!$item_pecosa) {
                 // Si no existe, lo creamos (ya "bloqueado" por la transacción)
-                $product = Product::create([
-                    'id_order_silucia'   => $data['id_order_silucia'],
-                    'id_product_silucia' => $data['id_product_silucia'],
+                $item_pecosa = ItemPecosa::create([
+                    'id_container_silucia'   => $data['id_container_silucia'],
+                    'id_item_pecosa_silucia' => $data['id_item_pecosa_silucia'],
 
-                    'name'          => $data['name']          ?? null,
-                    'heritage_code' => $data['heritage_code'] ?? null,
-                    'unit_price'    => $data['unit_price']    ?? null,
-                    'state'         => 1,
-
-                    'numero'          => $sil['numero']          ?? null,
-                    'fecha'           => $sil['fecha']           ?? null,
-                    'detalles_orden'  => $sil['detalles_orden']  ?? null,
-                    'rsocial'         => $sil['rsocial']         ?? null,
-                    'ruc'             => $sil['ruc']             ?? null,
-                    'item'            => $sil['item']            ?? null,
-                    'detalle'         => $sil['detalle']         ?? null,
-                    'cantidad'        => $sil['cantidad']        ?? null,
-                    'desmedida'       => $sil['desmedida']       ?? null,
-                    'precio'          => $sil['precio']          ?? null,
-                    'total_internado' => $sil['total_internado'] ?? null,
-                    'saldo'           => $sil['saldo']           ?? null,
-                    'desmeta'         => $sil['desmeta']         ?? null,
+                    'anio'              => $data['anio']          ?? null,
+                    'numero'            => $data['numero']        ?? null,
+                    'fecha'             => $data['fecha']         ?? null,
+                    'prod_proy'         => $data['prod_proy']     ?? null,
+                    'cod_meta'          => $sil['cod_meta']       ?? null,
+                    'desmeta'           => $sil['desmeta']        ?? null,
+                    'desuoper'          => $sil['desuoper']       ?? null,
+                    'destipodestino'    => $sil['destipodestino'] ?? null,
+                    'item'              => $sil['item']           ?? null,
+                    'desmedida'         => $sil['desmedida']      ?? null,
+                    'idsalidadet'       => $sil['idsalidadet']    ?? null,
+                    'cantidad'          => $sil['cantidad']       ?? null,
+                    'precio'            => $sil['precio']         ?? null,
+                    'tipo'              => $sil['tipo']           ?? null,
+                    'saldo'             => $sil['saldo']          ?? null,
+                    'total'             => $sil['total']          ?? null,
+                    'numero_origen'     => $sil['numero_origen']  ?? null,
                 ]);
             } else {
                 // Actualiza esenciales si vienen
-                $product->fill(array_filter([
-                    'name'          => $data['name']          ?? null,
-                    'heritage_code' => $data['heritage_code'] ?? null,
-                    'unit_price'    => $data['unit_price']    ?? null,
-                    'desmeta'       => $sil['desmeta']        ?? null,
+                $item_pecosa->fill(array_filter([
+                    'id_container_silucia'   => $data['id_container_silucia'],
+                    'id_item_pecosa_silucia' => $data['id_item_pecosa_silucia'],
+                    'anio'              => $data['anio']          ?? null,
+                    'numero'            => $data['numero']        ?? null,
+                    'fecha'             => $data['fecha']         ?? null,
+                    'prod_proy'         => $data['prod_proy']     ?? null,
+                    'cod_meta'          => $sil['cod_meta']       ?? null,
+                    'desmeta'           => $sil['desmeta']        ?? null,
+                    'desuoper'          => $sil['desuoper']       ?? null,
+                    'destipodestino'    => $sil['destipodestino'] ?? null,
+                    'item'              => $sil['item']           ?? null,
+                    'desmedida'         => $sil['desmedida']      ?? null,
+                    'idsalidadet'       => $sil['idsalidadet']    ?? null,
+                    'cantidad'          => $sil['cantidad']       ?? null,
+                    'precio'            => $sil['precio']         ?? null,
+                    'tipo'              => $sil['tipo']           ?? null,
+                    'saldo'             => $sil['saldo']          ?? null,
+                    'total'             => $sil['total']          ?? null,
+                    'numero_origen'     => $sil['numero_origen']  ?? null,
                 ], fn($v) => !is_null($v)))->save();
             }
 
@@ -384,8 +401,8 @@ class MovementKardexController extends Controller
             $deltaOut = $isEntrada ? 0       : $amount;
 
             // 3) Validación de stock (no permitir negativos)
-            $newIn   = (float) $product->in_qty  + $deltaIn;
-            $newOut  = (float) $product->out_qty + $deltaOut;
+            $newIn   = (float) $item_pecosa->in_qty  + $deltaIn;
+            $newOut  = (float) $item_pecosa->out_qty + $deltaOut;
             $newStock= $newIn - $newOut;
 
             if ($newStock < 0) {
@@ -394,7 +411,7 @@ class MovementKardexController extends Controller
 
             // 4) Crear movimiento
             $movement = MovementKardex::create([
-                'product_id'    => $product->id,
+                'product_id'    => $item_pecosa->id,
                 'movement_date' => now(),
                 'movement_type' => $data['movement_type'],   // 'entrada' | 'salida'
                 'amount'        => $amount,
@@ -404,7 +421,7 @@ class MovementKardexController extends Controller
             ]);
 
             // 5) Actualizar contadores en products
-            $product->forceFill([
+            $item_pecosa->forceFill([
                 'in_qty'          => $newIn,
                 'out_qty'         => $newOut,
                 'stock_qty'       => $newStock,
@@ -433,7 +450,7 @@ class MovementKardexController extends Controller
 
             return response()->json([
                 'ok'       => true,
-                'product'  => $product->only(['id','id_order_silucia','id_product_silucia','in_qty','out_qty','stock_qty']),
+                'product'  => $item_pecosa->only(['id','id_order_silucia','id_product_silucia','in_qty','out_qty','stock_qty']),
                 'movement' => $movement,
                 'people'   => [
                     'attached_dnis' => $attached,

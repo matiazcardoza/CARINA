@@ -83,7 +83,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // cuando la migracion de partes diarios finalice se debe cambiar la ruta a "movements-kardex" y el metodo del controlador debe cambiarse a store
     // buscamos la pecosa, si no se encuentra lo guardamos. si no lo encontramos lo creamos y al mismo tiempo guardarmos el movimiento
-    Route::post('/movements-kardex-for_pecosas', [MovementKardexController::class, 'storeForPecosas'])->middleware(['role:almacen_almacenero']);
+    Route::post('/movements-kardex-for-pecosas', [MovementKardexController::class, 'storeForPecosas'])->middleware(['role:almacen_almacenero']);
     // ******************* refactorizacion de codigo: pasar de datos de ordenes a pecosas -    (fin) *******************
 
 

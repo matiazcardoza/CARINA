@@ -87,17 +87,14 @@ export class KardexManagement {
   filteredMovementOptions: string[] = [];
 
   form = {
+
+    id_container_silucia: null as string | null,
+    id_item_pecosa_silucia: null as number | null,
     movement_type: null as 'entrada' | 'salida' | null,
     amount: null as number | null,
-
-    id_order_silucia: null as string | null,
-    // id_product_silucia: null as number |null,
-
-    id_pecosa_silucia: null as string | null,
-    id_product_silucia: null as number |null,
     observations: null as string |null,
     people_dnis: [] as string[],
-    silucia_product: null as any
+    silucia_pecosa: null as any
   };
 
   movementsKardex    = signal<any[]>([]);
@@ -163,6 +160,7 @@ export class KardexManagement {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
+          console.log("respuesta (pecosas): ", res);
           this.pecosas.set(res.data);
           this.productsTotal.set(res.total ?? res.data?.length ?? 0);
           this.pageSize = res.per_page ?? this.pageSize;
@@ -235,25 +233,25 @@ export class KardexManagement {
      * asegurarnos de que no se manipulen los valores, es decir que las personas, como 
      * un programador no modifique valores como cantidad de producsot que ya existian
      */
-    this.form.id_order_silucia =  _row.numero;
-    this.form.id_pecosa_silucia =  _row.numero;
-    this.form.id_product_silucia=  _row.idcompradet;
+
+
+    this.form.id_container_silucia =  _row.numero;
+    this.form. id_item_pecosa_silucia=  _row.idsalidadet;
+    this.form.silucia_pecosa = JSON.parse(JSON.stringify(_row))
     this.showMovementModal = true;
-    this.form.silucia_product = JSON.parse(JSON.stringify(_row))
     console.log(this.form)
   }
 
   closeMovementModal() {
     this.showMovementModal = false;
-    this.form = { 
+    this.form = {
+      silucia_pecosa: [], 
       movement_type: null, 
       amount: null, 
-      id_order_silucia: null,
-      id_pecosa_silucia: null,
-      id_product_silucia: null ,
+      id_container_silucia: null,
+      id_item_pecosa_silucia: null,
       observations: null,
       people_dnis: [],
-      silucia_product: null 
     };
     this.listDniPeople.set([])
   }
@@ -436,103 +434,103 @@ export class KardexManagement {
   // ...tu código existente...
 
   /** Utilidad segura para convertir a número */
-    private toNum(v: any): number {
-      const n = typeof v === 'number' ? v : parseFloat(String(v));
-      return Number.isFinite(n) ? n : 0;
+  private toNum(v: any): number {
+    const n = typeof v === 'number' ? v : parseFloat(String(v));
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  /** Total de ENTRADAS en la página actual del modal */
+  get totalEntradas(): number {
+    return (this.movementsKardex() ?? []).reduce(
+      (sum, m) => sum + (m?.movement_type === 'entrada' ? this.toNum(m?.amount) : 0),
+      0
+    );
+  }
+
+  /** Total de SALIDAS en la página actual del modal */
+  get totalSalidas(): number {
+    return (this.movementsKardex() ?? []).reduce(
+      (sum, m) => sum + (m?.movement_type === 'salida' ? this.toNum(m?.amount) : 0),
+      0
+    );
+  }
+
+  /** “Stock” según tu consigna: salidas - entradas */
+  get stockSaldo(): number {
+    return this.totalEntradas - this.totalSalidas ;
+    // Nota: contabilidad clásica suele usar entradas - salidas; aquí respeto lo que pediste.
+  }
+
+
+
+  // ---------------- Modal para añadir persona ---------------------------
+
+  // function handleOpenModal(){
+
+  // }
+
+  // onAddPerson() {
+  //   // abre modal de persona o navega: hook listo
+  //   console.log('Adicionar persona');
+  // }
+  
+  closeModalAddPerson(): void {
+    this.showAddUserModal = false;
+  }
+
+  OpenModalAddPerson():void{
+    this.showAddUserModal = true;
+  }
+
+  handleListPeopleByDni(event: any):void{
+    const nuevaPersona = event;
+
+    // con esto mostramos en la interfaz que nombres han sido seleccionado
+    this.listDniPeople.update(listaActual => {
+      const yaExiste = listaActual.some(p => p.dni === nuevaPersona.dni);
+      return yaExiste ? listaActual : [...listaActual, nuevaPersona];
+    });
+
+    // con esto enviamos solamente dnis
+    if(this.listDniPeople().length != 0){
+      const dnis = this.listDniPeople().map((object)=>{
+        return object?.dni;
+      })
+      this.form.people_dnis = dnis;
     }
 
-    /** Total de ENTRADAS en la página actual del modal */
-    get totalEntradas(): number {
-      return (this.movementsKardex() ?? []).reduce(
-        (sum, m) => sum + (m?.movement_type === 'entrada' ? this.toNum(m?.amount) : 0),
-        0
-      );
-    }
+    // console.log("Persona recibida por DNI:", nuevaPersona);
+    // console.log("Lista actualizada:", this.listDniPeople());
+    // console.log("Datos de form:", this.form);
+  }
 
-    /** Total de SALIDAS en la página actual del modal */
-    get totalSalidas(): number {
-      return (this.movementsKardex() ?? []).reduce(
-        (sum, m) => sum + (m?.movement_type === 'salida' ? this.toNum(m?.amount) : 0),
-        0
-      );
-    }
+  // -------------------expansion de filas--------------
+  onRowExpandMovement(e: any) {
+    console.log("value001", e)
+    const id = e.data?.id;
+    if (id == null) return;
+    this.expandedRowsMovements.update(map => ({ ...map, [id]: true }));
+  }
 
-    /** “Stock” según tu consigna: salidas - entradas */
-    get stockSaldo(): number {
-      return this.totalEntradas - this.totalSalidas ;
-      // Nota: contabilidad clásica suele usar entradas - salidas; aquí respeto lo que pediste.
-    }
+  onRowCollapseMovement(e: any) {
+    console.log("value002", e)
+    const id = e.data?.id;
+    if (id == null) return;
+    this.expandedRowsMovements.update(map => {
+      const { [id]: _omit, ...rest } = map;
+      return rest;
+    });
+  }
 
+  // toast messages
+  showToastMessage(severity: 'success'|'info'|'warn'|'error', summary: string, detail: string) {
+      // this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Message Content' });
+      this.messageService.add({ severity: severity, summary: summary, detail: detail });
+  }
 
-
-    // ---------------- Modal para añadir persona ---------------------------
-
-    // function handleOpenModal(){
-
-    // }
-
-    // onAddPerson() {
-    //   // abre modal de persona o navega: hook listo
-    //   console.log('Adicionar persona');
-    // }
-    
-    closeModalAddPerson(): void {
-      this.showAddUserModal = false;
-    }
-
-    OpenModalAddPerson():void{
-      this.showAddUserModal = true;
-    }
-
-    handleListPeopleByDni(event: any):void{
-      const nuevaPersona = event;
-
-      // con esto mostramos en la interfaz que nombres han sido seleccionado
-      this.listDniPeople.update(listaActual => {
-        const yaExiste = listaActual.some(p => p.dni === nuevaPersona.dni);
-        return yaExiste ? listaActual : [...listaActual, nuevaPersona];
-      });
-
-      // con esto enviamos solamente dnis
-      if(this.listDniPeople().length != 0){
-        const dnis = this.listDniPeople().map((object)=>{
-          return object?.dni;
-        })
-        this.form.people_dnis = dnis;
-      }
-
-      // console.log("Persona recibida por DNI:", nuevaPersona);
-      // console.log("Lista actualizada:", this.listDniPeople());
-      // console.log("Datos de form:", this.form);
-    }
-
-    // -------------------expansion de filas--------------
-    onRowExpandMovement(e: any) {
-      console.log("value001", e)
-      const id = e.data?.id;
-      if (id == null) return;
-      this.expandedRowsMovements.update(map => ({ ...map, [id]: true }));
-    }
-
-    onRowCollapseMovement(e: any) {
-      console.log("value002", e)
-      const id = e.data?.id;
-      if (id == null) return;
-      this.expandedRowsMovements.update(map => {
-        const { [id]: _omit, ...rest } = map;
-        return rest;
-      });
-    }
-
-    // toast messages
-    showToastMessage(severity: 'success'|'info'|'warn'|'error', summary: string, detail: string) {
-        // this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Message Content' });
-        this.messageService.add({ severity: severity, summary: summary, detail: detail });
-    }
-
-    seeDataSelected(){
-      console.log(this.form);
-    }
+  seeDataSelected(){
+    console.log(this.form);
+  }
 
 
 }
