@@ -33,6 +33,7 @@
 
       <!-- Scroll -->
       <div class="drawer__scroll">
+
         <ul class="menu">
           <li>
             <!-- FAVORITES -->
@@ -73,6 +74,7 @@
 
         <ul class="menu">
           <li>
+<<<<<<< HEAD
             <!-- FAVORITES -->
             <button class="menu__toggle" (click)="toggle('fav')">
               <span class="menu__section">USUARIOS</span>
@@ -83,10 +85,28 @@
               <ul class="menu__list" animate.enter="slide-down" animate.leave="slide-up">
                 <li routerLink="users"><a class="menu__link"><i class="pi pi-users" ></i><span>Usuarios</span></a></li>
                 <li routerLink="roles"><a class="menu__link"><i class="pi pi-shield" ></i><span>Roles</span></a></li>
+=======
+            <!-- APPLICATION -->
+            <button class="menu__toggle" (click)="toggle('transportVouchers')">
+              <span class="menu__section">VALES DE TRANSPORTE</span>
+              <i class="pi" [class.pi-chevron-down]="!transportVouchersOpen()" [class.pi-chevron-up]="transportVouchersOpen()"></i>
+            </button>
+
+            @if (transportVouchersOpen()) {
+              <ul class="menu__list" animate.enter="slide-down" animate.leave="slide-up">
+                <li routerLink="fuel-vaucher"><a class="menu__link"><i class="pi pi-folder" ></i><span>First item</span></a></li>
+                <!-- <li routerLink="digital-signatures"><a class="menu__link"><i class="pi pi-chart-bar"></i><span>Second item</span></a></li> -->
+                <!-- <li routerLink="test-requests"><a class="menu__link"><i class="pi pi-cog"></i><span>Third item</span></a></li> -->
+>>>>>>> c87f30fffbd24f3609cf02ab4245f017c5dd7eef
               </ul>
             }
           </li>
         </ul>
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> c87f30fffbd24f3609cf02ab4245f017c5dd7eef
       </div>
 
       <!-- Footer -->

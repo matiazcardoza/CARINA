@@ -25,6 +25,7 @@ import { catchError, EMPTY, finalize, Observable, of, switchMap, tap } from 'rxj
 import { Toast } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { Ripple } from 'primeng/ripple';
+import { filter } from './interfaces/kardex-management.interface';
 @Component({
   selector: 'app-kardex-management',
   standalone: true,
@@ -151,13 +152,7 @@ export class KardexManagement {
     this.getProductsOfSiluciaBackend({ ...this.uiFilters, page: 1, per_page: this.pageSize });
   }
 
-  getProductsOfSiluciaBackend(filters:{ 
-    // numero?: string; anio?: number; estado?: string
-    numero?: string; anio?: number; item?: string; desmeta?: string; siaf?: string;
-    ruc?: string; rsocial?: string; email?: string; page?: number; per_page?: number 
-  }){
-
-
+  getProductsOfSiluciaBackend(filters:filter){
     this.loadingProducts.set(true);
     this.service.getSiluciaProducts(filters)
       .pipe(takeUntilDestroyed(this.destroyRef))

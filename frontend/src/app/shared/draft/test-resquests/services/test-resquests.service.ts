@@ -12,6 +12,8 @@ export class TestResquestsService {
     
     getData(data: any) {
       // return this.http.get<any>(`${this.apiUrl}/api/get_user_roles`,this.options);
-      return this.http.get<any>(`${this.apiUrl}/api/products`,this.options);
+      // return this.http.get<any>(`${this.apiUrl}/api/products`,this.options);
+      // return this.http.get<any>(`${this.apiUrl}/api/silucia-pecosas`,this.options);
+      return this.http.get<any>(`${this.apiUrl}/api/fuel-orders`,this.options);
     }
 }
