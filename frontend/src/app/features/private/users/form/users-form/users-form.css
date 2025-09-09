@@ -52,6 +52,19 @@
   color: #666;
 }
 
+/* Estilos para botones de visibilidad de contraseña */
+.mat-mdc-form-field-suffix button[mat-icon-button] {
+  color: rgba(0, 0, 0, 0.54);
+  width: 24px;
+  height: 24px;
+  padding: 0;
+}
+
+.mat-mdc-form-field-suffix button[mat-icon-button]:hover {
+  color: rgba(0, 0, 0, 0.87);
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
 /* Animación para el icono de búsqueda */
 @keyframes spin {
   0% { transform: rotate(0deg); }
@@ -69,6 +82,46 @@ mat-icon:contains("hourglass_empty") {
 
 mat-icon:contains("search") {
   color: #4caf50;
+}
+
+/* Estilos para prevenir autocompletado */
+input[autocomplete="off"]::-webkit-contacts-auto-fill-button,
+input[autocomplete="off"]::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  display: none !important;
+  pointer-events: none;
+  height: 0;
+  width: 0;
+  margin: 0;
+}
+
+/* Forzar que no se muestren sugerencias del navegador */
+input[autocomplete="off"] {
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: 0 0 0px 1000px transparent inset; /* estándar */
+  -webkit-box-shadow: 0 0 0px 1000px transparent inset; /* compatibilidad */
+  transition: background-color 5000s ease-in-out 0s;
+  -webkit-autofill: none;
+  background-clip: text;          /* estándar */
+  -webkit-background-clip: text;  /* compatibilidad */
+}
+
+input[autocomplete="new-username"],
+input[autocomplete="new-password"] {
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: 0 0 0px 1000px transparent inset; /* estándar */
+  -webkit-box-shadow: 0 0 0px 1000px transparent inset; /* compatibilidad */
+  transition: background-color 5000s ease-in-out 0s;
+  background-clip: text;          /* estándar */
+  -webkit-background-clip: text;  /* compatibilidad */
+}
+/* Estilos específicos para el campo DNI numérico */
+input[formControlName="num_doc"] {
+  font-family: 'Roboto Mono', monospace;
+  font-weight: 500;
+  letter-spacing: 1px;
 }
 
 /* Responsividad para dispositivos móviles */
@@ -120,4 +173,25 @@ button[mat-raised-button]:hover:not(:disabled) {
 .users-form mat-hint:contains("Buscando") {
   color: #2196f3;
   font-weight: 500;
+}
+
+/* Estilos específicos para validación de contraseñas */
+.users-form mat-form-field:has(input[formControlName="confirmPassword"]) {
+  margin-top: -8px;
+}
+
+.users-form mat-form-field:has(input[formControlName="confirmPassword"]) mat-error {
+  color: #f44336;
+  font-weight: 500;
+}
+
+/* Estilo para indicar que las contraseñas coinciden */
+.users-form input[formControlName="confirmPassword"]:valid:not(:placeholder-shown) {
+  border-left: 3px solid #4caf50;
+}
+
+/* Ocultar botones de autocompletado del navegador */
+input::-ms-clear,
+input::-ms-reveal {
+  display: none;
 }

@@ -1,5 +1,5 @@
 import { Component, Inject, inject, OnInit, ViewEncapsulation } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -13,6 +13,18 @@ import { UsersService } from '../../../../../services/UsersService/users-service
 export interface DialogData {
   isEdit: boolean;
   user: any;
+}
+
+// Validador personalizado para confirmar contraseña
+function passwordMatchValidator(control: AbstractControl): { [key: string]: any } | null {
+  const password = control.get('password');
+  const confirmPassword = control.get('confirmPassword');
+  
+  if (!password || !confirmPassword) {
+    return null;
+  }
+  
+  return password.value === confirmPassword.value ? null : { 'passwordMismatch': true };
 }
 
 @Component({
@@ -35,6 +47,8 @@ export class UsersForm implements OnInit {
   usersForm: FormGroup;
   isLoading = false;
   isSearchingDni = false;
+  hidePassword = true;
+  hideConfirmPassword = true;
 
   roleOptions = [
     { value: 1, label: 'Super Administrador' },
@@ -73,9 +87,10 @@ export class UsersForm implements OnInit {
         Validators.minLength(8),
         Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
       ]],
+      confirmPassword: ['', [Validators.required]],
       role_id: ['', Validators.required],
       state: [1, Validators.required]
-    });
+    }, { validators: passwordMatchValidator });
   }
   
   ngOnInit() {
@@ -97,14 +112,44 @@ export class UsersForm implements OnInit {
         state: this.data.user.state
       });
       
-      // En modo edición, quitar la validación requerida de la contraseña
+      // En modo edición, quitar la validación requerida de la contraseña y confirmación
       this.usersForm.get('password')?.clearValidators();
       this.usersForm.get('password')?.setValidators([
         Validators.minLength(8),
         Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
       ]);
+      this.usersForm.get('confirmPassword')?.clearValidators();
       this.usersForm.get('password')?.updateValueAndValidity();
+      this.usersForm.get('confirmPassword')?.updateValueAndValidity();
     }
+  }
+
+  // Función para manejar solo entrada numérica en DNI
+  onDniInput(event: any): void {
+    const input = event.target;
+    const value = input.value;
+    
+    // Remover cualquier caracter que no sea número
+    const numericValue = value.replace(/[^0-9]/g, '');
+    
+    // Limitar a 8 dígitos
+    const limitedValue = numericValue.substring(0, 8);
+    
+    // Actualizar el valor del input y del form control
+    if (value !== limitedValue) {
+      input.value = limitedValue;
+      this.usersForm.get('num_doc')?.setValue(limitedValue);
+    }
+  }
+
+  // Función para alternar visibilidad de contraseña
+  togglePasswordVisibility(): void {
+    this.hidePassword = !this.hidePassword;
+  }
+
+  // Función para alternar visibilidad de confirmar contraseña
+  toggleConfirmPasswordVisibility(): void {
+    this.hideConfirmPassword = !this.hideConfirmPassword;
   }
 
   searchPersonByDni(dni: string): void {
@@ -139,6 +184,9 @@ export class UsersForm implements OnInit {
     if (this.usersForm.valid) {
       this.isLoading = true;
       const formData = { ...this.usersForm.value };
+      
+      // Remover confirmPassword del payload
+      delete formData.confirmPassword;
       
       // En modo edición, si no se ingresó contraseña, no la incluir en el payload
       if (this.data.isEdit && !formData.password) {
