@@ -1,0 +1,221 @@
+<div class="users-container">
+  <!-- Header con título y acciones principales -->
+  <div class="header-section">
+    <div class="page-title">
+      <h1>Gestión de Usuarios</h1>
+      <p class="subtitle">Administra usuarios, roles y permisos del sistema</p>
+    </div>
+    
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="openCreateDialog()" class="action-button">
+        <mat-icon>person_add</mat-icon>
+        Nuevo Usuario
+      </button>
+      
+      <button mat-icon-button (click)="reloadData()" matTooltip="Actualizar datos" class="refresh-button">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tarjeta principal con contenido -->
+  <div class="content-card mat-elevation-z4">
+    
+    <!-- Estados de carga y error -->
+    <div *ngIf="isLoading" class="state-container loading-state">
+      <div class="state-content">
+        <mat-icon class="state-icon spinning">people</mat-icon>
+        <h3>Cargando usuarios...</h3>
+        <p>Por favor espera mientras obtenemos la información de los usuarios</p>
+      </div>
+    </div>
+
+    <div *ngIf="error && !isLoading" class="state-container error-state">
+      <div class="state-content">
+        <mat-icon class="state-icon error">error_outline</mat-icon>
+        <h3>Error al cargar los usuarios</h3>
+        <p>{{ error }}</p>
+        <button mat-raised-button color="primary" (click)="reloadData()" class="retry-button">
+          <mat-icon>refresh</mat-icon>
+          Reintentar
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabla de datos -->
+    <div *ngIf="!isLoading && !error" class="table-container">
+      
+      <!-- Información de registros -->
+      <div class="table-info" *ngIf="dataSource.data.length > 0">
+        <span class="records-count">
+          <mat-icon>people</mat-icon>
+          {{ dataSource.data.length }} usuario{{ dataSource.data.length !== 1 ? 's' : '' }} registrado{{ dataSource.data.length !== 1 ? 's' : '' }}
+        </span>
+      </div>
+
+      <!-- Tabla -->
+      <div class="table-wrapper" *ngIf="dataSource.data.length > 0">
+        <table mat-table [dataSource]="dataSource" class="users-table">
+          
+          <!-- Columna ID -->
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef class="id-column"> 
+              <div class="header-content">
+                <mat-icon>tag</mat-icon>
+                <span>ID</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let element" class="id-cell"> 
+              <span class="id-badge">#{{element.id}}</span>
+            </td>
+          </ng-container>
+
+          <!-- Columna Nombre -->
+          <ng-container matColumnDef="persona_name">
+            <th mat-header-cell *matHeaderCellDef class="name-column"> 
+              <div class="header-content">
+                <mat-icon>person</mat-icon>
+                <span>Nombre</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let element" class="name-cell"> 
+              <div class="user-info">
+                <span class="user-name">{{element.persona_name}} {{element.last_name}}</span>
+                <span class="user-email">DNI: {{element.num_doc}}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Columna Email -->
+          <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef class="email-column"> 
+              <div class="header-content">
+                <mat-icon>email</mat-icon>
+                <span>Email</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let element" class="email-cell"> 
+              <span class="email-value">{{element.email}}</span>
+            </td>
+          </ng-container>
+
+          <!-- Columna Rol -->
+          <ng-container matColumnDef="role">
+            <th mat-header-cell *matHeaderCellDef class="role-column"> 
+              <div class="header-content">
+                <mat-icon>admin_panel_settings</mat-icon>
+                <span>Rol</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let element" class="role-cell"> 
+              <div class="role-info">
+                <span class="role-badge" [ngClass]="getRoleBadgeClass(element.role_name)">
+                  {{element.role_name}}
+                </span>
+                <span class="permissions-count">{{element.permissions.length}} permiso{{ element.permissions.length !== 1 ? 's' : '' }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Columna Estado -->
+          <ng-container matColumnDef="state">
+            <th mat-header-cell *matHeaderCellDef class="status-column"> 
+              <div class="header-content">
+                <mat-icon>radio_button_checked</mat-icon>
+                <span>Estado</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let element" class="status-cell"> 
+              <span class="status-badge" [ngClass]="getStatusClass(element.state)">
+                <mat-icon class="status-icon">
+                  {{element.state === 1 ? 'check_circle' : element.state === 2 ? 'pause_circle' : 'cancel'}}
+                </mat-icon>
+                @if (element.state === 1){
+                  <span>Activo</span>
+                } @else if (element.state === 2){
+                  <span>Suspendido</span>
+                } @else {
+                  <span>Inactivo</span>
+                }
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Columna Último Acceso -->
+          <ng-container matColumnDef="created_at">
+            <th mat-header-cell *matHeaderCellDef class="login-column"> 
+              <div class="header-content">
+                <mat-icon>schedule</mat-icon>
+                <span>Fecha</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let element" class="login-cell"> 
+              <span class="login-date">{{formatDate(element.created_at)}}</span>
+            </td>
+          </ng-container>
+
+          <!-- Columna Acciones -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="actions-column"> 
+              <div class="header-content">
+                <mat-icon>settings</mat-icon>
+                <span>Acciones</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let element" class="actions-cell">
+              <div class="action-buttons">
+                <button mat-icon-button 
+                        (click)="openEditDialog(element)"
+                        matTooltip="Editar usuario"
+                        class="action-btn edit-btn">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                
+                <button mat-icon-button 
+                        (click)="manageUserPermissions(element)"
+                        matTooltip="Gestionar permisos"
+                        class="action-btn permissions-btn">
+                  <mat-icon>security</mat-icon>
+                </button>
+
+                <button mat-icon-button 
+                        (click)="deleteUser(element.id)"
+                        matTooltip="Eliminar usuario"
+                        class="action-btn delete-btn">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Filas de la tabla -->
+          <tr mat-header-row *matHeaderRowDef="displayedColumns" class="table-header"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+        </table>
+      </div>
+
+      <!-- Estado sin datos -->
+      <div *ngIf="dataSource.data.length === 0" class="state-container empty-state">
+        <div class="state-content">
+          <mat-icon class="state-icon empty">people_outline</mat-icon>
+          <h3>No hay usuarios registrados</h3>
+          <p>Comienza agregando el primer usuario al sistema</p>
+          <button mat-raised-button color="primary" (click)="openCreateDialog()" class="create-first-button">
+            <mat-icon>person_add</mat-icon>
+            Registrar Primer Usuario
+          </button>
+        </div>
+      </div>
+
+      <!-- Paginación -->
+      <div class="pagination-container" *ngIf="dataSource.data.length > 0">
+        <mat-paginator 
+          [pageSizeOptions]="[5, 10, 20, 50]"
+          [pageSize]="10"
+          showFirstLastButtons
+          aria-label="Seleccionar página de usuarios">
+        </mat-paginator>
+      </div>
+    </div>
+  </div>
+</div>

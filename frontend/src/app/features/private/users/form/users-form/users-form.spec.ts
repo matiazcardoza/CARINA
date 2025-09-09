@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { FuelControl } from './fuel-control';
+import { UsersForm } from './users-form';
 
-describe('FuelControl', () => {
-  let component: FuelControl;
-  let fixture: ComponentFixture<FuelControl>;
+describe('UsersForm', () => {
+  let component: UsersForm;
+  let fixture: ComponentFixture<UsersForm>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FuelControl]
+      imports: [UsersForm]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(FuelControl);
+    fixture = TestBed.createComponent(UsersForm);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -1,0 +1,146 @@
+<div class="dialog-container">
+  <h2 mat-dialog-title>{{ title }}</h2>
+  
+  <mat-dialog-content>
+    <form [formGroup]="usersForm" class="users-form">
+      
+      <!-- Campo de DNI -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>DNI</mat-label>
+        <input matInput 
+               formControlName="num_doc"
+               placeholder="Ingrese 8 dígitos"
+               maxlength="8"
+               type="text">
+        <mat-icon matSuffix *ngIf="isSearchingDni">hourglass_empty</mat-icon>
+        <mat-icon matSuffix *ngIf="!isSearchingDni && usersForm.get('num_doc')?.value?.length === 8">search</mat-icon>
+        <mat-hint *ngIf="!isSearchingDni">Al completar 8 dígitos se buscarán los datos automáticamente</mat-hint>
+        <mat-hint *ngIf="isSearchingDni">Buscando datos...</mat-hint>
+        <mat-error *ngIf="usersForm.get('num_doc')?.hasError('required')">
+          El DNI es requerido
+        </mat-error>
+        <mat-error *ngIf="usersForm.get('num_doc')?.hasError('pattern')">
+          El DNI debe contener exactamente 8 dígitos
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Fila con Nombres y Apellidos -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Nombres</mat-label>
+          <input matInput 
+                 formControlName="persona_name"
+                 placeholder="Nombres completos"
+                 maxlength="100">
+          <mat-error *ngIf="usersForm.get('persona_name')?.hasError('required')">
+            Los nombres son requeridos
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Apellidos</mat-label>
+          <input matInput 
+                 formControlName="last_name"
+                 placeholder="Apellidos completos"
+                 maxlength="100">
+          <mat-error *ngIf="usersForm.get('last_name')?.hasError('required')">
+            Los apellidos son requeridos
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Campo de Nombre de Usuario -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Nombre de Usuario</mat-label>
+        <input matInput 
+               formControlName="username"
+               placeholder="Nombre de usuario único"
+               maxlength="50">
+        <mat-error *ngIf="usersForm.get('username')?.hasError('required')">
+          El nombre de usuario es requerido
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Campo de Correo Electrónico -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Correo Electrónico</mat-label>
+        <input matInput 
+               type="email"
+               formControlName="email"
+               placeholder="usuario@ejemplo.com"
+               maxlength="100">
+        <mat-error *ngIf="usersForm.get('email')?.hasError('required')">
+          El correo electrónico es requerido
+        </mat-error>
+        <mat-error *ngIf="usersForm.get('email')?.hasError('email')">
+          Ingrese un correo electrónico válido
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Campo de Contraseña -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>{{ data.isEdit ? 'Nueva Contraseña (Opcional)' : 'Contraseña' }}</mat-label>
+        <input matInput 
+               type="password"
+               formControlName="password"
+               [placeholder]="data.isEdit ? 'Dejar vacío para mantener actual' : 'Mínimo 8 caracteres'">
+        <mat-hint *ngIf="!data.isEdit">
+          Debe contener: mayúscula, minúscula, número y símbolo
+        </mat-hint>
+        <mat-error *ngIf="usersForm.get('password')?.hasError('required')">
+          La contraseña es requerida
+        </mat-error>
+        <mat-error *ngIf="usersForm.get('password')?.hasError('minlength')">
+          Mínimo 8 caracteres
+        </mat-error>
+        <mat-error *ngIf="usersForm.get('password')?.hasError('pattern')">
+          Debe incluir mayúscula, minúscula, número y símbolo
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Fila con Rol y Estado -->
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Rol</mat-label>
+          <mat-select formControlName="role_id">
+            <mat-option *ngFor="let role of roleOptions" [value]="role.value">
+              {{ role.label }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="usersForm.get('role_id')?.hasError('required')">
+            El rol es requerido
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="half-width">
+          <mat-label>Estado</mat-label>
+          <mat-select formControlName="state">
+            <mat-option *ngFor="let state of stateOptions" [value]="state.value">
+              {{ state.label }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="usersForm.get('state')?.hasError('required')">
+            El estado es requerido
+          </mat-error>
+        </mat-form-field>
+      </div>
+    </form>
+    
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button 
+            (click)="onCancel()" 
+            [disabled]="isLoading">
+      Cancelar
+    </button>
+    
+    <button mat-raised-button 
+            color="primary" 
+            (click)="onSubmit()"
+            [disabled]="isLoading || usersForm.invalid">
+      <span *ngIf="isLoading">Guardando...</span>
+      <span *ngIf="!isLoading">{{ submitButtonText }}</span>
+    </button>
+  </mat-dialog-actions>
+</div>

@@ -22,6 +22,7 @@ import { ViewEvidence } from './view/view-evidence/view-evidence';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { AuthService } from '../../../services/AuthService/auth';
 
 export interface WorkLogDataElement {
   id: number;
@@ -136,7 +137,8 @@ export class ReportsAndDashboards implements OnInit {
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef,
     private dailyWorkLogService: DailyWorkLogService,
-    private reportsServicesService: ReportsServicesService
+    private reportsServicesService: ReportsServicesService,
+    private authService: AuthService
   ) {
     this.searchForm = this.fb.group({
       servicioSearch: ['']
@@ -145,9 +147,27 @@ export class ReportsAndDashboards implements OnInit {
 
   private dialog = inject(MatDialog);
 
+  canAccessDashboard: boolean = false;
+  canAccessReports: boolean = false;
+  canGenerateReports: boolean = false;
+  canEditWorkLog: boolean = false;
+  canDeleteWorkLog: boolean = false;
+
   ngOnInit(): void {
+    this.loadPermissions();
     this.loadServices();
     this.calcularResumenDashboard();
+  }
+
+  loadPermissions(): void {
+    this.authService.userPermissions$.subscribe(permissions => {
+      this.canAccessDashboard = permissions.includes('access_dashboard');
+      this.canAccessReports = permissions.includes('access_reportes');
+      this.canGenerateReports = permissions.includes('generate_reportes');
+      this.canEditWorkLog = permissions.includes('edit_work_log');
+      this.canDeleteWorkLog = permissions.includes('delete_work_log');
+      this.cdr.detectChanges();
+    });
   }
 
   loadServices(): void {

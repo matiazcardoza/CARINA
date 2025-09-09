@@ -1,0 +1,123 @@
+/* users-form.component.css */
+
+.dialog-container {
+  position: relative;
+  z-index: 1;
+  min-width: 500px;
+}
+
+.users-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.half-width {
+  flex: 1;
+}
+
+/* Estilos para campos específicos */
+.users-form mat-hint {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.users-form mat-error {
+  font-size: 12px;
+}
+
+/* Estilo para el select de estado y rol */
+.users-form mat-select {
+  font-weight: 500;
+}
+
+/* Estilos específicos para el campo DNI */
+.users-form mat-form-field:has(input[formControlName="num_doc"]) {
+  position: relative;
+}
+
+/* Estilos para los iconos de búsqueda */
+.mat-mdc-form-field-suffix .mat-icon {
+  color: #666;
+}
+
+/* Animación para el icono de búsqueda */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.mat-icon[matsuffix] {
+  transition: color 0.2s ease-in-out;
+}
+
+mat-icon:contains("hourglass_empty") {
+  animation: spin 1s linear infinite;
+  color: #2196f3;
+}
+
+mat-icon:contains("search") {
+  color: #4caf50;
+}
+
+/* Responsividad para dispositivos móviles */
+@media (max-width: 768px) {
+  .dialog-container {
+    min-width: 300px;
+    width: 95vw;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .half-width {
+    width: 100%;
+  }
+}
+
+/* Estilos para mejor UX */
+.users-form input:focus,
+.users-form mat-select:focus {
+  outline: none;
+}
+
+/* Estilo para campos requeridos */
+.users-form mat-form-field.mat-form-field-invalid mat-label {
+  color: #f44336;
+}
+
+/* Animación sutil para el botón de submit */
+button[mat-raised-button] {
+  transition: all 0.2s ease-in-out;
+}
+
+button[mat-raised-button]:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilo para campos que se autocompletan */
+.users-form input[formControlName="persona_name"]:not(:placeholder-shown),
+.users-form input[formControlName="last_name"]:not(:placeholder-shown) {
+  background-color: rgba(76, 175, 80, 0.05);
+  transition: background-color 0.3s ease-in-out;
+}
+
+/* Estilo para el hint de búsqueda activa */
+.users-form mat-hint:contains("Buscando") {
+  color: #2196f3;
+  font-weight: 500;
+}
