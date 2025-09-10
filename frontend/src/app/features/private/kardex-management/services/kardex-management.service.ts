@@ -51,8 +51,8 @@ export class KardexManagementService {
       return this.http.get<any>(
         // `${this.apiUrl}/api/silucia-orders/${encodeURIComponent(String(numero))}/products/${idcompradet}/movements-kardex`,
         // Route::get( 'silucia-containers/{containerId}/items-pecosas/{itemId}/movements',  [MovementKardexController::class, 'indexBySiluciaIds'])->middleware(['role:almacen_almacenero']);
-
-        `${this.apiUrl}/api/silucia-containers/${encodeURIComponent(String(numero))}/items-pecosas/${idcompradet}/movements`,
+// silucia-pecosas/{pecosaId}/items-pecosas/{itemId}/movements
+        `${this.apiUrl}/api/silucia-pecosas/${encodeURIComponent(String(numero))}/items-pecosas/${idcompradet}/movements`,
         {
           ...this.options, 
           params 
@@ -65,7 +65,7 @@ export class KardexManagementService {
       // return this.http.get(`${this.apiUrl}/api/products/${id}/movements-kardex/pdf`, {
       // return this.http.get(`${this.apiUrl}/api/silucia-orders/${id_order_silucia}/products/${id_product_silucia}/movements-kardex/pdf`, {
       // return this.http.get(`${this.apiUrl}/api/silucia-containers/${id_pecosa_silucia}/items-pecosas/${id_item_pecosa_silucia}/movements-kardex/pdf`, {
-      return this.http.get(`${this.apiUrl}/api/silucia-containers/${id_pecosa_silucia}/items-pecosas/${id_item_pecosa_silucia}/movements/pdf`, {
+      return this.http.get(`${this.apiUrl}/api/silucia-pecosas/${id_pecosa_silucia}/items-pecosas/${id_item_pecosa_silucia}/movements/pdf`, {
         responseType: 'blob',
         observe: 'response',
         withCredentials: true,                 // si usas cookies/Sanctum

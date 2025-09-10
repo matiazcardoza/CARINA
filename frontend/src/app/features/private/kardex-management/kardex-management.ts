@@ -88,7 +88,8 @@ export class KardexManagement {
 
   form = {
 
-    id_container_silucia: null as string | null,
+    // id_container_silucia: null as string | null,
+    id_pecosa_silucia: null as string | null,
     id_item_pecosa_silucia: null as number | null,
     movement_type: null as 'entrada' | 'salida' | null,
     amount: null as number | null,
@@ -235,7 +236,7 @@ export class KardexManagement {
      */
 
 
-    this.form.id_container_silucia =  _row.numero;
+    this.form.id_pecosa_silucia =  _row.numero;
     this.form. id_item_pecosa_silucia=  _row.idsalidadet;
     this.form.silucia_pecosa = JSON.parse(JSON.stringify(_row))
     this.showMovementModal = true;
@@ -248,7 +249,7 @@ export class KardexManagement {
       silucia_pecosa: [], 
       movement_type: null, 
       amount: null, 
-      id_container_silucia: null,
+      id_pecosa_silucia: null,
       id_item_pecosa_silucia: null,
       observations: null,
       people_dnis: [],
