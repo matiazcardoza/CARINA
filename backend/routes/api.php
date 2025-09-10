@@ -19,6 +19,7 @@ use App\Models\Service;
 
 use App\Http\Controllers\PecosaController;
 use App\Http\Controllers\FuelOrderController;
+use App\Http\Controllers\RoleController;
 use App\Models\SignatureFlow;
 use App\Models\SignatureStep;
 
@@ -35,6 +36,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //Users Routes
     Route::get('/users', [UserController::class, 'index']);
     Route::get('/users-consult/{dni}', [UserController::class, 'consultUsers']);
+    Route::get('/users-roles', [UserController::class, 'getRoles']);
+    Route::post('/users-create', [UserController::class, 'createUser']);
+    Route::put('/users-update', [UserController::class, 'updateUser']);
+    Route::delete('/users-delete/{id}', [UserController::class, 'destroy']);
+    Route::put('/users-update-roles', [UserController::class, 'updateUserRoles']);
+
+    //Roles Routes
+    Route::get('/roles', [RoleController::class, 'index']);
 
     //orders silucia routes
     Route::post('orders-silucia/import-order', [OrderSiluciaController::class, 'importOrder']);

@@ -195,3 +195,46 @@ input::-ms-clear,
 input::-ms-reveal {
   display: none;
 }
+
+.roles-section {
+  margin: 16px 0;
+}
+
+.roles-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.87);
+  margin-bottom: 8px;
+}
+
+.roles-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.roles-loading mat-icon {
+  animation: spin 1s linear infinite;
+  color: #2196f3;
+  font-size: 16px;
+}
+
+.roles-checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.role-checkbox {
+  margin: 4px 0;
+}
+
+.roles-error {
+  color: #f44336;
+  font-size: 12px;
+  margin-top: 4px;
+}

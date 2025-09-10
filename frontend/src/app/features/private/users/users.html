@@ -80,8 +80,8 @@
             </th>
             <td mat-cell *matCellDef="let element" class="name-cell"> 
               <div class="user-info">
-                <span class="user-name">{{element.persona_name}} {{element.last_name}}</span>
-                <span class="user-email">DNI: {{element.num_doc}}</span>
+                <span class="user-name">{{ getFullName(element) }}</span>
+                <span class="user-email">DNI: {{ element.num_doc || 'N/A' }}</span>
               </div>
             </td>
           </ng-container>
@@ -95,27 +95,45 @@
               </div>
             </th>
             <td mat-cell *matCellDef="let element" class="email-cell"> 
-              <span class="email-value">{{element.email}}</span>
+                <div class="user-info">
+                    <span class="user-name">{{ element.name }}</span>
+                    <span class="email-value">{{ element.email }}</span>
+                </div>
             </td>
           </ng-container>
 
-          <!-- Columna Rol -->
-          <ng-container matColumnDef="role">
-            <th mat-header-cell *matHeaderCellDef class="role-column"> 
-              <div class="header-content">
-                <mat-icon>admin_panel_settings</mat-icon>
-                <span>Rol</span>
-              </div>
-            </th>
-            <td mat-cell *matCellDef="let element" class="role-cell"> 
-              <div class="role-info">
-                <span class="role-badge" [ngClass]="getRoleBadgeClass(element.role_name)">
-                  {{element.role_name}}
-                </span>
-                <span class="permissions-count">{{element.permissions.length}} permiso{{ element.permissions.length !== 1 ? 's' : '' }}</span>
-              </div>
-            </td>
-          </ng-container>
+          <!-- Columna Roles (ACTUALIZADA) -->
+            <ng-container matColumnDef="roles">
+                <th mat-header-cell *matHeaderCellDef class="role-column"> 
+                    <div class="header-content">
+                    <mat-icon>admin_panel_settings</mat-icon>
+                    <span>Roles</span>
+                    </div>
+                </th>
+                <td mat-cell *matCellDef="let element" class="role-cell"> 
+                    <div class="roles-container">
+                    <!-- Mostrar roles como chips -->
+                    <mat-chip-set class="role-chips" *ngIf="hasRoles(element)">
+                        <mat-chip 
+                        *ngFor="let role of element.roles" 
+                        [ngClass]="getRoleBadgeClass(role.name)"
+                        class="role-chip">
+                        {{ role.name }}
+                        </mat-chip>
+                    </mat-chip-set>
+
+                    <!-- Si no tiene roles -->
+                    <span *ngIf="!hasRoles(element)" class="no-roles">
+                        Sin rol
+                    </span>
+
+                    <!-- Mostrar contador de roles -->
+                    <span class="roles-count" *ngIf="element.roles && element.roles.length > 1">
+                        {{ element.roles.length }} roles asignados
+                    </span>
+                    </div>
+                </td>
+            </ng-container>
 
           <!-- Columna Estado -->
           <ng-container matColumnDef="state">
@@ -127,30 +145,22 @@
             </th>
             <td mat-cell *matCellDef="let element" class="status-cell"> 
               <span class="status-badge" [ngClass]="getStatusClass(element.state)">
-                <mat-icon class="status-icon">
-                  {{element.state === 1 ? 'check_circle' : element.state === 2 ? 'pause_circle' : 'cancel'}}
-                </mat-icon>
-                @if (element.state === 1){
-                  <span>Activo</span>
-                } @else if (element.state === 2){
-                  <span>Suspendido</span>
-                } @else {
-                  <span>Inactivo</span>
-                }
+                <mat-icon class="status-icon">{{ getStatusIcon(element.state) }}</mat-icon>
+                <span>{{ getStatusText(element.state) }}</span>
               </span>
             </td>
           </ng-container>
 
-          <!-- Columna Último Acceso -->
+          <!-- Columna Fecha de Creación -->
           <ng-container matColumnDef="created_at">
             <th mat-header-cell *matHeaderCellDef class="login-column"> 
               <div class="header-content">
                 <mat-icon>schedule</mat-icon>
-                <span>Fecha</span>
+                <span>Fecha Creada</span>
               </div>
             </th>
             <td mat-cell *matCellDef="let element" class="login-cell"> 
-              <span class="login-date">{{formatDate(element.created_at)}}</span>
+              <span class="login-date">{{ formatDate(element.created_at) }}</span>
             </td>
           </ng-container>
 
@@ -172,10 +182,10 @@
                 </button>
                 
                 <button mat-icon-button 
-                        (click)="manageUserPermissions(element)"
-                        matTooltip="Gestionar permisos"
+                        (click)="manageUserRoles(element)"
+                        matTooltip="Gestionar roles"
                         class="action-btn permissions-btn">
-                  <mat-icon>security</mat-icon>
+                  <mat-icon>admin_panel_settings</mat-icon>
                 </button>
 
                 <button mat-icon-button 

@@ -1,0 +1,69 @@
+<div class="dialog-container">
+  <h2 mat-dialog-title>Gestionar Roles</h2>
+  
+  <!-- Información del usuario -->
+  <div class="user-info">
+    <div class="user-details">
+      <h3>{{ data.user.name }}</h3>
+      <p class="user-email">{{ data.user.email }}</p>
+    </div>
+  </div>
+  
+  <mat-dialog-content>
+    <form [formGroup]="rolesForm" class="roles-form">
+      
+      <!-- Sección de Roles con Checkboxes -->
+      <div class="roles-section">
+        <label class="roles-label">Roles del Usuario *</label>
+        <p class="roles-description">Seleccione los roles que tendrá este usuario</p>
+        
+        <!-- Mostrar loader mientras se cargan los roles -->
+        <div *ngIf="isLoadingRoles" class="roles-loading">
+          <mat-icon>hourglass_empty</mat-icon>
+          <span>Cargando roles disponibles...</span>
+        </div>
+        
+        <!-- Mostrar checkboxes cuando los roles están cargados -->
+        <div *ngIf="!isLoadingRoles" class="roles-checkboxes" formArrayName="roles">
+          <mat-checkbox 
+            *ngFor="let role of roleOptions; let i = index"
+            [formControlName]="i"
+            class="role-checkbox"
+            (change)="onRoleChange(i, $event)">
+            {{ role.label }}
+          </mat-checkbox>
+        </div>
+        
+        <!-- Error de validación -->
+        <div class="roles-error" *ngIf="rolesFormArray.hasError('noRoleSelected') && rolesFormArray.touched">
+          <mat-icon class="error-icon">error</mat-icon>
+          Debe seleccionar al menos un rol
+        </div>
+        
+        <!-- Indicador de cambios -->
+        <div class="changes-indicator" *ngIf="hasChanges() && !isLoadingRoles">
+          <mat-icon class="changes-icon">info</mat-icon>
+          <span>Se han detectado cambios en los roles</span>
+        </div>
+      </div>
+      
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button 
+            (click)="onCancel()" 
+            [disabled]="isLoading">
+      Cancelar
+    </button>
+    
+    <button mat-raised-button 
+            color="primary" 
+            (click)="onSubmit()"
+            [disabled]="isLoading || rolesForm.invalid || !hasChanges()">
+      <mat-icon *ngIf="isLoading">hourglass_empty</mat-icon>
+      <span *ngIf="isLoading">Actualizando...</span>
+      <span *ngIf="!isLoading">Actualizar Roles</span>
+    </button>
+  </mat-dialog-actions>
+</div>

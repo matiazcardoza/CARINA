@@ -101,7 +101,7 @@
           <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
         </button>
         <mat-hint *ngIf="!data.isEdit">
-          Debe contener: mayúscula, minúscula, número y símbolo
+          Puede contener: mayúscula, minúscula, número y símbolo
         </mat-hint>
         <mat-error *ngIf="usersForm.get('password')?.hasError('required')">
           La contraseña es requerida
@@ -138,32 +138,44 @@
         </mat-error>
       </mat-form-field>
 
-      <!-- Fila con Rol y Estado -->
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="half-width">
-          <mat-label>Rol</mat-label>
-          <mat-select formControlName="role_id">
-            <mat-option *ngFor="let role of roleOptions" [value]="role.value">
-              {{ role.label }}
-            </mat-option>
-          </mat-select>
-          <mat-error *ngIf="usersForm.get('role_id')?.hasError('required')">
-            El rol es requerido
-          </mat-error>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="half-width">
-          <mat-label>Estado</mat-label>
-          <mat-select formControlName="state">
-            <mat-option *ngFor="let state of stateOptions" [value]="state.value">
-              {{ state.label }}
-            </mat-option>
-          </mat-select>
-          <mat-error *ngIf="usersForm.get('state')?.hasError('required')">
-            El estado es requerido
-          </mat-error>
-        </mat-form-field>
+      <!-- Sección de Roles con Checkboxes -->
+      <div class="roles-section">
+        <label class="roles-label">Roles *</label>
+        
+        <!-- Mostrar loader mientras se cargan los roles -->
+        <div *ngIf="isLoadingRoles" class="roles-loading">
+          <mat-icon>hourglass_empty</mat-icon>
+          <span>Cargando roles...</span>
+        </div>
+        
+        <!-- Mostrar checkboxes cuando los roles están cargados -->
+        <div *ngIf="!isLoadingRoles" class="roles-checkboxes" formArrayName="roles">
+          <mat-checkbox 
+            *ngFor="let role of roleOptions; let i = index"
+            [formControlName]="i"
+            class="role-checkbox"
+            (change)="onRoleChange(i, $event)">
+            {{ role.label }}
+          </mat-checkbox>
+        </div>
+        
+        <div class="roles-error" *ngIf="rolesFormArray.hasError('noRoleSelected') && rolesFormArray.touched">
+          Debe seleccionar al menos un rol
+        </div>
       </div>
+
+      <!-- Campo de Estado -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Estado</mat-label>
+        <mat-select formControlName="state">
+          <mat-option *ngFor="let state of stateOptions" [value]="state.value">
+            {{ state.label }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="usersForm.get('state')?.hasError('required')">
+          El estado es requerido
+        </mat-error>
+      </mat-form-field>
     </form>
     
   </mat-dialog-content>

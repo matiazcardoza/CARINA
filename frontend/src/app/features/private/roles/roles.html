@@ -1,1 +1,198 @@
-<p>roles works!</p>
+<div class="roles-container">
+  <!-- Header con título y acciones principales -->
+  <div class="header-section">
+    <div class="page-title">
+      <h1>Gestión de Roles</h1>
+      <p class="subtitle">Administra roles y permisos del sistema</p>
+    </div>
+    
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="openCreateDialog()" class="action-button">
+        <mat-icon>add_moderator</mat-icon>
+        Nuevo Rol
+      </button>
+      
+      <button mat-icon-button (click)="reloadData()" matTooltip="Actualizar datos" class="refresh-button">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tarjeta principal con contenido -->
+  <div class="content-card mat-elevation-z4">
+    
+    <!-- Estados de carga y error -->
+    <div *ngIf="isLoading" class="state-container loading-state">
+      <div class="state-content">
+        <mat-icon class="state-icon spinning">admin_panel_settings</mat-icon>
+        <h3>Cargando roles...</h3>
+        <p>Por favor espera mientras obtenemos la información de los roles</p>
+      </div>
+    </div>
+
+    <div *ngIf="error && !isLoading" class="state-container error-state">
+      <div class="state-content">
+        <mat-icon class="state-icon error">error_outline</mat-icon>
+        <h3>Error al cargar los roles</h3>
+        <p>{{ error }}</p>
+        <button mat-raised-button color="primary" (click)="reloadData()" class="retry-button">
+          <mat-icon>refresh</mat-icon>
+          Reintentar
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabla de datos -->
+    <div *ngIf="!isLoading && !error" class="table-container">
+      
+      <!-- Información de registros -->
+      <div class="table-info" *ngIf="dataSource.data.length > 0">
+        <span class="records-count">
+          <mat-icon>admin_panel_settings</mat-icon>
+          {{ dataSource.data.length }} rol{{ dataSource.data.length !== 1 ? 'es' : '' }} registrado{{ dataSource.data.length !== 1 ? 's' : '' }}
+        </span>
+      </div>
+
+      <!-- Tabla -->
+      <div class="table-wrapper" *ngIf="dataSource.data.length > 0">
+        <table mat-table [dataSource]="dataSource" class="roles-table">
+          
+          <!-- Columna ID -->
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef class="id-column"> 
+              <div class="header-content">
+                <mat-icon>tag</mat-icon>
+                <span>ID</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let element" class="id-cell"> 
+              <span class="id-badge">#{{element.id}}</span>
+            </td>
+          </ng-container>
+
+          <!-- Columna Nombre del Rol -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef class="name-column"> 
+              <div class="header-content">
+                <mat-icon>badge</mat-icon>
+                <span>Nombre del Rol</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let element" class="name-cell"> 
+              <div class="role-info">
+                <div class="role-main">
+                  <mat-icon class="role-type-icon">{{ getRoleIcon(element.name) }}</mat-icon>
+                  <span class="role-name">{{ element.name }}</span>
+                  <span class="role-badge" [ngClass]="getRoleBadgeClass(element.name)">
+                    {{ element.name }}
+                  </span>
+                </div>
+                <span class="permissions-info" *ngIf="element.permissions_count">
+                  <mat-icon>security</mat-icon>
+                  {{ element.permissions_count }} permisos
+                </span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Columna Usuarios Asignados -->
+          <ng-container matColumnDef="users_count">
+            <th mat-header-cell *matHeaderCellDef class="users-column"> 
+              <div class="header-content">
+                <mat-icon>people</mat-icon>
+                <span>Usuarios</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let element" class="users-cell"> 
+              <div class="users-count-info">
+                <span class="users-count-badge" [ngClass]="{'has-users': element.users_count > 0, 'no-users': element.users_count === 0}">
+                  <mat-icon>people</mat-icon>
+                  {{ element.users_count }}
+                </span>
+                <span class="users-text">
+                  {{ element.users_count === 1 ? 'usuario asignado' : 'usuarios asignados' }}
+                </span>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Columna Fecha de Creación -->
+          <ng-container matColumnDef="created_at">
+            <th mat-header-cell *matHeaderCellDef class="date-column"> 
+              <div class="header-content">
+                <mat-icon>schedule</mat-icon>
+                <span>Fecha Creación</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let element" class="date-cell"> 
+              <span class="creation-date">{{ formatDate(element.created_at) }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Columna Acciones -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="actions-column"> 
+              <div class="header-content">
+                <mat-icon>settings</mat-icon>
+                <span>Acciones</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let element" class="actions-cell">
+              <div class="action-buttons">
+                <button mat-icon-button 
+                        (click)="openEditDialog(element)"
+                        matTooltip="Editar rol"
+                        class="action-btn edit-btn">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                
+                <button mat-icon-button 
+                        (click)="manageRolePermissions(element)"
+                        matTooltip="Gestionar permisos"
+                        class="action-btn permissions-btn">
+                  <mat-icon>security</mat-icon>
+                </button>
+
+                <button mat-icon-button 
+                        (click)="deleteRole(element.id)"
+                        [matTooltip]="getDeleteTooltip(element)"
+                        [disabled]="!canDeleteRole(element)"
+                        class="action-btn delete-btn"
+                        [ngClass]="{'disabled': !canDeleteRole(element)}">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Filas de la tabla -->
+          <tr mat-header-row *matHeaderRowDef="displayedColumns" class="table-header"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+        </table>
+      </div>
+
+      <!-- Estado sin datos -->
+      <div *ngIf="dataSource.data.length === 0" class="state-container empty-state">
+        <div class="state-content">
+          <mat-icon class="state-icon empty">admin_panel_settings</mat-icon>
+          <h3>No hay roles registrados</h3>
+          <p>Comienza creando el primer rol del sistema</p>
+          <button mat-raised-button color="primary" (click)="openCreateDialog()" class="create-first-button">
+            <mat-icon>add_moderator</mat-icon>
+            Crear Primer Rol
+          </button>
+        </div>
+      </div>
+
+      <!-- Paginación -->
+      <div class="pagination-container" *ngIf="dataSource.data.length > 0">
+        <mat-paginator 
+          [pageSizeOptions]="[5, 10, 20, 50]"
+          [pageSize]="10"
+          showFirstLastButtons
+          aria-label="Seleccionar página de roles">
+        </mat-paginator>
+      </div>
+    </div>
+  </div>
+</div>

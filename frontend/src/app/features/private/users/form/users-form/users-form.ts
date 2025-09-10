@@ -1,5 +1,5 @@
 import { Component, Inject, inject, OnInit, ViewEncapsulation } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, FormArray } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -8,6 +8,7 @@ import { ChangeDetectorRef } from '@angular/core';
 import { MatSelectModule } from '@angular/material/select';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { UsersService } from '../../../../../services/UsersService/users-service';
 
 export interface DialogData {
@@ -15,7 +16,12 @@ export interface DialogData {
   user: any;
 }
 
-// Validador personalizado para confirmar contraseña
+export interface RolesElement {
+  id: number;
+  label: string;
+  name?: string;
+}
+
 function passwordMatchValidator(control: AbstractControl): { [key: string]: any } | null {
   const password = control.get('password');
   const confirmPassword = control.get('confirmPassword');
@@ -25,6 +31,12 @@ function passwordMatchValidator(control: AbstractControl): { [key: string]: any 
   }
   
   return password.value === confirmPassword.value ? null : { 'passwordMismatch': true };
+}
+
+function rolesValidator(control: AbstractControl): { [key: string]: any } | null {
+  const roles = control as FormArray;
+  const hasSelectedRole = roles.controls.some(control => control.value === true);
+  return hasSelectedRole ? null : { 'noRoleSelected': true };
 }
 
 @Component({
@@ -37,7 +49,8 @@ function passwordMatchValidator(control: AbstractControl): { [key: string]: any 
     MatInputModule,
     MatButtonModule,
     MatSelectModule,
-    MatIconModule
+    MatIconModule,
+    MatCheckboxModule
   ],
   templateUrl: './users-form.html',
   styleUrl: './users-form.css',
@@ -47,15 +60,11 @@ export class UsersForm implements OnInit {
   usersForm: FormGroup;
   isLoading = false;
   isSearchingDni = false;
+  isLoadingRoles = false;
   hidePassword = true;
   hideConfirmPassword = true;
 
-  roleOptions = [
-    { value: 1, label: 'Super Administrador' },
-    { value: 2, label: 'Supervisor' },
-    { value: 3, label: 'Técnico' },
-    { value: 4, label: 'Operador' }
-  ];
+  roleOptions: RolesElement[] = [];
 
   stateOptions = [
     { value: 1, label: 'Activo' },
@@ -85,16 +94,75 @@ export class UsersForm implements OnInit {
       password: ['', [
         Validators.required, 
         Validators.minLength(8),
-        Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
+        Validators.pattern(/^(?=.*[a-z])(?=.*\d)[a-z\d]*$/)
       ]],
       confirmPassword: ['', [Validators.required]],
-      role_id: ['', Validators.required],
+      roles: this.fb.array([]),
       state: [1, Validators.required]
     }, { validators: passwordMatchValidator });
   }
+
+  get rolesFormArray(): FormArray {
+    return this.usersForm.get('roles') as FormArray;
+  }
+
+  private initializeRolesFormArray(): void {
+    const rolesArray = this.fb.array([]);
+    
+    this.roleOptions.forEach(() => {
+      rolesArray.push(this.fb.control(false));
+    });
+    
+    this.usersForm.setControl('roles', rolesArray);
+    rolesArray.setValidators(rolesValidator);
+  }
+
+  private loadRoles(): void {
+    this.isLoadingRoles = true;
+    
+    this.usersService.getRoles().subscribe({
+      next: (roles: RolesElement[]) => {
+        this.roleOptions = roles.map(role => ({
+          id: role.id,
+          label: role.label || role.name || `Rol ${role.id}`
+        }));
+        
+        this.initializeRolesFormArray();
+        
+        if (this.data.isEdit && this.data.user) {
+          const userRolesIds = Array.isArray(this.data.user.roles)
+            ? this.data.user.roles.map((r: any) => r.id)
+            : [this.data.user.role_id];
+          
+          this.setSelectedRoles(userRolesIds);
+        }
+        
+        this.isLoadingRoles = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error al cargar roles:', error);
+        this.isLoadingRoles = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  onRoleChange(index: number, event: any): void {
+    const rolesArray = this.rolesFormArray;
+    rolesArray.at(index).setValue(event.checked);
+    rolesArray.updateValueAndValidity();
+  }
+
+  getSelectedRoleIds(): number[] {
+    return this.rolesFormArray.controls
+      .map((control, index) => control.value ? this.roleOptions[index].id : null)
+      .filter(id => id !== null) as number[];
+  }
   
   ngOnInit() {
-    // Escuchar cambios en el campo DNI
+    this.loadRoles();
+    
     this.usersForm.get('num_doc')?.valueChanges.subscribe(value => {
       if (value && value.length === 8 && /^\d{8}$/.test(value)) {
         this.searchPersonByDni(value);
@@ -106,13 +174,11 @@ export class UsersForm implements OnInit {
         num_doc: this.data.user.num_doc,
         persona_name: this.data.user.persona_name,
         last_name: this.data.user.last_name,
-        username: this.data.user.username,
+        username: this.data.user.name,
         email: this.data.user.email,
-        role_id: this.data.user.role_id,
         state: this.data.user.state
-      });
+      }, { emitEvent: false });
       
-      // En modo edición, quitar la validación requerida de la contraseña y confirmación
       this.usersForm.get('password')?.clearValidators();
       this.usersForm.get('password')?.setValidators([
         Validators.minLength(8),
@@ -124,30 +190,35 @@ export class UsersForm implements OnInit {
     }
   }
 
-  // Función para manejar solo entrada numérica en DNI
+  private setSelectedRoles(userRoles: number[]): void {
+    const rolesArray = this.rolesFormArray;
+    
+    this.roleOptions.forEach((role, index) => {
+      const isSelected = userRoles.includes(role.id);
+      rolesArray.at(index).setValue(isSelected);
+    });
+    
+    rolesArray.updateValueAndValidity();
+  }
+
   onDniInput(event: any): void {
     const input = event.target;
     const value = input.value;
     
-    // Remover cualquier caracter que no sea número
     const numericValue = value.replace(/[^0-9]/g, '');
     
-    // Limitar a 8 dígitos
     const limitedValue = numericValue.substring(0, 8);
     
-    // Actualizar el valor del input y del form control
     if (value !== limitedValue) {
       input.value = limitedValue;
       this.usersForm.get('num_doc')?.setValue(limitedValue);
     }
   }
 
-  // Función para alternar visibilidad de contraseña
   togglePasswordVisibility(): void {
     this.hidePassword = !this.hidePassword;
   }
 
-  // Función para alternar visibilidad de confirmar contraseña
   toggleConfirmPasswordVisibility(): void {
     this.hideConfirmPassword = !this.hideConfirmPassword;
   }
@@ -159,13 +230,11 @@ export class UsersForm implements OnInit {
     this.usersService.searchPersonByDni(dni).subscribe({
       next: (personData) => {
         if (personData) {
-          // Rellenar automáticamente los campos de nombres y apellidos
           this.usersForm.patchValue({
             persona_name: personData.name || '',
             last_name: personData.last_name || ''
           });
           
-          // Marcar los campos como tocados para mostrar validaciones
           this.usersForm.get('persona_name')?.markAsTouched();
           this.usersForm.get('last_name')?.markAsTouched();
         }
@@ -180,22 +249,30 @@ export class UsersForm implements OnInit {
     });
   }
 
-  onSubmit(): void {/*
+  onSubmit(): void {
     if (this.usersForm.valid) {
       this.isLoading = true;
-      const formData = { ...this.usersForm.value };
+      const formData = this.usersForm.value;
       
-      // Remover confirmPassword del payload
-      delete formData.confirmPassword;
+      const userData = { 
+        ...formData,
+        roles: this.getSelectedRoleIds(),
+        id: this.data.isEdit && this.data.user ? this.data.user.id : undefined
+      };
       
-      // En modo edición, si no se ingresó contraseña, no la incluir en el payload
-      if (this.data.isEdit && !formData.password) {
-        delete formData.password;
+      if (this.data.isEdit) {
+        if (!userData.password || userData.password.trim() === '') {
+          delete userData.password;
+          delete userData.confirmPassword;
+        }
       }
+      
+      delete userData.confirmPassword;
 
       if (this.data.isEdit && this.data.user?.id) {
         setTimeout(() => {
-          this.usersService.updateUser(this.data.user.id, formData)
+          console.log('Actualizar usuario con datos:', userData);
+          this.usersService.updateUser(userData)
             .subscribe({
               next: (updatedUser) => {
                 this.isLoading = false;
@@ -207,15 +284,17 @@ export class UsersForm implements OnInit {
               error: (error) => {
                 this.isLoading = false;
                 this.cdr.detectChanges();
-                console.error('Error al actualizar:', error);
+                console.error('Error al actualizar usuario:', error);
               }
-          });
+            });
         }, 0);
       } else {
         setTimeout(() => {
-          this.usersService.createUser(formData)
+          console.log('Crear usuario con datos:', userData);
+          this.usersService.createUser(userData)
             .subscribe({
               next: (newUser) => {
+                console.log('newUser', newUser);
                 this.isLoading = false;
                 this.cdr.detectChanges();
                 setTimeout(() => {
@@ -225,12 +304,12 @@ export class UsersForm implements OnInit {
               error: (error) => {
                 this.isLoading = false;
                 this.cdr.detectChanges();
-                console.error('Error al crear:', error);
+                console.error('Error al crear usuario:', error);
               }
             });
         }, 0);
       }
-    }*/
+    }
   }
 
   get title(): string {

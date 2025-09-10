@@ -1,0 +1,216 @@
+/* user-roles-form.component.css */
+
+.dialog-container {
+  position: relative;
+  z-index: 1;
+  min-width: 450px;
+  max-width: 600px;
+}
+
+.user-info {
+  padding: 0 24px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  padding-bottom: 16px;
+}
+
+.user-details h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.user-email {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.roles-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.roles-section {
+  margin: 0;
+}
+
+.roles-label {
+  display: block;
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.87);
+  margin-bottom: 8px;
+}
+
+.roles-description {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.6);
+  margin: 0 0 16px 0;
+}
+
+.roles-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 8px;
+  border: 1px dashed rgba(0, 0, 0, 0.12);
+}
+
+.roles-loading mat-icon {
+  animation: spin 1s linear infinite;
+  color: #2196f3;
+  font-size: 20px;
+}
+
+.roles-checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.role-checkbox {
+  margin: 0;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.role-checkbox:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.role-checkbox .mdc-checkbox {
+  padding: 8px;
+}
+
+.role-checkbox .mdc-form-field {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.roles-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #f44336;
+  font-size: 12px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background-color: rgba(244, 67, 54, 0.05);
+  border-radius: 4px;
+  border-left: 3px solid #f44336;
+}
+
+.error-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.changes-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #2196f3;
+  font-size: 12px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background-color: rgba(33, 150, 243, 0.05);
+  border-radius: 4px;
+  border-left: 3px solid #2196f3;
+}
+
+.changes-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+/* Animación para el icono de carga */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Estilos para los botones */
+button[mat-raised-button] {
+  transition: all 0.2s ease-in-out;
+}
+
+button[mat-raised-button]:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+button[mat-raised-button]:disabled {
+  opacity: 0.6;
+}
+
+button[mat-raised-button] mat-icon {
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .dialog-container {
+    min-width: 300px;
+    width: 95vw;
+    max-width: none;
+  }
+  
+  .user-info {
+    padding: 0 16px;
+  }
+  
+  .roles-checkboxes {
+    max-height: 250px;
+    padding: 12px;
+  }
+}
+
+/* Mejoras visuales */
+.roles-checkboxes::-webkit-scrollbar {
+  width: 6px;
+}
+
+.roles-checkboxes::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.roles-checkboxes::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.roles-checkboxes::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Estado focus para accesibilidad */
+.role-checkbox:focus-within {
+  outline: 2px solid #2196f3;
+  outline-offset: 2px;
+}
+
+/* Transiciones suaves */
+.roles-section * {
+  transition: all 0.2s ease-in-out;
+}
