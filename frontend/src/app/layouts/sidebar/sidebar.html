@@ -49,47 +49,6 @@
                 <li routerLink="mechanical_equipment"><a class="menu__link"><i class="pi pi-cog" ></i><span>Equipo Mecanico</span></a></li>
                 <li routerLink="fuel-control"><a class="menu__link"><i class="pi pi-car" routerLink="fuel-control"></i><span>Control de combustible</span></a></li>
                 <li routerLink="digital-signature-workflow"><a class="menu__link"><i class="pi pi-check" ></i><span>Workflow de firmas digitales</span></a></li>
-
-                <!-- Reports -->
-                <!-- <li>
-                  <button class="menu__link menu__link--btn" (click)="toggle('reports')">
-                    <i class="pi pi-chart-line"></i>
-                    <span>Reports</span>
-                    <i class="pi ml-auto" [class.pi-chevron-down]="!reportsOpen()" [class.pi-chevron-up]="reportsOpen()"></i>
-                  </button>
-
-                  @if (reportsOpen()) {
-                    <ul class="menu__list menu__list--nested" animate.enter="slide-down" animate.leave="slide-up">
-                      <li>
-                        <button class="menu__link menu__link--btn" (click)="toggle('revenue')">
-                          <i class="pi pi-chart-line"></i>
-                          <span>Revenue</span>
-                          <i class="pi ml-auto" [class.pi-chevron-down]="!revenueOpen()" [class.pi-chevron-up]="revenueOpen()"></i>
-                        </button>
-
-                        @if (revenueOpen()) {
-                          <ul class="menu__list menu__list--nested" animate.enter="slide-down" animate.leave="slide-up">
-                            <li><a class="menu__link"><i class="pi pi-table"></i><span>View</span></a></li>
-                            <li><a class="menu__link"><i class="pi pi-search"></i><span>Search</span></a></li>
-                          </ul>
-                        }
-                      </li>
-
-                      <li><a class="menu__link"><i class="pi pi-chart-line"></i><span>Expenses</span></a></li>
-                    </ul>
-                  }
-                </li> -->
-
-                <!-- <li><a class="menu__link"><i class="pi pi-users"></i><span>Team</span></a></li> -->
-                <!-- <li>
-                  <a class="menu__link">
-                    <i class="pi pi-comments"></i>
-                    <span>Messages</span>
-                    <span class="badge">3</span>
-                  </a>
-                </li> -->
-                <!-- <li><a class="menu__link"><i class="pi pi-calendar"></i><span>Calendar</span></a></li> -->
-                <!-- <li><a class="menu__link"><i class="pi pi-cog"></i><span>Settings</span></a></li> -->
               </ul>
             }
           </li>
@@ -115,6 +74,22 @@
 
         <ul class="menu">
           <li>
+            <!-- FAVORITES -->
+            <button class="menu__toggle" (click)="toggle('fav')">
+              <span class="menu__section">USUARIOS</span>
+              <i class="pi" [class.pi-chevron-down]="!favOpen()" [class.pi-chevron-up]="favOpen()"></i>
+            </button>
+
+            @if (favOpen()) {
+              <ul class="menu__list" animate.enter="slide-down" animate.leave="slide-up">
+                <li routerLink="users"><a class="menu__link"><i class="pi pi-users" ></i><span>Usuarios</span></a></li>
+                <li routerLink="roles"><a class="menu__link"><i class="pi pi-shield" ></i><span>Roles</span></a></li>
+              </ul>
+            }
+          </li>
+        </ul>
+        <ul>
+          <li>
             <!-- APPLICATION -->
             <button class="menu__toggle" (click)="toggle('transportVouchers')">
               <span class="menu__section">VALES DE TRANSPORTE</span>
@@ -130,8 +105,6 @@
             }
           </li>
         </ul>
-
-
       </div>
 
       <!-- Footer -->

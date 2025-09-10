@@ -1,9 +1,17 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, BehaviorSubject, throwError } from 'rxjs';
+import { Observable, BehaviorSubject, throwError, map } from 'rxjs';
 import { tap, switchMap, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  permissions: string[];
+  roles: string[];
+}
 
 @Injectable({
   providedIn: 'root'
@@ -13,9 +21,15 @@ export class AuthService {
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
+  private userPermissionsSubject = new BehaviorSubject<string[]>([]);
+  userPermissions$ = this.userPermissionsSubject.asObservable();
+
   constructor(private http: HttpClient, private router: Router) {
     this.verifyAuthentication().subscribe({
-      next: () => this.isAuthenticatedSubject.next(true),
+      next: (user) => {
+        this.isAuthenticatedSubject.next(true);
+        this.userPermissionsSubject.next(user.permissions);
+      },
       error: () => this.isAuthenticatedSubject.next(false)
     });
   }
@@ -39,31 +53,14 @@ export class AuthService {
           withCredentials: true
         });
       }),
-      tap(() => this.isAuthenticatedSubject.next(true)),
-      catchError((error: HttpErrorResponse) => {
-        this.isAuthenticatedSubject.next(false);
-        return throwError(() => error);
-      })
-    );
-  }
-
-  register(data: any): Observable<any> {
-    return this.getCsrfToken().pipe(
-      switchMap(() => {
-        const registerData = {
-          name: data.name,
-          email: data.email,
-          password: data.password,
-          password_confirmation: data.password_confirmation
-        };
-        
-        return this.http.post(`${this.apiUrl}/register`, registerData, { 
-          withCredentials: true
-        });
+      switchMap(() => this.getCurrentUser()),
+      tap(user => {
+        this.isAuthenticatedSubject.next(true);
+        this.userPermissionsSubject.next(user.permissions);
       }),
-      tap(() => this.isAuthenticatedSubject.next(true)),
       catchError((error: HttpErrorResponse) => {
         this.isAuthenticatedSubject.next(false);
+        this.userPermissionsSubject.next([]);
         return throwError(() => error);
       })
     );
@@ -75,6 +72,7 @@ export class AuthService {
     }).pipe(
       tap(() => {
         this.isAuthenticatedSubject.next(false);
+        this.userPermissionsSubject.next([]);
         this.router.navigate(['/login']);
       }),
       catchError(error => {
@@ -85,12 +83,16 @@ export class AuthService {
   }
 
   verifyAuthentication(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/api/user`, { 
+    return this.http.get<User>(`${this.apiUrl}/api/user`, { 
       withCredentials: true 
     }).pipe(
-      tap(() => this.isAuthenticatedSubject.next(true)),
+      tap((user) => {
+        this.isAuthenticatedSubject.next(true);
+        this.userPermissionsSubject.next(user.permissions);
+      }),
       catchError(() => {
         this.isAuthenticatedSubject.next(false);
+        this.userPermissionsSubject.next([]);
         return throwError(() => new Error('Not authenticated'));
       })
     );
@@ -100,5 +102,11 @@ export class AuthService {
     return this.http.get(`${this.apiUrl}/api/user`, {
       withCredentials: true
     });
+  }
+
+  hasPermission(permission: string): Observable<boolean> {
+    return this.userPermissions$.pipe(
+      map(permissions => permissions.includes(permission))
+    );
   }
 }

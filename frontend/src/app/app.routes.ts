@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 import { Dashboard } from './layouts/dashboard/dashboard';
 
 import { Login } from './features/public/login/login';
-import { Register } from './features/public/register/register';
 
 import { Home } from './features/private/home/home';
 import { MyFirtsFeature } from './features/private/my-firts-feature/my-firts-feature';
@@ -15,7 +14,8 @@ import { DailyWorkLogId } from './features/private/daily-work-log/daily-work-log
 
 import { MechanicalEquipment } from './features/private/mechanical-equipment/mechanical-equipment';
 
-import { FuelControl } from './features/private/fuel-control/fuel-control';
+import { Users } from './features/private/users/users';
+import { Roles } from './features/private/roles/roles';
 import { EvidenceManagement } from './features/private/evidence-management/evidence-management';
 import { DigitalSignatureWorkflow } from './features/private/digital-signature-workflow/digital-signature-workflow';
 import { ReportsAndDashboards } from './features/private/reports-and-dashboards/reports-and-dashboards';
@@ -46,11 +46,6 @@ export const routes: Routes = [
     {
         path: 'login',
         component: Login,
-        canActivate: [publicGuard]
-    },
-    {
-        path: 'register',
-        component: Register,
         canActivate: [publicGuard]
     },
     // Rutas protegidas que requieren autenticación (dashboard y sus hijos)
@@ -85,10 +80,13 @@ export const routes: Routes = [
                 path: 'mechanical_equipment',
                 component: MechanicalEquipment
             },
-
             {
-                path: 'fuel-control',
-                component: FuelControl
+                path: 'users',
+                component: Users
+            },
+            {
+                path: 'roles',
+                component: Roles
             },
             {
                 path: 'evidence-management',   // <---------
