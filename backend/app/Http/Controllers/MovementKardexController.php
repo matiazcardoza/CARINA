@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreMovementPecosaRequest;
 use App\Http\Requests\StoreMovementRequest;
+use App\Models\FuelOrder;
+use App\Models\ItemPecosa;
+// use App\Http\Requests\StoreMovementPecosaRequest;
 use App\Models\KardexReport;
 use App\Models\MovementKardex;
 use App\Models\Person;
 use App\Models\Product;
+use App\Models\Report;
 use App\Models\SignatureEvent;
 use App\Models\SignatureFlow;
 use App\Models\SignatureStep;
@@ -28,6 +33,7 @@ use Illuminate\Support\Str;
 // use Codedge\Fpdf\Fpdf\Fpdf;
 use setasign\Fpdi\Fpdi; 
 use App\Utils\KardexReportPdf;
+
 use App\Utils\UsefulFunctionsForPdfs;
 // use App\Models\User;
 // use Illuminate\Support\Facades\Auth;
@@ -211,7 +217,7 @@ class MovementKardexController extends Controller
         });
     }
     
-    public function store(StoreMovementRequest $request)
+    public function store_version_para_producto(StoreMovementRequest $request)
     {
         // Log::info(request);
         $data = $request->validated();
@@ -327,21 +333,193 @@ class MovementKardexController extends Controller
         });
     }
 
-
-    public function indexBySiluciaIds(Request $request, $id_order_silucia, $id_product_silucia)
+    public function store(StoreMovementPecosaRequest $request)
     {
 
+        
+        $data = $request->validated();
+        return DB::transaction(function () use ($request, $data) {
+
+            $sil = $request->input('silucia_pecosa', []);
+
+            // Normaliza tipos clave
+            $data['id_container_silucia'] = (int) $data['id_container_silucia'];
+            $amount = (float) $data['amount'];
+            $isEntrada = $data['movement_type'] === 'entrada';
+
+            // 1) Buscar producto por par SILUCIA con LOCK para consistencia
+
+            $item_pecosa = ItemPecosa::where('id_container_silucia', $data['id_container_silucia'])
+                ->where('id_item_pecosa_silucia', $data['id_item_pecosa_silucia'])
+                ->lockForUpdate()
+                ->first();
+
+            $wasCreated = false;
+
+            if (!$item_pecosa) {
+                // Si no existe, lo creamos (ya "bloqueado" por la transacción)
+                $item_pecosa = ItemPecosa::create([
+                    'id_container_silucia'   => $data['id_container_silucia'],
+                    'id_item_pecosa_silucia' => $data['id_item_pecosa_silucia'],
+
+                    'anio'              => $sil['anio']          ?? null,
+                    'numero'            => $sil['numero']        ?? null,
+                    'fecha'             => $sil['fecha']         ?? null,
+                    'prod_proy'         => $sil['prod_proy']     ?? null,
+                    'cod_meta'          => $sil['cod_meta']       ?? null,
+                    'desmeta'           => $sil['desmeta']        ?? null,
+                    'desuoper'          => $sil['desuoper']       ?? null,
+                    'destipodestino'    => $sil['destipodestino'] ?? null,
+                    'item'              => $sil['item']           ?? null,
+                    'desmedida'         => $sil['desmedida']      ?? null,
+                    'idsalidadet'       => $sil['idsalidadet']    ?? null,
+                    'cantidad'          => $sil['cantidad']       ?? null,
+                    'precio'            => $sil['precio']         ?? null,
+                    'tipo'              => $sil['tipo']           ?? null,
+                    'saldo'             => $sil['saldo']          ?? null,
+                    'total'             => $sil['total']          ?? null,
+                    'numero_origen'     => $sil['numero_origen']  ?? null,
+                ]);
+                $wasCreated = false;
+                $initial = (float) ($sil['cantidad'] ?? 0);
+                $item_pecosa->forceFill([
+                    'quantity_received' => $initial,
+                    'quantity_issued'   => 0,
+                    'quantity_on_hand'  => $initial,
+                ])->save();
+            } else {
+                // Actualiza esenciales si vienen
+                $item_pecosa->fill(array_filter([
+                    'id_container_silucia'   => $data['id_container_silucia'],
+                    'id_item_pecosa_silucia' => $data['id_item_pecosa_silucia'],
+                    'anio'              => $sil['anio']          ?? null,
+                    'numero'            => $sil['numero']        ?? null,
+                    'fecha'             => $sil['fecha']         ?? null,
+                    'prod_proy'         => $sil['prod_proy']     ?? null,
+                    'cod_meta'          => $sil['cod_meta']       ?? null,
+                    'desmeta'           => $sil['desmeta']        ?? null,
+                    'desuoper'          => $sil['desuoper']       ?? null,
+                    'destipodestino'    => $sil['destipodestino'] ?? null,
+                    'item'              => $sil['item']           ?? null,
+                    'desmedida'         => $sil['desmedida']      ?? null,
+                    'idsalidadet'       => $sil['idsalidadet']    ?? null,
+                    'cantidad'          => $sil['cantidad']       ?? null,
+                    'precio'            => $sil['precio']         ?? null,
+                    'tipo'              => $sil['tipo']           ?? null,
+                    'saldo'             => $sil['saldo']          ?? null,
+                    'total'             => $sil['total']          ?? null,
+                    'numero_origen'     => $sil['numero_origen']  ?? null,
+                ], fn($v) => !is_null($v)))->save();
+                // Si nunca se inicializaron contadores y ahora sí tenemos 'cantidad', haz bootstrap una vez
+                if (($item_pecosa->quantity_received ?? 0) == 0 
+                    && ($item_pecosa->quantity_issued ?? 0) == 0 
+                    && ($item_pecosa->cantidad ?? null) !== null) {
+                    $initial = (float) $item_pecosa->cantidad;
+                    $item_pecosa->forceFill([
+                        'quantity_received' => $initial,
+                        'quantity_issued'   => 0,
+                        'quantity_on_hand'  => $initial,
+                    ])->save();
+                }
+            }
+            
+            
+
+
+            // Log::info($item_pecosa);
+            // 2) Deltas según tipo
+            $isEntrada = $data['movement_type'] === 'entrada';
+            $amount    = (float) $data['amount'];
+
+            $deltaIn  = $isEntrada ? $amount : 0;
+            $deltaOut = $isEntrada ? 0       : $amount;
+
+            // 3) Validación de stock (no permitir negativos)
+            // $newIn   = (float) $item_pecosa->in_qty  + $deltaIn;
+            // $newOut  = (float) $item_pecosa->out_qty + $deltaOut;
+            // $newStock= $newIn - $newOut;
+
+            $currentIn   = (float) ($item_pecosa->quantity_received ?? 0);
+            $currentOut  = (float) ($item_pecosa->quantity_issued   ?? 0);
+
+            $newIn    = $currentIn  + $deltaIn;
+            $newOut   = $currentOut + $deltaOut;
+            $newStock = $newIn - $newOut;
+
+
+
+            if ($newStock < 0) {
+                abort(422, 'El movimiento genera stock negativo.');
+            }
+
+            // 4) Crear movimiento
+            $movement = MovementKardex::create([
+                // 'product_id'    => $item_pecosa->id,
+                'item_pecosa_id'   => $item_pecosa->id,
+                'movement_date' => now(),
+                'movement_type' => $data['movement_type'],   // 'entrada' | 'salida'
+                'amount'        => $amount,
+                'observations'  => $data['observations'] ?? null,
+                // Si tu tabla tiene 'final_balance', guarda el stock luego de aplicar el movimiento:
+                // 'final_balance'  => $newStock,
+            ]);
+
+            // 5) Actualizar contadores en products
+            $item_pecosa->forceFill([
+                'quantity_received' => $newIn,
+                'quantity_issued'   => $newOut,
+                'quantity_on_hand'  => $newStock,
+                'last_movement_at'  => now(),
+            ])->save();
+
+
+            // 6) Adjuntar personas (tu bloque actual tal cual)
+            $attached = [];
+            $missing  = [];
+            if (!empty($data['people_dnis']) && is_array($data['people_dnis'])) {
+                $peopleDnis = collect($data['people_dnis'])
+                    ->filter()
+                    ->map(fn ($dni) => str_pad(preg_replace('/\D/','', $dni), 8, '0', STR_PAD_LEFT))
+                    ->unique()
+                    ->values();
+
+                if ($peopleDnis->isNotEmpty()) {
+                    $found = \App\Models\Person::whereIn('dni', $peopleDnis)->pluck('dni');
+                    $movement->people()->syncWithoutDetaching(
+                        $found->mapWithKeys(fn ($dni) => [$dni => ['attached_at' => now()]])->all()
+                    );
+                    $attached = $found->values()->all();
+                    $missing  = $peopleDnis->diff($found)->values()->all();
+                }
+            }
+
+            return response()->json([
+                'ok'       => true,
+                'item_pecosa'  => $item_pecosa->only(['id','id_container_silucia','id_item_pecosa_silucia','quantity_received','quantity_issued','quantity_on_hand']),
+                'movement' => $movement,
+                'people'   => [
+                    'attached_dnis' => $attached,
+                    'missing_dnis'  => $missing,
+                ],
+            ], 201);
+        });
+    }
+
+
+    // public function indexBySiluciaIds(Request $request, $id_order_silucia, $id_product_silucia)
+    public function indexBySiluciaIds(Request $request, $containerId, $itemId)
+    {
         // 1) Buscar el “gancho” Product por la pareja de SILUCIA
-        $product = Product::where('id_order_silucia', $id_order_silucia)
-            ->where('id_product_silucia', $id_product_silucia)
-            ->firstOrFail(); // 404 si no existe
+        // $product = Product::where('id_order_silucia', $id_order_silucia)
+        // $product = ItemPecosa::where('id_order_silucia', $id_order_silucia)->where('id_product_silucia', $id_product_silucia)->firstOrFail(); // 404 si no existe
+        $itemPecosa = ItemPecosa::where('id_container_silucia', $containerId)->where('id_item_pecosa_silucia', $itemId)->firstOrFail(); // 404 si no existe
 
         // 2) Traer movimientos (puedes paginar si quieres)
         //    Si quieres TODO: ->get();
         //    Si prefieres paginar: ?per_page=20
         $perPage = (int) $request->query('per_page', 50);
 
-        $query = $product->movements()
+        $query = $itemPecosa->movements()
             ->with([
                     'people' => function ($q) {
                         // IMPORTANTE: incluye la PK 'dni' del related para hidratar bien el modelo
@@ -364,34 +542,33 @@ class MovementKardexController extends Controller
         }
 
         return response()->json([
-            'product'   => [
-                'id'                  => $product->id,
-                'id_order_silucia'    => $product->id_order_silucia,
-                'id_product_silucia'  => $product->id_product_silucia,
-                'name'                => $product->name,
+            'item_pecosa'   => [
+                'id'                  => $itemPecosa->id,
+                'id_order_silucia'    => $itemPecosa->id_order_silucia,
+                'id_product_silucia'  => $itemPecosa->id_product_silucia,
+                'name'                => $itemPecosa->name,
             ],
             'movements' => $movements,
         ]);
     }
 
-    public function pdf(Request $request, $id_order_silucia, $id_product_silucia){
-        // no se usaran estos filtros, deberan eliminarse
-        $from = $request->query('from');
-        $to   = $request->query('to');
-        $type = $request->query('type'); // 'entrada' | 'salida'
+    public function pdf(Request $request, $id_container_silucia, $id_item_pecosa_silucia){
 
-        $product = Product::where('id_order_silucia', $id_order_silucia)->where('id_product_silucia', $id_product_silucia)->firstOrFail();
+
+        // no se usaran estos filtros, deberan eliminarse
+        // orden -> producto
+        // orden ->itemPecosa
+        // $pecosa = Product::where('id_order_silucia', $id_order_silucia)->where('id_product_silucia', $id_product_silucia)->firstOrFail();
+        $pecosa = ItemPecosa::where('id_container_silucia', $id_container_silucia)->where('id_item_pecosa_silucia', $id_item_pecosa_silucia)->firstOrFail();
+        Log::info($pecosa);
 
         // Cargar relaciones con filtros/orden
-        $product->load([
-            'movements' => function ($q) use ($from, $to, $type) {
-                if ($from) $q->whereDate('movement_date', '>=', $from);
-                if ($to)   $q->whereDate('movement_date', '<=', $to);
-                if ($type) $q->where('movement_type', $type);
-
+        $pecosa->load([
+            // 'movements' => function ($q) use ($from, $to, $type) {
+            'movements' => function ($q) {
                 $q->orderBy('movement_date', 'asc')
                 ->select([
-                    'id','product_id','movement_date','class','number',
+                    'id','item_pecosa_id','movement_date',
                     'movement_type','amount','observations'
                 ]);
             },
@@ -406,7 +583,7 @@ class MovementKardexController extends Controller
             },
         ]);
 
-        $movements = $product->movements;
+        $movements = $pecosa->movements;
         $totalEntradas = $movements->where('movement_type','entrada')->sum('amount');
         $totalSalidas  = $movements->where('movement_type','salida')->sum('amount');
         $stockFinal    = $totalEntradas - $totalSalidas;
@@ -438,9 +615,9 @@ class MovementKardexController extends Controller
 
 
         // 2) Texto de introducción (USA lo que tengas en product, con fallback)
-        $obra       = (string)($product->desmeta ?? '—');
-        $material   = (string)($product->item ?? '—');
-        $comprobante= (string)("OC-{$product->id_order_silucia}" ?? "OC-{$id_order_silucia}");
+        $obra       = (string)($pecosa->desmeta ?? '—');
+        $material   = (string)($pecosa->item ?? '—');
+        $comprobante= (string)("OC-{$pecosa->id_order_silucia}" ?? "OC-{$id_container_silucia}");
 
         // ============================
         // Guardado idéntico a tu flujo
@@ -450,7 +627,7 @@ class MovementKardexController extends Controller
 
         // 3) QR único por PDF (URL firmada simple)
         // kardex_02874_249069_20250831_021917_10.pdf  ---> id de la orden / id del item / año, mes día /  hora, minuto, segundo / milisegundos
-        $base = 'kardex_'. $id_order_silucia . '_'. $id_product_silucia.'_'. now()->format('Ymd_His_'). substr(now()->format('u'), 0, 3);
+        $base = 'kardex_'. $id_container_silucia . '_'. $id_item_pecosa_silucia.'_'. now()->format('Ymd_His_'). substr(now()->format('u'), 0, 3);
         $filename = $base . '.pdf';
         $relativePath = "{$dir}/{$filename}";
         // se debe crear el path para que se pueda descargar nuevamente el pdf por un codigo qr
@@ -511,15 +688,25 @@ class MovementKardexController extends Controller
         }
 
         // Registrar reporte y flujo de firma (igual que antes)
-        $report = KardexReport::create([
-            'product_id'       => $product->id,
-            'pdf_path'         => $filename, // guardas solo el nombre
+        // $report = KardexReport::create([
+        //     'product_id'       => $product->id,
+        //     'pdf_path'         => $filename, // guardas solo el nombre
+        //     'pdf_page_number'  => $pageCount,
+        //     'status'           => 'in_progress',
+        //     'created_by'       => Auth::id(),
+        // ]);
+        $report = Report::create([
+            'reportable_id'    => $pecosa->id,
+            'reportable_type'  => \App\Models\ItemPecosa::class,
+            // 'reportable_type'  => \App\Models\Product::class,
+            'pdf_path'         => $relativePath,   // << guarda la ruta RELATIVA completa
             'pdf_page_number'  => $pageCount,
             'status'           => 'in_progress',
+            'category'         => 'kardex',
             'created_by'       => Auth::id(),
         ]);
         $flow = SignatureFlow::create([
-            'kardex_report_id' => $report->id,
+            'report_id' => $report->id,
             'current_step'     => 1,
             'status'           => 'in_progress'
         ]);
@@ -555,186 +742,65 @@ class MovementKardexController extends Controller
         return Storage::download($relativePath, $filename);
     }
 
-    public function pdfv0(Request $request, $id_order_silucia, $id_product_silucia){
-        $from = $request->query('from');
-        $to   = $request->query('to');
-        $type = $request->query('type'); // 'entrada' | 'salida'
+    // funcion incompleta ara crear un pdf de vales de transporte
+    public function generatePdfAndFlow(FuelOrder $order)
+    {
+        // 1) Genera el PDF (usa tu misma clase FPDF/FPDI, QR, etc.)
+        $filename     = "fuel_{$order->id}_" . now()->format('Ymd_His') . ".pdf";
+        $relativePath = "reports/{$filename}";
+        $bytes = 3; 
+        Storage::disk('local')->put($relativePath, $bytes);
+        // $pageCount = /* contar páginas */;
+        $pageCount = 12;
 
-        $product = Product::where('id_order_silucia', $id_order_silucia)
-            ->where('id_product_silucia', $id_product_silucia)
-            ->firstOrFail();
-
-        // Cargar relaciones con filtros/orden
-        $product->load([
-            'movements' => function ($q) use ($from, $to, $type) {
-                if ($from) $q->whereDate('movement_date', '>=', $from);
-                if ($to)   $q->whereDate('movement_date', '<=', $to);
-                if ($type) $q->where('movement_type', $type);
-
-                $q->orderBy('movement_date', 'asc')
-                ->select([
-                    'id','product_id','movement_date','class','number',
-                    'movement_type','amount','observations'
-                ]);
-            },
-            'movements.people' => function ($q) {
-                $q->select([
-                    'people.dni',
-                    'people.full_name',
-                    'people.names',
-                    'people.first_lastname',
-                    'people.second_lastname',
-                ])->orderBy('movement_person.attached_at', 'asc');
-            },
+        // 2) Crea Report genérico
+        $report = Report::create([
+            'reportable_id'   => $order->id,
+            'reportable_type' => FuelOrder::class,
+            'pdf_path'        => $relativePath,
+            'pdf_page_number' => $pageCount,
+            'status'          => 'in_progress',
+            'category'        => 'fuel_order',
+            'created_by'      => Auth::id(),
         ]);
 
-        $movements = $product->movements;
-        $totalEntradas = $movements->where('movement_type','entrada')->sum('amount');
-        $totalSalidas  = $movements->where('movement_type','salida')->sum('amount');
-        $stockFinal    = $totalEntradas - $totalSalidas;
-
-        // ============================
-        // REEMPLAZO: DOMPDF -> FPDF
-        // ============================
-
-        // 1) Mapear a las filas requeridas por KardexReportPdf
-        $rows = [];
-        $i = 1;
-        foreach ($movements as $m) {
-            $fecha   = \Illuminate\Support\Carbon::parse($m->movement_date)->format('Y-m-d');
-            $clase   = (string)($m->class ?? '');
-            $numero  = (string)($m->number ?? '');
-            $tipo    = (string)($m->movement_type ?? '');
-            $monto   = (float)$m->amount;
-            $persona = optional($m->people->first())->full_name ?: 'Julia Mamani Yampasi';
-            $obs     = (string)($m->observations ?? '');
-            $rows[]  = [$i++, $fecha, $clase, $numero, $tipo, $monto, $persona, $obs];
-        }
-
-        // 2) Texto de introducción (USA lo que tengas en product, con fallback)
-        $obra       = (string)($product->desmeta ?? '—');
-        $material   = (string)($product->item ?? $product->description ?? $product->name ?? '—');
-        $comprobante= (string)($product->numero ?? "OC-{$id_order_silucia}");
-        $intro = "OBRA: {$obra} · MATERIAL: {$material} · COMPROBANTE: {$comprobante}";
-
-        // 3) QR único por PDF (URL firmada simple)
-        $docId = "{$id_order_silucia}-{$id_product_silucia}-".now()->format('YmdHis');
-        $base  = url('/kardex/validate'); // crea esta ruta para validar si aún no existe
-        $token = hash_hmac('sha256', "{$docId}|{$type}|{$from}|{$to}", config('app.key'));
-        $qrUrl = "{$base}?doc={$docId}&t={$token}";
-
-        // 4) Generar PDF con FPDF
-        //    Cambia 'P' a 'L' si quieres horizontal.
-        $pdf = new KardexReportPdf('P','mm','A4');
-        $pdf->applyMeta([
-            'title'    => 'Control Visible de Almacén',
-            'author'   => 'Gobierno Regional - Carina',
-            'margins'  => [10, 20, 10],
-            'autobreak'=> [true, KardexReportPdf::px(40)],
-            'subtitle' => 'Demostración con FPDF',
-
-            // Header con contenido
-            'header_bar_height' => 42.0,
-            'header_logo_path'  => public_path('img/gr-puno-escudo.png'),
-            // si no tienes lib de QR, comenta el 'qr_text' de abajo y usa aquí un PNG: 'header_qr_path' => public_path('images/qr_validacion.png'),
-            'header_title'      => 'Gobierno Regional de Puno',
-            'header_line1'      => 'Oficina de Abastecimiento y Servicios Auxiliares',
-            'header_line2'      => 'RUC: 20406325815',
-            'header_legal'      => "Esta representación impresa puede ser contrastada con la versión digital disponible en la sede virtual del Gobierno Regional Puno, conforme al Art. 25 del D.S. 070-2013-PCM.\nSu autenticidad e integridad se verifican mediante el siguiente código QR.\n\n",
-            'header_cols'       => [0.13, 0.42, 0.06, 0.29, 0.10],
-
-            // Colores (opcional)
-            // 'header_bar_color'  => [0, 92, 184],
-            // 'header_text_color' => [255, 255, 255],
-        ]);
-
-        $bytes = $pdf->render([
-            'intro'              => $intro,
-            'columns'            => ['N°','Fecha','Clase','Número','Movimiento','Monto','Recibido / Encargado','Observaciones'],
-            'movementsRows'      => $rows,
-            'signatureBoxHeight' => 92.0, // ajusta a tu gusto
-            'signatureLabels'    => ['ALMACENERO','ADMINISTRADOR','RESIDENTE DE OBRA','SUPERVISOR'],
-
-            // QR dinámico (si instalaste chillerlan/php-qrcode)
-            'qr_text'            => $qrUrl,
-            // o si ya tienes un PNG listo:
-            // 'qr_path'         => storage_path("qrs/{$docId}.png"),
-        ]);
-
-        // ============================
-        // Guardado idéntico a tu flujo
-        // ============================
-        $dir = 'silucia_product_reports';
-        Storage::disk('local')->makeDirectory($dir);
-
-        $base   = "kardex_{$id_order_silucia}_{$id_product_silucia}";
-        $suffix = trim(implode('_', array_filter([
-            $type ? "t-{$type}" : null,
-            $from ? "from-{$from}" : null,
-            $to   ? "to-{$to}"   : null,
-            now()->format('Ymd_His'),
-        ])), '_');
-
-        $filename     = Str::slug($base . ($suffix ? "_{$suffix}" : ''), '_') . '.pdf';
-        $relativePath = "{$dir}/{$filename}";
-
-        $ok = Storage::disk('local')->put($relativePath, $bytes);
-        if (!$ok || !Storage::disk('local')->exists($relativePath)) {
-            abort(500, 'No se pudo guardar el PDF.');
-        }
-
-        // Contar páginas con FPDI
-        $pageCount = 1;
-        try {
-            $absolute = Storage::disk('local')->path($relativePath);
-            $fpdi = new Fpdi();
-            $pageCount = (int)$fpdi->setSourceFile($absolute);
-        } catch (\Throwable $e) {
-            Log::info("No se pudo contar páginas de {$relativePath}: ".$e->getMessage());
-        }
-
-        // Registrar reporte y flujo de firma (igual que antes)
-        $report = KardexReport::create([
-            'product_id'       => $product->id,
-            'pdf_path'         => $filename, // guardas solo el nombre
-            'pdf_page_number'  => $pageCount,
-            'status'           => 'in_progress',
-            'created_by'       => Auth::id(),
-        ]);
+        // 3) Flujo con 3 pasos
         $flow = SignatureFlow::create([
-            'kardex_report_id' => $report->id,
-            'current_step'     => 1,
-            'status'           => 'in_progress'
+            'report_id'    => $report->id,
+            'current_step' => 1,
+            'status'       => 'in_progress',
         ]);
 
-        // Ajusta coordenadas si cambiaste orientación P/L
-        $roles = config('signing.roles_order', [
-            ['role'=>'almacen_almacenero','page'=>1,'pos_x'=>35,        'pos_y'=>725,'width'=>180,'height'=>60],
-            ['role'=>'almacen_administrador','page'=>1,'pos_x'=>175,    'pos_y'=>725,'width'=>180,'height'=>60],
-            ['role'=>'almacen_residente','page'=>1,'pos_x'=>310,        'pos_y'=>725,'width'=>180,'height'=>60],
-            ['role'=>'almacen_supervisor','page'=>1,'pos_x'=>445,       'pos_y'=>725,'width'=>180,'height'=>60],
-        ]);
-        foreach (array_values($roles) as $i => $role) {
+        // posiciones de firma (ejemplo en página 1)
+        $roles = [
+            ['role'=>'fuel_requester','user_id'=>$order->driver_id,    'page'=>1,'pos_x'=>120,'pos_y'=>700,'width'=>180,'height'=>60],
+            ['role'=>'fuel_supervisor','user_id'=>$order->supervisor_id,'page'=>1,'pos_x'=>320,'pos_y'=>700,'width'=>180,'height'=>60],
+            ['role'=>'fuel_manager',   'user_id'=>$order->manager_id,   'page'=>1,'pos_x'=>520,'pos_y'=>700,'width'=>180,'height'=>60],
+        ];
+
+        foreach (array_values($roles) as $i => $r) {
             SignatureStep::create([
                 'signature_flow_id' => $flow->id,
                 'order'             => $i+1,
-                'role'              => $role['role'],
-                'page'              => $role['page'],
-                'pos_x'             => $role['pos_x'],
-                'pos_y'             => $role['pos_y'],
-                'width'             => $role['width'],
-                'height'            => $role['height'],
+                'role'              => $r['role'],
+                'user_id'           => $r['user_id'], // fija el firmante si lo sabes
+                'page'              => $r['page'],
+                'pos_x'             => $r['pos_x'],
+                'pos_y'             => $r['pos_y'],
+                'width'             => $r['width'],
+                'height'            => $r['height'],
                 'callback_token'    => Str::random(48),
             ]);
         }
 
         SignatureEvent::create([
-            'signature_flow_id' => $flow->id,
-            'event'   => 'flow_created',
-            'user_id' => Auth::id(),
-            'meta'    => ['report_id'=>$report->id],
+            'signature_flow_id'=>$flow->id,
+            'event'=>'flow_created',
+            'user_id'=>Auth::id(),
+            'meta'=>['report_id'=>$report->id],
         ]);
 
+        // 4) retorna descarga (o JSON)
         return Storage::download($relativePath, $filename);
     }
 

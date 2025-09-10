@@ -3,7 +3,8 @@ import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 import { HttpParams } from '@angular/common/http';
-import { filter } from '../interfaces/kardex-management.interface';
+import { filter, LaravelPagination } from '../interfaces/kardex-management.interface';
+import { Pecosa } from '../interfaces/kardex-management.interface';
 @Injectable({
   providedIn: 'root'
 })
@@ -32,6 +33,7 @@ export class KardexManagementService {
 
     createKardexMovement(body:any): Observable<any> {
       return this.http.post<any>(`${this.apiUrl}/api/movements-kardex`,body,this.options)
+      // return this.http.post<any>(`${this.apiUrl}/api/movements-kardex-for-pecosas`,body,this.options)
     }
 
     getKardexMovementBySiluciaBackend(
@@ -47,7 +49,10 @@ export class KardexManagementService {
       });
 
       return this.http.get<any>(
-        `${this.apiUrl}/api/silucia-orders/${encodeURIComponent(String(numero))}/products/${idcompradet}/movements-kardex`,
+        // `${this.apiUrl}/api/silucia-orders/${encodeURIComponent(String(numero))}/products/${idcompradet}/movements-kardex`,
+        // Route::get( 'silucia-containers/{containerId}/items-pecosas/{itemId}/movements',  [MovementKardexController::class, 'indexBySiluciaIds'])->middleware(['role:almacen_almacenero']);
+
+        `${this.apiUrl}/api/silucia-containers/${encodeURIComponent(String(numero))}/items-pecosas/${idcompradet}/movements`,
         {
           ...this.options, 
           params 
@@ -55,10 +60,12 @@ export class KardexManagementService {
       );
     }
 
-    downloadPdf(id_order_silucia:number,id_product_silucia:number ): Observable<HttpResponse<Blob>> {
+    downloadPdf(id_pecosa_silucia:number,id_item_pecosa_silucia:number ): Observable<HttpResponse<Blob>> {
       // return this.http.get(`${this.apiUrl}/api/pdf`, {
       // return this.http.get(`${this.apiUrl}/api/products/${id}/movements-kardex/pdf`, {
-      return this.http.get(`${this.apiUrl}/api/silucia-orders/${id_order_silucia}/products/${id_product_silucia}/movements-kardex/pdf`, {
+      // return this.http.get(`${this.apiUrl}/api/silucia-orders/${id_order_silucia}/products/${id_product_silucia}/movements-kardex/pdf`, {
+      // return this.http.get(`${this.apiUrl}/api/silucia-containers/${id_pecosa_silucia}/items-pecosas/${id_item_pecosa_silucia}/movements-kardex/pdf`, {
+      return this.http.get(`${this.apiUrl}/api/silucia-containers/${id_pecosa_silucia}/items-pecosas/${id_item_pecosa_silucia}/movements/pdf`, {
         responseType: 'blob',
         observe: 'response',
         withCredentials: true,                 // si usas cookies/Sanctum
@@ -76,7 +83,7 @@ export class KardexManagementService {
       page?: number; per_page?: number; 
       sort_field?: string; sort_order?: 'asc'|'desc';
     }): Observable<any> {
-      const endpoint = `${this.apiUrl}/api/products`; // sin slash final
+      const endpoint = `${this.apiUrl}/api/items-pecosas`; // sin slash final
 
       let params = new HttpParams();
       if (filters.numero)   params = params.set('numero', filters.numero);
@@ -101,6 +108,20 @@ export class KardexManagementService {
       return this.http.get<any>(`${this.apiUrl}/api/products`,this.options);
     }
 
+    getSiluciaPecosas(filters: filter): Observable<LaravelPagination<Pecosa>>{
+      const endpoint = `${this.apiUrl}/api/silucia-pecosas`;
+      let params = new HttpParams();
+      if (filters.numero)   params = params.set('numero', filters.numero);
+      if (filters.anio)     params = params.set('anio', filters.anio.toString());
+      if (filters.desmeta)  params = params.set('desmeta', filters.desmeta);
+      if (filters.siaf)     params = params.set('siaf', filters.siaf);
+      if (filters.ruc)      params = params.set('ruc', filters.ruc);
+      if (filters.rsocial)  params = params.set('rsocial', filters.rsocial);
+      if (filters.email)    params = params.set('email', filters.email);
+      if (filters.page)     params = params.set('page', String(filters.page));
+      if (filters.per_page) params = params.set('per_page', String(filters.per_page));
 
+      return this.http.get<LaravelPagination<Pecosa>>(endpoint, {...this.options, params});
+    }
 
 }

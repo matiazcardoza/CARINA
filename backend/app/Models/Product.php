@@ -42,15 +42,17 @@ class Product extends Model
         return $this->hasMany(MovementKardex::class, 'product_id');
     }
 
-    public function kardexReports(): HasMany
-    {
-        return $this->hasMany(KardexReport::class, 'product_id');
-    }
+    // public function kardexReports(): HasMany
+    // {
+    //     return $this->hasMany(kardexReports::class, 'product_id');
+    // }
     
-    public function reports() {
-        return $this->hasMany(\App\Models\KardexReport::class, 'product_id');
+    // public function reports() {
+    //     return $this->hasMany(\App\Models\KardexReport::class, 'product_id');
+    // }
+    public function reports() { 
+        return $this->morphMany(Report::class, 'reportable'); 
     }
-
     public function recalcCounters(): void
     {
         $in  = $this->movements()->where('movement_type','entrada')->sum('amount');

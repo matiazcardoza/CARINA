@@ -4,7 +4,7 @@
     <p class="text-lg text-gray-500">Lista y estado de aprobación de las órdenes de atención de combustible.</p>
   </div>
   
-  <div class="flex justify-end mb-3">
+  <div class="flex justify-end mb-3" style="display: flex; justify-content: end; margin-bottom: 1rem;">
     <p-button
       label="Nueva orden"
       icon="pi pi-plus"
@@ -35,61 +35,42 @@
     [loading]="loadingOrders()"
   >
     <!-- CAPTION (filtros) -->
-    <ng-template pTemplate="caption">
-      <div
-        style="
-          display:grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-          gap:12px;
-          align-items:end;
-          grid-auto-flow:dense;
-          width:100%;
-        "
-      >
-        <!-- N° Orden -->
-        <p-iconfield style="display:block; width:100%;">
-          <p-inputicon><i class="pi pi-search"></i></p-inputicon>
-          <input
-            pInputText
-            type="text"
-            name="numero"                        
-            [(ngModel)]="uiFilters.numero"
-            placeholder="N° Orden"
-            style="width:100%;"
-          />
-        </p-iconfield>
+  <ng-template pTemplate="caption">
+    <div
+      style="
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        width: 100%;
+      "
+    >
+      <p-iconfield style="width: 350px;">
+        <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+        <input
+          pInputText
+          type="text"
+          [value]="uiFilters().placa"
+          (input)="onFilterChange('placa', $event)"
+          placeholder="Ingrese término para búsqueda"
+          style="width: 100%;"
+        />
+      </p-iconfield>
 
-        <!-- Placa -->
-        <div style="width:100%;">
-          <input
-            pInputText
-            type="text"
-            name="placa"                         
-            [(ngModel)]="uiFilters.placa"
-            placeholder="Placa"
-            style="width:100%;"
-          />
-        </div>
-
-        <!-- Ver todo -->
-        <div class="flex items-center gap-2" style="width:100%;">
-          <p-checkbox
-            inputId="all"
-            name="all"                             
-            [(ngModel)]="uiFilters.all"
-            binary="true"
-            label="Ver todo">
-          </p-checkbox>
-        </div>
-
-
-        <!-- Botones -->
-        <div style="grid-column:1 / -1; display:flex; gap:8px; justify-content:flex-end; margin-top:4px;">
-          <p-button label="Buscar" icon="pi pi-search" (onClick)="onSearchClick()"></p-button>
-          <p-button label="Limpiar" severity="secondary" outlined (onClick)="onClearClick()"></p-button>
-        </div>
-      </div>
-    </ng-template>
+      <!-- <div style="display: flex; gap: 0.5rem; margin-left: auto;">
+        <p-button
+          label="Buscar"
+          icon="pi pi-search"
+          (onClick)="onSearchClick()"
+        ></p-button>
+        <p-button
+          label="Limpiar"
+          severity="secondary"
+          outlined
+          (onClick)="onClearClick()"
+        ></p-button>
+      </div> -->
+    </div>
+  </ng-template>
 
     <!-- HEADER -->
     <ng-template pTemplate="header">
@@ -136,36 +117,43 @@
           </p-tag>
         </td>
 
-        <!-- Acciones -->
-        <td pFrozenColumn alignFrozen="right">
-          <div class="flex container_action_buttons gap-2">
-            <p-button
-              icon="pi pi-eye"
-              severity="info"
-              pTooltip="Ver detalle"
-              (onClick)="openOrderDetails(order)">
-            </p-button>
+      <!-- Acciones -->
+      <td pFrozenColumn alignFrozen="right">
+        <div class="flex container_action_buttons gap-2" style="display: flex; gap: 1rem;">
 
-            <!-- Botón aprobar (visible según rol y estado) -->
-            <!-- *ngIf="canApprove(order)" -->
-            <p-button
-              icon="pi pi-check"
-              severity="success"
-              pTooltip="Aprobar">
-            </p-button>
-            <!-- (onClick)="onDecision(order, 'approved')"> -->
+          <p-button
+            icon="pi pi-file-pdf"
+            [disabled]="!canGenerate(order)"
+            pTooltip="Crear PDF y flujo de firma"
+            tooltipPosition="top"
+            (onClick)="generateReport(order)"
+            styleClass="p-button-rounded p-button-text"
+            [style]="{ 'color': '#2196F3' }">
+          </p-button>
 
-            <!-- Botón rechazar (visible según rol y estado) -->
-            <!-- *ngIf="canApprove(order)" -->
-            <p-button
-              icon="pi pi-times"
-              severity="danger"
-              pTooltip="Rechazar"
-              >
-            </p-button>
-            <!-- (onClick)="onDecision(order, 'rejected')" -->
-          </div>
-        </td>
+          <p-button
+            icon="pi pi-pencil"
+            [disabled]="!canOpenSign(order)"
+            pTooltip="Abrir estado del flujo y firmar"
+            tooltipPosition="top"
+            (onClick)="openSignModal(order)"
+            styleClass="p-button-rounded p-button-text"
+            [style]="{ 'color': '#FFC107' }">
+          </p-button>
+
+          <p-button
+            icon="pi pi-eye"
+            [disabled]="!canView(order)"
+            pTooltip="Ver el PDF generado"
+            tooltipPosition="top"
+            (onClick)="viewReport(order)"
+            styleClass="p-button-rounded p-button-text"
+            [style]="{ 'color': '#4CAF50' }">
+          </p-button>
+
+        </div>
+      </td>
+
       </tr>
     </ng-template>
 
@@ -194,3 +182,85 @@
       (cancel)="closeNewModal()">
     </app-new-fuel-voucher>
   </p-dialog>
+
+
+
+
+  <!-- MODAL DE FIRMA -->
+<p-dialog
+  [(visible)]="showSignModal"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '44rem', maxWidth: '95vw' }"
+  header="Firma del Vale de Combustible"
+  (onHide)="showSignModal=false">
+
+  @if (signing?.data; as info) {
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+      
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <p-tag 
+          [value]="info.status" 
+          [severity]="info.status==='in_progress' ? 'warning' : (info.status==='completed' ? 'success' : 'danger')">
+        </p-tag>
+        <span style="font-size: 0.875rem; color: #6b7280;">Páginas: {{ info.pdf_page_number }}</span>
+      </div>
+
+      <div style="padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px;">
+        <div style="font-size: 0.875rem; color: #4b5563;">Paso actual</div>
+        <div style="font-weight: 500;">
+          {{ currentStepRole }}
+        </div>
+      </div>
+
+      <div style="padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px;">
+        <div style="font-size: 0.875rem; color: #4b5563;">¿Puedo firmar?</div>
+        <div style="font-weight: 500;">
+          {{ info.can_sign ? 'Sí' : 'No' }}
+        </div>
+      </div>
+
+      <div style="margin-top: 0.5rem;">
+        <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem;">Flujo de firmas</div>
+        <div style="display: grid; gap: 0.5rem;">
+          @for (s of info.flow?.steps; track s.order) {
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px;">
+              <div>
+                <div style="font-weight: 500;">{{ s.role }}</div>
+                <div style="font-size: 0.75rem; color: #6b7280;">Orden {{ s.order }}</div>
+              </div>
+              <p-tag
+                [value]="s.status"
+                [severity]="s.status==='signed' ? 'success' : (s.status==='rejected' ? 'danger' : 'warning')">
+              </p-tag>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.5rem; padding-top: 1rem;">
+        <p-button
+          label="Firmar ahora"
+          icon="pi pi-check"
+          [disabled]="!info.can_sign"
+          (onClick)="signNow()">
+        </p-button>
+        <p-button
+          label="Cerrar"
+          severity="secondary"
+          (onClick)="showSignModal=false">
+        </p-button>
+      </div>
+    </div>
+  } @else {
+    <ng-container *ngTemplateOutlet="loadingSign"></ng-container>
+  }
+
+  <ng-template #loadingSign>
+    <div style="padding: 2rem 0; text-align: center; color: #6b7280;">
+      Cargando estado de firma…
+    </div>
+  </ng-template>
+</p-dialog>
+

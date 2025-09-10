@@ -19,6 +19,7 @@ use App\Models\Service;
 
 use App\Http\Controllers\PecosaController;
 use App\Http\Controllers\FuelOrderController;
+use App\Http\Controllers\SignaturesController;
 use App\Http\Controllers\RoleController;
 use App\Models\SignatureFlow;
 use App\Models\SignatureStep;
@@ -96,24 +97,41 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('silucia-orders', [PurchaseOrdersController::class, 'index'])->middleware(['role:almacen_almacenero']);
     // buscamos el producto, si no lo encontramos lo creamos y al mismo tiempo guardarmos el movimiento
     Route::post('/movements-kardex', [MovementKardexController::class, 'store'])->middleware(['role:almacen_almacenero']);
-    // mostramos todos los movimientos que pertenecen a un producto de la base de datos de silucia
-    Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex',  [MovementKardexController::class, 'indexBySiluciaIds'])->middleware(['role:almacen_almacenero']);
-    // generamos un reporte de  todos los movimientos que pertenecen a un producto de la base de datos de silucia
-    Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen_almacenero']);
-    // devuelve los productos guardados de nuestra propia base de datos
-    Route::get('/products', [ProductController::class, 'index']);
 
-    // ******************* refactorizacion de codigo: pasar de datos de ordenes a pecosas *******************
+    // mostramos todos los movimientos que pertenecen a un producto de la base de datos de silucia ----- (CAMBIAMOS PARA OBTENER LOS MOVIMIENTOS DE LAS PECOSAS)
+    Route::get( 'silucia-containers/{containerId}/items-pecosas/{itemId}/movements',  [MovementKardexController::class, 'indexBySiluciaIds'])->middleware(['role:almacen_almacenero']);
+
+    // generamos un reporte de  todos los movimientos que pertenecen a un producto de la base de datos de silucia ----- (CAMBIAMOS PARA OBTENER LOS MOVIMIENTOS DE LAS PECOSAS)
+    Route::get( 'silucia-containers/{containerId}/items-pecosas/{itemId}/movements/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen_almacenero']);
+    
+    // devuelve los productos guardados de nuestra propia base de datos
+    Route::get('/items-pecosas', [ProductController::class, 'index']);
+
+    // ******************* refactorizacion de codigo: pasar de datos de ordenes a pecosas - (inicio) *******************
     Route::get('silucia-pecosas', [PecosaController::class, 'index'])->middleware(['role:almacen_almacenero']);
 
     // muestra datos de una persona, ya sea consultadno a la api de reniec o consultando la propia base de datos
     Route::get('/people/{dni}', [PeopleController::class, 'showOrFetch'])->middleware(['role:almacen_almacenero']); // cache-first (db) → RENIEC
     // muestra todas las personas pertenecientes a un movimiento
-    // Route::get('/movements-kardex/{movement}/people', [MovementKardexController::class, 'people']);
-    // esta endpoint debe hacerse en "/movements-kardex" pues ahi es donde se guardara el dato de un
     Route::post('/movements-kardex/{movement}/people', [MovementKardexController::class, 'attachPerson'])->middleware(['role:almacen_almacenero']);
     // endpoint no terminado - sirve para quitar una persona de un movimientoa
-    // Route::delete('/movements-kardex/{movement}/people/{dni}', [MovementKardexController::class, 'detachPerson']);
+
+    // rutas para vales de transporte
+    
+    // LISTA
+    Route::get('/fuel-orders', [FuelOrderController::class, 'index']);
+
+    // GENERAR PDF + FLUJO
+    Route::post('/fuel-orders/{order}/generate-report', [FuelOrderController::class, 'generateReport']);
+
+    // ESTADO DE REPORTE/FLUJO
+    Route::get('/fuel-orders/{order}/report', [FuelOrderController::class, 'showReport']);
+
+    // DESCARGA PDF
+    Route::get('/fuel-orders/{order}/report/download', [FuelOrderController::class, 'downloadReport']);
+
+    // FIRMA (callback genérico)
+    Route::post('/signatures/callback', [SignaturesController::class, 'callback']);
 });
     // recibe pdf firmado por firma perú
     Route::post('signatures/callback', [SignatureController::class, 'store']);

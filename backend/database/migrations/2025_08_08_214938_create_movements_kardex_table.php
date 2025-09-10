@@ -12,13 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('movements_kardex', function (Blueprint $table) {
-            $table->id('id');
-            $table->unsignedBigInteger('product_id');
-            $table->string('movement_type')->nullable();
+            // $table->id('id');
+            $table->id();
+            // $table->unsignedBigInteger('product_id');
+            $table->foreignId('item_pecosa_id')->constrained('item_pecosas')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->string('movement_type');
             $table->date('movement_date')->nullable();
-            $table->decimal('amount')->nullable();
-            $table->decimal('final_balance')->nullable();
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade')->onUpdate('cascade');
+            $table->decimal('amount', 12, 2);
+            $table->text('observations')->nullable();
+            // $table->decimal('final_balance')->nullable();
+            $table->index('movement_date', 'idx_mk_movement_date');
+            $table->index(['item_pecosa_id', 'movement_date'], 'idx_mk_item_date');
+
             $table->timestamps();
         });
     }
@@ -33,3 +38,13 @@ return new class extends Migration
         Schema::enableForeignKeyConstraints();
     }
 };
+
+
+            // $table->id('id');
+            // $table->unsignedBigInteger('product_id');
+            // $table->string('movement_type')->nullable();
+            // $table->date('movement_date')->nullable();
+            // $table->decimal('amount')->nullable();
+            // $table->decimal('final_balance')->nullable();
+            // $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade')->onUpdate('cascade');
+            // $table->timestamps();

@@ -14,6 +14,7 @@ class MovementKardex extends Model
     protected $primaryKey = 'id';
 
     protected $fillable = [
+        'item_pecosa_id',
         'product_id',
         'movement_type',
         'movement_date',
@@ -23,10 +24,20 @@ class MovementKardex extends Model
         'number',        // nuevo
         'observations',  // nuevo
     ];
-    public function product(): BelongsTo
+
+    protected $casts = [
+        'movement_date' => 'date',
+        'amount'        => 'decimal:2',
+    ];
+
+    public function itemPecosa()
     {
-        return $this->belongsTo(Product::class, 'product_id');
+        return $this->belongsTo(ItemPecosa::class, 'item_pecosa_id');
     }
+    // public function product(): BelongsTo
+    // {
+    //     return $this->belongsTo(Product::class, 'product_id');
+    // }
     
     public function people()
     {

@@ -230,6 +230,7 @@ export class SignaturesMovementReports {
   // dentro de la clase
   working = false;
   message = '';
+  
   sign(r: Report) {
     console.log("datos de peticion r: ", r);
     // r.download_url = 'http://127.0.0.1:8000/api/payments/PDF_NUMERO_1.pdf';

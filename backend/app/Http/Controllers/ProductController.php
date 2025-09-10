@@ -6,7 +6,8 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-
+use App\Models\ItemPecosa;
+use App\Models\Report;
 class ProductController extends Controller
 {
     function indexv0 (Request $request) {
@@ -16,6 +17,7 @@ class ProductController extends Controller
         $user = Auth::user();
         $roleNames = $user->getRoleNames(); 
         $q = Product::has('kardexReports');
+        
 
         // $q = Product::doesntHave('kardexReports');
         // Filtros (usa los nombres exactos del front)
@@ -50,12 +52,23 @@ class ProductController extends Controller
         $roles = $user->getRoleNames()->toArray(); // ej: ['residente de obra']
 
         // Solo reportes con flujo "in_progress"
-        $products = Product::query()
+        // $products = Product::query()
+        $products = ItemPecosa::query()
             // ->whereHas('reports.flow', fn($q) => $q->where('status', 'in_progress'))
             ->whereHas('reports.flow') 
             ->with([
                 'reports' => function ($q) {
-                    $q->select('id','product_id','pdf_path','from_date','to_date','type','status','pdf_page_number','created_at')
+                    // $q->select('id','product_id','pdf_path','from_date','to_date','type','status','pdf_page_number','created_at')
+                    // $q->select('id','reportable_id','reportable_type','pdf_path','status','pdf_page_number','category','subtype','created_at')
+                    // $q->select('id','item','id_container_silucia','id_item_pecosa_silucia','desmeta','fecha','numero','cantidad','precio')
+
+                    $q->select(
+                        'id',
+                        'reportable_id','reportable_type',
+                        'pdf_path','pdf_page_number','latest_pdf_path',
+                        'status','category','subtype','created_by','created_at'
+                    )
+
                     // ->whereHas('flow', fn($f) => $f->where('status','in_progress'))
                     ->whereHas('flow')
                     // ->with([
@@ -63,18 +76,21 @@ class ProductController extends Controller
                     //     'flow.steps:id,signature_flow_id,order,role,status,callback_token'
                     // ]);
                     ->with([
-                        'flow:id,kardex_report_id,current_step,status',
+                        'flow:id,report_id,current_step,status',
                         'flow.steps:id,signature_flow_id,order,role,status,callback_token,page,pos_x,pos_y,width,height',
                     ]);
                 },
             ])
-            ->select('id','name','item','id_order_silucia','id_product_silucia', 'detalles_orden','desmeta', 'fecha') // campos que muestres
+            // ->select('id','name','item','id_order_silucia','id_product_silucia', 'detalles_orden','desmeta', 'fecha') // campos que muestres
+            ->select('id','item','id_container_silucia','id_item_pecosa_silucia','desmeta','fecha','numero','cantidad','precio') // campos que muestres
             ->orderByDesc('id')
             ->paginate((int)$req->query('per_page', 20));
 
         // Transformar a la forma que necesita el front
-        $products->getCollection()->transform(function ($product) use ($roles) {
-            $product->reports = $product->reports->map(function ($report) use ($roles) {
+        // $products->getCollection()->transform(function ($product) use ($roles) {
+        //     $product->reports = $product->reports->map(function ($report) use ($roles) {
+                $products->getCollection()->transform(function ($item) use ($roles) {
+    $item->reports = $item->reports->map(function ($report) use ($roles) {
                 // obtiene cada flujo del reporte
                 $flow = $report->flow;
                 // Paso actual (quién tiene el turno)
@@ -95,8 +111,9 @@ class ProductController extends Controller
 
                 return [
                     'report_id'   => $report->id,
-                    'type'        => $report->type,
-                    'period'      => ['from'=>$report->from_date, 'to'=>$report->to_date],
+                    // 'type'        => $report->type,
+                    'type' => $report->category,
+                    // 'period'      => ['from'=>$report->from_date, 'to'=>$report->to_date],
                     'status'      => $report->status,           // normalmente 'in_progress'
                     'flow_id'     => $flow->id,
                     'current_step'=> $flow->current_step,
@@ -123,16 +140,35 @@ class ProductController extends Controller
                 ];
             });
             // id','name','id_order_silucia','id_product_silucia', 'detalles_orden','desmeta', 'fecha'
-            return [
-                'product_id'        => $product->id,
-                'name'              => $product->name,
-                'item'              => $product->item,
-                'id_order_silucia'  => $product->id_order_silucia,
-                'id_product_silucia'=> $product->id_product_silucia,
-                'reports'           => $product->reports,
-                'detalles_orden'    => $product->detalles_orden,
-                'desmeta'           => $product->desmeta,
-                'fecha'             => $product->fecha,
+            // return [
+            //     'product_id'        => $product->id,
+            //     'name'              => $product->name,
+            //     'item'              => $product->item,
+            //     'id_order_silucia'  => $product->id_order_silucia,
+            //     'id_product_silucia'=> $product->id_product_silucia,
+            //     'reports'           => $product->reports,
+            //     'detalles_orden'    => $product->detalles_orden,
+            //     'desmeta'           => $product->desmeta,
+            //     'fecha'             => $product->fecha,
+            // ];
+                return [
+                // ID del registro en item_pecosas
+                'item_pecosa_id'          => $item->id,
+
+                // Campos equivalentes en item_pecosas
+                'item'                    => $item->item,
+                'id_container_silucia'    => $item->id_container_silucia,
+                'id_item_pecosa_silucia'  => $item->id_item_pecosa_silucia,
+
+                // Mantén reports
+                'reports'                 => $item->reports,
+
+                // Campos existentes en item_pecosas
+                'desmeta'                 => $item->desmeta,
+                'fecha'                   => $item->fecha,
+                'numero'                  => $item->numero,
+                'cantidad'                => $item->cantidad,
+                'precio'                  => $item->precio,
             ];
         });
 

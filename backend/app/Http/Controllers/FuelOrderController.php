@@ -5,9 +5,16 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Models\FuelOrder;
+use App\Models\Report;
+use App\Models\SignatureEvent;
+use App\Models\SignatureFlow;
+use App\Models\SignatureStep;
 use App\Models\Vehicle;
 use Illuminate\Validation\Rule;
-
+use Illuminate\Support\Facades\Storage;  
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use FPDF;
 class FuelOrderController extends Controller
 {
     /**
@@ -17,7 +24,7 @@ class FuelOrderController extends Controller
      * - Jefe: ve pendientes de jefe (supervisor_status = 'approved' y manager_status = null).
      * Puedes pasar ?all=1 para ver todo (solo para supervisor/jefe).
      */
-    public function index(Request $request)
+    public function indexv01(Request $request)
     {
         $user = $request->user();
         $role = $user->role ?? 'chofer';
@@ -52,6 +59,89 @@ class FuelOrderController extends Controller
         }
 
         return $q->orderByDesc('id')->paginate(15);
+    }
+
+    public function index(Request $req)
+    {
+        $perPage = (int) $req->query('rows', $req->query('per_page', 15));
+        $numero  = $req->query('numero');
+        $placa   = $req->query('placa');
+        $all     = filter_var($req->query('all', false), FILTER_VALIDATE_BOOLEAN);
+
+        $q = FuelOrder::query()
+            ->with([
+                'vehicle:id,plate',
+                // Trae el último reporte + flujo (si existe)
+                'latestFuelReport.flow.steps:id,signature_flow_id,order,role,status,page,pos_x,pos_y,width,height,callback_token'
+            ])
+            ->orderByDesc('id');
+
+        if ($numero) { $q->where('numero', 'like', "%{$numero}%"); }
+        if ($placa)  { 
+            // usa snapshot o relación vehicle
+            $q->where(function($qq) use ($placa) {
+                $qq->where('vehiculo_placa', 'like', "%{$placa}%")
+                   ->orWhereHas('vehicle', fn($v) => $v->where('plate', 'like', "%{$placa}%"));
+            });
+        }
+
+        // (si quisieras filtrar por estado de aprobación, úsalo con $all)
+        // if (!$all) { ... }
+
+        $data = $q->paginate($perPage);
+
+        // Empaqueta un resumen de reporte para el front (coincide con lo que espera tu UI)
+        $data->getCollection()->transform(function (FuelOrder $o) {
+            $rep = $o->latestFuelReport;
+            $summary = null;
+
+            if ($rep) {
+                $downloadUrl = url("/api/fuel-orders/{$o->id}/report/download");
+                $flow = $rep->flow; // puede ser null si aún no hay flujo
+
+                $summary = [
+                    'id'               => $rep->id,
+                    'status'           => $rep->status,
+                    'category'         => $rep->category,
+                    'pdf_path'         => $rep->pdf_path,
+                    'pdf_page_number'  => (int) $rep->pdf_page_number,
+                    'download_url'     => $downloadUrl,
+                    'flow'             => $flow ? [
+                        'id'           => $flow->id,
+                        'current_step' => (int) $flow->current_step,
+                        'status'       => $flow->status,
+                        'steps'        => $flow->steps->map(fn($s) => [
+                            'id'     => $s->id,
+                            'order'  => (int) $s->order,
+                            'role'   => $s->role,
+                            'status' => $s->status,
+                            'page'   => (int) $s->page,
+                            'pos_x'  => (float)$s->pos_x,
+                            'pos_y'  => (float)$s->pos_y,
+                            'width'  => (float)$s->width,
+                            'height' => (float)$s->height,
+                            'callback_token' => $s->callback_token,
+                        ]),
+                    ] : null,
+                ];
+            }
+
+            return [
+                'id'             => $o->id,
+                'fecha'          => $o->fecha,
+                'numero'         => $o->numero,
+                'vehiculo_placa' => $o->vehiculo_placa,
+                'fuel_type'      => $o->fuel_type,
+                'quantity_gal'   => $o->quantity_gal,
+                'amount_soles'   => $o->amount_soles,
+                'supervisor_status' => $o->supervisor_status ?? null,
+                'manager_status'    => $o->manager_status ?? null,
+                // Para los 3 botones
+                'report' => $summary,
+            ];
+        });
+
+        return response()->json($data);
     }
 
     /**
@@ -250,5 +340,196 @@ class FuelOrderController extends Controller
             abort(403, 'No autorizado');
         }
         // supervisor/jefe: permitido ver; personaliza si necesitas
+    }
+
+    // POST /api/fuel-orders/{order}/generate-report
+    public function generateReport(FuelOrder $order)
+    {
+
+        // === 1) Genera PDF sencillo (usa FPDF/tu clase) ===
+        $filename     = "fuel_{$order->id}_" . now()->format('Ymd_His') . ".pdf";
+        $relativePath = "reports/{$filename}";
+        // Generación rápida de PDF (pon aquí tu FpdfExample si prefieres)
+        $bytes = $this->makeSimpleFuelPdf($order); // devuelve binario
+
+        Storage::disk('local')->put($relativePath, $bytes);
+
+        // === 2) Cuenta páginas ===
+        $pageCount = 1;
+        try {
+            $absolute = Storage::disk('local')->path($relativePath);
+            // $fpdi = new Fpdi();
+            $fpdi = new FPDF('P', 'mm', 'A4');
+
+            // $pageCount = (int)$fpdi->setSourceFile($absolute);
+            $pageCount = 1;
+        } catch (\Throwable $e) { /* log opcional */ }
+
+        // === 3) Crea Report genérico ===
+        $report = Report::create([
+            'reportable_id'   => $order->id,
+            'reportable_type' => FuelOrder::class,
+            'pdf_path'        => $relativePath,     // guarda ruta RELATIVA
+            'pdf_page_number' => $pageCount,
+            'status'          => 'in_progress',
+            'category'        => 'fuel_order',
+            'created_by'      => Auth::id(),
+        ]);
+
+        // === 4) Crea Flow + Steps ===
+        $flow = SignatureFlow::create([
+            'report_id'    => $report->id,
+            'current_step' => 1,
+            'status'       => 'in_progress',
+        ]);
+
+        // Coordenadas/roles (ajusta a tu plantilla)
+        $roles = [
+            ['role'=>'fuel_requester','user_id'=>$order->driver_id,    'page'=>1,'pos_x'=>120,'pos_y'=>700,'width'=>180,'height'=>60],
+            ['role'=>'fuel_supervisor','user_id'=>null /* set si lo conoces */, 'page'=>1,'pos_x'=>320,'pos_y'=>700,'width'=>180,'height'=>60],
+            ['role'=>'fuel_manager',   'user_id'=>null /* set si lo conoces */, 'page'=>1,'pos_x'=>520,'pos_y'=>700,'width'=>180,'height'=>60],
+        ];
+        foreach (array_values($roles) as $i => $r) {
+            SignatureStep::create([
+                'signature_flow_id' => $flow->id,
+                'order'             => $i+1,
+                'role'              => $r['role'],
+                'user_id'           => $r['user_id'],
+                'page'              => $r['page'],
+                'pos_x'             => $r['pos_x'],
+                'pos_y'             => $r['pos_y'],
+                'width'             => $r['width'],
+                'height'            => $r['height'],
+                'status'            => 'pending',
+                'callback_token'    => Str::random(48),
+            ]);
+        }
+
+        SignatureEvent::create([
+            'signature_flow_id' => $flow->id,
+            'event'             => 'flow_created',
+            'user_id'           => Auth::id(),
+            'meta'              => ['report_id'=>$report->id],
+        ]);
+
+        // === 5) Devuelve el PDF para abrir/descargar en el front ===
+        // return Storage::disk('local')->download($relativePath, $filename);
+        return Storage::download($relativePath, $filename);
+
+    }
+
+     // GET /api/fuel-orders/{order}/report/download
+    public function downloadReport(FuelOrder $order)
+    {
+        $report = $order->latestFuelReport()->firstOrFail();
+        $absolute = Storage::disk('local')->path($report->pdf_path);
+        $name = basename($report->pdf_path);
+
+        if (!is_file($absolute)) {
+            return response()->json(['message' => 'Archivo no disponible.'], 404);
+        }
+        // return Storage::disk('local')->download($report->pdf_path, $name);
+        return Storage::download($report->pdf_path, basename($report->pdf_path));
+
+        // return Storage::download($path, basename($path));
+    }
+
+    /**
+     * Genera un PDF muy básico con datos del vale.
+     * Reemplázalo por tu FpdfExample si quieres estilo.
+     */
+    private function makeSimpleFuelPdf(FuelOrder $order): string
+    {
+        $pdf = new \FPDF('L', 'pt', 'A4'); // horizontal para poner 3 firmas cómodas
+        $pdf->AddPage();
+        $pdf->SetFont('Arial','B',16);
+        $pdf->Cell(0, 24, mb_convert_encoding('VALE DE COMBUSTIBLE', 'ISO-8859-1','UTF-8'), 0, 1, 'C');
+
+        $pdf->SetFont('Arial','',11);
+        $y = $pdf->GetY();
+        $pdf->SetY($y+10);
+
+        $rows = [
+            ['N° Orden', $order->numero ?: '—'],
+            ['Fecha',    (string) $order->fecha],
+            ['Placa',    $order->vehiculo_placa ?: optional($order->vehicle)->plate],
+            ['Combustible', $order->fuel_type],
+            ['Galones',  number_format((float)$order->quantity_gal, 2)],
+            ['Importe (S/)', number_format((float)$order->amount_soles, 2)],
+        ];
+
+        foreach ($rows as [$k,$v]) {
+            $pdf->Cell(160, 18, mb_convert_encoding($k, 'ISO-8859-1','UTF-8'), 0, 0);
+            $pdf->SetFont('Arial','B',11);
+            $pdf->Cell(400, 18, mb_convert_encoding((string)$v, 'ISO-8859-1','UTF-8'), 0, 1);
+            $pdf->SetFont('Arial','',11);
+        }
+
+        // cajas de firma (sólo referencia visual)
+        $pdf->SetY(450);
+        foreach (['Solicitante','Supervisor','Jefe'] as $i => $label) {
+            $x = 80 + $i*240;
+            $pdf->Rect($x, 450, 200, 70);
+            $pdf->SetXY($x, 525);
+            $pdf->Cell(200, 16, mb_convert_encoding($label, 'ISO-8859-1','UTF-8'), 0, 0, 'C');
+        }
+
+        return $pdf->Output('S'); // devuelve binario
+    }
+     public function showReport(FuelOrder $order)
+    {
+        $report = $order->latestFuelReport()
+            ->with('flow.steps')
+            ->first();
+
+        if (!$report) {
+            return response()->json(['message' => 'No hay reporte para este vale.'], 404);
+        }
+
+        $flow = $report->flow;
+        $roles = Auth::user()->getRoleNames()->toArray();
+
+        $currentStep = $flow?->steps?->firstWhere('order', (int)$flow->current_step);
+        // return $currentStep
+        $userStep = $flow?->steps?->first(function($s) use ($roles) {
+            return in_array($s->role, $roles, true);
+        });
+
+        $canSign = false;
+        if ($userStep && $currentStep) {
+            $canSign = $userStep->status === 'pending'
+                && (int)$userStep->order === (int)$flow->current_step;
+        }
+
+        return response()->json([
+            'id'              => $report->id,
+            'status'          => $report->status,
+            'category'        => $report->category,
+            'pdf_path'        => $report->pdf_path,
+            'pdf_page_number' => (int)$report->pdf_page_number,
+            'download_url'    => url("/api/fuel-orders/{$order->id}/report/download"),
+
+            'flow' => $flow ? [
+                'id'           => $flow->id,
+                'current_step' => (int)$flow->current_step,
+                'status'       => $flow->status,
+                'steps'        => $flow->steps->map(fn($s) => [
+                    'id'     => $s->id,
+                    'order'  => (int)$s->order,
+                    'role'   => $s->role,
+                    'status' => $s->status,
+                    'page'   => (int)$s->page,
+                    'pos_x'  => (float)$s->pos_x,
+                    'pos_y'  => (float)$s->pos_y,
+                    'width'  => (float)$s->width,
+                    'height' => (float)$s->height,
+                    'callback_token' => $s->callback_token,
+                ]),
+            ] : null,
+
+            'user_step'    => $userStep ?: null,
+            'current_role' => $currentStep?->role,
+            'can_sign'     => $canSign,
+        ]);
     }
 }
