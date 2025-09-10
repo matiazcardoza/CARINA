@@ -7,6 +7,9 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
+import { RolesService } from '../../../services/RolesService/roles-service';
+import { RolesForm } from './form/roles-form/roles-form';
+import { RolesPermissions } from './form/roles-permissions/roles-permissions';
 
 export interface RoleElement {
   id: number;
@@ -46,6 +49,7 @@ export class Roles implements AfterViewInit, OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   
   constructor(
+    private rolesService: RolesService,
     private cdr: ChangeDetectorRef
   ) {}
   
@@ -69,71 +73,21 @@ export class Roles implements AfterViewInit, OnInit {
       this.error = null;
       this.cdr.detectChanges();
       
-      // Simulando una llamada a la API con datos falsos
-      setTimeout(() => {
-        try {
-          const mockRoles: RoleElement[] = [
-            {
-              id: 1,
-              name: 'Super Administrador',
-              permissions_count: 25,
-              users_count: 2,
-              created_at: '2024-01-15T10:30:00Z',
-              updated_at: '2024-01-15T10:30:00Z'
-            },
-            {
-              id: 2,
-              name: 'Supervisor',
-              permissions_count: 18,
-              users_count: 5,
-              created_at: '2024-02-01T14:20:00Z',
-              updated_at: '2024-02-01T14:20:00Z'
-            },
-            {
-              id: 3,
-              name: 'Técnico',
-              permissions_count: 12,
-              users_count: 8,
-              created_at: '2024-02-10T09:15:00Z',
-              updated_at: '2024-02-10T09:15:00Z'
-            },
-            {
-              id: 4,
-              name: 'Operador',
-              permissions_count: 8,
-              users_count: 15,
-              created_at: '2024-02-15T16:45:00Z',
-              updated_at: '2024-02-15T16:45:00Z'
-            },
-            {
-              id: 5,
-              name: 'Controlador',
-              permissions_count: 10,
-              users_count: 6,
-              created_at: '2024-03-01T11:30:00Z',
-              updated_at: '2024-03-01T11:30:00Z'
-            },
-            {
-              id: 6,
-              name: 'Residente',
-              permissions_count: 3,
-              users_count: 120,
-              created_at: '2024-03-05T08:00:00Z',
-              updated_at: '2024-03-05T08:00:00Z'
-            }
-          ];
-          
-          console.log('Roles data:', mockRoles);
-          this.dataSource.data = mockRoles;
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        } catch (error) {
-          console.error('Error loading roles:', error);
-          this.error = 'Error al cargar los datos. Por favor, intenta nuevamente.';
-          this.isLoading = false;
-          this.cdr.detectChanges();
-        }
-      }, 1500); // Simular delay de red
+      this.rolesService.getRoles()
+        .subscribe({
+          next: (response) => {
+            console.log('Roles data:', response);
+            this.dataSource.data = response;
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          },
+          error: (error) => {
+            console.error('Error loading roles:', error);
+            this.error = 'Error al cargar los datos. Por favor, intenta nuevamente.';
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          }
+        });
     });
   }
 
@@ -142,79 +96,71 @@ export class Roles implements AfterViewInit, OnInit {
   }
   
   openCreateDialog() {
-    console.log('Abrir diálogo para crear nuevo rol');
-    // TODO: Implementar diálogo de creación
-    // const dialogRef = this.dialog.open(RolesForm, {
-    //   width: '600px',
-    //   data: { 
-    //     isEdit: false,
-    //     role: null
-    //   }
-    // });
+    const dialogRef = this.dialog.open(RolesForm, {
+      width: '600px',
+      data: { 
+        isEdit: false,
+        role: null
+      }
+    });
       
-    // dialogRef.afterClosed().subscribe(result => {
-    //   if (result) {
-    //     this.reloadData();
-    //   }
-    // });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.reloadData();
+      }
+    });
   }
   
   openEditDialog(role: RoleElement) {
-    console.log('Editar rol:', role);
-    // TODO: Implementar diálogo de edición
-    // const dialogRef = this.dialog.open(RolesForm, {
-    //   width: '600px',
-    //   data: { 
-    //     isEdit: true,
-    //     role: role
-    //   }
-    // });
+    const dialogRef = this.dialog.open(RolesForm, {
+      width: '600px',
+      data: { 
+        isEdit: true,
+        role: role
+      }
+    });
       
-    // dialogRef.afterClosed().subscribe(result => {
-    //   if (result) {
-    //     this.reloadData();
-    //   }
-    // });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.reloadData();
+      }
+    });
   }
   
   manageRolePermissions(role: RoleElement) {
-    console.log('Gestionar permisos del rol:', role);
-    // TODO: Implementar diálogo de gestión de permisos
-    // const dialogRef = this.dialog.open(RolePermissionsForm, {
-    //   width: '800px',
-    //   data: { 
-    //     role: role
-    //   }
-    // });
+    const dialogRef = this.dialog.open(RolesPermissions, {
+      width: '1000px',
+      maxWidth: '100vw',
+      data: { 
+        role: role
+      }
+    });
       
-    // dialogRef.afterClosed().subscribe(result => {
-    //   if (result) {
-    //     this.reloadData();
-    //   }
-    // });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.reloadData();
+      }
+    });
   }
   
   deleteRole(id: number) {
     if (confirm('¿Estás seguro de que deseas eliminar este rol?')) {
-      Promise.resolve().then(() => {
+       Promise.resolve().then(() => {
         this.isLoading = true;
         this.cdr.detectChanges();
         
-        // Simulando eliminación
-        setTimeout(() => {
-          try {
-            console.log('Eliminando rol con ID:', id);
-            // Remover del dataSource para simular eliminación
-            this.dataSource.data = this.dataSource.data.filter(role => role.id !== id);
-            this.isLoading = false;
-            this.cdr.detectChanges();
-          } catch (error) {
-            console.error('Error deleting role:', error);
-            this.isLoading = false;
-            this.error = 'Error al eliminar el rol. Por favor, intenta nuevamente.';
-            this.cdr.detectChanges();
-          }
-        }, 1000);
+        this.rolesService.deleteRole(id)
+          .subscribe({
+            next: () => {
+              this.isLoading = false;
+              this.reloadData();
+            },
+            error: (error) => {
+              this.isLoading = false;
+              this.error = 'Error al eliminar el usuario. Por favor, intenta nuevamente.';
+              this.cdr.detectChanges();
+            }
+          });
       });
     }
   }
