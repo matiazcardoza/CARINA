@@ -86,36 +86,22 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/movements-kardex', [MovementKardexController::class, 'store'])->middleware(['role:almacen_almacenero']);
 
     // mostramos todos los movimientos que pertenecen a un producto de la base de datos de silucia ----- (CAMBIAMOS PARA OBTENER LOS MOVIMIENTOS DE LAS PECOSAS)
-    // Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex',  [MovementKardexController::class, 'indexBySiluciaIds'])->middleware(['role:almacen_almacenero']);
-    Route::get( 'silucia-pecosas/{id_container_silucia}/id-item-pecosa/{id_item_pecosa_silucia}/movements-kardex',  [MovementKardexController::class, 'indexBySiluciaIds'])->middleware(['role:almacen_almacenero']);
-    
-    // generamos un reporte de  todos los movimientos que pertenecen a un producto de la base de datos de silucia ----- (CAMBIAMOS PARA OBTENER LOS MOVIMIENTOS DE LAS PECOSAS)
-    // Route::get( 'silucia-orders/{id_order_silucia}/products/{id_product_silucia}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen_almacenero']);
-    Route::get( 'silucia-pecosas/{id_container_silucia}/id-item-pecosa/{id_item_pecosa_silucia}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen_almacenero']);
-    // devuelve los productos guardados de nuestra propia base de datos
-    Route::get('/products', [ProductController::class, 'index']);
+    Route::get( 'silucia-containers/{containerId}/items-pecosas/{itemId}/movements',  [MovementKardexController::class, 'indexBySiluciaIds'])->middleware(['role:almacen_almacenero']);
 
+    // generamos un reporte de  todos los movimientos que pertenecen a un producto de la base de datos de silucia ----- (CAMBIAMOS PARA OBTENER LOS MOVIMIENTOS DE LAS PECOSAS)
+    Route::get( 'silucia-containers/{containerId}/items-pecosas/{itemId}/movements/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen_almacenero']);
+    
+    // devuelve los productos guardados de nuestra propia base de datos
+    Route::get('/items-pecosas', [ProductController::class, 'index']);
 
     // ******************* refactorizacion de codigo: pasar de datos de ordenes a pecosas - (inicio) *******************
     Route::get('silucia-pecosas', [PecosaController::class, 'index'])->middleware(['role:almacen_almacenero']);
 
-    // cuando la migracion de partes diarios finalice se debe cambiar la ruta a "movements-kardex" y el metodo del controlador debe cambiarse a store
-    // buscamos la pecosa, si no se encuentra lo guardamos. si no lo encontramos lo creamos y al mismo tiempo guardarmos el movimiento
-    // Route::post('/movements-kardex-for-pecosas', [MovementKardexController::class, 'storeForPecosas'])->middleware(['role:almacen_almacenero']);
-    // ******************* refactorizacion de codigo: pasar de datos de ordenes a pecosas -    (fin) *******************
-
-
-
     // muestra datos de una persona, ya sea consultadno a la api de reniec o consultando la propia base de datos
     Route::get('/people/{dni}', [PeopleController::class, 'showOrFetch'])->middleware(['role:almacen_almacenero']); // cache-first (db) → RENIEC
     // muestra todas las personas pertenecientes a un movimiento
-    // Route::get('/movements-kardex/{movement}/people', [MovementKardexController::class, 'people']);
-    // esta endpoint debe hacerse en "/movements-kardex" pues ahi es donde se guardara el dato de un
     Route::post('/movements-kardex/{movement}/people', [MovementKardexController::class, 'attachPerson'])->middleware(['role:almacen_almacenero']);
     // endpoint no terminado - sirve para quitar una persona de un movimientoa
-    // Route::delete('/movements-kardex/{movement}/people/{dni}', [MovementKardexController::class, 'detachPerson']);
-
-
 
     // rutas para vales de transporte
     

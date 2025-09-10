@@ -507,12 +507,12 @@ class MovementKardexController extends Controller
 
 
     // public function indexBySiluciaIds(Request $request, $id_order_silucia, $id_product_silucia)
-    public function indexBySiluciaIds(Request $request, $id_container_silucia, $id_item_pecosa_silucia)
+    public function indexBySiluciaIds(Request $request, $containerId, $itemId)
     {
         // 1) Buscar el “gancho” Product por la pareja de SILUCIA
         // $product = Product::where('id_order_silucia', $id_order_silucia)
         // $product = ItemPecosa::where('id_order_silucia', $id_order_silucia)->where('id_product_silucia', $id_product_silucia)->firstOrFail(); // 404 si no existe
-        $itemPecosa = ItemPecosa::where('id_container_silucia', $id_container_silucia)->where('id_item_pecosa_silucia', $id_item_pecosa_silucia)->firstOrFail(); // 404 si no existe
+        $itemPecosa = ItemPecosa::where('id_container_silucia', $containerId)->where('id_item_pecosa_silucia', $itemId)->firstOrFail(); // 404 si no existe
 
         // 2) Traer movimientos (puedes paginar si quieres)
         //    Si quieres TODO: ->get();
