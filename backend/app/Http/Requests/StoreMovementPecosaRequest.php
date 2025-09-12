@@ -26,7 +26,8 @@ class StoreMovementPecosaRequest extends FormRequest
         return [
                     // Identificadores del “gancho” al producto SILUCIA
             // 'id_order_silucia'   => ['required','integer'],     // idcompra de SILUCIA
-            'id_container_silucia'   => ['required','string','max:20','regex:/^\d+$/'],
+            // 'id_container_silucia'   => ['required','string','max:20','regex:/^\d+$/'],
+            'id_pecosa_silucia'   => ['required','string','max:20','regex:/^\d+$/'],
             'id_item_pecosa_silucia' => ['required','integer'],     // idcompradet de SILUCIA
             // 'id_product_silucia' => ['required','integer'],  
             // Si tu front conoce el id local de la orden, lo puedes mandar (opcional),

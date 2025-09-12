@@ -104,10 +104,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/movements-kardex', [MovementKardexController::class, 'store'])->middleware(['role:almacen_almacenero']);
 
     // mostramos todos los movimientos que pertenecen a un producto de la base de datos de silucia ----- (CAMBIAMOS PARA OBTENER LOS MOVIMIENTOS DE LAS PECOSAS)
-    Route::get( 'silucia-containers/{containerId}/items-pecosas/{itemId}/movements',  [MovementKardexController::class, 'indexBySiluciaIds'])->middleware(['role:almacen_almacenero']);
+    // Route::get( 'silucia-containers/{containerId}/items-pecosas/{itemId}/movements',  [MovementKardexController::class, 'indexBySiluciaIds'])->middleware(['role:almacen_almacenero']);
+    Route::get( 'silucia-pecosas/{pecosaId}/items-pecosas/{itemId}/movements',  [MovementKardexController::class, 'indexBySiluciaIds'])->middleware(['role:almacen_almacenero']);
 
     // generamos un reporte de  todos los movimientos que pertenecen a un producto de la base de datos de silucia ----- (CAMBIAMOS PARA OBTENER LOS MOVIMIENTOS DE LAS PECOSAS)
-    Route::get( 'silucia-containers/{containerId}/items-pecosas/{itemId}/movements/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen_almacenero']);
+    // Route::get( 'silucia-containers/{containerId}/items-pecosas/{itemId}/movements/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen_almacenero']);
+    Route::get( 'silucia-pecosas/{pecosaId}/items-pecosas/{itemId}/movements/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen_almacenero']);
     
     // devuelve los productos guardados de nuestra propia base de datos
     Route::get('/items-pecosas', [ProductController::class, 'index']);

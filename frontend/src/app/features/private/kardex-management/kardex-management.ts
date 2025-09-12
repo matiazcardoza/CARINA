@@ -66,7 +66,8 @@ export class KardexManagement {
     siaf: '',
     ruc: '',
     rsocial: '',
-    email: ''
+    email: '',
+    orden: '',
   };
 
   // Modales
@@ -137,7 +138,8 @@ export class KardexManagement {
       siaf: '',
       ruc: '',
       rsocial: '',
-      email: ''
+      email: '',
+      orden: '',
     };
 
     this.getProductsOfSiluciaBackend({

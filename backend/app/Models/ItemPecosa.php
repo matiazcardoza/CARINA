@@ -18,7 +18,10 @@ class ItemPecosa extends Model
      */
     protected $fillable = [
         // Referencias Silucia
-        'id_container_silucia',
+        // 'id_container_silucia',
+        // 'id_item_pecosa_silucia',
+
+        'id_pecosa_silucia',
         'id_item_pecosa_silucia',
 
         // Datos administrativos / logísticos
@@ -49,7 +52,7 @@ class ItemPecosa extends Model
     protected $casts = [
         'anio'                  => 'integer',
         'fecha'                 => 'date',
-        'id_container_silucia'  => 'integer',
+        'id_pecosa_silucia'  => 'string',
         'id_item_pecosa_silucia'=> 'integer',
         'idsalidadet'           => 'integer',
         'cantidad'              => 'decimal:2',
@@ -70,7 +73,7 @@ class ItemPecosa extends Model
 
     public function scopeNumero($query, ?string $numero)
     {
-        return $numero ? $query->where('numero', $numero) : $query;
+        return $numero ? $query->where('id_pecosa_silucia', $numero) : $query;
     }
 
     public function scopeAnio($query, $anio)
