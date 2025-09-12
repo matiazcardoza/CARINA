@@ -1,0 +1,51 @@
+.dialog-container {
+  min-width: 400px;
+  width: 100%;
+}
+
+.roles-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.full-width {
+  width: 100%;
+}
+
+/* Estilos para el título */
+h2[mat-dialog-title] {
+  margin: 0 0 20px 0;
+  font-size: 24px;
+  font-weight: 500;
+  color: #1976d2;
+}
+
+/* Estilos para los botones */
+mat-dialog-actions {
+  padding: 16px 0 0 0;
+  margin: 16px 0 0 0;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Estilos para form fields */
+mat-form-field {
+  .mat-mdc-form-field-subscript-wrapper {
+    margin-top: 8px;
+  }
+}
+
+/* Estado de loading */
+button[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive para pantallas pequeñas */
+@media (max-width: 600px) {
+  .dialog-container {
+    min-width: 300px;
+    max-width: 90vw;
+  }
+}

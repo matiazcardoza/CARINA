@@ -45,6 +45,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //Roles Routes
     Route::get('/roles', [RoleController::class, 'index']);
+    Route::post('/roles-create', [RoleController::class, 'createRole']);
+    Route::put('/roles-update', [RoleController::class, 'updateRole']);
+    Route::delete('/roles-delete/{id}', [RoleController::class, 'destroy']);
+    Route::get('/roles-permissions', [RoleController::class, 'getRolePermissions']);
+    Route::put('/roles-permissions', [RoleController::class, 'updateRolePermissions']);
 
     //orders silucia routes
     Route::post('orders-silucia/import-order', [OrderSiluciaController::class, 'importOrder']);

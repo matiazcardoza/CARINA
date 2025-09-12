@@ -162,7 +162,6 @@ export class Users implements AfterViewInit, OnInit {
               this.cdr.detectChanges();
             },
             error: (error) => {
-              console.error('Error deleting user:', error);
               this.isLoading = false;
               this.error = 'Error al eliminar el usuario. Por favor, intenta nuevamente.';
               this.cdr.detectChanges();
