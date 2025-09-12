@@ -21,6 +21,8 @@ class Service extends Model
         'goal_project',
         'goal_detail',
         'fuel_consumed',
+        'start_date',
+        'end_date',
         'state',
         'state_closure'
     ];

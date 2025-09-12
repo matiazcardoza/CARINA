@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\Log;
 class MechanicalEquipmentController extends Controller
 {
     function index(){
-        $mechanicalEquipment = MechanicalEquipment::get();
+        $mechanicalEquipment = MechanicalEquipment::select('mechanical_equipment.*', 'services.state as state_service')
+                            ->leftJoin('services', 'mechanical_equipment.id', '=', 'services.mechanical_equipment_id')
+                            ->get();
         return response()->json([
             'message' => 'Equipos cargados correctamente',
             'data' => $mechanicalEquipment
@@ -35,8 +37,8 @@ class MechanicalEquipmentController extends Controller
         ], 201);
     }
 
-    function update(Request $request, $id){
-        $updateEquipment = MechanicalEquipment::find($id);
+    function update(Request $request){
+        $updateEquipment = MechanicalEquipment::find($request->id);
         $updateEquipment->update([
             'machinery_equipment' => $request->machinery_equipment,
             'ability' => $request->ability,

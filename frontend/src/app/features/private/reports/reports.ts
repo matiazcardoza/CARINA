@@ -81,10 +81,10 @@ interface ResumenDashboard {
     MatDividerModule,
     MatTooltipModule
   ],
-  templateUrl: './reports-and-dashboards.html',
-  styleUrl: './reports-and-dashboards.css'
+  templateUrl: './reports.html',
+  styleUrl: './reports.css'
 })
-export class ReportsAndDashboards implements OnInit {
+export class Reports implements OnInit {
 
   searchForm: FormGroup;
   filteredServicio!: Observable<WorkLogElement[]>;
@@ -154,20 +154,8 @@ export class ReportsAndDashboards implements OnInit {
   canDeleteWorkLog: boolean = false;
 
   ngOnInit(): void {
-    this.loadPermissions();
     this.loadServices();
     this.calcularResumenDashboard();
-  }
-
-  loadPermissions(): void {
-    this.authService.userPermissions$.subscribe(permissions => {
-      this.canAccessDashboard = permissions.includes('access_dashboard');
-      this.canAccessReports = permissions.includes('access_reportes');
-      this.canGenerateReports = permissions.includes('generate_reportes');
-      this.canEditWorkLog = permissions.includes('edit_work_log');
-      this.canDeleteWorkLog = permissions.includes('delete_work_log');
-      this.cdr.detectChanges();
-    });
   }
 
   loadServices(): void {

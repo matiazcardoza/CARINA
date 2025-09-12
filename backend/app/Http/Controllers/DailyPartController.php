@@ -20,10 +20,10 @@ class DailyPartController extends Controller
     {
         $serviceId = $request->id;
         $date = $request->query('date', now()->format('Y-m-d'));
-        $dailyParts = DailyPart::select('daily_parts.*', 'products.numero', 'products.item')
+        $dailyParts = DailyPart::select('daily_parts.*', 'item_pecosas.numero', 'item_pecosas.item')
             ->whereDate('work_date', $date)
             ->where('service_id', $serviceId)
-            ->leftJoin('products', 'products.id', '=', 'daily_parts.products_id')
+            ->leftJoin('item_pecosas', 'item_pecosas.id', '=', 'daily_parts.itemPecosa_id')
             ->get();
 
         return response()->json([

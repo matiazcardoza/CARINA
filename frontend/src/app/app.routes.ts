@@ -16,9 +16,11 @@ import { MechanicalEquipment } from './features/private/mechanical-equipment/mec
 
 import { Users } from './features/private/users/users';
 import { Roles } from './features/private/roles/roles';
-import { EvidenceManagement } from './features/private/evidence-management/evidence-management';
+
+import { Reports } from './features/private/reports/reports';
+
 import { DigitalSignatureWorkflow } from './features/private/digital-signature-workflow/digital-signature-workflow';
-import { ReportsAndDashboards } from './features/private/reports-and-dashboards/reports-and-dashboards';
+import { Dashboards } from './features/private/dashboards/dashboards';
 // import { ValuedKardex } from './features/private/valued-kardex/valued-kardex';
 import { PhysicalBincard } from './features/private/physical-bincard/physical-bincard';
 import { InventoryReports } from './features/private/inventory-reports/inventory-reports';
@@ -61,7 +63,7 @@ export const routes: Routes = [
             },
             {
                 path: 'home',
-                component: ReportsAndDashboards
+                component: Dashboards
             },
             {
                 path: 'daily-work-log',
@@ -89,8 +91,8 @@ export const routes: Routes = [
                 component: Roles
             },
             {
-                path: 'evidence-management',   // <---------
-                component: EvidenceManagement
+                path: 'reports',
+                component: Reports
             },
             {
                 path: 'digital-signature-workflow',

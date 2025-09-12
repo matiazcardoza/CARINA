@@ -223,6 +223,12 @@ export class DailyWorkLogReceive implements OnInit {
       formData.append('fechaPrestacion', this.orderData.fecha_prestacion);
       formData.append('plazoPrestacion', this.orderData.plazo_prestacion.toString());
       formData.append('description', this.getDescripcion());
+
+      const fechaInicio = new Date(this.orderData.fecha_prestacion);
+      const fechaFinal = new Date(fechaInicio);
+      fechaFinal.setDate(fechaInicio.getDate() + this.orderData.plazo_prestacion);
+
+      formData.append('fechaFinal', fechaFinal.toISOString().split('T')[0]);
     }
 
     this.dailyWorkLogService.importOrder(formData).subscribe({

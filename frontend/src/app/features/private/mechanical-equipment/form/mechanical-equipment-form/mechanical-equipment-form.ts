@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { ChangeDetectorRef } from '@angular/core';
 import { MatSelectModule } from '@angular/material/select';
 import { CommonModule } from '@angular/common';
+
 import { MechanicalEquipmentService } from '../../../../../services/MechanicalEquipmentService/mechanical-equipment-service';
 
 export interface DialogData {
@@ -23,7 +24,7 @@ export interface DialogData {
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatSelectModule
+    MatSelectModule,
   ],
   templateUrl: './mechanical-equipment-form.html',
   styleUrl: './mechanical-equipment-form.css',
@@ -80,12 +81,17 @@ export class MechanicalEquipmentForm implements OnInit {
   onSubmit(): void {
     if (this.mechanicalEquipmentForm.valid) {
       this.isLoading = true;
-      const formData = this.mechanicalEquipmentForm.value;
+      const rawData = this.mechanicalEquipmentForm.value;
+
+      const formData = {
+        ...rawData,
+        id: this.data.isEdit && this.data.mechanicalEquipment ? this.data.mechanicalEquipment.id : undefined
+      };
       
 
       if (this.data.isEdit && this.data.mechanicalEquipment?.id) {
         setTimeout(() => {
-          this.mechanicalEquipmentService.updateMechanicalEquipment(this.data.mechanicalEquipment.id, formData)
+          this.mechanicalEquipmentService.updateMechanicalEquipment(formData)
             .subscribe({
               next: (updatedMechanicalEquipment) => {
                 this.isLoading = false;

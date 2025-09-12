@@ -2,107 +2,12 @@
   
   <!-- Header del Dashboard -->
   <div class="dashboard-header">
-    <h1>Reportes y Dashboard - Partes Diarios</h1>
+    <h1>Reportes - Partes Diarios</h1>
     <button mat-raised-button color="primary"  (click)="descargarReporte()">
       <mat-icon>download</mat-icon>
       Descargar Reporte
     </button>
   </div>
-
-  <!-- Tabs para organizar el contenido -->
-  <mat-tab-group>
-    
-    <!-- Tab 1: Dashboard de Resumen -->
-    <mat-tab label="Dashboard General">
-      
-      <!-- Tarjetas de Resumen -->
-      <div class="summary-cards">
-        
-        <mat-card class="summary-card">
-          <mat-card-header>
-            <mat-card-title>Horas Trabajadas</mat-card-title>
-            <mat-icon>schedule</mat-icon>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="metric-value">{{ resumenDashboard.totalHorasTrabajadas | number:'1.1-1' }}</div>
-            <div class="metric-label">Horas Totales</div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="summary-card">
-          <mat-card-header>
-            <mat-card-title>Combustible Consumido</mat-card-title>
-            <mat-icon>local_gas_station</mat-icon>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="metric-value">{{ resumenDashboard.totalCombustibleConsumido | number:'1.2-2' }}</div>
-            <div class="metric-label">Litros Totales</div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="summary-card">
-          <mat-card-header>
-            <mat-card-title>Partes Completados</mat-card-title>
-            <mat-icon>check_circle</mat-icon>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="metric-value">{{ resumenDashboard.partesCompletados }}</div>
-            <div class="metric-label">de {{ partesDiariosReales.length || 0 }} Partes</div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="summary-card">
-          <mat-card-header>
-            <mat-card-title>Eficiencia</mat-card-title>
-            <mat-icon>trending_up</mat-icon>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="metric-value">{{ resumenDashboard.porcentajeEficiencia | number:'1.1-1' }}%</div>
-            <div class="metric-label">Partes Completos</div>
-            <mat-progress-bar 
-              mode="determinate" 
-              [value]="resumenDashboard.porcentajeEficiencia">
-            </mat-progress-bar>
-          </mat-card-content>
-        </mat-card>
-
-      </div>
-
-      <!-- Gráficos de Resumen (placeholders) -->
-      <div class="charts-container">
-        
-        <mat-card class="chart-card">
-          <mat-card-header>
-            <mat-card-title>Consumo de Combustible por Día</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="chart-placeholder">
-              <mat-icon>bar_chart</mat-icon>
-              <p>Gráfico de barras - Consumo diario</p>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <mat-card class="chart-card">
-          <mat-card-header>
-            <mat-card-title>Horas Trabajadas por Servicio</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
-            <div class="chart-placeholder">
-              <mat-icon>pie_chart</mat-icon>
-              <p>Gráfico circular - Distribución por servicio</p>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-      </div>
-
-    </mat-tab>
-
-    <!-- Tab 2: Reportes Detallados -->
-    <mat-tab label="Reportes Detallados">
-      
-      <!-- Header Card con Selector -->
       <mat-card class="header-card">
         <mat-card-header>
           <div mat-card-avatar class="header-avatar">
@@ -341,9 +246,4 @@
 
         </mat-card-content>
       </mat-card>
-
-    </mat-tab>
-
-  </mat-tab-group>
-
 </div>

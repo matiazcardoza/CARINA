@@ -5,6 +5,16 @@
   padding: 16px;
 }
 
+.form-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.half-width {
+  flex: 1;
+}
+
 /* Sección del encabezado */
 .header-section {
   text-align: center;

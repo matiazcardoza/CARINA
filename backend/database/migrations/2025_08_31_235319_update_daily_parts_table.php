@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Schema::table('daily_parts', function (Blueprint $table) {
-        //     $table->unsignedBigInteger('products_id')->after('service_id')->nullable();
-        //     $table->foreign('products_id')->references('id')->on('products')->onDelete('cascade')->onUpdate('cascade');
-        // });
+        Schema::table('daily_parts', function (Blueprint $table) {
+            $table->unsignedBigInteger('itemPecosa_id')->after('service_id')->nullable();
+            $table->foreign('itemPecosa_id')->references('id')->on('item_pecosas')->onDelete('cascade')->onUpdate('cascade');
+        });
     }
 
     /**
@@ -22,9 +22,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Schema::table('daily_parts', function (Blueprint $table) {
-        //     $table->dropForeign(['products_id']);
-        //     $table->dropColumn('products_id');
-        // });
+        Schema::table('daily_parts', function (Blueprint $table) {
+            $table->dropForeign(['itemPecosa_id']);
+            $table->dropColumn('itemPecosa_id');
+        });
     }
 };

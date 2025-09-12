@@ -180,13 +180,14 @@
                         class="action-btn edit-btn">
                   <mat-icon>edit</mat-icon>
                 </button>
-                
-                <button mat-icon-button 
-                        (click)="openWorkDialog(element)"
-                        matTooltip="Programar mantenimiento"
-                        class="action-btn maintenance-btn">
-                  <mat-icon>engineering</mat-icon>
-                </button>
+                @if(element.state_service === null){
+                  <button mat-icon-button 
+                          (click)="openWorkDialog(element)"
+                          matTooltip="Programar mantenimiento"
+                          class="action-btn maintenance-btn">
+                    <mat-icon>engineering</mat-icon>
+                  </button>
+                }
 
                 <button mat-icon-button 
                         (click)="deleteMechanicalEquipment(element.id)"

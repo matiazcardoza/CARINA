@@ -21,6 +21,7 @@ export interface MechanicalEquipmentElement {
   year: string;
   serial_number: string;
   state: number;
+  state_service?: number;
 }
 
 @Component({
@@ -130,7 +131,6 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
   }
   
   openWorkDialog(mechanicalEquipment: MechanicalEquipmentElement) {
-    console.log('Abrir mantenimiento para:', mechanicalEquipment);
     const dialogRef = this.dialog.open(MechanicalEquipmentWork, {
       width: '900px',
       data: {

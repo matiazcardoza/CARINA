@@ -74,7 +74,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //mechanical equipment
     Route::get('/mechanical-equipment', [MechanicalEquipmentController::class, 'index']);
     Route::post('/mechanical-equipment', [MechanicalEquipmentController::class, 'store']);
-    Route::put('/mechanical-equipment/{id}', [MechanicalEquipmentController::class, 'update']);
+    Route::put('/mechanical-equipment', [MechanicalEquipmentController::class, 'update']);
     Route::delete('/mechanical-equipment/{id}', [MechanicalEquipmentController::class, 'destroy']);
 
     //products

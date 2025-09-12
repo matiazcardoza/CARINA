@@ -176,7 +176,7 @@ class ProductController extends Controller
     }
 
     function consultaProductSelect(Request $request){
-        $products = Product::select('id', 'numero', 'item')->get();
+        $products = ItemPecosa::select('id', 'numero', 'item')->get();
         return response()->json([
             'message' => 'productos cargados correctamente',
             'data' => $products

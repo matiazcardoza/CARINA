@@ -1,0 +1,262 @@
+.dashboard-container {
+  padding: 20px;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.full-width {
+  width: 95%;
+}
+
+form{
+  display: flex;
+  justify-content: center;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  color: #333;
+}
+
+/* Summary Cards Styles */
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.summary-card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+}
+
+.summary-card mat-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.summary-card mat-card-header mat-icon {
+  font-size: 2rem;
+  width: 2rem;
+  height: 2rem;
+  color: #666;
+}
+
+.metric-value {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #1976d2;
+  margin: 10px 0;
+}
+
+.metric-label {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+/* Charts Container */
+.charts-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.chart-card {
+  min-height: 300px;
+}
+
+.chart-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #666;
+}
+
+.chart-placeholder mat-icon {
+  font-size: 3rem;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 10px;
+}
+
+/* Header Card Styles */
+.header-card {
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #4a9fe9 0%, #8db2db 100%);
+  color: white;
+}
+
+.header-card .mat-mdc-card-header {
+  padding-bottom: 8px;
+}
+
+.header-avatar {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-avatar mat-icon {
+  font-size: 1.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.header-card mat-card-title {
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.header-card mat-card-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.875rem;
+}
+
+.project-selector {
+  max-width: 300px;
+}
+
+.project-selector .mat-mdc-form-field {
+  --mdc-outlined-text-field-label-text-color: rgba(255, 255, 255, 0.8);
+  --mdc-outlined-text-field-input-text-color: white;
+  --mdc-outlined-text-field-outline-color: rgba(255, 255, 255, 0.5);
+  --mdc-outlined-text-field-hover-outline-color: rgba(255, 255, 255, 0.8);
+  --mdc-outlined-text-field-focused-outline-color: white;
+}
+
+.project-selector .mat-mdc-select-arrow {
+  color: white;
+}
+
+/* Table Styles */
+.table-card {
+  margin-bottom: 20px;
+}
+
+.parts-table {
+  width: 100%;
+}
+
+.service-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.service-hours {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 2px;
+}
+
+.hours-info,
+.fuel-info {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.hours-info mat-icon,
+.fuel-info mat-icon {
+  font-size: 1.2rem;
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.signatures-detail {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 5px;
+  font-size: 0.8rem;
+}
+
+.signatures-detail mat-icon {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+}
+
+.signatures-detail mat-icon.signed {
+  color: #4caf50;
+}
+
+.signatures-detail mat-icon:not(.signed) {
+  color: #ccc;
+}
+
+.evidence-info {
+  display: flex;
+  justify-content: center;
+}
+
+.project-info {
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 10px;
+  }
+  
+  .dashboard-header {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+  
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .charts-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .project-selector {
+    max-width: 100%;
+  }
+}
+
+/* Tab Styles */
+::ng-deep .mat-mdc-tab-group {
+  margin-top: 20px;
+}
+
+::ng-deep .mat-mdc-tab-body-wrapper {
+  padding: 20px 0;
+}
+
+/* Progress Bar Custom Styles */
+::ng-deep .mat-mdc-progress-bar {
+  margin-top: 8px;
+}
+
+/* Badge Custom Styles */
+::ng-deep .mat-badge-content {
+  font-size: 10px;
+}
+

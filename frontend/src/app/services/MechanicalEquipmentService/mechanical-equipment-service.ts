@@ -51,8 +51,8 @@ export class MechanicalEquipmentService {
     );
   }
 
-  updateMechanicalEquipment(id: number, mechanicalEquipmentData: CreateMechanicalEquipmentData): Observable<MechanicalEquipmentElement> {
-    return this.http.put<SingleApiResponse>(`${this.apiUrl}/api/mechanical-equipment/${id}`, mechanicalEquipmentData, {
+  updateMechanicalEquipment(mechanicalEquipmentData: CreateMechanicalEquipmentData): Observable<MechanicalEquipmentElement> {
+    return this.http.put<SingleApiResponse>(`${this.apiUrl}/api/mechanical-equipment`, mechanicalEquipmentData, {
       withCredentials: true
     }).pipe(
       map(response => response.data)
