@@ -336,20 +336,20 @@ class MovementKardexController extends Controller
     public function store(StoreMovementPecosaRequest $request)
     {
 
-        
+        // return $request;
         $data = $request->validated();
         return DB::transaction(function () use ($request, $data) {
 
             $sil = $request->input('silucia_pecosa', []);
 
             // Normaliza tipos clave
-            $data['id_container_silucia'] = (int) $data['id_container_silucia'];
+            $data['id_pecosa_silucia'] = (string) $data['id_pecosa_silucia'];
             $amount = (float) $data['amount'];
             $isEntrada = $data['movement_type'] === 'entrada';
 
             // 1) Buscar producto por par SILUCIA con LOCK para consistencia
 
-            $item_pecosa = ItemPecosa::where('id_container_silucia', $data['id_container_silucia'])
+            $item_pecosa = ItemPecosa::where('id_pecosa_silucia', $data['id_pecosa_silucia'])
                 ->where('id_item_pecosa_silucia', $data['id_item_pecosa_silucia'])
                 ->lockForUpdate()
                 ->first();
@@ -359,7 +359,7 @@ class MovementKardexController extends Controller
             if (!$item_pecosa) {
                 // Si no existe, lo creamos (ya "bloqueado" por la transacción)
                 $item_pecosa = ItemPecosa::create([
-                    'id_container_silucia'   => $data['id_container_silucia'],
+                    'id_pecosa_silucia'   => $data['id_pecosa_silucia'],
                     'id_item_pecosa_silucia' => $data['id_item_pecosa_silucia'],
 
                     'anio'              => $sil['anio']          ?? null,
@@ -390,7 +390,7 @@ class MovementKardexController extends Controller
             } else {
                 // Actualiza esenciales si vienen
                 $item_pecosa->fill(array_filter([
-                    'id_container_silucia'   => $data['id_container_silucia'],
+                    'id_pecosa_silucia'   => $data['id_pecosa_silucia'],
                     'id_item_pecosa_silucia' => $data['id_item_pecosa_silucia'],
                     'anio'              => $sil['anio']          ?? null,
                     'numero'            => $sil['numero']        ?? null,
@@ -495,7 +495,7 @@ class MovementKardexController extends Controller
 
             return response()->json([
                 'ok'       => true,
-                'item_pecosa'  => $item_pecosa->only(['id','id_container_silucia','id_item_pecosa_silucia','quantity_received','quantity_issued','quantity_on_hand']),
+                'item_pecosa'  => $item_pecosa->only(['id','id_pecosa_silucia','id_item_pecosa_silucia','quantity_received','quantity_issued','quantity_on_hand']),
                 'movement' => $movement,
                 'people'   => [
                     'attached_dnis' => $attached,
@@ -507,13 +507,18 @@ class MovementKardexController extends Controller
 
 
     // public function indexBySiluciaIds(Request $request, $id_order_silucia, $id_product_silucia)
-    public function indexBySiluciaIds(Request $request, $containerId, $itemId)
+    public function indexBySiluciaIds(Request $request, $pecosaId, $itemId)
     {
+
+        // return "hola mundo";
+        // return $pecosaId;
         // 1) Buscar el “gancho” Product por la pareja de SILUCIA
         // $product = Product::where('id_order_silucia', $id_order_silucia)
         // $product = ItemPecosa::where('id_order_silucia', $id_order_silucia)->where('id_product_silucia', $id_product_silucia)->firstOrFail(); // 404 si no existe
-        $itemPecosa = ItemPecosa::where('id_container_silucia', $containerId)->where('id_item_pecosa_silucia', $itemId)->firstOrFail(); // 404 si no existe
-
+        $itemPecosa = ItemPecosa::where('id_pecosa_silucia', $pecosaId)->where('id_item_pecosa_silucia', $itemId)->firstOrFail(); // 404 si no existe
+        // return $itemPecosa;
+        // $itemPecosa = ItemPecosa::where('id_pecosa_silucia', 1)->where('id_item_pecosa_silucia', 42336)->firstOrFail(); // 404 si no existe
+// return $itemPecosa;
         // 2) Traer movimientos (puedes paginar si quieres)
         //    Si quieres TODO: ->get();
         //    Si prefieres paginar: ?per_page=20
@@ -552,15 +557,16 @@ class MovementKardexController extends Controller
         ]);
     }
 
-    public function pdf(Request $request, $id_container_silucia, $id_item_pecosa_silucia){
+    public function pdf(Request $request, $pecosaId, $id_item_pecosa_silucia){
 
 
         // no se usaran estos filtros, deberan eliminarse
         // orden -> producto
         // orden ->itemPecosa
         // $pecosa = Product::where('id_order_silucia', $id_order_silucia)->where('id_product_silucia', $id_product_silucia)->firstOrFail();
-        $pecosa = ItemPecosa::where('id_container_silucia', $id_container_silucia)->where('id_item_pecosa_silucia', $id_item_pecosa_silucia)->firstOrFail();
-        Log::info($pecosa);
+        // $pecosa = ItemPecosa::where('id_container_silucia', $pecosaId)->where('id_item_pecosa_silucia', $id_item_pecosa_silucia)->firstOrFail();
+        $pecosa = ItemPecosa::where('id_pecosa_silucia', $pecosaId)->where('id_item_pecosa_silucia', $id_item_pecosa_silucia)->firstOrFail();
+        // Log::info($pecosa);
 
         // Cargar relaciones con filtros/orden
         $pecosa->load([
@@ -617,7 +623,7 @@ class MovementKardexController extends Controller
         // 2) Texto de introducción (USA lo que tengas en product, con fallback)
         $obra       = (string)($pecosa->desmeta ?? '—');
         $material   = (string)($pecosa->item ?? '—');
-        $comprobante= (string)("OC-{$pecosa->id_order_silucia}" ?? "OC-{$id_container_silucia}");
+        $comprobante= (string)("OC-{$pecosa->id_order_silucia}" ?? "OC-{$pecosaId}");
 
         // ============================
         // Guardado idéntico a tu flujo
@@ -627,7 +633,7 @@ class MovementKardexController extends Controller
 
         // 3) QR único por PDF (URL firmada simple)
         // kardex_02874_249069_20250831_021917_10.pdf  ---> id de la orden / id del item / año, mes día /  hora, minuto, segundo / milisegundos
-        $base = 'kardex_'. $id_container_silucia . '_'. $id_item_pecosa_silucia.'_'. now()->format('Ymd_His_'). substr(now()->format('u'), 0, 3);
+        $base = 'kardex_'. $pecosaId . '_'. $id_item_pecosa_silucia.'_'. now()->format('Ymd_His_'). substr(now()->format('u'), 0, 3);
         $filename = $base . '.pdf';
         $relativePath = "{$dir}/{$filename}";
         // se debe crear el path para que se pueda descargar nuevamente el pdf por un codigo qr

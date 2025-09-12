@@ -15,8 +15,13 @@ return new class extends Migration
             $table->id(); // equivale a bigIncrements('id')
 
             // Referencias externas al sistema Silucia
-            $table->unsignedBigInteger('id_container_silucia');     // contenedor (nota de entrada / inventario / orden)
+            // $table->unsignedBigInteger('id_container_silucia');     // contenedor (nota de entrada / inventario / orden)
+            // $table->unsignedBigInteger('id_pecosa_silucia');     // contenedor (nota de entrada / inventario / orden)
+            $table->string('id_pecosa_silucia', 10);     // contenedor (nota de entrada / inventario / orden)
             $table->unsignedBigInteger('id_item_pecosa_silucia');   // ID del ítem en Silucia
+
+            
+
 
             // Datos administrativos y logísticos (datos que vienen de silucia)
             $table->year('anio')->nullable();
@@ -52,16 +57,9 @@ return new class extends Migration
 
             $table->timestamps();
 
-            // Índices útiles para búsquedas frecuentes
-            $table->index('id_container_silucia', 'idx_id_container_silucia');
-            $table->index(['anio', 'numero'], 'idx_anio_numero');
-            $table->index('idsalidadet', 'idx_idsalidadet');
-
-            // Unicidad: misma combinación en el sistema externo no debe repetirse
-            $table->unique(
-                ['id_container_silucia', 'id_item_pecosa_silucia'],
-                'unique_container_item_silucia'
-            );
+            $table->index('id_pecosa_silucia', 'idx_itempecosa_pecosa');
+            $table->index('id_item_pecosa_silucia', 'idx_itempecosa_item');
+            $table->unique(['id_pecosa_silucia', 'id_item_pecosa_silucia'], 'uq_pecosa_item');
         });
     }
 
