@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\ObraIndexController;
+// use App\Http\Controllers\Admin\UserIndexController;
+use App\Http\Controllers\UserIndexController;
 use App\Http\Controllers\DailyPartController;
 use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\MechanicalEquipmentController;
@@ -15,14 +18,19 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PurchaseOrdersController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\OCController;
 use App\Models\Service;
 
 use App\Http\Controllers\PecosaController;
 use App\Http\Controllers\FuelOrderController;
+use App\Http\Controllers\MembersController;
+use App\Http\Controllers\MovementController;
+use App\Http\Controllers\ObrasController;
 use App\Http\Controllers\SignaturesController;
 use App\Http\Controllers\RoleController;
 use App\Models\SignatureFlow;
 use App\Models\SignatureStep;
+use App\Models\User;
 
 // use App\Http\Controllers\PdfControllerKardex;
 // use Illuminate\Support\Facades\Auth;
@@ -150,7 +158,50 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Route::get('example-qr', [PdfControllerKardex::class, 'generateQRCcode']);
 
 
+// ------------Rutas para actualizacion de sistema normal a tenant------------:
+
+// Módulo CLÁSICO (no requiere obra) => no afecta a tu colega
+Route::middleware(['auth:sanctum'])->prefix('/admin')->group(function () {
+  Route::get('/users', [UserIndexController::class, 'index']);
+  Route::get('/obras', [ObraIndexController::class, 'index']);
+  // gestión de membresías y roles POR OBRA (admin)
+  Route::get('/obras/{obra}/miembros', [MembersController::class,'index']);     // devuelve todos los usuario miembros de esta obra
+  Route::post('/obras/{obra}/miembros', [MembersController::class,'upsert']);   // asigna user + roles por obra
+  Route::delete('/obras/{obra}/miembros/{user}', [MembersController::class,'destroy']);
+});
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/me/obras', [ObrasController::class,'mine']);
+});
+
+Route::middleware(['auth:sanctum','resolve.obra'])->group(function () {
+    // Route::get('/me/obras', [ObrasController::class,'mine']); // listado para el selector, aqui se devuelve todas las obras de un usuario, para que el usuario pueda seleccionar aquella con la que va a trabajar
+// Route::middleware(['resolve.obra'])->group(function () {
+  Route::get('/ordenes-compra', [OCController::class,'index']);
+//   Route::get('/ordenes-compra', [ObrasController::class,'index']);
+  Route::post('/items/{item}/movements', [MovementController::class,'store']);
+  // ...más endpoints scropeados
+});
+
+Route::get('get-roles-by-scope', function(){
+    // Fijar el team/obra actual
+    setPermissionsTeamId(2);
+
+    // Obtener el usuario
+    $user = User::findOrFail(1);
+    // return $user;
+    // Limpiar relaciones cacheadas para que se recarguen con el nuevo team
+    $user->unsetRelation('roles')->unsetRelation('permissions');
+
+    // Obtener roles del usuario en este team/obra
+    return $user->roles;
+});
+
+
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('fuel-orders', FuelOrderController::class);
     Route::patch('fuel-orders/{fuelOrder}/decision', [FuelOrderController::class, 'decision']);
 });
+
+

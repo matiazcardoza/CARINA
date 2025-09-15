@@ -21,10 +21,12 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         $this->call([
-            RoleDailyPartsSeeder::class,
-            UserAdminSeeder::class,
-            RolesAndPermissionsSeeder::class,
-            UserSeeder::class,
+            // RoleDailyPartsSeeder::class,
+            // UserAdminSeeder::class,
+            // RolesAndPermissionsSeeder::class,
+            // UserSeeder::class,
+            PermissionRolesSeeder::class,
+            DemoTenantSeeder::class,
         ]);
     }
 }
