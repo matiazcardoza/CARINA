@@ -43,7 +43,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     //Users Routes
-    Route::get('/users', [UserController::class, 'index']);
+    // Route::get('/users', [UserController::class, 'index']);
     Route::get('/users-consult/{dni}', [UserController::class, 'consultUsers']);
     Route::get('/users-roles', [UserController::class, 'getRoles']);
     Route::post('/users-create', [UserController::class, 'createUser']);
@@ -101,7 +101,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 });
 
-
+Route::get('/users', [UserController::class, 'index']);
 Route::middleware(['auth:sanctum'])->group(function () {
 
     // ---------------------------Revisar y eliminar estas endopitns con sus metodos----------------------------------
