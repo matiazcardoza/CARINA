@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\DailyPart;
+use App\Models\DocumentDailyPart;
+use App\Models\ItemPecosa;
 use App\Models\MechanicalEquipment;
 use App\Models\MovementKardex;
 use App\Models\OrderSilucia;
@@ -13,6 +15,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class DailyPartController extends Controller
 {
@@ -34,9 +37,10 @@ class DailyPartController extends Controller
 
     function store(Request $request)
     {
+        Log::info('request', $request->all());
         $dailyPart = DailyPart::create([
             'service_id' => $request->service_id,
-            'products_id' => $request->product_id,
+            'itemPecosa_id' => $request->product_id,
             'work_date' => $request->work_date,
             'start_time' => $request->start_time,
             'initial_fuel' => $request->initial_fuel,
@@ -48,17 +52,17 @@ class DailyPartController extends Controller
             'fuel_consumed' => $servicio->fuel_consumed + $request->initial_fuel
         ]);
 
-        $product = Product::find($request->product_id);
+        $product = ItemPecosa::find($request->product_id);
         
         $product->update([
-            'out_qty' => $request->initial_fuel,
-            'stock_qty' => $product->stock_qty - $request->initial_fuel,
+            'quantity_issued' => $request->initial_fuel,
+            'quantity_on_hand' => $product->stock_qty - $request->initial_fuel,
             'last_movement_at'=> now(),
         ]);
 
         if($request->initial_fuel){
             $MovementKardex = MovementKardex::create([
-                'product_id' => $product->id,
+                'item_pecosa_id' => $product->id,
                 'movement_type' => 'salida',
                 'movement_date' => now(),
                 'amount' => $request->initial_fuel,
@@ -81,18 +85,18 @@ class DailyPartController extends Controller
         $dailyPart = DailyPart::findOrFail($request->id);
 
         if($dailyPart->products_id != $request->product_id){
-            $prevProduct = Product::find($dailyPart->products_id);
+            $prevProduct = ItemPecosa::find($dailyPart->products_id);
 
             $prevProduct->update([
-                'in_qty' => $dailyPart->initial_fuel,
-                'stock_qty' => $prevProduct->stock_qty + $dailyPart->initial_fuel
+                'quantity_received' => $dailyPart->initial_fuel,
+                'quantity_on_hand' => $prevProduct->stock_qty + $dailyPart->initial_fuel
             ]);
         } else {
-            $product = Product::find($request->product_id);
+            $product = ItemPecosa::find($request->product_id);
             $diferentFuel = $request->initial_fuel - $dailyPart->initial_fuel;
             $product->update([
-                'out_qty' => $request->initial_fuel,
-                'stock_qty' => $product->stock_qty + $diferentFuel
+                'quantity_issued' => $request->initial_fuel,
+                'quantity_on_hand' => $product->stock_qty + $diferentFuel
             ]);
         }
 
@@ -104,14 +108,14 @@ class DailyPartController extends Controller
         ]);
 
         $dailyPart->update([
-            'products_id' => $request->product_id,
+            'itemPecosa_id' => $request->product_id,
             'initial_fuel' => $request->initial_fuel,
             'description' => $request->description
         ]);
 
         $MovementKardex = MovementKardex::find($dailyPart->movement_kardex_id);
         $MovementKardex->update([
-            'product_id' => $request->product_id,
+            'item_pecosa_id' => $request->product_id,
             'amount' => $request->initial_fuel
         ]);
 
@@ -149,6 +153,7 @@ class DailyPartController extends Controller
             'end_time'    => $request->end_time,
             'occurrences' => $request->occurrence,
             'time_worked' => $workedTime,
+            'state'       => 2
         ]);
 
         if ($request->hasFile('images')) {
@@ -173,7 +178,6 @@ class DailyPartController extends Controller
 
     public function generatePdf(Request $request, $serviceId)
     {
-        Log::info('request', $request->all());        
         $service = Service::find($serviceId);
         $orderSilucia = OrderSilucia::find($service->order_id);
         $dailyPart = DailyPart::where('work_date', $request->date)
@@ -194,9 +198,28 @@ class DailyPartController extends Controller
         ];
 
         $pdf = Pdf::loadView('pdf.daily_part', $data);
-
         $pdf->setPaper('A4', 'portrait');
 
-        return $pdf->stream('anexo_01_planilla.pdf');
+        $directory = "daily_parts/{$serviceId}";
+        $fileName = "daily_part_{$request->date}.pdf";
+        $filePath = "{$directory}/{$fileName}";
+
+        Storage::disk('public')->put($filePath, $pdf->output());
+
+        $document = DocumentDailyPart::firstOrCreate(
+            ['file_path' => $filePath],
+            ['state' => 1]
+        );
+        
+        $dailypart = DailyPart::where('work_date', $request->date);
+        $dailypart->update([
+            'document_id' => $document->id,
+            'state' => 3
+        ]);
+
+        return response()->json([
+            'message' => 'Save pdf completed successfully',
+            'data' => $dailyPart
+        ], 201);
     }
 }

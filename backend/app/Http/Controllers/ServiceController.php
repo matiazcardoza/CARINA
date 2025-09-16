@@ -350,4 +350,13 @@ class ServiceController extends Controller
 
         return $pdf->stream('liquidacion_servicio_alquiler.pdf');
     }
+
+    public function getPathPdf($id)
+    {
+        $service = Service::find($id);
+        return response()->json([
+            'message' => 'Service retrieved successfully',
+            'data' => $service
+        ]);
+    }
 }

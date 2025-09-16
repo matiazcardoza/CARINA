@@ -356,7 +356,7 @@
         <tr>
             <td class="info-label">FECHA:</td>
             <td>
-                <span class="info-line">{{ \Carbon\Carbon::now()->format('d/m/Y') }}</span>
+                <span class="info-line">{{ $minDate }}</span>
             </td>
         </tr>
     </table>

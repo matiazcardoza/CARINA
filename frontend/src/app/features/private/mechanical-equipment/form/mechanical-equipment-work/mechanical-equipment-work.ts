@@ -184,19 +184,15 @@ export class MechanicalEquipmentWork implements OnInit {
     formData.append('maquinaria_equipo', this.data.mechanicalEquipment.machinery_equipment || '');
     formData.append('maquinaria_marca', this.data.mechanicalEquipment.brand || '');
     formData.append('maquinaria_modelo', this.data.mechanicalEquipment.model || '');
+    formData.append('maquinaria_placa', this.data.mechanicalEquipment.plate || '');
     formData.append('maquinaria_serie', this.data.mechanicalEquipment.serial_number || '');
     formData.append('operador', this.operatorForm.value.operatorName || '');
     
-    // Agregar fechas formateadas
-    if (this.operatorForm.value.start_date) {
-      const startDate = new Date(this.operatorForm.value.start_date);
-      formData.append('fecha_inicial', this.formatDate(startDate));
-    }
+    const startDate = new Date(this.operatorForm.value.start_date);
+    formData.append('start_date', this.formatDate(startDate));
     
-    if (this.operatorForm.value.end_date) {
-      const endDate = new Date(this.operatorForm.value.end_date);
-      formData.append('fecha_final', this.formatDate(endDate));
-    }
+    const endDate = new Date(this.operatorForm.value.end_date);
+    formData.append('end_date', this.formatDate(endDate));
         
     if (this.selectedMeta) {
       formData.append('meta_id', this.selectedMeta.idmeta || '');

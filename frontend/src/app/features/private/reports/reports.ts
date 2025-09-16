@@ -15,7 +15,7 @@ import { MatAutocomplete, MatAutocompleteModule } from '@angular/material/autoco
 import { Observable, startWith, map, catchError, of } from 'rxjs';
 import { WorkLogElement } from '../../../features/private/daily-work-log/daily-work-log';
 import { DailyWorkLogService } from '../../../services/DailyWorkLogService/daily-work-log-service';
-import { ReportsServicesService } from '../../../services/RepostsServicesService/reports-services-service';
+import { ReportsServicesService } from '../../../services/ReportsServicesService/reports-services-service';
 import { MatInputModule } from '@angular/material/input';
 import { MatDialog } from '@angular/material/dialog';
 import { ViewEvidence } from './view/view-evidence/view-evidence';

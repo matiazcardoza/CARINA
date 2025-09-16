@@ -148,6 +148,7 @@
 .work-log-table {
   width: 100%;
   background: white;
+  table-layout: fixed; /* Permite control preciso del ancho de columnas */
 }
 
 /* Headers de tabla */
@@ -180,11 +181,60 @@
   background-color: #f5f5f5;
 }
 
-/* Celdas específicas */
+/* ===== DISTRIBUCIÓN MEJORADA DE COLUMNAS ===== */
+
+/* Columna ID - Compacta */
+.id-column,
 .id-cell {
   width: 80px;
+  min-width: 80px;
+  max-width: 80px;
   padding-left: 24px !important;
 }
+
+/* Columna Descripción - Amplia para contenido principal */
+.description-column,
+.description-cell {
+  width: 35%; /* Mayor espacio para descripción */
+  min-width: 200px;
+  padding-right: 16px !important;
+  padding-left: 16px !important;
+}
+
+/* Columna Fecha - Tamaño medio */
+.date-column,
+.date-cell {
+  width: 140px;
+  min-width: 140px;
+  max-width: 140px;
+}
+
+/* Columnas de Tiempo - Compactas */
+.time-column,
+.time-cell {
+  width: 110px;
+  min-width: 110px;
+  max-width: 110px;
+}
+
+/* Columna Combustible - Tamaño medio */
+.fuel-column,
+.fuel-cell {
+  width: 140px;
+  min-width: 140px;
+  max-width: 140px;
+}
+
+/* Columna Acciones - Fija */
+.actions-column,
+.actions-cell {
+  width: 180px;
+  min-width: 180px;
+  max-width: 180px;
+  padding-right: 24px !important;
+}
+
+/* ===== ESTILOS ESPECÍFICOS DE CELDAS ===== */
 
 .id-badge {
   background: #e3f2fd;
@@ -193,19 +243,28 @@
   border-radius: 12px;
   font-size: 0.85rem;
   font-weight: 600;
+  display: inline-block;
 }
 
-.date-cell {
-  min-width: 140px;
+/* Estilos mejorados para descripción */
+.description-cell {
+  line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.description-cell span {
+  display: block;
+  max-height: 3em; /* Limita a 2 líneas aproximadamente */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #424242;
+  font-weight: 400;
 }
 
 .date-value {
   font-weight: 500;
   color: #424242;
-}
-
-.time-cell {
-  min-width: 120px;
 }
 
 .time-info {
@@ -224,10 +283,7 @@
 .time-value {
   font-family: 'Roboto Mono', monospace;
   font-weight: 500;
-}
-
-.fuel-cell {
-  min-width: 140px;
+  font-size: 0.9rem;
 }
 
 .fuel-info {
@@ -247,15 +303,11 @@
   font-size: 0.85rem;
 }
 
-.actions-cell {
-  width: 180px;
-  padding-right: 24px !important;
-}
-
 .action-buttons {
   display: flex;
   gap: 4px;
   justify-content: flex-end;
+  flex-wrap: nowrap;
 }
 
 /* Botones de acción */
@@ -263,6 +315,7 @@
   width: 36px;
   height: 36px;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .view-btn {
@@ -305,6 +358,14 @@
   background-color: #f3e5f5;
 }
 
+.signature-btn {
+  color: #bc68e0;
+}
+
+.signature-btn:hover {
+  background-color: #ede5ee;
+}
+
 /* Paginación */
 .pagination-container {
   padding: 16px 24px;
@@ -312,7 +373,24 @@
   background-color: #fafafa;
 }
 
-/* Responsive design */
+/* ===== RESPONSIVE DESIGN MEJORADO ===== */
+
+@media (max-width: 1200px) {
+  /* Ajustes para pantallas medianas */
+  .description-column,
+  .description-cell {
+    width: 30%;
+    min-width: 180px;
+  }
+  
+  .fuel-column,
+  .fuel-cell {
+    width: 120px;
+    min-width: 120px;
+    max-width: 120px;
+  }
+}
+
 @media (max-width: 768px) {
   .daily-work-log-container {
     padding: 16px;
@@ -344,7 +422,7 @@
     font-size: 0.8rem;
   }
   
-  /* Ocultar algunas columnas en móvil */
+  /* Redistribución para móvil - ocultar columnas menos importantes */
   .id-column,
   .id-cell {
     display: none;
@@ -353,6 +431,27 @@
   .fuel-column,
   .fuel-cell {
     display: none;
+  }
+  
+  /* Ajustar descripción para móvil */
+  .description-column,
+  .description-cell {
+    width: 40%;
+    min-width: 150px;
+  }
+  
+  /* Reducir columnas de tiempo */
+  .time-column,
+  .time-cell {
+    width: 90px;
+    min-width: 90px;
+  }
+  
+  /* Ajustar acciones */
+  .actions-column,
+  .actions-cell {
+    width: 120px;
+    min-width: 120px;
   }
 }
 
@@ -375,93 +474,116 @@
     height: 3rem;
     width: 3rem;
   }
+  
+  /* Para pantallas muy pequeñas, solo mostrar descripción, fecha y acciones */
+  .time-column:not(:first-of-type),
+  .time-cell:not(:first-of-type) {
+    display: none;
+  }
+  
+  .description-column,
+  .description-cell {
+    width: 50%;
+    min-width: 120px;
+  }
+  
+  .date-column,
+  .date-cell {
+    width: 100px;
+    min-width: 100px;
+  }
+  
+  .actions-column,
+  .actions-cell {
+    width: 90px;
+    min-width: 90px;
+  }
+  
+  .action-buttons {
+    gap: 2px;
+  }
+  
+  .action-btn {
+    width: 32px;
+    height: 32px;
+  }
 }
 
-/* Contenedor del grupo de navegación */
+/* Controles de fecha compactos */
 .date-controls.compact {
   display: flex;
   align-items: center;
-  gap: 8px; /* Reducimos el espacio entre elementos */
-  flex-wrap: nowrap; /* Evitamos que se rompa la línea si hay poco espacio */
+  gap: 8px;
+  flex-wrap: nowrap;
 }
 
 .date-nav-group {
   display: flex;
   align-items: center;
-  gap: 0; /* Eliminamos el espacio entre los elementos del grupo para que se vean unidos */
+  gap: 0;
   border-radius: 4px;
 }
 
-/* Estilos para el campo de fecha compacto */
 .date-picker-field.compact-field {
-  width: 140px; /* Reducimos el ancho del input */
+  width: 140px;
   margin-top: 0;
   margin-bottom: 0;
   font-size: 0.9em;
 }
 
-/* Ajustes finos para el input y el mat-label */
 .date-picker-field.compact-field .mat-form-field-wrapper {
   padding-bottom: 0;
 }
 
 .date-picker-field.compact-field .mat-form-field-flex {
-  padding: 0 8px; /* Reducimos el padding interno */
+  padding: 0 8px;
 }
 
 .date-picker-field.compact-field .mat-form-field-appearance-outline .mat-form-field-infix {
-  padding: 8px 0; /* Ajustamos el padding para reducir la altura */
+  padding: 8px 0;
 }
 
-/* Reducimos el tamaño de los botones de navegación para que coincidan con la altura del input */
 .date-nav-group button.mat-icon-button {
   width: 36px;
   height: 36px;
   line-height: 36px;
 }
 
-/* Eliminamos bordes redundantes para una apariencia unificada */
 .date-nav-group button:first-child {
   border-right: none;
 }
+
 .date-nav-group button:last-child {
   border-left: none;
 }
+
 .date-picker-field.compact-field {
   .mat-form-field-appearance-outline .mat-form-field-outline-start,
   .mat-form-field-appearance-outline .mat-form-field-outline-end,
   .mat-form-field-appearance-outline .mat-form-field-outline-gap {
-    border-color: transparent !important; /* Escondemos el borde del input para que el borde del grupo sea el principal */
+    border-color: transparent !important;
   }
 }
 
-/* Ajuste del botón 'Hoy' */
 .today-button {
-  height: 36px; /* Hacemos que la altura coincida con el grupo de navegación */
+  height: 36px;
   font-size: 0.8em;
   padding: 0 12px;
 }
 
 .date-picker-field.small-date-field {
-  width: 150px; /* Define un ancho fijo para que no sea muy largo */
-  font-size: 0.9em; /* Reduce el tamaño de la fuente para que se vea más pequeño */
+  width: 150px;
+  font-size: 0.9em;
 }
 
-/* Ajusta el padding interno del mat-form-field para reducir la altura.
-  La clave es el .mat-form-field-wrapper
-*/
 .date-picker-field.small-date-field .mat-form-field-wrapper {
   padding-bottom: 0;
 }
 
-/* Ajusta el padding de la sección del input (.mat-form-field-infix)
-  Esto directamente afecta la altura del campo de entrada
-*/
 .date-picker-field.small-date-field .mat-form-field-appearance-outline .mat-form-field-infix {
-  padding: 8px 0; /* Reduce el padding vertical, haciendo el input más "delgado" */
+  padding: 8px 0;
 }
 
-/* Opcional: Ajusta el tamaño de la etiqueta si es necesario */
 .date-picker-field.small-date-field .mat-form-field-label-wrapper {
-  padding-top: 8px; /* Reduce el espacio sobre la etiqueta flotante */
+  padding-top: 8px;
 }

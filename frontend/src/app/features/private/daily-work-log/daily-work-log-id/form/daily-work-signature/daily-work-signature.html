@@ -1,0 +1,32 @@
+<div class="fullscreen-signature-container">
+  <mat-toolbar color="primary" class="signature-toolbar">
+    <span>Documento de parte diaria - Reporte de Fecha {{ data.date }}</span>
+    <span class="toolbar-spacer"></span>
+    
+    <button mat-icon-button
+            (click)="onCancel()"
+            matTooltip="Cancelar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </mat-toolbar>
+
+  <div>
+    aqui debe de ir el contenido del pdf
+  </div>
+
+  <mat-toolbar class="signature-actions">
+    <span class="toolbar-spacer"></span>
+    
+    <button mat-stroked-button
+            (click)="onCancel()"
+            style="margin-right: 10px;">
+      Cancelar
+    </button>
+    
+    <button mat-raised-button
+            color="primary"
+            (click)="onSave()">
+      Guardar Firma
+    </button>
+  </mat-toolbar>
+</div>

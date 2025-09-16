@@ -16,6 +16,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { Observable, startWith, map, catchError, of } from 'rxjs';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { MechanicalEquipmentService } from '../../../../../services/MechanicalEquipmentService/mechanical-equipment-service';
 import { MechanicalEquipmentElement } from '../../../../private/mechanical-equipment/mechanical-equipment';
 
@@ -59,6 +61,8 @@ interface MetaApiResponse {
     MatSelectModule,
     MatOptionModule,
     MatAutocompleteModule,
+    MatDatepickerModule,
+    MatNativeDateModule
   ],
   templateUrl: './daily-work-log-mechanical.html',
   styleUrl: './daily-work-log-mechanical.css'
@@ -93,7 +97,9 @@ export class DailyWorkLogMechanical implements OnInit {
   ) {
     this.searchForm = this.fb.group({
       maquinariaSearch: ['', Validators.required],
-      operador: ['', Validators.required]
+      operador: ['', Validators.required],
+      start_date: ['', Validators.required],
+      end_date: ['', Validators.required]
     });
 
     // Nuevo FormGroup para la búsqueda de Meta
@@ -227,18 +233,23 @@ export class DailyWorkLogMechanical implements OnInit {
     if (this.selectedMaquinaria && this.selectedMeta) {
       const formData = new FormData();
       const operador = this.searchForm.get('operador')?.value;
+      const startDate = this.searchForm.get('start_date')?.value;
+      const endDate = this.searchForm.get('end_date')?.value;
+  
+      formData.append('start_date', this.formatDate(startDate));
+      formData.append('end_date', this.formatDate(endDate));
         
       formData.append('maquinaria_id', this.selectedMaquinaria.id.toString());
       formData.append('maquinaria_equipo', this.selectedMaquinaria.machinery_equipment || '');
       formData.append('maquinaria_marca', this.selectedMaquinaria.brand || '');
       formData.append('maquinaria_modelo', this.selectedMaquinaria.model || '');
+      formData.append('maquinaria_placa', this.selectedMaquinaria.plate || '');
       formData.append('maquinaria_serie', this.selectedMaquinaria.serial_number || '');
       formData.append('operador', operador);
         
       formData.append('meta_id', this.selectedMeta.idmeta);
       formData.append('meta_codigo', this.selectedMeta.codmeta);
       formData.append('meta_descripcion', this.selectedMeta.desmeta);
-
       this.dailyWorkLogService.importOrder(formData).subscribe({
         next: (response) => {
           this.isLoading = false;
@@ -260,6 +271,13 @@ export class DailyWorkLogMechanical implements OnInit {
     }
   }
 
+  private formatDate(date: Date): string {
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   getEstadoInfo(state: number): EstadoMaquinaria {
     return this.estadosMap.find(estado => estado.value === state) || 
            { value: state, label: 'Desconocido', color: 'warn' };
@@ -272,5 +290,27 @@ export class DailyWorkLogMechanical implements OnInit {
   // Getter para verificar si el formulario de importación está completo
   get canImportOrder(): boolean {
     return !!(this.selectedMaquinaria && this.selectedMeta);
+  }
+
+  get startDateError(): string {
+    const control = this.searchForm.get('start_date');
+    if (control?.hasError('required')) return 'La fecha inicial es requerida';
+    if (control?.hasError('matDatepickerParse')) return 'Formato de fecha inválido';
+    return '';
+  }
+
+  // Getter para errores de fecha final
+  get endDateError(): string {
+    const control = this.searchForm.get('end_date');
+    
+    if (control?.hasError('required')) return 'La fecha final es requerida';
+    if (control?.hasError('matDatepickerParse')) return 'Formato de fecha inválido';
+    
+    // Error de rango de fechas a nivel de formulario
+    if (this.searchForm.hasError('dateRangeInvalid') && control?.value) {
+      return 'La fecha final debe ser posterior a la fecha inicial';
+    }
+    
+    return '';
   }
 }

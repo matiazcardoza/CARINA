@@ -99,12 +99,13 @@ export class DailyWorkLogService {
     );
   }
 
-  generatePdf(id: number, date?: string): Observable<Blob> {
-    return this.http.post(`${this.apiUrl}/api/daily-work-log/${id}/generate-pdf`, {}, {
-      responseType: 'blob',
+  generatePdf(id: number, date?: string): Observable<WorkLogElement> {
+    return this.http.post<SingleApiResponse>(`${this.apiUrl}/api/daily-work-log/${id}/generate-pdf`, {}, {
       withCredentials: true,
       params: date ? { date } : {}
-    });
+    }).pipe(
+      map(response => response.data)
+    );
   }
 
   getOrderByNumber(orderNumber: string): Observable<any> {
