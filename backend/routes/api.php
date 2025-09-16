@@ -29,6 +29,8 @@ use App\Models\SignatureStep;
 // use App\Http\Controllers\OrderProductoController;
 // use Illuminate\Support\Facades\Storage;
 
+Route::post('/document-signature', [SignatureController::class, 'storeSignature']);
+
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
@@ -70,6 +72,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/daily-work-log/{id}', [DailyPartController::class, 'destroy']);
     Route::post('/daily-work-log/complete', [DailyPartController::class, 'completeWork']);
     Route::post('/daily-work-log/{id}/generate-pdf', [DailyPartController::class, 'generatePdf']);
+    Route::get('/daily-work-document/{WorkLogId}', [DailyPartController::class, 'getDocumentWokLog']);
+
 
     //mechanical equipment
     Route::get('/mechanical-equipment', [MechanicalEquipmentController::class, 'index']);

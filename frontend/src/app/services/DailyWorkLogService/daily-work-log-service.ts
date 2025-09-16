@@ -6,6 +6,7 @@ import { environment } from '../../../environments/environment';
 import { WorkLogIdElement } from '../../features/private/daily-work-log/daily-work-log-id/daily-work-log-id';
 import { WorkLogDataElement } from '../../features/private/dashboards/dashboards';
 import { EvidenceDataElement } from '../../features/private/reports/view/view-evidence/view-evidence';
+import { DocumentDailyPartElement } from '../../features/private/daily-work-log/daily-work-log-id/form/daily-work-signature/daily-work-signature';
 
 interface WorkLogApiResponse {
   message: string;
@@ -26,6 +27,12 @@ interface EvidenceDataApiResponse {
   message: string;
   data: EvidenceDataElement[];
 }
+
+interface DocumentDailyPartApiResponse {
+  message: string;
+  data: DocumentDailyPartElement;
+}
+
 
 interface SingleApiResponse {
   message: string;
@@ -139,6 +146,14 @@ export class DailyWorkLogService {
 
   liquidarServicio(serviceId: number): Observable<WorkLogDataElement[]> {
     return this.http.post<WorkLogDataApiResponse>(`${this.apiUrl}/api/services/liquidar-servicio/${serviceId}`, {}, {
+      withCredentials: true,
+    }).pipe(
+      map(response => response.data)
+    );
+  }
+
+  getWorkLogDocument(workLogId: number): Observable<DocumentDailyPartElement> {
+    return this.http.get<DocumentDailyPartApiResponse>(`${this.apiUrl}/api/daily-work-document/${workLogId}`, {
       withCredentials: true,
     }).pipe(
       map(response => response.data)

@@ -222,4 +222,13 @@ class DailyPartController extends Controller
             'data' => $dailyPart
         ], 201);
     }
+
+    public function getDocumentWokLog($serviceId){
+        $dailyPart = DailyPart::where('service_id', $serviceId)->first();
+        $document = DocumentDailyPart::find($dailyPart->document_id);
+        return response()->json([
+            'message' => 'get document completed successfully',
+            'data' => $document
+        ], 201);
+    }
 }

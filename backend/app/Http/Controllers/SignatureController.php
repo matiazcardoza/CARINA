@@ -300,6 +300,13 @@ class SignatureController extends Controller
         }
         return Storage::download($path, basename($path));
     }
+
+
+    /////////////////////////////////////////CONTROLADOR PARA PARTES DIARIAS//////////////////////////////////////////////////////////////////////
+    public function storeSignature(Request $request){
+        Log::info('ingreso a function');
+        return response()->json(['ok'=>true]);
+    }
 }
 
 

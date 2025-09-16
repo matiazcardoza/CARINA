@@ -3,6 +3,12 @@
     <span>Documento de parte diaria - Reporte de Fecha {{ data.date }}</span>
     <span class="toolbar-spacer"></span>
     
+    <!-- Indicador de estado de firma -->
+    <div *ngIf="isSigned" class="signature-status">
+      <mat-icon class="signed-icon">check_circle</mat-icon>
+      <span class="signed-text">Firmado</span>
+    </div>
+    
     <button mat-icon-button
             (click)="onCancel()"
             matTooltip="Cancelar">
@@ -10,8 +16,51 @@
     </button>
   </mat-toolbar>
 
-  <div>
-    aqui debe de ir el contenido del pdf
+  <div class="pdf-container">
+    <!-- Loading spinner -->
+    <div *ngIf="isLoading" class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Cargando documento...</p>
+    </div>
+
+    <!-- Error message -->
+    <div *ngIf="error && !isLoading" class="error-container">
+      <mat-icon class="error-icon">error</mat-icon>
+      <p>{{ error }}</p>
+      <button mat-raised-button color="primary" (click)="onRetry()">
+        <mat-icon>refresh</mat-icon>
+        Reintentar
+      </button>
+    </div>
+
+    <!-- PDF Viewer -->
+    <iframe 
+      *ngIf="pdfUrl && !isLoading && !error"
+      [src]="pdfUrl"
+      class="pdf-viewer"
+      frameborder="0">
+    </iframe>
+  </div>
+
+  <!-- Sección de firma (nueva) -->
+  <div *ngIf="pdfUrl && !isLoading && !error" class="signature-section">
+    <div class="signature-info">
+      <mat-icon [class]="isSigned ? 'signature-icon signed' : 'signature-icon'">
+        {{ isSigned ? 'verified' : 'edit' }}
+      </mat-icon>
+      <span class="signature-text">
+        {{ isSigned ? 'Documento firmado digitalmente' : 'Documento pendiente de firma' }}
+      </span>
+    </div>
+    
+    <button mat-raised-button 
+            [color]="isSigned ? 'accent' : 'warn'"
+            [disabled]="isLoading"
+            (click)="onSign()"
+            class="sign-button">
+      <mat-icon>{{ isSigned ? 'refresh' : 'create' }}</mat-icon>
+      {{ isSigned ? 'Firmar nuevamente' : 'Firmar documento' }}
+    </button>
   </div>
 
   <mat-toolbar class="signature-actions">
@@ -25,7 +74,10 @@
     
     <button mat-raised-button
             color="primary"
+            [disabled]="!isSigned"
+            [class.pulse-button]="!isSigned"
             (click)="onSave()">
+      <mat-icon>save</mat-icon>
       Guardar Firma
     </button>
   </mat-toolbar>
