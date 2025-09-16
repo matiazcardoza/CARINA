@@ -15,8 +15,8 @@ import { ChangeDetectorRef } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { DailyWorkLogForm } from '../form/daily-work-log-form/daily-work-log-form';
 import { DailyWorkLogUpload } from '../form/daily-work-log-upload/daily-work-log-upload';
+import { DailyWorkSignature } from './form/daily-work-signature/daily-work-signature';
 import { startWith } from 'rxjs/operators';
-
 
 export interface WorkLogIdElement {
   id: number;
@@ -54,7 +54,7 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
 
   constructor(private route: ActivatedRoute, private cdr: ChangeDetectorRef) {}
 
-  displayedColumns: string[] = ['id', 'work_date', 'start_time', 'initial_fuel', 'end_time', 'actions'];
+  displayedColumns: string[] = ['id', 'description', 'work_date', 'start_time', 'initial_fuel', 'end_time', 'actions'];
   dataSource = new MatTableDataSource<WorkLogIdElement>([]);
   private dailyWorkLogService = inject(DailyWorkLogService);
   private dialog = inject(MatDialog);
@@ -83,6 +83,28 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
+  }
+
+  get allRecordsState2(): boolean {
+    return this.dataSource.data.length > 0 && 
+           this.dataSource.data.every(record => record.state === 2);
+  }
+
+  get allRecordsState3(): boolean {
+    return this.dataSource.data.length > 0 && 
+           this.dataSource.data.every(record => record.state === 3);
+  }
+
+  get showCreateButton(): boolean {
+    return !this.allRecordsState3 && this.allRecordsState2;
+  }
+
+  get showPdfButton(): boolean {
+    return this.allRecordsState2 && !this.allRecordsState3;
+  }
+
+  get showSignatureButton(): boolean {
+    return this.allRecordsState3;
   }
 
   loadWorkLogData(): void {
@@ -191,6 +213,43 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
     });
   }
 
+  signaturePdf(id: number) {
+    const dialogRef = this.dialog.open(DailyWorkSignature, {
+      width: '100vw',
+      height: '100vh',
+      maxWidth: '100vw',
+      maxHeight: '100vh',
+      panelClass: ['maximized-dialog-panel', 'no-scroll-dialog'],
+      disableClose: false,
+      hasBackdrop: true,
+      backdropClass: 'maximized-dialog-backdrop',
+      autoFocus: false,
+      restoreFocus: false,
+      data: {
+        workLogId: id,
+        date: this.selectedDate
+      }
+    });
+  
+    setTimeout(() => {
+      const body = document.body;
+      const html = document.documentElement;
+      body.style.overflow = 'hidden';
+      html.style.overflow = 'hidden';
+    }, 0);
+  
+    dialogRef.afterClosed().subscribe(result => {
+      const body = document.body;
+      const html = document.documentElement;
+      body.style.overflow = '';
+      html.style.overflow = '';
+        
+      if (result) {
+        this.reloadData();
+      }
+    });
+  }
+
   deleteWorkLog(id: number) {
     if (confirm('¿Estás seguro de que deseas eliminar este registro?')) {
       Promise.resolve().then(() => {
@@ -219,7 +278,7 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
   }
 
   generatePdf(id: number) {
-    this.dailyWorkLogService.generatePdf(id, this.selectedDate).subscribe({
+    /*this.dailyWorkLogService.generatePdf(id, this.selectedDate).subscribe({
       next: (response: Blob) => {
         const fileURL = URL.createObjectURL(response);
         window.open(fileURL, '_blank');
@@ -227,6 +286,21 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
       error: () => {
         this.error = 'Error al generar el PDF. Por favor, intenta nuevamente.';
       }
+    });*/
+
+    this.dailyWorkLogService.generatePdf(id, this.selectedDate)
+      .subscribe({
+        next: (responde) => {
+          console.log(responde);
+          this.isLoading = false;
+          this.cdr.detectChanges();
+          this.reloadData();
+        },
+        error: (error) => {
+          this.isLoading = false;
+          this.cdr.detectChanges();
+          console.error('Error al actualizar:', error);
+        }
     });
   }
 }

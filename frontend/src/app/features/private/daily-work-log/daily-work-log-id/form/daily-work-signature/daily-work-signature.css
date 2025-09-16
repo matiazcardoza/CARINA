@@ -1,0 +1,72 @@
+/* daily-work-signature.css */
+
+.fullscreen-signature-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background-color: #fafafa;
+}
+
+.signature-toolbar {
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+
+.signature-area h2 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+
+
+.signature-placeholder mat-icon {
+  color: #999;
+  margin-bottom: 10px;
+}
+
+.signature-actions {
+  flex-shrink: 0;
+  background-color: white;
+  border-top: 1px solid #e0e0e0;
+  padding: 10px 20px;
+  position: sticky;
+  bottom: 0;
+}
+
+/* Responsive design para pantallas pequeñas */
+@media (max-width: 768px) {
+  .signature-content {
+    padding: 10px;
+  }
+  
+  .signature-area {
+    padding: 20px;
+    min-width: 95%;
+  }
+  
+  .signature-canvas-container {
+    min-height: 200px;
+    padding: 20px;
+  }
+  
+  .signature-actions {
+    padding: 10px;
+  }
+}
+
+/* Para asegurar que ocupe toda la pantalla en dispositivos móviles */
+@media (max-width: 480px) {
+  .fullscreen-signature-container {
+    height: 100vh;
+    height: 100dvh; /* Para navegadores que soportan dvh */
+  }
+}

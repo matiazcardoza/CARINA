@@ -9,6 +9,16 @@
   margin-bottom: 32px;
 }
 
+.form-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.half-width {
+  flex: 1;
+}
+
 .dialog-title {
   display: flex;
   align-items: center;

@@ -219,7 +219,6 @@ export class DailyWorkLogForm implements OnInit {
           });
         }, 0);
       } else {
-
         setTimeout(() => {
           this.dailyWorkLogService.createWorkLog(workLogData)
             .subscribe({
