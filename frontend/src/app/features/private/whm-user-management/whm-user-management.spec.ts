@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { MySecondFeature } from './my-second-feature';
+import { WhmUserManagement } from './whm-user-management';
 
-describe('MySecondFeature', () => {
-  let component: MySecondFeature;
-  let fixture: ComponentFixture<MySecondFeature>;
+describe('WhmUserManagement', () => {
+  let component: WhmUserManagement;
+  let fixture: ComponentFixture<WhmUserManagement>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MySecondFeature]
+      imports: [WhmUserManagement]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(MySecondFeature);
+    fixture = TestBed.createComponent(WhmUserManagement);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

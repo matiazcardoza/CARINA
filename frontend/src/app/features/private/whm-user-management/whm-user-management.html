@@ -1,0 +1,185 @@
+
+<div class="card">
+  <div>
+    <h1 class="text-3xl font-semibold mb-2">Gestión del Kardex</h1>
+    <p class="text-lg text-gray-500">Aquí se muestran los productos relacionados a las órdenes de compra.</p>
+  </div>
+
+  <p-table
+    #dt1
+    [value]="users()"
+    [paginator]="true"
+    [rows]="pageSize"
+    [totalRecords]="productsTotal()"
+    [lazy]="false"
+    (onLazyLoad)="onProductsLazyLoad($event)"
+
+    [globalFilterFields]="['numero','fecha','detalles_orden','rsocial','ruc','item','detalle','cantidad','desmedida','precio','total_internado','saldo']"
+    selectionMode="single"
+    [(selection)]="selectedProduct"
+    dataKey="idcompradet"
+
+
+    stateStorage="session"
+    stateKey="statedemo-session"
+    [scrollable]="true"
+    scrollDirection="both"
+    [tableStyle]="{ 'min-width': '100rem' }"
+    [loading]="loadingUsers()"
+  
+  >
+  <!-- scrollHeight="flex"  -->
+    <!-- Caption -->
+
+     <!-- BUSQUEDA -->
+    <!-- <ng-template pTemplate="caption">
+      <p-iconfield iconPosition="left">
+        <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+        <input
+          pInputText
+          type="text"
+          [value]="filterProducts()"
+          (input)="getProductsOfSiluciaBackend({numero: $event.target?.value})"
+          placeholder="Global Search"
+        />
+      </p-iconfield>
+    </ng-template> -->
+
+    <ng-template pTemplate="caption">
+      <div
+        style="
+          display:grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap:12px;
+          align-items:end;
+          grid-auto-flow:dense;
+          width:100%;
+        "
+      >
+        <!-- N° Orden -->
+        <p-iconfield style="display:block; width:100%;">
+          <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+          <input pInputText type="text" [(ngModel)]="uiFilters.numero" placeholder="N° de Pecosa" style="width:100%;" />
+        </p-iconfield>
+
+        <!-- Año -->
+        <div style="width:100%;">
+          <input pInputText type="number" [(ngModel)]="uiFilters.anio" placeholder="Año" style="width:100%;" />
+        </div>
+
+        <!-- SIAF -->
+        <!-- <div style="width:100%;">
+          <input pInputText type="text" [(ngModel)]="uiFilters.siaf" placeholder="SIAF" style="width:100%;" />
+        </div> -->
+
+        <!-- RUC -->
+        <!-- <div style="width:100%;">
+          <input pInputText type="text" [(ngModel)]="uiFilters.ruc" placeholder="RUC" style="width:100%;" />
+        </div> -->
+
+        <!-- Razón social -->
+        <!-- <div style="width:100%;">
+          <input pInputText type="text" [(ngModel)]="uiFilters.rsocial" placeholder="Razón social" style="width:100%;" />
+        </div> -->
+
+        <!-- Ítem -->
+        <div style="width:100%;">
+          <input pInputText type="text" [(ngModel)]="uiFilters.item" placeholder="Ítem" style="width:100%;" disabled/>
+        </div>
+
+        <!-- Meta -->
+        <div style="width:100%;">
+          <input pInputText type="text" [(ngModel)]="uiFilters.desmeta" placeholder="Meta (desmeta)" style="width:100%;" disabled/>
+        </div>
+
+        <!-- Email -->
+        <!-- <div style="width:100%;">
+          <input pInputText type="text" [(ngModel)]="uiFilters.email" placeholder="Email proveedor" style="width:100%;" />
+        </div> -->
+
+        <!-- Botones (fila completa, alineados a la derecha) -->
+        <div style="grid-column:1 / -1; display:flex; gap:8px; justify-content:flex-end; margin-top:4px;">
+          <p-button label="Buscar" icon="pi pi-search" (onClick)="onSearchClick()"></p-button>
+          <p-button label="Limpiar" severity="secondary" outlined (onClick)="onClearClick()"></p-button>
+        </div>
+      </div>
+    </ng-template>
+
+
+    <!-- Header -->
+    <ng-template pTemplate="header">
+      <tr>
+        <!-- pSortableColumn="numero"  -->
+        <th style=""> <div class="item_head">Año <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style="min-width: 7rem;"> <div class="item_head">Fecha <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style="min-width: 8rem;"> <div class="item_head">N° de Pecosa <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style="min-width: 7rem;"> <div class="item_head">N° de Item <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style=""> <div class="item_head">Cantidad <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style=""> <div class="item_head">Precio <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style=""> <div class="item_head">Medidad <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style=""> <div class="item_head">Item <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style=""> <div class="item_head">prod_proy <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style="min-width: 7rem;"> <div class="item_head">N° de Meta <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style=""> <div class="item_head">Meta <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style=""> <div class="item_head">desuoper <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+        <th style=""> <div class="item_head">destipodestino <!-- <p-sortIcon field="numero"/> -->  </div> </th>
+
+        <th pFrozenColumn alignFrozen="right" [style]="{ width: '150px', textAlign: 'center' }">
+            <span class="flex items-center gap-2">
+                Acciones
+                <i class="pi pi-cog text-gray-500"></i>
+            </span>
+        </th>
+     </tr>
+    </ng-template>
+
+    <!-- Body -->
+    <ng-template pTemplate="body" let-pecosa>
+      <tr>
+        <td>{{ pecosa.anio }}</td>
+        <td>{{ pecosa.fecha }}</td>
+        <td>{{ pecosa.numero }}</td>
+        <td>{{ pecosa.idsalidadet }}</td>
+        <td>{{ pecosa.cantidad }}</td>
+        <td>{{ pecosa.precio }}</td>
+        <td>{{ pecosa.desmedida }}</td>
+        <td style="padding:0; min-width: 12rem;">
+          <div style="max-height:120px;overflow:auto;line-height:1.35;padding:6px 8px;text-align:justify;word-break:break-word;">
+          {{ pecosa.item}}
+          </div>
+        </td>
+        <td>{{ pecosa.prod_proy }}</td>
+        <td>{{ pecosa.cod_meta }}</td>
+        <td>{{ pecosa.desmeta }}</td>
+        <td>{{ pecosa.desuoper }}</td>
+        
+        <td>{{ pecosa.destipodestino }}</td>
+
+        <!-- Celda congelada a la derecha -->
+        <td pFrozenColumn alignFrozen="right">
+          <div class="flex container_action_buttons gap-2">
+              <!-- label="Ver" -->
+            <p-button
+              icon="pi pi-eye"
+              severity="info"
+              (onClick)="openMovementDetailsModal(pecosa)">
+            </p-button>
+            <!-- label="Agregar" -->
+            <p-button
+              icon="pi pi-plus"
+              severity="success"
+              (onClick)="openMovementModal(pecosa)">
+            </p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <!-- Empty -->
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="13">No se encontraron registros.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

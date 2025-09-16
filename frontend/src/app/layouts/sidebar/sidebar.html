@@ -67,10 +67,26 @@
                 <li routerLink="kardex-management"><a class="menu__link"><i class="pi pi-folder" ></i><span>Gestión del kardex</span></a></li>
                 <li routerLink="digital-signatures"><a class="menu__link"><i class="pi pi-chart-bar"></i><span>Firmas de reportes</span></a></li>
                 <li routerLink="test-requests"><a class="menu__link"><i class="pi pi-cog"></i><span>Settings</span></a></li>
+                <li routerLink="whm-user-management"><a class="menu__link"><i class="pi pi-android"></i><span>Gestión de usuarios</span></a></li>
+                <li routerLink="whm-kardex-management"><a class="menu__link"><i class="pi pi-warehouse" ></i><span>Gestión del kardex v2</span></a></li>
               </ul>
             }
           </li>
         </ul>
+
+        <!-- <ul class="menu">
+          <li>
+            <button class="menu__toggle" (click)="toggle('transportVouchers')">
+              <span class="menu__section">VALES DE TRANSPORTE</span>
+              <i class="pi" [class.pi-chevron-down]="!transportVouchersOpen()" [class.pi-chevron-up]="transportVouchersOpen()"></i>
+            </button>
+            @if (transportVouchersOpen()) {
+              <ul class="menu__list" animate.enter="slide-down" animate.leave="slide-up">
+                <li routerLink="fuel-vaucher"><a class="menu__link"><i class="pi pi-folder" ></i><span>Registro de movimiento</span></a></li>
+              </ul>
+            }
+          </li>
+        </ul> -->
 
         <ul class="menu">
           <li>
@@ -88,23 +104,7 @@
             }
           </li>
         </ul>
-        <ul>
-          <li>
-            <!-- APPLICATION -->
-            <button class="menu__toggle" (click)="toggle('transportVouchers')">
-              <span class="menu__section">VALES DE TRANSPORTE</span>
-              <i class="pi" [class.pi-chevron-down]="!transportVouchersOpen()" [class.pi-chevron-up]="transportVouchersOpen()"></i>
-            </button>
 
-            @if (transportVouchersOpen()) {
-              <ul class="menu__list" animate.enter="slide-down" animate.leave="slide-up">
-                <li routerLink="fuel-vaucher"><a class="menu__link"><i class="pi pi-folder" ></i><span>First item</span></a></li>
-                <!-- <li routerLink="digital-signatures"><a class="menu__link"><i class="pi pi-chart-bar"></i><span>Second item</span></a></li> -->
-                <!-- <li routerLink="test-requests"><a class="menu__link"><i class="pi pi-cog"></i><span>Third item</span></a></li> -->
-              </ul>
-            }
-          </li>
-        </ul>
       </div>
 
       <!-- Footer -->

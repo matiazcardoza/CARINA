@@ -1,0 +1,154 @@
+<!-- src/app/features/whm/whm-kardex-management.html -->
+<section class="toolbar">
+  <label for="obraSel">Obra:</label>
+  <select id="obraSel" [ngModel]="selectedObraId" (ngModelChange)="onObraChange($event)">
+    <!-- <option *ngFor="let o of obras" [value]="o.id">{{ o.nombre }} ({{ o.codigo }})</option> -->
+    @for (o of obras(); track $index) {
+      <option  [value]="o.id">{{ o.nombre }} ({{ o.codigo }})</option>
+    }
+  </select>
+
+  <input type="text" placeholder="Buscar..." [(ngModel)]="uiFilters.search" />
+  <button pButton type="button" label="Buscar" icon="pi pi-search" (click)="cargarOrdenes()"></button>
+</section>
+
+<!-- <p-table
+  [value]="ordenes()"
+  [paginator]="true"
+  [rows]="10"
+  [loading]="loadingOrdenes"
+  dataKey="id"
+  [responsiveLayout]="'scroll'"
+  [scrollable]="true"
+  scrollHeight="flex"
+  [expandedRowKeys]="expandedRows"
+  > -->
+<p-table
+  [value]="ordenes()"
+  [paginator]="true"
+  [rows]="10"
+  [loading]="loadingOrdenes"
+  dataKey="id"
+  [responsiveLayout]="'scroll'"
+  [scrollable]="true"
+  scrollHeight="flex"
+  [expandedRowKeys]="expandedRowsOrders()"
+  (onRowExpand)="onRowExpandOC($event)"
+  (onRowCollapse)="onRowCollapseOC($event)"
+>
+
+  <!-- [expandedRows]="expandedRows" -->
+  <!-- Header (OC) -->
+  <ng-template pTemplate="header">
+    <tr>
+      <th style="width:3rem;"></th>
+      <th>Fecha</th>
+      <th>N° Orden</th>
+      <th>Proveedor</th>
+      <th style="text-align:right;">Monto Total</th>
+    </tr>
+  </ng-template>
+
+  <!-- Body (OC) -->
+  <ng-template pTemplate="body" let-oc let-expanded="expanded">
+    <tr>
+      <td>
+        <!-- <button
+          pButton
+          type="button"
+          [icon]="isExpanded(oc.id) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+          (click)="toggleRow(oc)"
+          [disabled]="loadingChildren[oc.id]"
+          class="p-button-text p-button-sm"
+          aria-label="Desplegar"
+        ></button> -->
+        <button
+        pButton
+        [pRowToggler]="oc"
+        [text]="true"
+        [rounded]="true"
+        severity="secondary"
+        [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'">
+      </button>
+      </td>
+      <td>{{ oc.fecha | date:'yyyy-MM-dd' }}</td>
+      <td>{{ oc.ext_order_id }}</td>
+      <td>{{ oc.proveedor }}</td>
+      <td style="text-align:right;">{{ oc.monto_total | number:'1.2-2' }}</td>
+    </tr>
+  </ng-template>
+
+  <!-- Row Expansion (tabla hija: PECOSAS de la OC) -->
+
+  <!-- Row Expansion (tabla hija: PECOSAS de la OC) -->
+<ng-template pTemplate="expandedrow" let-oc>
+    <tr>
+      <td colspan="5">
+        <div class="child-wrapper" style="padding:10px 8px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;">
+          <p *ngIf="oc.childLoading" class="muted">Cargando pecosas...</p>
+
+          <p-table [value]="oc.pecosas || []" *ngIf="(oc.pecosas?.length ?? 0) > 0">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Año</th>
+                <th>Fecha</th>
+                <th>N° Pecosa</th>
+                <th>N° Ítem</th>
+                <th>Cantidad</th>
+                <th>Precio</th>
+                <th>Medida</th>
+                <th style="min-width: 12rem;">Item</th>
+                <th>prod_proy</th>
+                <th>N° Meta</th>
+                <th>Meta</th>
+                <th>desuoper</th>
+                <th>destipodestino</th>
+                <th style="width:150px; text-align:center;">Acciones</th>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-p>
+              <tr>
+                <td>{{ p.anio }}</td>
+                <td>{{ p.fecha }}</td>
+                <td>{{ p.numero }}</td>
+                <td>{{ p.idsalidadet }}</td>
+                <td>{{ p.cantidad }}</td>
+                <td>{{ p.precio }}</td>
+                <td>{{ p.desmedida }}</td>
+                <td style="padding:0; min-width:12rem;">
+                  <div style="max-height:120px; overflow:auto; line-height:1.35; padding:6px 8px; text-align:justify; word-break:break-word;">
+                    {{ p.item }}
+                  </div>
+                </td>
+                <td>{{ p.prod_proy }}</td>
+                <td>{{ p.cod_meta }}</td>
+                <td>{{ p.desmeta }}</td>
+                <td>{{ p.desuoper }}</td>
+                <td>{{ p.destipodestino }}</td>
+                <td style="text-align:center;">
+                  <div class="flex container_action_buttons gap-2">
+                    <button pButton icon="pi pi-eye" severity="info" (click)="openMovementDetailsModal(p)"></button>
+                    <button pButton icon="pi pi-plus" severity="success" (click)="openMovementModal(p)"></button>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+              <tr><td colspan="14">Sin pecosas para esta orden.</td></tr>
+            </ng-template>
+          </p-table>
+
+          <!-- Si quieres mostrar algo cuando no hay pecosas -->
+          <p *ngIf="!oc.childLoading && (oc.pecosas?.length ?? 0) === 0" class="muted">Sin pecosas.</p>
+        </div>
+      </td>
+    </tr>
+  </ng-template>
+
+
+  <ng-template pTemplate="emptymessage">
+    <tr><td colspan="5">No hay órdenes en esta obra.</td></tr>
+  </ng-template>
+</p-table>

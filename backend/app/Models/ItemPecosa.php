@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToObra;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ItemPecosa extends Model
 {
     use HasFactory;
-
+    use BelongsToObra;
     protected $table = 'item_pecosas';
     protected $primaryKey = 'id';
     public $timestamps = true;
@@ -60,6 +61,16 @@ class ItemPecosa extends Model
         'saldo'                 => 'decimal:2',
         'total'                 => 'decimal:2',
     ];
+
+    public function obra()
+    {
+        return $this->belongsTo(Obra::class);
+    }
+
+    public function ordenCompra()
+    {
+        return $this->belongsTo(OrdenCompra::class, 'orden_id');
+    }
 
     public function movements()
     {

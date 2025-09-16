@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { MyThirdFeature } from './my-third-feature';
+import { WhmKardexManagement } from './whm-kardex-management';
 
-describe('MyThirdFeature', () => {
-  let component: MyThirdFeature;
-  let fixture: ComponentFixture<MyThirdFeature>;
+describe('WhmKardexManagement', () => {
+  let component: WhmKardexManagement;
+  let fixture: ComponentFixture<WhmKardexManagement>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MyThirdFeature]
+      imports: [WhmKardexManagement]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(MyThirdFeature);
+    fixture = TestBed.createComponent(WhmKardexManagement);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

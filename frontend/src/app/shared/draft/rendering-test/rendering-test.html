@@ -1,0 +1,18 @@
+<!-- <p>rendering-test works!</p>
+<p>{{secondValue}}</p> -->
+
+<!-- --------------- -->
+ <!-- app.component.html -->
+<!-- repro-ng0100.component.html -->
+<select [(ngModel)]="selectedObraId" (ngModelChange)="onObraChange($event)">
+  <option [ngValue]="null">-- Selecciona --</option>
+  <option *ngFor="let id of obras" [ngValue]="id">Obra {{ id }}</option>
+</select>
+
+<!-- Binding booleano que suele disparar 'Previous value: true. Current value: false' -->
+<p [hidden]="!loadingOrdenes">Cargando órdenes...</p>
+
+<!-- Binding de array que dispara 'Previous value: []. Current value: [{...}]' -->
+<ul>
+  <li *ngFor="let o of ordenes">Orden {{ o.id }}</li>
+</ul>

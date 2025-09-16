@@ -4,9 +4,6 @@ import { Dashboard } from './layouts/dashboard/dashboard';
 import { Login } from './features/public/login/login';
 
 import { Home } from './features/private/home/home';
-import { MyFirtsFeature } from './features/private/my-firts-feature/my-firts-feature';
-import { MySecondFeature } from './features/private/my-second-feature/my-second-feature';
-import { MyThirdFeature } from './features/private/my-third-feature/my-third-feature';
 import { Conformity } from './features/private/conformity/conformity';
 import { MyFirstComponent } from './shared/draft/my-first-component/my-first-component';
 import { DailyWorkLog } from './features/private/daily-work-log/daily-work-log';
@@ -37,6 +34,9 @@ import { Sidebar } from './layouts/sidebar/sidebar';
 import { SignaturesMovementReports } from './features/private/signatures-movement-reports/signatures-movement-reports';
 import { TestResquests } from './shared/draft/test-resquests/test-resquests';
 import { FuelVouchers } from './features/private/fuel-vouchers/fuel-vouchers';
+import { WhmKardexManagement } from './features/private/whm-kardex-management/whm-kardex-management';
+import { RenderingTest } from './shared/draft/rendering-test/rendering-test';
+import { WhmUserManagement } from './features/private/whm-user-management/whm-user-management';
 export const routes: Routes = [
     // Redirige la ruta raíz a la página de login
     {
@@ -108,6 +108,14 @@ export const routes: Routes = [
                 ]
             },
             {
+                path: 'whm-user-management',
+                component: WhmUserManagement,
+            },
+            {
+                path: 'whm-kardex-management',
+                component: WhmKardexManagement,
+            },
+            {
                 path: 'digital-signatures',
                 children: [
                     {
@@ -167,10 +175,6 @@ export const routes: Routes = [
                 component: MyFirstComponent
             },
             {
-                path: 'first-feature',
-                component: MyFirtsFeature
-            },
-            {
                 path: 'upload-file',
                 component: UploadFile
             },
@@ -185,6 +189,10 @@ export const routes: Routes = [
             {
                 path: 'sidebar-exmple',
                 component: Sidebar
+            },
+            {
+                path: 'rendering-test',
+                component: RenderingTest
             },
         ]
     },

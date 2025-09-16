@@ -176,11 +176,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 Route::middleware(['auth:sanctum','resolve.obra'])->group(function () {
     // Route::get('/me/obras', [ObrasController::class,'mine']); // listado para el selector, aqui se devuelve todas las obras de un usuario, para que el usuario pueda seleccionar aquella con la que va a trabajar
-// Route::middleware(['resolve.obra'])->group(function () {
-  Route::get('/ordenes-compra', [OCController::class,'index']);
-//   Route::get('/ordenes-compra', [ObrasController::class,'index']);
-  Route::post('/items/{item}/movements', [MovementController::class,'store']);
-  // ...más endpoints scropeados
+    // Route::middleware(['resolve.obra'])->group(function () {
+    Route::get('/ordenes-compra', [OCController::class,'index']);
+    Route::get('/ordenes-compra/{orden}/pecosas', [OCController::class, 'pecosas']);  // nuevo
+
+    //   Route::get('/ordenes-compra', [ObrasController::class,'index']);
+    Route::post('/items/{item}/movements', [MovementController::class,'store']);
+    // ...más endpoints scropeados
 });
 
 Route::get('get-roles-by-scope', function(){

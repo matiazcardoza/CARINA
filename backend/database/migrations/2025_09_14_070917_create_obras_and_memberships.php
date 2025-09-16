@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('obras', function (Blueprint $t) {
-            $t->id();
-            $t->string('nombre', 200);
-            $t->string('codigo', 50)->unique();
-            $t->timestamps();
-        });
+        // Schema::create('obras', function (Blueprint $t) {
+        //     $t->id();
+        //     $t->string('nombre', 200);
+        //     $t->string('codigo', 50)->unique();
+        //     $t->timestamps();
+        // });
 
         Schema::create('obra_user', function (Blueprint $t) {
             $t->id();
@@ -33,6 +33,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('obra_user');
-        Schema::dropIfExists('obras');
+        // Schema::dropIfExists('obras');
     }
 };
