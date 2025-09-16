@@ -1,72 +1,246 @@
 /* daily-work-signature.css */
-
 .fullscreen-signature-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
   width: 100vw;
-  background-color: #fafafa;
+  max-width: none;
+  max-height: none;
 }
 
 .signature-toolbar {
   flex-shrink: 0;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 1000;
 }
 
 .toolbar-spacer {
   flex: 1 1 auto;
 }
 
+/* Nuevo: Indicador de estado de firma en el toolbar */
+.signature-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 16px;
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
+  border-radius: 16px;
+}
 
-.signature-area h2 {
-  margin-bottom: 20px;
+.signed-icon {
+  color: #4caf50;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.signed-text {
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.pdf-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  background-color: #f5f5f5;
+}
+
+.pdf-viewer {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background-color: white;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  gap: 16px;
+}
+
+.loading-container p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  gap: 16px;
+  padding: 20px;
+  text-align: center;
+}
+
+.error-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #f44336;
+}
+
+.error-container p {
+  margin: 0;
+  color: #666;
+  font-size: 16px;
+  max-width: 400px;
+}
+
+/* Nuevo: Sección de firma */
+.signature-section {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background-color: white;
+  border-top: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.signature-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.signature-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+  color: #ff9800;
+  transition: color 0.3s ease;
+}
+
+.signature-icon.signed {
+  color: #4caf50;
+}
+
+.signature-text {
+  font-size: 14px;
+  font-weight: 500;
   color: #333;
 }
 
+.sign-button {
+  min-width: 180px;
+  height: 40px;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
 
-
-.signature-placeholder mat-icon {
-  color: #999;
-  margin-bottom: 10px;
+.sign-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .signature-actions {
   flex-shrink: 0;
   background-color: white;
   border-top: 1px solid #e0e0e0;
-  padding: 10px 20px;
-  position: sticky;
-  bottom: 0;
+  padding: 8px 16px;
 }
 
-/* Responsive design para pantallas pequeñas */
+/* Animación para el botón deshabilitado */
+.pulse-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.pulse-button:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    left: -100%;
+  }
+  50% {
+    left: 100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  .signature-content {
-    padding: 10px;
-  }
-  
-  .signature-area {
-    padding: 20px;
-    min-width: 95%;
-  }
-  
-  .signature-canvas-container {
-    min-height: 200px;
-    padding: 20px;
+  .signature-toolbar span {
+    font-size: 14px;
   }
   
   .signature-actions {
-    padding: 10px;
+    padding: 8px 12px;
+  }
+  
+  .signature-actions button {
+    min-width: auto;
+    padding: 0 12px;
+  }
+
+  .signature-section {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .signature-info {
+    justify-content: center;
+  }
+
+  .sign-button {
+    width: 100%;
+  }
+
+  .signature-status {
+    display: none; /* Ocultar en móviles para ahorrar espacio */
   }
 }
 
-/* Para asegurar que ocupe toda la pantalla en dispositivos móviles */
 @media (max-width: 480px) {
-  .fullscreen-signature-container {
-    height: 100vh;
-    height: 100dvh; /* Para navegadores que soportan dvh */
+  .signature-section {
+    padding: 12px 16px;
   }
+
+  .signature-text {
+    font-size: 12px;
+  }
+
+  .sign-button {
+    min-width: auto;
+    font-size: 14px;
+  }
+}
+
+/* Dialog overlay customization */
+::ng-deep .mat-dialog-container {
+  padding: 0 !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  width: 100vw !important;
+  height: 100vh !important;
 }
