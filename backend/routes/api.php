@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminCatalogController;
 use App\Http\Controllers\ObraIndexController;
 // use App\Http\Controllers\Admin\UserIndexController;
 use App\Http\Controllers\UserIndexController;
@@ -28,6 +29,7 @@ use App\Http\Controllers\MovementController;
 use App\Http\Controllers\ObrasController;
 use App\Http\Controllers\SignaturesController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserObrasController;
 use App\Models\SignatureFlow;
 use App\Models\SignatureStep;
 use App\Models\User;
@@ -202,6 +204,24 @@ Route::get('get-roles-by-scope', function(){
     // Obtener roles del usuario en este team/obra
     return $user->roles;
 });
+
+// nuevas rutas para actualizar los permisos por obra - inicio
+Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
+    // catálogos para el front
+    Route::get('/obras',            [AdminCatalogController::class, 'obras']);   // lista todas las obras
+    Route::get('/roles',            [AdminCatalogController::class, 'roles']);   // lista de roles (nombres)
+
+    // gestión de obras y roles por usuario
+    Route::get   ('/users/{user}/obras',                 [UserObrasController::class, 'index']);
+    Route::post  ('/users/{user}/obras',                 [UserObrasController::class, 'store']);   // add obra al user
+    Route::delete('/users/{user}/obras/{obra}',          [UserObrasController::class, 'destroy']); // quitar obra
+
+    // roles por obra
+    Route::put   ('/users/{user}/obras/{obra}/roles',    [UserObrasController::class, 'syncRoles']);   // reemplazar
+    Route::post  ('/users/{user}/obras/{obra}/roles',    [UserObrasController::class, 'attachRoles']); // agregar
+    Route::delete('/users/{user}/obras/{obra}/roles',    [UserObrasController::class, 'detachRoles']); // quitar
+});
+// nuevas rutas para actualizar los permisos por obr  - final
 
 
 

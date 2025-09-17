@@ -97,6 +97,7 @@
 <!-- -------------------------- Modal para mostrar las ordenes pertenecientes a un usuario junto con sus roles --------------------------  -->
 <app-show-user-details-modal
   [isOpen]="isOpenModalShowUserDetails()"
+  [user]="selectedUser()"
   (onCloseModal)="closeModal($event)"
 />
 <!-- [isOpen]="true" -->

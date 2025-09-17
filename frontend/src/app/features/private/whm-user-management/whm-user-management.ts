@@ -29,7 +29,8 @@ export class WhmUserManagement {
 
   loading = signal<boolean>(false);
   users = signal<UserRow[]>([]);
-  isOpenModalShowUserDetails = signal<boolean>(true);
+  isOpenModalShowUserDetails = signal<boolean>(false);
+  selectedUser = signal<UserRow | null>(null); // <-- AÑADE ESTA LÍNEA
   pageSize = 10;
   ngOnInit(){
     this.loadUsers()
@@ -82,6 +83,7 @@ export class WhmUserManagement {
   // Acciones (wirea tus modales aquí)
   onView(user: UserRow):void {
      console.log(user)
+     this.selectedUser.set(user); // <-- AÑADE ESTA LÍNEA
      this.isOpenModalShowUserDetails.set(true);
   }
   onEdit(user: UserRow) { 
