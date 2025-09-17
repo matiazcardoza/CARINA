@@ -11,7 +11,15 @@
       <strong>Usuario:</strong> {{ u.usuario }} — <small>{{ u.email }}</small>
     </div>
 
-    <div class="add-obra-bar" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+    <!-- Buscador de obras (API externa) -->
+    <div class="search-bar">
+      <input pInputText type="text" [(ngModel)]="search.idmeta"  placeholder="idmeta (ej. 0801)" />
+      <input pInputText type="text" [(ngModel)]="search.codmeta" placeholder="codmeta (ej. 0001)" />
+      <input pInputText type="text" [(ngModel)]="search.anio"    placeholder="año (ej. 2025)" />
+      <button pButton label="Buscar" icon="pi pi-search" (click)="doSearch()"></button>
+    </div>
+
+    <!-- <div class="add-obra-bar" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
       <p-select
         [options]="availableObras()"
         optionLabel="nombre"
@@ -35,7 +43,48 @@
       </p-multiSelect>
 
       <button pButton label="Añadir" icon="pi pi-plus" (click)="addObra()" [disabled]="!obraToAdd()"></button>
-    </div>
+    </div> -->
+
+
+    @if (searchResults().length > 0) {
+      <div class="results-wrapper">
+        <h4>Resultados de búsqueda</h4>
+        <table class="mini">
+          <thead>
+            <tr><th>idmeta</th><th>año</th><th>codmeta</th><th>nombre</th><th></th></tr>
+          </thead>
+          <tbody>
+            @for (m of searchResults(); track m.idmeta) {
+              <tr>
+                <td>{{ m.idmeta }}</td>
+                <td>{{ m.anio }}</td>
+                <td>{{ m.codmeta }}</td>
+                <td>{{ m.nombre_corto || (m.desmeta | slice:0:50) }}</td>
+                <td>
+                  <button pButton label="Elegir" icon="pi pi-check" (click)="pickExternal(m)"></button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        @if (selectedExternal(); as selected) {
+          <div class="pick-bar">
+            <span><strong>Seleccionada:</strong> {{ selected.idmeta }} / {{ selected.codmeta }} ({{ selected.anio }})</span>
+            <p-multiSelect
+              [options]="catalogRoles()"
+              display="chip"
+              optionLabel="name"
+              optionValue="name"
+              defaultLabel="Roles iniciales (opcional)"
+              [ngModel]="rolesToAdd()"
+              (ngModelChange)="rolesToAdd.set($event)"
+            ></p-multiSelect>
+            <button pButton label="Importar y asignar" icon="pi pi-download" (click)="importAttach()"></button>
+          </div>
+        }
+      </div>
+    }
 
     <p-table [value]="obrasUsuario()" [loading]="loading()" [tableStyle]="{ 'min-width': '15rem' }" dataKey="obra.id">
       <ng-template pTemplate="header">

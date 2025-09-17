@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
 class AdminCatalogController extends Controller
 {
     public function __construct(private MetaClient $meta) {}
-    public function obras()
+    public function obrasx()
     {
         return Obra::query()->orderBy('nombre')->get(['id','nombre','codigo']);
     }
@@ -26,7 +26,7 @@ class AdminCatalogController extends Controller
         return Role::query()->orderBy('name')->get(['id','name','guard_name']);
     }
 
-    public function obrasBySiluciaTest(Request $request){
+    public function obras(Request $request){
         // 'page', 'per_page', 'idmeta','anio', 'codmeta','codmeta'
         $request->validate([
             'page'     => 'nullable|integer|min:1',

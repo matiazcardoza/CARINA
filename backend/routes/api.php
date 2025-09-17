@@ -214,12 +214,17 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     // gestión de obras y roles por usuario
     Route::get   ('/users/{user}/obras',                 [UserObrasController::class, 'index']);
     Route::post  ('/users/{user}/obras',                 [UserObrasController::class, 'store']);   // add obra al user
+    // NUEVO: importar (crear/actualizar) obra desde externa + asignar al usuario con roles
+    Route::post('/users/{user}/obras/import-assign', [UserObrasController::class, 'importAndAssign']);
     Route::delete('/users/{user}/obras/{obra}',          [UserObrasController::class, 'destroy']); // quitar obra
 
     // roles por obra
     Route::put   ('/users/{user}/obras/{obra}/roles',    [UserObrasController::class, 'syncRoles']);   // reemplazar
     Route::post  ('/users/{user}/obras/{obra}/roles',    [UserObrasController::class, 'attachRoles']); // agregar
     Route::delete('/users/{user}/obras/{obra}/roles',    [UserObrasController::class, 'detachRoles']); // quitar
+
+    // 🚀 NUEVO: importar/actualizar obra (desde API externa) + importar PECOSAs + asignar al usuario + set roles
+    Route::post('/users/{user}/obras/import', [UserObrasController::class, 'importAttachFromExternal']);
 });
 // nuevas rutas para actualizar los permisos por obr  - final
 
