@@ -10,8 +10,8 @@ export interface FirmaDigitalParams {
   rol: string;
   tipo: string;
   status_position: string;
-  visible_position: number;
-  bacht_operation: number;
+  visible_position: boolean;
+  bacht_operation: boolean;
   npaginas?: number;
   token: string;
   generar?: boolean;

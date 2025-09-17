@@ -42,7 +42,7 @@ export class DailyWorkSignature {
   isLoading = false;
   error = null;
   isSigned = false;
-  signatureData: string | null = null;
+  signatureData: any = null;
   isSigningInProgress = false;
   
   constructor(

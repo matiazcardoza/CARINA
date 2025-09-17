@@ -304,8 +304,19 @@ class SignatureController extends Controller
 
     /////////////////////////////////////////CONTROLADOR PARA PARTES DIARIAS//////////////////////////////////////////////////////////////////////
     public function storeSignature(Request $request){
-        Log::info('ingreso a function');
-        return response()->json(['ok'=>true]);
+        Log::info('Callback recibido para parte diario', $request->all());
+        
+        // Validar archivo
+        $request->validate([
+            'file' => 'required|file|mimes:pdf|max:30720',
+        ]);
+        
+        // Aquí implementar la lógica similar a store() pero adaptada para partes diarios
+        // ... procesar archivo firmado
+        // ... guardar en la ubicación correcta
+        // ... actualizar estado
+        
+        return response()->json(['ok' => true]);
     }
 }
 
