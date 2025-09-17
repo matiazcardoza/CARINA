@@ -223,6 +223,8 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
 });
 // nuevas rutas para actualizar los permisos por obr  - final
 
+Route::get('get-meta-test', [AdminCatalogController::class, 'obrasBySiluciaTest']);
+
 
 
 Route::middleware('auth:sanctum')->group(function () {
