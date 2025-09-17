@@ -10,8 +10,8 @@ export interface FirmaDigitalParams {
   rol: string;
   tipo: string;
   status_position: string;
-  visible_position: boolean;
-  bacht_operation: boolean;
+  visible_position: number;
+  bacht_operation: number;
   npaginas?: number;
   token: string;
   generar?: boolean;
@@ -37,6 +37,7 @@ export class SignatureService {
 
       const fullUrl = `${this.apiUrl}?${urlParams.toString()}`;
 
+      console.log('URL generada para firma digital:', fullUrl);
       const popup = window.open(
         fullUrl,
         'FirmaDigital',
