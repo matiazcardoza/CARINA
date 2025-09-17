@@ -29,7 +29,7 @@ use App\Models\SignatureStep;
 // use App\Http\Controllers\OrderProductoController;
 // use Illuminate\Support\Facades\Storage;
 
-Route::post('/document-signature', [SignatureController::class, 'storeSignature']);
+Route::post('/document-signature/{documentId}', [SignatureController::class, 'storeSignature']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {

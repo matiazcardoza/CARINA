@@ -152,8 +152,8 @@ export class DailyWorkLogService {
     );
   }
 
-  getWorkLogDocument(workLogId: number): Observable<DocumentDailyPartElement> {
-    return this.http.get<DocumentDailyPartApiResponse>(`${this.apiUrl}/api/daily-work-document/${workLogId}`, {
+  getWorkLogDocument(documentId: number): Observable<DocumentDailyPartElement> {
+    return this.http.get<DocumentDailyPartApiResponse>(`${this.apiUrl}/api/daily-work-document/${documentId}`, {
       withCredentials: true,
     }).pipe(
       map(response => response.data)

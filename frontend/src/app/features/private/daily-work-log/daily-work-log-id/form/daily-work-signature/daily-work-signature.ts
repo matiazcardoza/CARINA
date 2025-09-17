@@ -39,6 +39,7 @@ export class DailyWorkSignature {
 
   pdfUrl: SafeResourceUrl | null = null;
   pdfUrlString: string = '';
+  documentId: number | null = null;
   isLoading = false;
   error = null;
   isSigned = false;
@@ -72,8 +73,11 @@ export class DailyWorkSignature {
           console.log('PDF document response:', data);
           try {
             const pdfPath = data.file_path;
+            const document_id = data.id;
+            this.documentId = document_id;
+
             const fullPdfUrl = `${environment.BACKEND_URL_STORAGE}${pdfPath}`;
-            this.pdfUrlString = fullPdfUrl; // Guardar la URL como string para la firma
+            this.pdfUrlString = fullPdfUrl;
             this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fullPdfUrl);
             this.isLoading = false;
             this.error = null;
@@ -103,11 +107,11 @@ export class DailyWorkSignature {
 
     const firmaParams: FirmaDigitalParams = {
       location_url_pdf: this.pdfUrlString,
-      location_logo: `${environment.BACKEND_URL_STORAGE}image_pdf_template/logo_grp.png`,
-      post_location_upload: `${environment.BACKEND_URL}/api/document-signature`,
+      location_logo: `${environment.BACKEND_URL_STORAGE}image_pdf_template/logo_firma_digital.png`,
+      post_location_upload: `${environment.BACKEND_URL}/api/document-signature/${this.documentId}`,
       asunto: `Firma de Parte Diario - ${this.data.date}`,
-      rol: '',
-      tipo: 'PARTE_DIARIO',
+      rol: 'ADMIN',
+      tipo: 'daily_parts',
       status_position: '1',
       visible_position: false,
       bacht_operation: false,

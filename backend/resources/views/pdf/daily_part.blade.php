@@ -12,9 +12,9 @@
             box-sizing: border-box;
         }
 
-        /* Configuración general del documento */
+        /* Configuración general del documento - MODIFICADO para footer */
         @page {
-            margin: 2mm 15mm 15mm 15mm;
+            margin: 2mm 15mm 12mm 15mm; /* Aumentado margin-bottom para footer */
             size: A4 portrait;
         }
 
@@ -24,6 +24,11 @@
             line-height: 1.2;
             color: #000;
             background: #fff;
+        }
+
+        /* Contenedor principal - NUEVO */
+        .main-content {
+            margin-bottom: 85px; /* Espacio reservado para el footer fijo */
         }
 
         /* Utilidades generales */
@@ -60,7 +65,7 @@
 
         .logo {
             width: 50px;
-            height: 60ch;
+            height: 60px;
             max-width: 50px;
             max-height: 60px;
             object-fit: contain;
@@ -340,20 +345,27 @@
             margin-bottom: 5px;
         }
 
-        /* Firmas optimizadas */
+        /* Firmas optimizadas - MODIFICADO para footer fijo */
         .signatures-section {
-            width: 100%;
-            margin-top: 20px;
+            position: fixed;
+            bottom: 15mm;
+            left: 15mm;
+            right: 15mm;
+            width: calc(100% - 30mm);
+            background-color: white;
+            padding-top: 10px;
             page-break-inside: avoid;
+            z-index: 1000;
         }
 
         .signatures-table {
             width: 100%;
             border-collapse: collapse;
+            margin: 0;
         }
 
         .signatures-table td {
-            width: 50%;
+            width: 33.33%; /* 3 columnas iguales */
             padding: 15px 10px;
             text-align: center;
             vertical-align: bottom;
@@ -397,6 +409,7 @@
             vertical-align: middle;
             font-weight: bold;
         }
+        
         .hours-main {
             background-color: #E7E6E6;
             font-weight: bold;
@@ -407,237 +420,241 @@
     </style>
 </head>
 <body>
-    @php
-    $mesesEspanol = [
-        1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
-        5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
-        9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
-    ];
-    @endphp
-    <!-- Header -->
-    <div class="header">
-        <table class="header-table">
-            <tr>
-                <td class="logo-cell">
-                    @if(isset($logoPath) && $logoPath)
-                        <img class="logo" src="{{ $logoPath }}" alt="Logo Empresa">
-                    @endif
-                </td>
-
-                <td class="title-cell">
-                    <h1>GOBIERNO REGIONAL PUNO</h1>
-                    <h2>{{ $service->goal_detail }}</h2>
-                </td>
-
-                <td class="date-cell">
-                    <div style="margin-bottom: 8px;">
-                        @if(isset($logoWorkPath) && $logoWorkPath)
-                            <img class="logo-trabajo" src="{{ $logoWorkPath }}" alt="Logo Trabajo">
+    <!-- Contenedor principal - TODO el contenido va aquí excepto firmas -->
+    <div class="main-content">
+        @php
+        $mesesEspanol = [
+            1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
+            5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
+            9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+        ];
+        @endphp
+        
+        <!-- Header -->
+        <div class="header">
+            <table class="header-table">
+                <tr>
+                    <td class="logo-cell">
+                        @if(isset($logoPath) && $logoPath)
+                            <img class="logo" src="{{ $logoPath }}" alt="Logo Empresa">
                         @endif
-                    </div>
-                    <div>
-                        <span class="date-box">
-                            @foreach ($dailyPart->unique('work_date') as $item)
-                                {{ \Carbon\Carbon::parse($item->work_date)->format('d') }}
-                            @endforeach
-                        </span>
-                        <span class="date-box">
-                            @foreach ($dailyPart->unique('work_date') as $item)
-                                {{ $mesesEspanol[\Carbon\Carbon::parse($item->work_date)->format('n')] }}
-                            @endforeach
-                        </span>
-                        <span class="date-box">
-                            @foreach ($dailyPart->unique('work_date') as $item)
-                                {{ \Carbon\Carbon::parse($item->work_date)->format('Y') }}
-                            @endforeach
-                        </span>
-                    </div>
+                    </td>
+
+                    <td class="title-cell">
+                        <h1>GOBIERNO REGIONAL PUNO</h1>
+                        <h2>{{ $service->goal_detail }}</h2>
+                    </td>
+
+                    <td class="date-cell">
+                        <div style="margin-bottom: 8px;">
+                            @if(isset($logoWorkPath) && $logoWorkPath)
+                                <img class="logo-trabajo" src="{{ $logoWorkPath }}" alt="Logo Trabajo">
+                            @endif
+                        </div>
+                        <div>
+                            <span class="date-box">
+                                @foreach ($dailyPart->unique('work_date') as $item)
+                                    {{ \Carbon\Carbon::parse($item->work_date)->format('d') }}
+                                @endforeach
+                            </span>
+                            <span class="date-box">
+                                @foreach ($dailyPart->unique('work_date') as $item)
+                                    {{ $mesesEspanol[\Carbon\Carbon::parse($item->work_date)->format('n')] }}
+                                @endforeach
+                            </span>
+                            <span class="date-box">
+                                @foreach ($dailyPart->unique('work_date') as $item)
+                                    {{ \Carbon\Carbon::parse($item->work_date)->format('Y') }}
+                                @endforeach
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Form Title -->
+        <div class="form-title">PARTE DIARIO DE EQUIPOS/MAQUINARIA</div>
+
+        <!-- Equipment Information -->
+        <table class="info-table">
+            <tr>
+                <td class="info-label">OBRA:</td>
+                <td colspan="3">
+                    <span class="info-line">{{ $service->goal_detail }}</span>
+                </td>
+            </tr>
+            <tr>
+                <td class="info-label">PROPIETARIO:</td>
+                <td colspan="3">
+                    <span class="info-line">{{ $orderSilucia->supplier ?? 'GOBIERNO REGIONAL - EQUIPO MECANICO' }}</span>
+                </td>
+            </tr>
+            <tr>
+                <td class="info-label">NOMBRE DEL OPERADOR:</td>
+                <td colspan="3">
+                    <span class="info-line">{{ $service->operator }}</span>
+                </td>
+            </tr>
+            <tr>
+                <td class="info-label">EQUIPO O MAQUINARIA:</td>
+                <td style="width: 45%;">
+                    <span class="info-line">{{ $orderSilucia->machinery_equipment ?? $mechanicalEquipment->machinery_equipment }}</span>
+                </td>
+                <td class="info-label" style="width: 10%;">CAPACIDAD:</td>
+                <td style="width:65%;">
+                    <span class="info-line">{{  $orderSilucia->ability ?? $mechanicalEquipment->ability }}</span>
+                </td>
+            </tr>
+            <tr>
+                <td class="info-label">MARCA:</td>
+                <td style="width: 45%;">
+                    <span class="info-line">{{ $orderSilucia->brand ?? $mechanicalEquipment->brand }}</span>
+                </td>
+                <td class="info-label" style="width: 10%;">PLACA:</td>
+                <td style="width: 65%">
+                    <span class="info-line">{{ $orderSilucia->plate ?? $mechanicalEquipment->plate }}</span>
                 </td>
             </tr>
         </table>
-    </div>
 
-    <!-- Form Title -->
-    <div class="form-title">PARTE DIARIO DE EQUIPOS/MAQUINARIA</div>
+        <!-- Operator Table -->
+        <table class="operador-table">
+            <thead>
+                <tr>
+                    <th style="width: 25%;">DEL OPERADOR</th>
+                    <th style="width: 25%;">MAÑANA</th>
+                    <th style="width: 25%;">TARDE</th>
+                    <th style="width: 25%;">HORAS TRABAJADAS</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
 
-    <!-- Equipment Information -->
-    <table class="info-table">
-        <tr>
-            <td class="info-label">OBRA:</td>
-            <td colspan="3">
-                <span class="info-line">{{ $service->goal_detail }}</span>
-            </td>
-        </tr>
-        <tr>
-            <td class="info-label">PROPIETARIO:</td>
-            <td colspan="3">
-                <span class="info-line">{{ $orderSilucia->supplier ?? 'GOBIERNO REGIONAL - EQUIPO MECANICO' }}</span>
-            </td>
-        </tr>
-        <tr>
-            <td class="info-label">NOMBRE DEL OPERADOR:</td>
-            <td colspan="3">
-                <span class="info-line">{{ $service->operator }}</span>
-            </td>
-        </tr>
-        <tr>
-            <td class="info-label">EQUIPO O MAQUINARIA:</td>
-            <td style="width: 45%;">
-                <span class="info-line">{{ $orderSilucia->machinery_equipment ?? $mechanicalEquipment->machinery_equipment }}</span>
-            </td>
-            <td class="info-label" style="width: 10%;">CAPACIDAD:</td>
-            <td style="width:65%;">
-                <span class="info-line">{{  $orderSilucia->ability ?? $mechanicalEquipment->ability }}</span>
-            </td>
-        </tr>
-        <tr>
-            <td class="info-label">MARCA:</td>
-            <td style="width: 45%;">
-                <span class="info-line">{{ $orderSilucia->brand ?? $mechanicalEquipment->brand }}</span>
-            </td>
-            <td class="info-label" style="width: 10%;">PLACA:</td>
-            <td style="width: 65%">
-                <span class="info-line">{{ $orderSilucia->plate ?? $mechanicalEquipment->plate }}</span>
-            </td>
-        </tr>
-    </table>
+        <!-- Work Table -->
+        <table class="work-table">
+            <thead>
+                <tr>
+                    <th colspan="2" class="hours-main" style="border-right: 1px solid #000;">HORAS</th>
+                    <th rowspan="2" class="work-col" style="border-left: 1px solid #000;">TRABAJOS REALIZADOS<br>CON EQUIPO Y/O MAQUINARIA</th>
+                    <th rowspan="2" class="total-col">TOTAL<br>HORAS</th>
+                </tr>
+                <tr>
+                    <th class="hours-col">DE</th>
+                    <th class="hours-col" style="border-right: 1.4px solid #000;">A</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php
+                    $totalHours = 0;
+                    $totalMinutes = 0;
+                @endphp
+                
+                @foreach($dailyPart as $index => $part)
+                    <tr class="work-row">
+                        <td>{{ $part->start_time ? \Carbon\Carbon::parse($part->start_time)->format('H:i') : '' }}</td>
+                        <td>{{ $part->end_time ? \Carbon\Carbon::parse($part->end_time)->format('H:i') : '' }}</td>
+                        <td style="text-align: left; padding-left: 8px;">{{ $part->description ?? '' }}</td>
+                        <td>
+                            @if($part->start_time && $part->end_time)
+                                @php
+                                    $start = \Carbon\Carbon::parse($part->start_time);
+                                    $end = \Carbon\Carbon::parse($part->end_time);
+                                    $diff = $start->diff($end);
+                                    $hours = $diff->h + ($diff->days * 24);
+                                    $minutes = $diff->i;
+                                    $totalHours += $hours;
+                                    $totalMinutes += $minutes;
+                                @endphp
+                                {{ sprintf('%02d:%02d', $hours, $minutes) }}
+                            @else
+                                {{ $part->time_worked ? \Carbon\Carbon::parse($part->time_worked)->format('H:i') : '' }}
+                            @endif
+                        </td>
+                    </tr>
+                @endforeach
+                
+                {{-- Rellenar filas vacías hasta completar 7 filas --}}
+                @for($i = count($dailyPart); $i < 7; $i++)
+                    <tr class="work-row">
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                @endfor
 
-    <!-- Operator Table -->
-    <table class="operador-table">
-        <thead>
-            <tr>
-                <th style="width: 25%;">DEL OPERADOR</th>
-                <th style="width: 25%;">MAÑANA</th>
-                <th style="width: 25%;">TARDE</th>
-                <th style="width: 25%;">HORAS TRABAJADAS</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-        </tbody>
-    </table>
-
-    <!-- Work Table -->
-    <table class="work-table">
-        <thead>
-            <tr>
-                <th colspan="2" class="hours-main" style="border-right: 1px solid #000;">HORAS</th>
-                <th rowspan="2" class="work-col" style="border-left: 1px solid #000;">TRABAJOS REALIZADOS<br>CON EQUIPO Y/O MAQUINARIA</th>
-                <th rowspan="2" class="total-col">TOTAL<br>HORAS</th>
-            </tr>
-            <tr>
-                <th class="hours-col">DE</th>
-                <th class="hours-col" style="border-right: 1.4px solid #000;">A</th>
-            </tr>
-        </thead>
-        <tbody>
-            @php
-                $totalHours = 0;
-                $totalMinutes = 0;
-            @endphp
-            
-            @foreach($dailyPart as $index => $part)
-                <tr class="work-row">
-                    <td>{{ $part->start_time ? \Carbon\Carbon::parse($part->start_time)->format('H:i') : '' }}</td>
-                    <td>{{ $part->end_time ? \Carbon\Carbon::parse($part->end_time)->format('H:i') : '' }}</td>
-                    <td style="text-align: left; padding-left: 8px;">{{ $part->description ?? '' }}</td>
-                    <td>
-                        @if($part->start_time && $part->end_time)
-                            @php
-                                $start = \Carbon\Carbon::parse($part->start_time);
-                                $end = \Carbon\Carbon::parse($part->end_time);
-                                $diff = $start->diff($end);
-                                $hours = $diff->h + ($diff->days * 24);
-                                $minutes = $diff->i;
-                                $totalHours += $hours;
-                                $totalMinutes += $minutes;
-                            @endphp
-                            {{ sprintf('%02d:%02d', $hours, $minutes) }}
-                        @else
-                            {{ $part->time_worked ? \Carbon\Carbon::parse($part->time_worked)->format('H:i') : '' }}
-                        @endif
+                <tr class="total-row">
+                    <td colspan="3" style="text-align: center; font-weight: bold; background-color: #E7E6E6;">TOTAL</td>
+                    <td style="background-color: #E7E6E6;">
+                        @php
+                            // Convertir minutos extras a horas
+                            $totalHours += intval($totalMinutes / 60);
+                            $totalMinutes = $totalMinutes % 60;
+                        @endphp
+                        {{ sprintf('%02d:%02d', $totalHours, $totalMinutes) }}
                     </td>
                 </tr>
-            @endforeach
-            
-            {{-- Rellenar filas vacías hasta completar 7 filas --}}
-            @for($i = count($dailyPart); $i < 7; $i++)
-                <tr class="work-row">
+            </tbody>
+        </table>
+
+        <!-- Observations -->
+        <div class="observations">
+            <div class="observations-label">Ocurrencias:</div>
+            <div style="min-height: 18px; padding: 2px 0;">
+                @foreach($dailyPart as $part)
+                    {{ $part->occurrences }}.
+                @endforeach
+            </div>
+        </div>
+
+        <!-- Horometer Table -->
+        <table class="operador-table">
+            <tbody>
+                <tr>
+                    <th style="width: 20%;">KM./HOROMETRO INICIO:</th>
                     <td></td>
+                    <th style="width: 20%;">KM./HOMETRO FINAL:</th>
                     <td></td>
-                    <td></td>
+                    <th style="width: 20%;">TOTAL</th>
                     <td></td>
                 </tr>
-            @endfor
+            </tbody>
+        </table>
 
-            <tr class="total-row">
-                <td colspan="3" style="text-align: center; font-weight: bold; background-color: #E7E6E6;">TOTAL</td>
-                <td style="background-color: #E7E6E6;">
-                    @php
-                        // Convertir minutos extras a horas
-                        $totalHours += intval($totalMinutes / 60);
-                        $totalMinutes = $totalMinutes % 60;
-                    @endphp
-                    {{ sprintf('%02d:%02d', $totalHours, $totalMinutes) }}
-                </td>
-            </tr>
-        </tbody>
-    </table>
-
-    <!-- Observations -->
-    <div class="observations">
-        <div class="observations-label">Ocurrencias:</div>
-        <div style="min-height: 18px; padding: 2px 0;">
-            @foreach($dailyPart as $part)
-                {{ $part->occurrences }}.
-            @endforeach
-        </div>
+        <!-- Supplies Summary -->
+        <table class="operador-table">
+            <tbody>
+                <tr>
+                    <th style="width: 20%;">GASOHOL</th>
+                    <td>Gls. </td>
+                    <th style="width: 20%;">ACEITE HIDRÁULICO</th>
+                    <td>Gls. </td>
+                </tr>
+                <tr>
+                    <th style="width: 20%;">PETRÓLEO</th>
+                    <td>Gls. </td>
+                    <th style="width: 20%;">GRASA</th>
+                    <td>Gls. </td>
+                </tr>
+                <tr>
+                    <th style="width: 20%;">ACEITE MOTOR</th>
+                    <td>Gls. </td>
+                    <th style="width: 20%;">FILTRO</th>
+                    <td>Gls. </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 
-    <!-- Operator Table -->
-    <table class="operador-table">
-        <tbody>
-            <tr>
-                <th style="width: 20%;">KM./HOROMETRO INICIO:</th>
-                <td></td>
-                <th style="width: 20%;">KM./HOMETRO FINAL:</th>
-                <td></td>
-                <th style="width: 20%;">TOTAL</th>
-                <td></td>
-            </tr>
-        </tbody>
-    </table>
-
-    <!-- Summary Section -->
-    <table class="operador-table">
-        <tbody>
-            <tr>
-                <th style="width: 20%;">GASOHOL</th>
-                <td>Gls. </td>
-                <th style="width: 20%;">ACEITE HIDRÁULICO</th>
-                <td>Gls. </td>
-            </tr>
-            <tr>
-                <th style="width: 20%;">PETRÓLEO</th>
-                <td>Gls. </td>
-                <th style="width: 20%;">GRASA</th>
-                <td>Gls. </td>
-            </tr>
-            <tr>
-                <th style="width: 20%;">ACEITE MOTOR</th>
-                <td>Gls. </td>
-                <th style="width: 20%;">FILTRO</th>
-                <td>Gls. </td>
-            </tr>
-        </tbody>
-    </table>
-
-    <!-- Signatures -->
+    <!-- Signatures - FUERA del main-content para que sea footer fijo -->
     <div class="signatures-section">
         <table class="signatures-table">
             <tr>
