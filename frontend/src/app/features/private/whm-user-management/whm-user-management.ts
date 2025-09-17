@@ -3,6 +3,7 @@ import { TableModule } from "primeng/table";
 import { IconField } from "primeng/iconfield";
 import { InputIcon } from "primeng/inputicon";
 
+import { ShowUserDetailsModal } from './components/show-user-details-modal/show-user-details-modal';
 
 import { HttpClient } from '@angular/common/http';
 
@@ -18,7 +19,7 @@ import { ApiResponse, RoleApi, UserApi, UserRow } from './interfaces/whm-user-ma
 
 @Component({
   selector: 'app-whm-user-management',
-  imports: [TableModule, IconField, InputIcon, CommonModule, DatePipe, TableModule, InputTextModule, ButtonModule, TagModule, ChipModule],
+  imports: [TableModule, IconField, InputIcon, CommonModule, DatePipe, TableModule, InputTextModule, ButtonModule, TagModule, ChipModule, ShowUserDetailsModal],
   templateUrl: './whm-user-management.html',
   styleUrl: './whm-user-management.css'
 })
@@ -28,6 +29,7 @@ export class WhmUserManagement {
 
   loading = signal<boolean>(false);
   users = signal<UserRow[]>([]);
+  isOpenModalShowUserDetails = signal<boolean>(true);
   pageSize = 10;
   ngOnInit(){
     this.loadUsers()
@@ -78,8 +80,20 @@ export class WhmUserManagement {
   }
 
   // Acciones (wirea tus modales aquí)
-  onView(user: UserRow):void { /* abrir modal ver */ }
-  onEdit(user: UserRow) { /* abrir modal editar */ }
-  onDelete(user: UserRow) { /* confirmar/eliminar */ }
+  onView(user: UserRow):void {
+     console.log(user)
+     this.isOpenModalShowUserDetails.set(true);
+  }
+  onEdit(user: UserRow) { 
+
+  }
+  onDelete(user: UserRow) {
+     
+  }
+
+  closeModal(value:any){
+    console.log("valor obtenido en el padrea:  ", value);
+    this.isOpenModalShowUserDetails.set(value);
+  }
 
 }

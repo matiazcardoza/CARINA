@@ -93,3 +93,13 @@
     </ng-template>
   </p-table>
 </div>
+
+<!-- -------------------------- Modal para mostrar las ordenes pertenecientes a un usuario junto con sus roles --------------------------  -->
+<app-show-user-details-modal
+  [isOpen]="isOpenModalShowUserDetails()"
+  (onCloseModal)="closeModal($event)"
+/>
+<!-- [isOpen]="true" -->
+<!-- [isOpen]="showAddUserModal"
+(sentOpenValue)="closeModalAddPerson()"
+(onListPeopleByDni)="handleListPeopleByDni($event)" -->
