@@ -46,6 +46,7 @@ class ProductController extends Controller
 
     public function index(Request $req)
     {
+        // return "hola mundo";
         // Log::info("entrada");
         $user = Auth::user();
         // $user  = $req->user();
@@ -82,7 +83,7 @@ class ProductController extends Controller
                 },
             ])
             // ->select('id','name','item','id_order_silucia','id_product_silucia', 'detalles_orden','desmeta', 'fecha') // campos que muestres
-            ->select('id','item','id_container_silucia','id_item_pecosa_silucia','desmeta','fecha','numero','cantidad','precio') // campos que muestres
+            ->select('id','item','id_pecosa_silucia','id_item_pecosa_silucia','desmeta','fecha','numero','cantidad','precio') // campos que muestres
             ->orderByDesc('id')
             ->paginate((int)$req->query('per_page', 20));
 
@@ -90,7 +91,7 @@ class ProductController extends Controller
         // $products->getCollection()->transform(function ($product) use ($roles) {
         //     $product->reports = $product->reports->map(function ($report) use ($roles) {
                 $products->getCollection()->transform(function ($item) use ($roles) {
-    $item->reports = $item->reports->map(function ($report) use ($roles) {
+                $item->reports = $item->reports->map(function ($report) use ($roles) {
                 // obtiene cada flujo del reporte
                 $flow = $report->flow;
                 // Paso actual (quién tiene el turno)
