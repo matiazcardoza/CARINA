@@ -11,6 +11,7 @@ class PecosaClient
         $endpoint = '/pecosadetallado';
         $base = config('services.silucia.base_url', env('SILUCIA_BASE_URL')) . $endpoint;
         $optional = $request->only([
+            'idmeta',
             'page', 'per_page', 'numero',
             'anio', 'item','desmeta',
             'siaf', 'ruc', 'rsocial',
@@ -28,7 +29,7 @@ class PecosaClient
         $base = config('services.silucia.base_url', env('SILUCIA_BASE_URL')) . $endpoint;
 
         $optional = is_array($input) ? $input : $input->only([
-            'page','per_page','numero','anio','item','desmeta','siaf','ruc','rsocial','email','cod_meta' // ← agregado
+            'page','per_page','idmeta','numero','anio','item','desmeta','siaf','ruc','rsocial','email','cod_meta' // ← agregado
         ]);
 
         $query = array_filter($optional, fn($v) => $v !== null && $v !== '');

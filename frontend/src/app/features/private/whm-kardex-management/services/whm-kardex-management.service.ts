@@ -55,6 +55,12 @@ export class WhmKardexManagementService {
     if (search) params = params.set('q', search);
     return this.http.get<OC[]>(`${this.apiUrl}/api/ordenes-compra`, { ...this.options, headers, params });
   }
+  getPecosas(obraId: number, search?: string): Observable<OC[]> {
+    const headers = new HttpHeaders({ 'X-Obra-Id': String(obraId) }); // ← sólo aquí
+    let params = new HttpParams();
+    if (search) params = params.set('q', search);
+    return this.http.get<OC[]>(`${this.apiUrl}/api/pecosas`, { ...this.options, headers, params });
+  }
 
 //   getOrdenesComprax(obraId: number, search?: string) {
 //     const headers = new HttpHeaders({ 'X-Obra-Id': String(obraId) });

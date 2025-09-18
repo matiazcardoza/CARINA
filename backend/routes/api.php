@@ -184,6 +184,8 @@ Route::middleware(['auth:sanctum','resolve.obra'])->group(function () {
     // Route::get('/me/obras', [ObrasController::class,'mine']); // listado para el selector, aqui se devuelve todas las obras de un usuario, para que el usuario pueda seleccionar aquella con la que va a trabajar
     // Route::middleware(['resolve.obra'])->group(function () {
     Route::get('/ordenes-compra', [OCController::class,'index']);
+    // retora todas los itempecosas a partir de una obra / meta
+    Route::get('/pecosas', [PecosaController::class,'getPecosasByWorks']);
     Route::get('/ordenes-compra/{orden}/pecosas', [OCController::class, 'pecosas']);  // nuevo
 
     //   Route::get('/ordenes-compra', [ObrasController::class,'index']);
@@ -223,7 +225,7 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     Route::post  ('/users/{user}/obras/{obra}/roles',    [UserObrasController::class, 'attachRoles']); // agregar
     Route::delete('/users/{user}/obras/{obra}/roles',    [UserObrasController::class, 'detachRoles']); // quitar
 
-    // 🚀 NUEVO: importar/actualizar obra (desde API externa) + importar PECOSAs + asignar al usuario + set roles
+    //NUEVO: importar/actualizar obra (desde API externa) + importar PECOSAs + asignar al usuario + set roles
     Route::post('/users/{user}/obras/import', [UserObrasController::class, 'importAttachFromExternal']);
 });
 // nuevas rutas para actualizar los permisos por obr  - final

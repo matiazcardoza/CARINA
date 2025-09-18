@@ -8,7 +8,23 @@ class Obra extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nombre','codigo'];
+    // protected $fillable = ['nombre','codigo'];
+    protected $fillable = [
+        'id',
+        'idmeta_silucia',
+        'anio',
+        'codmeta',
+        'nombre',
+        'desmeta',
+        'nombre_corto',
+        'cadena',
+        'prod_proy',
+        'external_last_seen_at',
+        'external_hash',
+        'raw_snapshot',
+        // 'codigo', // si lo usas
+    ];
+    
 
     // Users miembros (pivot obra_user)
     public function members()

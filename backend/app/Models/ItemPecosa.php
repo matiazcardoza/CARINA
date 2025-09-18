@@ -18,48 +18,55 @@ class ItemPecosa extends Model
      * Asignación masiva segura
      */
     protected $fillable = [
-        // Referencias Silucia
-        // 'id_container_silucia',
-        // 'id_item_pecosa_silucia',
+        // FKs internas
+        'id',
+        'obra_id',
+        'orden_id',
 
-        'id_pecosa_silucia',
-        'id_item_pecosa_silucia',
+        // Identificadores Silucia
+        'idsalidadet_silucia',   // único
+        'idcompradet_silucia',   // opcional
 
-        // Datos administrativos / logísticos
+        // Búsquedas típicas
         'anio',
         'numero',
+
+        // Datos de pecosa
         'fecha',
         'prod_proy',
         'cod_meta',
         'desmeta',
         'desuoper',
         'destipodestino',
-
-        // Detalle del ítem
         'item',
         'desmedida',
-        'idsalidadet',
+
+        // Detalle numérico
         'cantidad',
         'precio',
-        'tipo',
         'saldo',
         'total',
+
+        // Referencia cruzada
         'numero_origen',
+
+        // Metadatos de sincronización
+        'external_last_seen_at',
+        'external_hash',
+        'raw_snapshot',
     ];
 
     /**
      * Casts para tipos nativos
      */
     protected $casts = [
-        'anio'                  => 'integer',
         'fecha'                 => 'date',
-        'id_pecosa_silucia'  => 'string',
-        'id_item_pecosa_silucia'=> 'integer',
-        'idsalidadet'           => 'integer',
-        'cantidad'              => 'decimal:2',
+        'cantidad'              => 'integer',      // unsigned en DB
         'precio'                => 'decimal:2',
-        'saldo'                 => 'decimal:2',
+        'saldo'                 => 'integer',
         'total'                 => 'decimal:2',
+        'external_last_seen_at' => 'datetime',
+        'raw_snapshot'          => 'array',        // longText con JSON
     ];
 
     public function obra()

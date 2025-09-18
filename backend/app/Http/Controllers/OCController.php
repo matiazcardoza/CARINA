@@ -9,7 +9,7 @@ class OCController extends Controller
     // GET /api/ordenes-compra
     public function index(Request $request)
     {
-        // return "hola mundo";
+        // return "retorna ordenes de compra";
         // Gracias al global-scope por obra (si lo agregaste) y/o al team activo,
         // la consulta ya queda acotada a la obra actual.
         $ocs = OrdenCompra::query()

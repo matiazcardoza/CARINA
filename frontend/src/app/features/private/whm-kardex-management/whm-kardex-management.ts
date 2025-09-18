@@ -127,7 +127,8 @@ export class WhmKardexManagement implements OnInit {
   cargarOrdenes() {
     if (!this.selectedObraId) return;
     this.loadingOrdenes = true;
-    this.api.getOrdenesCompra(this.selectedObraId, this.uiFilters.search).subscribe({
+    // this.api.getOrdenesCompra(this.selectedObraId, this.uiFilters.search).subscribe({
+    this.api.getPecosas(this.selectedObraId, this.uiFilters.search).subscribe({
       next: rows => this.ordenes.set((rows ?? []) as OCx[]),
       complete: () => { this.loadingOrdenes = false; }
     });
