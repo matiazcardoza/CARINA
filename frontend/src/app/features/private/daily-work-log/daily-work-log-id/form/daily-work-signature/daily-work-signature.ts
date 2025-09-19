@@ -11,6 +11,15 @@ import { DailyWorkLogService } from '../../../../../../services/DailyWorkLogServ
 import { FirmaDigitalParams, SignatureService } from '../../../../../../services/SignatureService/signature-service';
 import { environment } from '../../../../../../../environments/environment';
 
+import { FormBuilder, FormGroup, ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
+import { UsersService } from '../../../../../../services/UsersService/users-service';
+import { startWith, map } from 'rxjs/operators';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+
+import { UserElement } from '../../../../users/users';
+
 export interface DocumentDailyPartElement {
   id: number;
   file_path: string;
@@ -30,7 +39,11 @@ interface DialogData {
     MatIconModule,
     MatButtonModule,
     MatToolbarModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    ReactiveFormsModule,
+    MatAutocompleteModule,
+    MatFormFieldModule,
+    MatInputModule
   ],
   templateUrl: './daily-work-signature.html',
   styleUrl: './daily-work-signature.css'
@@ -45,6 +58,10 @@ export class DailyWorkSignature {
   isSigned = false;
   signatureData: any = null;
   isSigningInProgress = false;
+
+  userForm: FormGroup;
+  users: UserElement[] = [];
+  filteredUsers: UserElement[] = [];
   
   constructor(
     public dialogRef: MatDialogRef<DailyWorkSignature>,
@@ -52,11 +69,53 @@ export class DailyWorkSignature {
     private cdr: ChangeDetectorRef,
     private dailyWorkLogService: DailyWorkLogService,
     private signatureService: SignatureService,
-    private sanitizer: DomSanitizer
-  ) {}
+    private sanitizer: DomSanitizer,
+    private fb: FormBuilder,
+    private usersService: UsersService
+  ) {
+    this.userForm = this.fb.group({
+      userId: ['', Validators.required],
+    });
+  }
 
   ngOnInit(): void {
+    this.loadUsers();
     this.loadPdfDocument();
+  }
+
+  private loadUsers(): void {
+    this.usersService.getUsers().subscribe({
+      next: (users) => {
+        this.users = users;
+        this.filteredUsers = [...this.users];
+      },
+      error: (error) => {
+        console.error('Error al cargar usuarios:', error);
+      }
+    });
+
+    this.userForm.get('userId')?.valueChanges.pipe(
+      startWith(''),
+      map(value => (typeof value === 'string' ? value : value?.name))
+    ).subscribe(name => {
+      this.filteredUsers = this._filterUsers(name || '');
+    });
+  }
+
+  displayUser(user: UserElement | null): string {
+    return user ? `${user.name} - ${user.email}` : '';
+  }
+
+  private _filterUsers(value: string): UserElement[] {
+    const filterValue = value.toLowerCase();
+    return this.users.filter(user =>
+      user.name.toLowerCase().includes(filterValue) ||
+      user.email.toLowerCase().includes(filterValue)
+    );
+  }
+
+  onUserSelected(user: UserElement): void {
+    this.userForm.get('userId')?.setValue(user);
   }
 
   loadPdfDocument(): void {
@@ -112,7 +171,7 @@ export class DailyWorkSignature {
       asunto: `Firma de Parte Diario - ${this.data.date}`,
       rol: 'ADMIN',
       tipo: 'daily_parts',
-      status_position: '1',
+      status_position: '3',
       visible_position: false,
       bacht_operation: false,
       npaginas: 1,

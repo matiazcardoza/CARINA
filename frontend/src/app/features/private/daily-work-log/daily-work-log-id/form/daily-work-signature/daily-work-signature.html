@@ -65,7 +65,25 @@
 
   <mat-toolbar class="signature-actions">
     <span class="toolbar-spacer"></span>
-    
+    <form [formGroup]="userForm" class="user-selector-form">
+      <mat-form-field appearance="outline" class="user-selector-field">
+        <mat-label>Usuario que firma</mat-label>
+        <input type="text"
+              placeholder="Buscar usuario..."
+              aria-label="Usuarios"
+              matInput
+              formControlName="userId"
+              [matAutocomplete]="autoUser">
+        <mat-autocomplete #autoUser="matAutocomplete"
+                          [displayWith]="displayUser"
+                          (optionSelected)="onUserSelected($event.option.value)">
+          <mat-option *ngFor="let user of filteredUsers" [value]="user">
+            {{ user.name }} - {{ user.email }}
+          </mat-option>
+        </mat-autocomplete>
+        <mat-error *ngIf="userForm.get('userId')?.hasError('required')">El usuario es requerido</mat-error>
+      </mat-form-field>
+    </form>
     <button mat-stroked-button
             (click)="onCancel()"
             style="margin-right: 10px;">
