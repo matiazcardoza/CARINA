@@ -118,7 +118,7 @@
       >
       <!-- let-expanded="expanded()" -->
       <tr>
-          <td>
+        <!-- <td>
           <p-button
             [pRowToggler]="row"
             [text]="true"
@@ -126,6 +126,16 @@
             severity="secondary"
             [icon]="expanded() ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
           >
+          </p-button>
+        </td> -->
+        <td>
+          <p-button
+            [pRowToggler]="row"
+            [text]="true"
+            [rounded]="true"
+            severity="secondary"
+            [disabled]="!(row?.reports?.length)"
+            [icon]="(expandedRowsPecosa()[row.id] ? 'pi pi-chevron-down' : 'pi pi-chevron-right')">
           </p-button>
         </td>
         <td>{{ row.anio }}</td>
@@ -156,9 +166,70 @@
       </tr>
     </ng-template>
 
-    <ng-template pTemplate="expandedrow" let-row>
+    <!-- <ng-template pTemplate="expandedrow" let-row>
       fila expandida
+    </ng-template> -->
+    <ng-template pTemplate="expandedrow" let-row>
+      <tr>
+        <td colspan="15">
+          <div style="padding:10px 8px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;">
+            <h4 style="margin:0 0 8px 0; font-size:1rem;">Reportes del ítem</h4>
+
+            <p-table [value]="row.reports || []">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="min-width:6rem;">value</th>
+                  <th style="min-width:8rem;">Tipo</th>
+                  <th style="min-width:8rem;">Estado</th>
+                  <th style="min-width:10rem;">Rol actual</th>
+                  <th style="min-width:10rem;">Mi paso</th>
+                  <th style="min-width:9rem; text-align:center;">Acciones</th>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="body" let-r>
+                <tr>
+                  <td>{{ r.id }}</td>
+                  <td>{{ r.type || '—' }}</td>
+                  <td>{{ r.status }}</td>
+                  <td>{{ r.current_role || '—' }}</td>
+                  <td>
+                    @if (r.user_step) {
+                      <span>#{{ r.user_step.order }} — {{ r.user_step.role }} ({{ r.user_step.status }})</span>
+                    } @else {
+                      <span>—</span>
+                    }
+                  </td>
+
+                  <td style="text-align:center;">
+                    <div class="flex gap-2 justify-center">
+                      <p-button
+                        icon="pi pi-download"
+                        [text]="true"
+                        (onClick)="downloadReport(r.status)"
+                      ></p-button>
+
+                      <p-button
+                        icon="pi pi-pencil"
+                        severity="success"
+                        [text]="true"
+                        (onClick)="signReport(r.status)"
+                        ></p-button>
+                        <!-- [disabled]="!r.can_sign || !r.sign_callback_url" -->
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="emptymessage">
+                <tr><td colspan="6">Sin reportes.</td></tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </td>
+      </tr>
     </ng-template>
+
 
     <!-- Empty -->
     <ng-template pTemplate="emptymessage">

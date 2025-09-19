@@ -162,7 +162,7 @@ class PecosaController extends Controller
         ]);
     }
 
-    public function testPecosas(Request $request, Obra $obra){
+    public function testPecosasV0(Request $request, Obra $obra){
         // Filtros básicos
         $request->validate([
             'page' => 'nullable|integer|min:1',
@@ -184,6 +184,105 @@ class PecosaController extends Controller
         return response()->json([
             'data' => $p->items(),
             'total' => $p->total(),
+            'per_page' => $p->perPage(),
+        ]);
+    }
+    public function testPecosas(Request $request, Obra $obra){
+        // Filtros básicos
+
+        $user  = $request->user();
+        // return $user;
+        $roles = $user->getRoleNames()->toArray();
+        $isOperator = $user->hasRole('almacen.operador');
+
+        $request->validate([
+            'page' => 'nullable|integer|min:1',
+            'per_page' => 'nullable|integer|min:1|max:200',
+            'anio' => 'nullable|integer',
+            'numero' => 'nullable|string|max:50',
+        ]);
+
+        // Base: por obra
+        $q = ItemPecosa::query()->where('obra_id', $obra->id);
+
+        // Regla de visibilidad por Rol:
+        // - operador => TODOS
+        // - admin/residente/supervisor => SOLO con reportes
+        if (!$isOperator) {
+            $q->whereHas('reports'); // al menos 1 reporte
+        }
+
+        // filtros UI (opcionales)
+        if ($request->filled('anio'))   $q->where('anio', $request->integer('anio'));
+        if ($request->filled('numero')) $q->where('numero', 'like', '%'.$request->get('numero').'%');
+
+        // eager loading de reportes (para el desplegable)
+        $q->with([
+            'reports' => fn($qr) => $qr->withFlowLight()
+        ]);
+
+        // campos principales
+        $q->select([
+            'id','obra_id',
+            'anio','numero','fecha',
+            'prod_proy','cod_meta','desmeta','desuoper','destipodestino',
+            'item','desmedida','cantidad','precio','total','saldo','numero_origen',
+            'idsalidadet_silucia','idcompradet_silucia'
+        ]);
+
+        $perPage = (int)($request->get('per_page', 20));
+        $page    = (int)($request->get('page', 1));
+        $p       = $q->orderByDesc('fecha')->paginate($perPage, ['*'], 'page', $page);
+
+        // Transformar reports al shape que consume el front (similar a tu código antiguo)
+        $p->getCollection()->transform(function ($item) use ($roles) {
+            $item->reports = collect($item->reports)->map(function ($report) use ($roles) {
+                $flow        = $report->flow;
+                $currentStep = $flow?->steps?->firstWhere('order', (int)$flow->current_step);
+                $currentRole = optional($currentStep)->role;
+
+                $userStep = $flow?->steps?->first(function ($s) use ($roles) {
+                    return in_array($s->role, $roles, true);
+                });
+
+                $canSign = false;
+                if ($userStep) {
+                    $canSign = $userStep->status === 'pending'
+                        && (int)$userStep->order === (int)$flow->current_step;
+                }
+
+                return [
+                    'report_id'     => $report->id,
+                    'type'          => $report->category,
+                    'status'        => $report->status,
+                    'flow_id'       => $flow?->id,
+                    'current_step'  => $flow?->current_step,
+                    'current_role'  => $currentRole,
+                    'user_step'     => $userStep ? [
+                        'id'     => $userStep->id,
+                        'role'   => $userStep->role,
+                        'status' => $userStep->status,
+                        'order'  => $userStep->order,
+                        'page'   => $report->pdf_page_number,
+                        'pos_x'  => $userStep->pos_x,
+                        'pos_y'  => $userStep->pos_y,
+                        'width'  => $userStep->width,
+                        'height' => $userStep->height,
+                    ] : null,
+                    'can_sign'       => $canSign,
+                    'download_url'   => url("/api/files-download?name={$report->pdf_path}"),
+                    'sign_callback_url' => $userStep
+                        ? url("/api/signatures/callback?flow_id={$flow->id}&step_id={$userStep->id}&token={$userStep->callback_token}")
+                        : null,
+                ];
+            });
+
+            return $item;
+        });
+
+        return response()->json([
+            'data'     => $p->items(),
+            'total'    => $p->total(),
             'per_page' => $p->perPage(),
         ]);
     }

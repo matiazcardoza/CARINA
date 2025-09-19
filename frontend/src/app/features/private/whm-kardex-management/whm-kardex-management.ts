@@ -34,6 +34,7 @@ export class WhmKardexManagement implements OnInit {
   private api = inject(WhmKardexManagementService);
   private readonly messageService = inject(MessageService);
   private readonly destroyRef = inject(DestroyRef);
+   window = window; // Hace que 'window' esté disponible en el template
   obras = signal<ObraLite[]>([]);
   selectedObraId: number | null = null;
   pecosas = signal<PecosaLite[]>([]);
@@ -278,10 +279,51 @@ export class WhmKardexManagement implements OnInit {
   /**
    * Funcionalidades para expandir y contraer filas
    */
-  onRowExpandPecosa(data:any){
-    console.log("expandir fila: ", data)
+  // onRowExpandPecosa(data:any){
+  //   console.log("expandir fila: ", data)
+  // }
+  // onRowCollapsePecosa(data: any){
+  //   console.log("colapsar fila: ", data)
+  // }
+  downloadReport(url: string | null) {
+    console.log("Datos de ULR: ", url);
+    // if (url) {
+    //   window.open(url, '_blank');
+    // }
   }
-  onRowCollapsePecosa(data: any){
-    console.log("colapsar fila: ", data)
+
+  signReport(url: string | null) {
+    console.log("Datos de ULR: ", url);
+    // if (url) {
+    //   window.location.href = url;
+    // }
   }
+
+  openExternal(url?: string | null) {
+    if (!url) return;
+    // Abrir en nueva pestaña/ventana
+    window.open(url, '_blank');
+  }
+
+  goTo(url?: string | null) {
+    if (!url) return;
+    // Navegar en la misma pestaña
+    window.location.href = url;
+  }
+
+  onRowExpandPecosa(e: any) {
+    const id = e.data?.id;
+    if (id == null) return;
+    this.expandedRowsPecosa.update(map => ({ ...map, [id]: true }));
+  }
+
+  onRowCollapsePecosa(e: any) {
+    const id = e.data?.id;
+    if (id == null) return;
+    this.expandedRowsPecosa.update(map => {
+      const { [id]: _omit, ...rest } = map;
+      return rest;
+    });
+  }
+
 }

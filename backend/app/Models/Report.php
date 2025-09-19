@@ -12,9 +12,30 @@ class Report extends Model
         'status','category','subtype','created_by',
     ];
 
-    public function reportable() { return $this->morphTo(); }
-    public function flow()       { return $this->hasOne(SignatureFlow::class); }
+    public function reportable() {
+        return $this->morphTo(); 
+    }
+    
+    public function flow(){ 
+        return $this->hasOne(SignatureFlow::class); 
+    }
+
+    public function scopeWithFlowLight($q)
+    {
+        return $q->select(
+                'id',
+                'reportable_id','reportable_type',
+                'pdf_path','pdf_page_number','latest_pdf_path',
+                'status','category','subtype','created_by','created_at'
+            )
+            ->whereHas('flow') // asegura que tenga flow
+            ->with([
+                'flow:id,report_id,current_step,status',
+                'flow.steps:id,signature_flow_id,order,role,status,callback_token,page,pos_x,pos_y,width,height',
+            ]);
+    }
 }
+
 
 
 

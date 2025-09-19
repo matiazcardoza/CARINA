@@ -37,7 +37,7 @@ export class WhmUserManagement {
   }
   loadUsers(): void {
     this.loading.set(true);
-    this.http.get<ApiResponse<UserApi[]>>(`${this.API}/users`, {
+    this.http.get<ApiResponse<UserApi[]>>(`${this.API}/admin/users`, {
       // Si usas Sanctum/cookies:
       withCredentials: true
     }).subscribe({

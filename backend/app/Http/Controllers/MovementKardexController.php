@@ -949,7 +949,7 @@ class MovementKardexController extends Controller
         // ]);
         $report = Report::create([
             'reportable_id'    => $pecosa->id,
-            'reportable_type'  => \App\Models\ItemPecosa::class,
+            'reportable_type'  => ItemPecosa::class,
             // 'reportable_type'  => \App\Models\Product::class,
             'pdf_path'         => $relativePath,   // << guarda la ruta RELATIVA completa
             'pdf_page_number'  => $pageCount,
@@ -964,11 +964,12 @@ class MovementKardexController extends Controller
         ]);
 
         // Ajusta coordenadas si cambiaste orientación P/L
+
         $roles = config('signing.roles_order', [
-            ['role'=>'almacen_almacenero','page'=>1,'pos_x'=>35,        'pos_y'=>745,'width'=>180,'height'=>60],
-            ['role'=>'almacen_administrador','page'=>1,'pos_x'=>170,    'pos_y'=>745,'width'=>180,'height'=>60],
-            ['role'=>'almacen_residente','page'=>1,'pos_x'=>305,        'pos_y'=>745,'width'=>180,'height'=>60],
-            ['role'=>'almacen_supervisor','page'=>1,'pos_x'=>440,       'pos_y'=>745,'width'=>180,'height'=>60],
+            ['role'=>'almacen.operador','page'=>1,'pos_x'=>35,        'pos_y'=>745,'width'=>180,'height'=>60],
+            ['role'=>'almacen.administrador','page'=>1,'pos_x'=>170,    'pos_y'=>745,'width'=>180,'height'=>60],
+            ['role'=>'almacen.residente','page'=>1,'pos_x'=>305,        'pos_y'=>745,'width'=>180,'height'=>60],
+            ['role'=>'almacen.supervisor','page'=>1,'pos_x'=>440,       'pos_y'=>745,'width'=>180,'height'=>60],
         ]);
         foreach (array_values($roles) as $i => $role) {
             SignatureStep::create([

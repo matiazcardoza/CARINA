@@ -107,35 +107,35 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 });
 
-Route::get('/users', [UserController::class, 'index']);
-Route::middleware(['auth:sanctum'])->group(function () {
-// Route::middleware(['auth:sanctum','resolve.obra'])->group(function () {
+// Route::get('/users', [UserController::class, 'index']);
+// Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['auth:sanctum','resolve.obra'])->group(function () {
 
     // ---------------------------Revisar y eliminar estas endopitns con sus metodos----------------------------------
-    Route::get('/products/{product}/movements-kardex', [ProductMovementKardexController::class, 'index'])->middleware(['role:almacen_almacenero']);
+    Route::get('/products/{product}/movements-kardex', [ProductMovementKardexController::class, 'index'])->middleware(['role:almacen.operador']);
     // obtenemos la lista de ordenes de silucia
-    Route::get('silucia-orders', [PurchaseOrdersController::class, 'index'])->middleware(['role:almacen_almacenero']);
+    Route::get('silucia-orders', [PurchaseOrdersController::class, 'index'])->middleware(['role:almacen.operador']);
     // buscamos el producto, si no lo encontramos lo creamos y al mismo tiempo guardarmos el movimiento
-    Route::post('/movements-kardex', [MovementKardexController::class, 'store'])->middleware(['role:almacen_almacenero']);
+    Route::post('/movements-kardex', [MovementKardexController::class, 'store'])->middleware(['role:almacen.operador']);
 
     // mostramos todos los movimientos que pertenecen a un producto de la base de datos de silucia ----- (CAMBIAMOS PARA OBTENER LOS MOVIMIENTOS DE LAS PECOSAS)
-    // Route::get( 'silucia-containers/{containerId}/items-pecosas/{itemId}/movements',  [MovementKardexController::class, 'indexBySiluciaIds'])->middleware(['role:almacen_almacenero']);
-    Route::get( 'silucia-pecosas/{pecosaId}/items-pecosas/{itemId}/movements',  [MovementKardexController::class, 'indexBySiluciaIds'])->middleware(['role:almacen_almacenero']);
+    // Route::get( 'silucia-containers/{containerId}/items-pecosas/{itemId}/movements',  [MovementKardexController::class, 'indexBySiluciaIds'])->middleware(['role:almacen.operador']);
+    Route::get( 'silucia-pecosas/{pecosaId}/items-pecosas/{itemId}/movements',  [MovementKardexController::class, 'indexBySiluciaIds'])->middleware(['role:almacen.operador']);
 
     // generamos un reporte de  todos los movimientos que pertenecen a un producto de la base de datos de silucia ----- (CAMBIAMOS PARA OBTENER LOS MOVIMIENTOS DE LAS PECOSAS)
-    // Route::get( 'silucia-containers/{containerId}/items-pecosas/{itemId}/movements/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen_almacenero']);
-    Route::get( 'silucia-pecosas/{pecosaId}/items-pecosas/{itemId}/movements/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen_almacenero']);
+    // Route::get( 'silucia-containers/{containerId}/items-pecosas/{itemId}/movements/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen.operador']);
+    Route::get( 'silucia-pecosas/{pecosaId}/items-pecosas/{itemId}/movements/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen.operador']);
     
     // devuelve los productos guardados de nuestra propia base de datos
     Route::get('/items-pecosas', [ProductController::class, 'index']);
 
     // ******************* refactorizacion de codigo: pasar de datos de ordenes a pecosas - (inicio) *******************
-    Route::get('silucia-pecosas', [PecosaController::class, 'index'])->middleware(['role:almacen_almacenero']);
+    Route::get('silucia-pecosas', [PecosaController::class, 'index'])->middleware(['role:almacen.operador']);
 
     // muestra datos de una persona, ya sea consultadno a la api de reniec o consultando la propia base de datos
-    Route::get('/people/{dni}', [PeopleController::class, 'showOrFetch'])->middleware(['role:almacen_almacenero']); // cache-first (db) → RENIEC
+    Route::get('/people/{dni}', [PeopleController::class, 'showOrFetch'])->middleware(['role:almacen.operador']); // cache-first (db) → RENIEC
     // muestra todas las personas pertenecientes a un movimiento
-    Route::post('/movements-kardex/{movement}/people', [MovementKardexController::class, 'attachPerson'])->middleware(['role:almacen_almacenero']);
+    Route::post('/movements-kardex/{movement}/people', [MovementKardexController::class, 'attachPerson'])->middleware(['role:almacen.operador']);
     // endpoint no terminado - sirve para quitar una persona de un movimientoa
 
     // rutas para vales de transporte
@@ -192,15 +192,15 @@ Route::middleware(['auth:sanctum','resolve.obra'])->group(function () {
     //   Route::get('/ordenes-compra', [ObrasController::class,'index']);
     Route::post('/items/{item}/movements', [MovementController::class,'store']);
     // ...más endpoints scropeados
-
-    Route::get('/obras/{obra}/item-pecosas', [PecosaController::class, 'testPecosas']);
+    // devuelve todos los item pecosas de una obra en especifio
+    Route::get('/obras/{obra}/item-pecosas', [PecosaController::class, 'testPecosas'])->middleware(['role:almacen.operador']);
     // registra en la base de datos el movimiento hecho por el usuario
-    Route::post('/kardex-movements/{itemPecosa}', [MovementKardexController::class, 'store'])->middleware(['role:almacen_almacenero']);
+    Route::post('/kardex-movements/{itemPecosa}', [MovementKardexController::class, 'store'])->middleware(['role:almacen.operador']);
     // me devuelve todos los movimmientos de un itemPecosa
-    Route::get('/item-pecosas/{itemPecosa}/movements-kardex',   [PecosaController::class, 'getItemPecosas'])->middleware(['role:almacen_almacenero']);
+    Route::get('/item-pecosas/{itemPecosa}/movements-kardex',   [PecosaController::class, 'getItemPecosas'])->middleware(['role:almacen.operador']);
     // http://localhost:8000/api/pecosas/002028/items/55557/movements-kardex/pdf
     // http://localhost:8000/api/item-pecosas/002028/movements-kardex/pdf
-    Route::get( '/item-pecosas/{itemPecosa}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen_almacenero']);
+    Route::get( '/item-pecosas/{itemPecosa}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen.operador']);
 });
 
 Route::get('get-roles-by-scope', function(){
