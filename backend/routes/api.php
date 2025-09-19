@@ -109,6 +109,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 Route::get('/users', [UserController::class, 'index']);
 Route::middleware(['auth:sanctum'])->group(function () {
+// Route::middleware(['auth:sanctum','resolve.obra'])->group(function () {
 
     // ---------------------------Revisar y eliminar estas endopitns con sus metodos----------------------------------
     Route::get('/products/{product}/movements-kardex', [ProductMovementKardexController::class, 'index'])->middleware(['role:almacen_almacenero']);
@@ -191,6 +192,15 @@ Route::middleware(['auth:sanctum','resolve.obra'])->group(function () {
     //   Route::get('/ordenes-compra', [ObrasController::class,'index']);
     Route::post('/items/{item}/movements', [MovementController::class,'store']);
     // ...más endpoints scropeados
+
+    Route::get('/obras/{obra}/item-pecosas', [PecosaController::class, 'testPecosas']);
+    // registra en la base de datos el movimiento hecho por el usuario
+    Route::post('/kardex-movements/{itemPecosa}', [MovementKardexController::class, 'store'])->middleware(['role:almacen_almacenero']);
+    // me devuelve todos los movimmientos de un itemPecosa
+    Route::get('/item-pecosas/{itemPecosa}/movements-kardex',   [PecosaController::class, 'getItemPecosas'])->middleware(['role:almacen_almacenero']);
+    // http://localhost:8000/api/pecosas/002028/items/55557/movements-kardex/pdf
+    // http://localhost:8000/api/item-pecosas/002028/movements-kardex/pdf
+    Route::get( '/item-pecosas/{itemPecosa}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen_almacenero']);
 });
 
 Route::get('get-roles-by-scope', function(){

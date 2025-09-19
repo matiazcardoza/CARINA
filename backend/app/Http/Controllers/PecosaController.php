@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ItemPecosa;
+use App\Models\Obra;
 use App\Services\PecosaClient;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -161,4 +162,86 @@ class PecosaController extends Controller
         ]);
     }
 
+    public function testPecosas(Request $request, Obra $obra){
+        // Filtros básicos
+        $request->validate([
+            'page' => 'nullable|integer|min:1',
+            'per_page' => 'nullable|integer|min:1|max:200',
+            'anio' => 'nullable|integer',
+            'numero' => 'nullable|string|max:50',
+        ]);
+
+        $q = ItemPecosa::query()->where('obra_id', $obra->id);
+
+        if ($request->filled('anio'))   $q->where('anio', $request->integer('anio'));
+        if ($request->filled('numero')) $q->where('numero', 'like', '%'.$request->get('numero').'%');
+
+        $perPage = (int) ($request->get('per_page', 20));
+        $page = (int) ($request->get('page', 1));
+
+        $p = $q->orderByDesc('fecha')->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json([
+            'data' => $p->items(),
+            'total' => $p->total(),
+            'per_page' => $p->perPage(),
+        ]);
+    }
+
+    public function getKardexManagement(Request $request){
+        $request->validate([
+            'page'     => 'nullable|integer|min:1',
+            'per_page' => 'nullable|integer|min:1|max:100',
+            'numero'   => 'nullable|string|max:100',
+            'anio'     => 'nullable|integer|digits:4',
+            'item'     => 'nullable|string|max:255',
+            'desmeta'  => 'nullable|string|max:255',
+            'siaf'     => 'nullable|string|max:50',
+            'ruc'      => 'nullable|string|max:20',
+            'rsocial'  => 'nullable|string|max:255',
+            'email'    => 'nullable|string|max:255',
+        ]);
+    }
+    public function getItemPecosas(Request $request, ItemPecosa $itemPecosa){
+        // Validar parámetros
+
+        $perPage = (int) $request->query('per_page', 50);
+
+        $query = $itemPecosa->movements()
+            ->with([
+                    'people' => function ($q) {
+                        // IMPORTANTE: incluye la PK 'dni' del related para hidratar bien el modelo
+                        $q->select([
+                            'people.dni',
+                            'people.full_name',
+                            'people.names',
+                            'people.first_lastname',
+                            'people.second_lastname',
+                        ]);
+                    }
+                ])
+            ->orderByDesc('movement_date') // fecha más reciente primero
+            ->orderByDesc('id');           // y a igualdad de fecha, el último creado
+
+        if ($request->boolean('paginate', true)) {
+            $movements = $query->paginate($perPage);
+        } else {
+            $movements = $query->get();
+        }
+
+        return response()->json([
+            'item_pecosa'   => [
+                'id'                  => $itemPecosa->id,
+                'id_order_silucia'    => $itemPecosa->id_order_silucia,
+                'id_product_silucia'  => $itemPecosa->id_product_silucia,
+                'name'                => $itemPecosa->name,
+            ],
+            'movements' => $movements,
+        ]);
+    }
+
 }
+
+
+// ----------
+// app/Http/Controllers/ItemPecosaController.php

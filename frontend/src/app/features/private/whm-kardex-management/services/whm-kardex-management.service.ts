@@ -1,29 +1,33 @@
-// import { Injectable } from '@angular/core';
-// import { HttpClient } from '@angular/common/http';
-// import { environment } from '../../../../../environments/environment';
-// @Injectable({
-//   providedIn: 'root'
-// })
-// export class WhmKardexManagementService {
 
-//   private apiUrl = environment.BACKEND_URL;
-//   private options = {withCredentials: true};
-//   constructor(private http:HttpClient){
-//   }
-
-//   get(){
-//     return this.http.get(`${this.apiUrl}/api/me/obras`,this.options);
-//   }
-
-// }
-// ----------------------------------------------------------------------------------
-
-// whm-kardex-management.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams, HttpResponse  } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 export type Obra = { id: number; nombre: string; codigo: string };
+export interface ObraLite { id: number; nombre: string; codmeta?: string; codigo?: string; }
+export interface PecosaLite {
+  id: number;
+  obra_id: number;
+  anio: string;
+  numero: string;
+  fecha: string;
+  prod_proy?: string;
+  cod_meta?: string;
+  desmeta?: string;
+  desuoper?: string;
+  destipodestino?: string;
+  item?: string;
+  desmedida?: string;
+  cantidad?: number;
+  precio?: number;
+  total?: number;
+  saldo?: number;
+  numero_origen?: string;
+  idsalidadet_silucia: number | string;
+  idcompradet_silucia?: number | string;
+}
+export interface PageResp<T> { data: T[]; total: number; per_page: number; }
+export interface MovementsPage { movements: { data: any[]; total: number; per_page: number; }; }
 export type OC   = { id: number; ext_order_id: string; fecha: string; proveedor: string; monto_total: number };
 export type OCx = OC & {
   pecosas?: Pecosa[];
@@ -35,18 +39,24 @@ export type Page<T> = {
   current_page: number;
   per_page: number;
   total: number;
-  // ...otros campos del paginador
 };
-
 @Injectable({ providedIn: 'root' })
 export class WhmKardexManagementService {
-  // private base = '/api';
   private apiUrl = environment.BACKEND_URL;
   private options = {withCredentials: true};
   constructor(private http: HttpClient) {}
 
   getObras(): Observable<Obra[]> {
     return this.http.get<Obra[]>(`${this.apiUrl}/api/me/obras`,this.options);
+    
+  }
+
+  getItemPecosas(obraId: number, params: { page?: number; per_page?: number; numero?: string; anio?: number }) {
+    let p = new HttpParams();
+    for (const [k, v] of Object.entries(params || {})) if (v !== undefined && v !== null && v !== '') p = p.set(k, String(v));
+    return this.http.get<PageResp<PecosaLite>>(`${this.apiUrl}/api/obras/${obraId}/item-pecosas`, {
+      params: p, withCredentials: true, headers: { 'X-Obra-Id': String(obraId) }
+    });
   }
 
   getOrdenesCompra(obraId: number, search?: string): Observable<OC[]> {
@@ -55,6 +65,7 @@ export class WhmKardexManagementService {
     if (search) params = params.set('q', search);
     return this.http.get<OC[]>(`${this.apiUrl}/api/ordenes-compra`, { ...this.options, headers, params });
   }
+
   getPecosas(obraId: number, search?: string): Observable<OC[]> {
     const headers = new HttpHeaders({ 'X-Obra-Id': String(obraId) }); // ← sólo aquí
     let params = new HttpParams();
@@ -62,26 +73,45 @@ export class WhmKardexManagementService {
     return this.http.get<OC[]>(`${this.apiUrl}/api/pecosas`, { ...this.options, headers, params });
   }
 
-//   getOrdenesComprax(obraId: number, search?: string) {
-//     const headers = new HttpHeaders({ 'X-Obra-Id': String(obraId) });
-//     let params = new HttpParams();
-//     if (search) params = params.set('q', search);
-
-//     return this.http
-//       .get<Page<OC>>(`${this.apiUrl}/api/ordenes-compra`, { ...this.options, headers, params })
-//       .pipe(
-//         map(page => (page?.data ?? []).map(oc => ({
-//           ...oc,
-//           monto_total: oc.monto_total as unknown as number
-//             ? +((oc as any).monto_total)
-//             : +(oc.monto_total as unknown as string) || 0
-//         })))
-//       );
-// }
-
   getPecosasDeOrden(obraId: number, ordenId: number): Observable<Pecosa[]> {
     const headers = new HttpHeaders({ 'X-Obra-Id': String(obraId) }); // ← sólo aquí
     return this.http.get<Pecosa[]>(`${this.apiUrl}/api/ordenes-compra/${ordenId}/pecosas`, {...this.options, headers });
+  }
+
+  createKardexMovement(payload: any, itemPecosaId:number, obraId: number |null ) {
+    const headers = new HttpHeaders({ 'X-Obra-Id': String(obraId) });
+    return this.http.post(`${this.apiUrl}/api/kardex-movements/${itemPecosaId}`, payload, { withCredentials: true, headers });
+  }
+
+  getKardexMovement(obraId: number | null, itemPecosaId: number, params: { page?: number; per_page?: number }) {
+    const headers = new HttpHeaders({ 'X-Obra-Id': String(obraId) });
+    let p = new HttpParams();
+    for (const [k, v] of Object.entries(params || {})) if (v !== undefined && v !== null) p = p.set(k, String(v));
+    return this.http.get<MovementsPage>(`${this.apiUrl}/api/item-pecosas/${itemPecosaId}/movements-kardex`, {
+      params: p, withCredentials: true, headers
+    });
+  }
+
+  downloadPdf(obraId: number | null, idItemPecosa: number) {
+      let headers = new HttpHeaders({ Accept: 'application/pdf' });
+      if (obraId !== null) {
+        headers = headers.set('X-Obra-Id', String(obraId));
+      }
+      return this.http.get(
+        `${this.apiUrl}/api/item-pecosas/${idItemPecosa}/movements-kardex/pdf`,
+        {
+          observe: 'response',
+          reportProgress: true,
+          responseType: 'blob',
+          withCredentials: true,
+          headers
+        }
+      ) as Observable<HttpResponse<Blob>>;
+  }
+
+  getPersonByDni(obraId: number |null , dni: string): Observable<any> {
+    const headers = new HttpHeaders({ 'X-Obra-Id': String(obraId) });
+    return this.http.get<any>(`${this.apiUrl}/api/people/${dni}`,{...this.options, headers});
   }
 }
 

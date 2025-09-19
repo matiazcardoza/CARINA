@@ -11,39 +11,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Schema::create('item_pecosas', function (Blueprint $table) {
-        //     $table->id(); // equivale a bigIncrements('id')
-
-        //     // scoping por obra
-        //     $table->foreignId('obra_id')->constrained('obras')->cascadeOnDelete();
-        //     // relación con OC (misma obra)
-        //     $table->foreignId('orden_id')->constrained('ordenes_compra')->cascadeOnDelete();
-
-        //     // campos típicos (ajústalos si tu API trae otros nombres)
-        //     $table->string('id_item_pecosa_silucia', 120)->nullable();  // id externo
-        //     $table->string('descripcion', 500)->nullable();             // "item" en la tabla de tu UI
-        //     $table->string('unidad', 50)->nullable();                   // "desmedida"
-        //     $table->decimal('cantidad_compra', 14, 4)->default(0);
-        //     $table->decimal('precio_unit', 14, 4)->default(0);
-        //     $table->decimal('total', 14, 2)->default(0);
-
-        //     // campos orientados a tu UI (opcionales)
-        //     $table->string('numero', 80)->nullable();                   // N° Pecosa
-        //     $table->year('anio')->nullable();
-        //     $table->date('fecha')->nullable();
-        //     $table->string('idsalidadet', 80)->nullable();
-        //     $table->string('prod_proy', 150)->nullable();
-        //     $table->string('cod_meta', 50)->nullable();
-        //     $table->string('desmeta', 250)->nullable();
-        //     $table->string('desuoper', 250)->nullable();
-        //     $table->string('destipodestino', 250)->nullable();
-
-        //     $table->timestamps();
-
-        //     $table->index(['obra_id', 'orden_id']);
-        //     $table->unique(['orden_id', 'id_item_pecosa_silucia']); // evita duplicad
-
-        // });
 
         Schema::create('item_pecosas', function (Blueprint $table) {
             $table->id();

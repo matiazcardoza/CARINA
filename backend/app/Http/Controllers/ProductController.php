@@ -46,6 +46,7 @@ class ProductController extends Controller
 
     public function index(Request $req)
     {
+        return "hola mundo 001 de pecosas";
         // return "hola mundo";
         // Log::info("entrada");
         $user = Auth::user();
