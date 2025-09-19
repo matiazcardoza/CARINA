@@ -208,7 +208,7 @@ class DailyPartController extends Controller
 
         $document = DocumentDailyPart::firstOrCreate(
             ['file_path' => $filePath],
-            ['state' => 1]
+            ['state' => 0]
         );
         
         $dailypart = DailyPart::where('work_date', $request->date);

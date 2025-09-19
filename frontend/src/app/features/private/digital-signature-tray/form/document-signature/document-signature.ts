@@ -7,18 +7,18 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DailyWorkLogService } from '../../../../../../services/DailyWorkLogService/daily-work-log-service';
-import { FirmaDigitalParams, SignatureService } from '../../../../../../services/SignatureService/signature-service';
-import { environment } from '../../../../../../../environments/environment';
+import { DailyWorkLogService } from '../../../../../services/DailyWorkLogService/daily-work-log-service';
+import { FirmaDigitalParams, SignatureService } from '../../../../../services/SignatureService/signature-service';
+import { environment } from '../../../../../../environments/environment';
 
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
-import { UsersService } from '../../../../../../services/UsersService/users-service';
+import { UsersService } from '../../../../../services/UsersService/users-service';
 import { startWith, map } from 'rxjs/operators';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
-import { UserElement } from '../../../../users/users';
+import { UserElement } from '../../../users/users';
 
 export interface DocumentDailyPartElement {
   id: number;
@@ -27,8 +27,7 @@ export interface DocumentDailyPartElement {
 }
 
 interface DialogData {
-  workLogId: number;
-  date: string;
+  documentId: number;
 }
 
 @Component({
@@ -45,10 +44,10 @@ interface DialogData {
     MatFormFieldModule,
     MatInputModule
   ],
-  templateUrl: './daily-work-signature.html',
-  styleUrl: './daily-work-signature.css'
+  templateUrl: './document-signature.html',
+  styleUrl: './document-signature.css'
 })
-export class DailyWorkSignature {
+export class DocumentSignature {
 
   pdfUrl: SafeResourceUrl | null = null;
   pdfUrlString: string = '';
@@ -64,7 +63,7 @@ export class DailyWorkSignature {
   filteredUsers: UserElement[] = [];
   
   constructor(
-    public dialogRef: MatDialogRef<DailyWorkSignature>,
+    public dialogRef: MatDialogRef<DocumentSignature>,
     @Inject(MAT_DIALOG_DATA) public data: DialogData,
     private cdr: ChangeDetectorRef,
     private dailyWorkLogService: DailyWorkLogService,
@@ -124,7 +123,7 @@ export class DailyWorkSignature {
     this.pdfUrl = null;
     this.cdr.detectChanges();
 
-    const workLogId = this.data.workLogId;
+    const workLogId = this.data.documentId;
 
     this.dailyWorkLogService.getWorkLogDocument(workLogId)
       .subscribe({
@@ -168,10 +167,10 @@ export class DailyWorkSignature {
       location_url_pdf: this.pdfUrlString,
       location_logo: `${environment.BACKEND_URL_STORAGE}image_pdf_template/logo_firma_digital.png`,
       post_location_upload: `${environment.BACKEND_URL}/api/document-signature/${this.documentId}`,
-      asunto: `Firma de Parte Diario - ${this.data.date}`,
+      asunto: `Firma de Parte Diario`,
       rol: 'ADMIN',
       tipo: 'daily_parts',
-      status_position: '1',
+      status_position: '2',
       visible_position: false,
       bacht_operation: false,
       npaginas: 1,

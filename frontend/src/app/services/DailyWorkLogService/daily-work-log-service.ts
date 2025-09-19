@@ -45,6 +45,11 @@ export interface CreateWorkLogData {
   initial_fuel: number;
 }
 
+export interface SendDocumentData {
+  userId: number;
+  documentId: number | null;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -158,5 +163,11 @@ export class DailyWorkLogService {
     }).pipe(
       map(response => response.data)
     );
+  }
+  
+  sendDocument(data: SendDocumentData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/api/daily-work-document/send`, data, {
+      withCredentials: true
+    });
   }
 }

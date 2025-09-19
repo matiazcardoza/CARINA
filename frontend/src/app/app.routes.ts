@@ -19,7 +19,7 @@ import { Roles } from './features/private/roles/roles';
 
 import { Reports } from './features/private/reports/reports';
 
-import { DigitalSignatureWorkflow } from './features/private/digital-signature-workflow/digital-signature-workflow';
+import { DigitalSignatureTray } from './features/private/digital-signature-tray/digital-signature-tray';
 import { Dashboards } from './features/private/dashboards/dashboards';
 // import { ValuedKardex } from './features/private/valued-kardex/valued-kardex';
 import { PhysicalBincard } from './features/private/physical-bincard/physical-bincard';
@@ -95,8 +95,8 @@ export const routes: Routes = [
                 component: Reports
             },
             {
-                path: 'digital-signature-workflow',
-                component: DigitalSignatureWorkflow
+                path: 'digital-signature-tray',
+                component: DigitalSignatureTray
             },
             {
                 path: 'kardex-management',

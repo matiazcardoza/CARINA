@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { DigitalSignatureWorkflow } from './digital-signature-workflow';
+import { DigitalSignatureTray } from './digital-signature-tray';
 
 describe('DigitalSignatureWorkflow', () => {
-  let component: DigitalSignatureWorkflow;
-  let fixture: ComponentFixture<DigitalSignatureWorkflow>;
+  let component: DigitalSignatureTray;
+  let fixture: ComponentFixture<DigitalSignatureTray>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DigitalSignatureWorkflow]
+      imports: [DigitalSignatureTray]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(DigitalSignatureWorkflow);
+    fixture = TestBed.createComponent(DigitalSignatureTray);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

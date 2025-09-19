@@ -307,9 +307,6 @@ class SignatureController extends Controller
     
     public function storeSignature(Request $request, $DocumentId)
     {
-        Log::info('Callback recibido para parte diario', $request->all());
-        Log::info('document id' . $DocumentId);
-
         $document = DocumentDailyPart::find($DocumentId);
         if ($request->hasFile('signed_file')) {
             $signedFile = $request->file('signed_file');
@@ -323,6 +320,9 @@ class SignatureController extends Controller
         } else {
             return response()->json(['error' => 'No file was uploaded'], 400);
         }
+
+        $document->update(['state' => 1]);
+
         return response()->json([
             'ok' => true,
             'message' => 'Archivo firmado guardado y actualizado exitosamente.'

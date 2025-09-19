@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DailyPartController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\MechanicalEquipmentController;
 use App\Http\Controllers\MovementKardexController;
@@ -74,6 +75,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/daily-work-log/{id}/generate-pdf', [DailyPartController::class, 'generatePdf']);
     Route::get('/daily-work-document/{WorkLogId}', [DailyPartController::class, 'getDocumentWokLog']);
 
+    //document
+    Route::post('/daily-work-document/send', [DocumentController::class, 'sendDocument']);
+    Route::get('/documents-signature/pending', [DocumentController::class, 'getPendingDocuments']);
 
     //mechanical equipment
     Route::get('/mechanical-equipment', [MechanicalEquipmentController::class, 'index']);
