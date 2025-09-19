@@ -13,6 +13,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { ChipModule } from 'primeng/chip';
+import { environment } from '../../../../environments/environment';
 
 /* Interfaces */
 import { ApiResponse, RoleApi, UserApi, UserRow } from './interfaces/whm-user-management.interface';
@@ -25,8 +26,9 @@ import { ApiResponse, RoleApi, UserApi, UserRow } from './interfaces/whm-user-ma
 })
 export class WhmUserManagement {
   private http = inject(HttpClient);
-  private readonly API = 'http://127.0.0.1:8000/api';
-
+  private apiUrl = environment.BACKEND_URL;
+  // private readonly API = 'http://127.0.0.1:8000/api';
+  private readonly API = `${this.apiUrl}/api`;
   loading = signal<boolean>(false);
   users = signal<UserRow[]>([]);
   isOpenModalShowUserDetails = signal<boolean>(false);
@@ -37,10 +39,7 @@ export class WhmUserManagement {
   }
   loadUsers(): void {
     this.loading.set(true);
-    this.http.get<ApiResponse<UserApi[]>>(`${this.API}/admin/users`, {
-      // Si usas Sanctum/cookies:
-      withCredentials: true
-    }).subscribe({
+    this.http.get<ApiResponse<UserApi[]>>(`${this.API}/users`,{ withCredentials: true}).subscribe({
       next: (res) => {
         const rows = (res.data ?? []).map((u) => {
           // Deduplicar roles (algunos te llegan repetidos)

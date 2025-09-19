@@ -107,9 +107,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 });
 
-// Route::get('/users', [UserController::class, 'index']);
-// Route::middleware(['auth:sanctum'])->group(function () {
-Route::middleware(['auth:sanctum','resolve.obra'])->group(function () {
+
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/users', [UserController::class, 'index']);
 
     // ---------------------------Revisar y eliminar estas endopitns con sus metodos----------------------------------
     Route::get('/products/{product}/movements-kardex', [ProductMovementKardexController::class, 'index'])->middleware(['role:almacen.operador']);
