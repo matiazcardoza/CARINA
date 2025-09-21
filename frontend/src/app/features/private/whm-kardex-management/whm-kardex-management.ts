@@ -326,4 +326,10 @@ export class WhmKardexManagement implements OnInit {
     });
   }
 
+  /**
+   * Funciones para ver consoles logs
+   */
+  seeItemsPecosas(){
+    console.log(this.pecosas());
+  }
 }

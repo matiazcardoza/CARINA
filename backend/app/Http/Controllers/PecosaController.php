@@ -8,6 +8,7 @@ use App\Services\PecosaClient;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Facades\Auth;
 
 class PecosaController extends Controller
 {
@@ -188,10 +189,7 @@ class PecosaController extends Controller
         ]);
     }
     public function testPecosas(Request $request, Obra $obra){
-        // Filtros básicos
-
         $user  = $request->user();
-        // return $user;
         $roles = $user->getRoleNames()->toArray();
         $isOperator = $user->hasRole('almacen.operador');
 
@@ -209,16 +207,26 @@ class PecosaController extends Controller
         // - operador => TODOS
         // - admin/residente/supervisor => SOLO con reportes
         if (!$isOperator) {
-            $q->whereHas('reports'); // al menos 1 reporte
+            $q->whereHas('reports.flow'); // al menos 1 reporte con flow
         }
 
         // filtros UI (opcionales)
         if ($request->filled('anio'))   $q->where('anio', $request->integer('anio'));
         if ($request->filled('numero')) $q->where('numero', 'like', '%'.$request->get('numero').'%');
 
-        // eager loading de reportes (para el desplegable)
+        // eager loading de reportes con flow y steps
         $q->with([
-            'reports' => fn($qr) => $qr->withFlowLight()
+            'reports' => function ($qr) {
+                $qr->select(
+                    'id','reportable_id','reportable_type',
+                    'pdf_path','pdf_page_number','latest_pdf_path',
+                    'status','category','subtype','created_by','created_at'
+                )
+                ->with([
+                    'flow:id,report_id,current_step,status',
+                    'flow.steps:id,signature_flow_id,order,role,status,callback_token,page,pos_x,pos_y,width,height'
+                ]);
+            }
         ]);
 
         // campos principales
@@ -234,36 +242,79 @@ class PecosaController extends Controller
         $page    = (int)($request->get('page', 1));
         $p       = $q->orderByDesc('fecha')->paginate($perPage, ['*'], 'page', $page);
 
-        // Transformar reports al shape que consume el front (similar a tu código antiguo)
+        // Transformar reports al shape que consume el front
         $p->getCollection()->transform(function ($item) use ($roles) {
-            $item->reports = collect($item->reports)->map(function ($report) use ($roles) {
-                $flow        = $report->flow;
-                $currentStep = $flow?->steps?->firstWhere('order', (int)$flow->current_step);
-                $currentRole = optional($currentStep)->role;
+            // Formatear fecha si es necesario
+            if ($item->fecha) {
+                $item->fecha = \Carbon\Carbon::parse($item->fecha)->format('Y-m-d');
+            }
 
-                $userStep = $flow?->steps?->first(function ($s) use ($roles) {
-                    return in_array($s->role, $roles, true);
+            // Transformar cada report para mostrar solo el step del usuario
+            $item->reports = collect($item->reports)->map(function ($report) use ($roles) {
+                $flow = $report->flow;
+
+                // Si no hay flow, retornar estructura básica
+                if (!$flow || !$flow->steps) {
+                    return [
+                        'report_id'      => $report->id,
+                        'type'           => $report->category,
+                        'status'         => $report->status,
+                        'flow_id'        => null,
+                        'current_step'   => null,
+                        'current_role'   => null,
+                        'user_step'      => null,
+                        'can_sign'       => false,
+                        'download_url'   => url("/api/files-download?name={$report->pdf_path}"),
+                        'sign_callback_url' => null,
+                    ];
+                }
+
+                // Obtener el paso actual (quién tiene el turno)
+                $currentStep = $flow->steps->firstWhere('order', (int)$flow->current_step);
+                $currentRole = $currentStep ? $currentStep->role : null;
+
+                // Buscar el paso que corresponde al rol del usuario actual
+                $userStep = $flow->steps->first(function ($step) use ($roles) {
+                    // Verificar si el rol del step coincide con alguno de los roles del usuario
+                    // Nota: Puede que necesites ajustar esta comparación según cómo manejes los nombres de roles
+                    foreach ($roles as $userRole) {
+                        // Convertir el rol del usuario al formato esperado si es necesario
+                        // Por ejemplo: 'almacen.residente' -> 'almacen_residente'
+                        $normalizedRole = str_replace('.', '_', $userRole);
+                        if ($step->role === $normalizedRole) {
+                            return true;
+                        }
+                    }
+                    return false;
                 });
 
+                // Determinar si el usuario puede firmar
                 $canSign = false;
                 if ($userStep) {
-                    $canSign = $userStep->status === 'pending'
+                    $canSign = $userStep->status === 'pending' 
                         && (int)$userStep->order === (int)$flow->current_step;
                 }
 
+                // Construir URL de callback solo si el usuario puede firmar
+                $signCallbackUrl = null;
+                if ($canSign && $userStep) {
+                    $signCallbackUrl = url("/api/signatures/callback?flow_id={$flow->id}&step_id={$userStep->id}&token={$userStep->callback_token}");
+                }
+
+                // Retornar la estructura esperada con solo el step del usuario
                 return [
-                    'report_id'     => $report->id,
-                    'type'          => $report->category,
-                    'status'        => $report->status,
-                    'flow_id'       => $flow?->id,
-                    'current_step'  => $flow?->current_step,
-                    'current_role'  => $currentRole,
-                    'user_step'     => $userStep ? [
+                    'report_id'      => $report->id,
+                    'type'           => $report->category ?? 'kardex',
+                    'status'         => $flow->status,
+                    'flow_id'        => $flow->id,
+                    'current_step'   => $flow->current_step,
+                    'current_role'   => $currentRole,
+                    'user_step'      => $userStep ? [
                         'id'     => $userStep->id,
                         'role'   => $userStep->role,
                         'status' => $userStep->status,
                         'order'  => $userStep->order,
-                        'page'   => $report->pdf_page_number,
+                        'page'   => $userStep->page ?? 1,
                         'pos_x'  => $userStep->pos_x,
                         'pos_y'  => $userStep->pos_y,
                         'width'  => $userStep->width,
@@ -271,11 +322,9 @@ class PecosaController extends Controller
                     ] : null,
                     'can_sign'       => $canSign,
                     'download_url'   => url("/api/files-download?name={$report->pdf_path}"),
-                    'sign_callback_url' => $userStep
-                        ? url("/api/signatures/callback?flow_id={$flow->id}&step_id={$userStep->id}&token={$userStep->callback_token}")
-                        : null,
+                    'sign_callback_url' => $signCallbackUrl,
                 ];
-            });
+            })->values(); // values() para reindexar el array
 
             return $item;
         });

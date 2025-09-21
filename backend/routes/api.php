@@ -108,7 +108,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 });
 
 
-
+// ROUTAS DE PRIMERA VERSION DEL MOVIMIENTOS DE ALMACEN - ANTIGUO
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/users', [UserController::class, 'index']);
 
@@ -156,17 +156,19 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // FIRMA (callback genérico)
     Route::post('/signatures/callback', [SignaturesController::class, 'callback']);
 });
-    // recibe pdf firmado por firma perú
-    Route::post('signatures/callback', [SignatureController::class, 'store']);
-    // Routa que sirve solamente para retornar pdfs, los valores se envian en el formato query params
-    // Route::get('/signatures/{path}', [SignatureController::class, 'exportPdf']);
-    // peticion esperada GET /files-download?name=24234234.pdf
-    Route::get('/files-download', [SignatureController::class, 'filesDownload']);
-    // Pruebas para generar codigo qr
-    // Route::get('example-qr', [PdfControllerKardex::class, 'generateQRCcode']);
 
 
-// ------------Rutas para actualizacion de sistema normal a tenant------------:
+// recibe pdf firmado por firma perú
+Route::post('signatures/callback', [SignatureController::class, 'store']);
+// Routa que sirve solamente para retornar pdfs, los valores se envian en el formato query params
+// Route::get('/signatures/{path}', [SignatureController::class, 'exportPdf']);
+// peticion esperada GET /files-download?name=24234234.pdf
+Route::get('/files-download', [SignatureController::class, 'filesDownload']);
+// Pruebas para generar codigo qr
+// Route::get('example-qr', [PdfControllerKardex::class, 'generateQRCcode']);
+
+
+// ROUTAS DE SEGUNDA VERSION DEL MOVIMIENTOS DE ALMACEN - TENANT
 
 // Módulo CLÁSICO (no requiere obra) => no afecta a tu colega
 Route::middleware(['auth:sanctum'])->prefix('/admin')->group(function () {

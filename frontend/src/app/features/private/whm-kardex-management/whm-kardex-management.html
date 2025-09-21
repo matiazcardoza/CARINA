@@ -17,6 +17,7 @@
   <div>
     <h1 class="text-3xl font-semibold mb-2">Gestión del Kardex</h1>
     <p class="text-lg text-gray-500">Ítems PECOSA de la obra seleccionada.</p>
+    <button (click)="seeItemsPecosas()">see item pecosas</button>
   </div>
 
   <!-- [value]="tableRows()" -->
@@ -112,22 +113,8 @@
     </ng-template>
 
     <!-- Body -->
-    <ng-template 
-      pTemplate="body" 
-      let-row 
-      >
-      <!-- let-expanded="expanded()" -->
+    <ng-template pTemplate="body" let-row>
       <tr>
-        <!-- <td>
-          <p-button
-            [pRowToggler]="row"
-            [text]="true"
-            [rounded]="true"
-            severity="secondary"
-            [icon]="expanded() ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
-          >
-          </p-button>
-        </td> -->
         <td>
           <p-button
             [pRowToggler]="row"
@@ -176,6 +163,7 @@
             <h4 style="margin:0 0 8px 0; font-size:1rem;">Reportes del ítem</h4>
 
             <p-table [value]="row.reports || []">
+
               <ng-template pTemplate="header">
                 <tr>
                   <th style="min-width:6rem;">value</th>
@@ -190,7 +178,7 @@
               <ng-template pTemplate="body" let-r>
                 <tr>
                   <td>{{ r.id }}</td>
-                  <td>{{ r.type || '—' }}</td>
+                  <td>{{ r.reportable_id || '—' }}</td>
                   <td>{{ r.status }}</td>
                   <td>{{ r.current_role || '—' }}</td>
                   <td>
@@ -207,7 +195,8 @@
                         icon="pi pi-download"
                         [text]="true"
                         (onClick)="downloadReport(r.status)"
-                      ></p-button>
+                        ></p-button>
+                        <!-- (onClick)="downloadReport(r.status)" -->
 
                       <p-button
                         icon="pi pi-pencil"
