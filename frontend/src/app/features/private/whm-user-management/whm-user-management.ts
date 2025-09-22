@@ -39,7 +39,7 @@ export class WhmUserManagement {
   }
   loadUsers(): void {
     this.loading.set(true);
-    this.http.get<ApiResponse<UserApi[]>>(`${this.API}/users`,{ withCredentials: true}).subscribe({
+    this.http.get<ApiResponse<UserApi[]>>(`${this.API}/accounts`,{ withCredentials: true}).subscribe({
       next: (res) => {
         const rows = (res.data ?? []).map((u) => {
           // Deduplicar roles (algunos te llegan repetidos)

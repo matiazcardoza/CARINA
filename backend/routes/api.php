@@ -47,7 +47,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 
     //Users Routes
-    // Route::get('/users', [UserController::class, 'index']);
+    Route::get('/users', [UserController::class, 'index']);
     Route::get('/users-consult/{dni}', [UserController::class, 'consultUsers']);
     Route::get('/users-roles', [UserController::class, 'getRoles']);
     Route::post('/users-create', [UserController::class, 'createUser']);
@@ -108,102 +108,43 @@ Route::middleware(['auth:sanctum'])->group(function () {
 });
 
 
-// ROUTAS DE PRIMERA VERSION DEL MOVIMIENTOS DE ALMACEN - ANTIGUO
+// ROUTAS DE SEGUNDA VERSION DEL MOVIMIENTOS DE ALMACEN - TENANT
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/users', [UserController::class, 'index']);
-
-    // ---------------------------Revisar y eliminar estas endopitns con sus metodos----------------------------------
-    Route::get('/products/{product}/movements-kardex', [ProductMovementKardexController::class, 'index'])->middleware(['role:almacen.operador']);
-    // obtenemos la lista de ordenes de silucia
-    Route::get('silucia-orders', [PurchaseOrdersController::class, 'index'])->middleware(['role:almacen.operador']);
-    // buscamos el producto, si no lo encontramos lo creamos y al mismo tiempo guardarmos el movimiento
-    Route::post('/movements-kardex', [MovementKardexController::class, 'store'])->middleware(['role:almacen.operador']);
-
-    // mostramos todos los movimientos que pertenecen a un producto de la base de datos de silucia ----- (CAMBIAMOS PARA OBTENER LOS MOVIMIENTOS DE LAS PECOSAS)
-    // Route::get( 'silucia-containers/{containerId}/items-pecosas/{itemId}/movements',  [MovementKardexController::class, 'indexBySiluciaIds'])->middleware(['role:almacen.operador']);
-    Route::get( 'silucia-pecosas/{pecosaId}/items-pecosas/{itemId}/movements',  [MovementKardexController::class, 'indexBySiluciaIds'])->middleware(['role:almacen.operador']);
-
-    // generamos un reporte de  todos los movimientos que pertenecen a un producto de la base de datos de silucia ----- (CAMBIAMOS PARA OBTENER LOS MOVIMIENTOS DE LAS PECOSAS)
-    // Route::get( 'silucia-containers/{containerId}/items-pecosas/{itemId}/movements/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen.operador']);
-    Route::get( 'silucia-pecosas/{pecosaId}/items-pecosas/{itemId}/movements/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen.operador']);
-    
-    // devuelve los productos guardados de nuestra propia base de datos
-    Route::get('/items-pecosas', [ProductController::class, 'index']);
-
-    // ******************* refactorizacion de codigo: pasar de datos de ordenes a pecosas - (inicio) *******************
-    Route::get('silucia-pecosas', [PecosaController::class, 'index'])->middleware(['role:almacen.operador']);
-
-    // muestra datos de una persona, ya sea consultadno a la api de reniec o consultando la propia base de datos
-    Route::get('/people/{dni}', [PeopleController::class, 'showOrFetch'])->middleware(['role:almacen.operador']); // cache-first (db) → RENIEC
-    // muestra todas las personas pertenecientes a un movimiento
-    Route::post('/movements-kardex/{movement}/people', [MovementKardexController::class, 'attachPerson'])->middleware(['role:almacen.operador']);
-    // endpoint no terminado - sirve para quitar una persona de un movimientoa
-
-    // rutas para vales de transporte
-    
-    // LISTA
-    Route::get('/fuel-orders', [FuelOrderController::class, 'index']);
-
-    // GENERAR PDF + FLUJO
-    Route::post('/fuel-orders/{order}/generate-report', [FuelOrderController::class, 'generateReport']);
-
-    // ESTADO DE REPORTE/FLUJO
-    Route::get('/fuel-orders/{order}/report', [FuelOrderController::class, 'showReport']);
-
-    // DESCARGA PDF
-    Route::get('/fuel-orders/{order}/report/download', [FuelOrderController::class, 'downloadReport']);
-
-    // FIRMA (callback genérico)
-    Route::post('/signatures/callback', [SignaturesController::class, 'callback']);
+    Route::get('/me/obras', [ObrasController::class,'mine']);
+    Route::get('/accounts', [UserController::class, 'index']);
 });
 
-
-// recibe pdf firmado por firma perú
-Route::post('signatures/callback', [SignatureController::class, 'store']);
-// Routa que sirve solamente para retornar pdfs, los valores se envian en el formato query params
-// Route::get('/signatures/{path}', [SignatureController::class, 'exportPdf']);
-// peticion esperada GET /files-download?name=24234234.pdf
-Route::get('/files-download', [SignatureController::class, 'filesDownload']);
-// Pruebas para generar codigo qr
-// Route::get('example-qr', [PdfControllerKardex::class, 'generateQRCcode']);
-
-
-// ROUTAS DE SEGUNDA VERSION DEL MOVIMIENTOS DE ALMACEN - TENANT
-
-// Módulo CLÁSICO (no requiere obra) => no afecta a tu colega
 Route::middleware(['auth:sanctum'])->prefix('/admin')->group(function () {
   Route::get('/users', [UserIndexController::class, 'index']);
   Route::get('/obras', [ObraIndexController::class, 'index']);
-  // gestión de membresías y roles POR OBRA (admin)
   Route::get('/obras/{obra}/miembros', [MembersController::class,'index']);     // devuelve todos los usuario miembros de esta obra
   Route::post('/obras/{obra}/miembros', [MembersController::class,'upsert']);   // asigna user + roles por obra
   Route::delete('/obras/{obra}/miembros/{user}', [MembersController::class,'destroy']);
 });
 
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/me/obras', [ObrasController::class,'mine']);
-});
+// recibe pdf firmado por firma perú
+Route::post('signatures/callback', [SignatureController::class, 'store']);
+// Routa que sirve solamente para retornar pdfs, los valores se envian en el formato query params
+Route::get('/files-download', [SignatureController::class, 'filesDownload']);
 
 Route::middleware(['auth:sanctum','resolve.obra'])->group(function () {
-    // Route::get('/me/obras', [ObrasController::class,'mine']); // listado para el selector, aqui se devuelve todas las obras de un usuario, para que el usuario pueda seleccionar aquella con la que va a trabajar
     // Route::middleware(['resolve.obra'])->group(function () {
     Route::get('/ordenes-compra', [OCController::class,'index']);
     // retora todas los itempecosas a partir de una obra / meta
     Route::get('/pecosas', [PecosaController::class,'getPecosasByWorks']);
     Route::get('/ordenes-compra/{orden}/pecosas', [OCController::class, 'pecosas']);  // nuevo
-
     //   Route::get('/ordenes-compra', [ObrasController::class,'index']);
     Route::post('/items/{item}/movements', [MovementController::class,'store']);
-    // ...más endpoints scropeados
     // devuelve todos los item pecosas de una obra en especifio
     Route::get('/obras/{obra}/item-pecosas', [PecosaController::class, 'testPecosas'])->middleware(['role:almacen.operador']);
     // registra en la base de datos el movimiento hecho por el usuario
     Route::post('/kardex-movements/{itemPecosa}', [MovementKardexController::class, 'store'])->middleware(['role:almacen.operador']);
     // me devuelve todos los movimmientos de un itemPecosa
     Route::get('/item-pecosas/{itemPecosa}/movements-kardex',   [PecosaController::class, 'getItemPecosas'])->middleware(['role:almacen.operador']);
-    // http://localhost:8000/api/pecosas/002028/items/55557/movements-kardex/pdf
     // http://localhost:8000/api/item-pecosas/002028/movements-kardex/pdf
     Route::get( '/item-pecosas/{itemPecosa}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen.operador']);
+    // obtenemos los datos de una persona de la api de reniec
+    Route::get('/people/{dni}', [PeopleController::class, 'showOrFetch'])->middleware(['role:almacen.operador']); // cache-first (db) → RENIEC
 });
 
 Route::get('get-roles-by-scope', function(){
@@ -241,10 +182,6 @@ Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
     //NUEVO: importar/actualizar obra (desde API externa) + importar PECOSAs + asignar al usuario + set roles
     Route::post('/users/{user}/obras/import', [UserObrasController::class, 'importAttachFromExternal']);
 });
-// nuevas rutas para actualizar los permisos por obr  - final
-
-Route::get('get-meta-test', [AdminCatalogController::class, 'obrasBySiluciaTest']);
-
 
 
 Route::middleware('auth:sanctum')->group(function () {
