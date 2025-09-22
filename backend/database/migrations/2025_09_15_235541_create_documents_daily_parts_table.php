@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create('documents_daily_parts', function (Blueprint $table) {
             $table->id('id');
+            $table->unsignedBigInteger('user_id')->nullable();
             $table->string('file_path')->nullable();
             $table->integer('state')->default(0);
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
         });
     }

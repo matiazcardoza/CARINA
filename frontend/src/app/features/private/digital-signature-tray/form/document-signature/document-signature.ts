@@ -7,18 +7,19 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DailyWorkLogService } from '../../../../../../services/DailyWorkLogService/daily-work-log-service';
-import { FirmaDigitalParams, SignatureService } from '../../../../../../services/SignatureService/signature-service';
-import { environment } from '../../../../../../../environments/environment';
+import { DailyWorkLogService } from '../../../../../services/DailyWorkLogService/daily-work-log-service';
+import { FirmaDigitalParams, SignatureService } from '../../../../../services/SignatureService/signature-service';
+import { environment } from '../../../../../../environments/environment';
 
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
-import { UsersService } from '../../../../../../services/UsersService/users-service';
+import { UsersService } from '../../../../../services/UsersService/users-service';
+import { DocumentSignatureService, UserRoleElement } from '../../../../../services/DocumentSignatureService/document-signature-service';
 import { startWith, map } from 'rxjs/operators';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
-import { UserElement } from '../../../../users/users';
+import { UserElement } from '../../../users/users';
 
 export interface DocumentDailyPartElement {
   id: number;
@@ -28,8 +29,7 @@ export interface DocumentDailyPartElement {
 }
 
 interface DialogData {
-  workLogId: number;
-  date: string;
+  documentId: number;
 }
 
 @Component({
@@ -46,10 +46,10 @@ interface DialogData {
     MatFormFieldModule,
     MatInputModule
   ],
-  templateUrl: './daily-work-signature.html',
-  styleUrl: './daily-work-signature.css'
+  templateUrl: './document-signature.html',
+  styleUrl: './document-signature.css'
 })
-export class DailyWorkSignature {
+export class DocumentSignature {
 
   pdfUrl: SafeResourceUrl | null = null;
   pdfUrlString: string = '';
@@ -59,20 +59,24 @@ export class DailyWorkSignature {
   isSigned = false;
   signatureData: any = null;
   isSigningInProgress = false;
+  numberOfPages: number = 0;
 
   userForm: FormGroup;
   users: UserElement[] = [];
   filteredUsers: UserElement[] = [];
 
+  role: UserRoleElement[] = [];
+
   constructor(
-    public dialogRef: MatDialogRef<DailyWorkSignature>,
+    public dialogRef: MatDialogRef<DocumentSignature>,
     @Inject(MAT_DIALOG_DATA) public data: DialogData,
     private cdr: ChangeDetectorRef,
     private dailyWorkLogService: DailyWorkLogService,
     private signatureService: SignatureService,
     private sanitizer: DomSanitizer,
     private fb: FormBuilder,
-    private usersService: UsersService
+    private usersService: UsersService,
+    private documentSignatureService: DocumentSignatureService
   ) {
     this.userForm = this.fb.group({
       userId: ['', Validators.required],
@@ -81,7 +85,21 @@ export class DailyWorkSignature {
 
   ngOnInit(): void {
     this.loadUsers();
+    this.loadRole();
     this.loadPdfDocument();
+  }
+
+  private loadRole(){
+    this.documentSignatureService.getRole().subscribe({
+      next: (role) => {
+        console.log('estos son los roles del usuario: ', role);
+        this.role = role;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error al cargar usuarios:', error);
+      }
+    });
   }
 
   private loadUsers(): void {
@@ -125,16 +143,18 @@ export class DailyWorkSignature {
     this.pdfUrl = null;
     this.cdr.detectChanges();
 
-    const workLogId = this.data.workLogId;
+    const workLogId = this.data.documentId;
 
     this.dailyWorkLogService.getWorkLogDocument(workLogId)
       .subscribe({
         next: (data: DocumentDailyPartElement) => {
-          console.log('PDF document response:', data);
           try {
             const pdfPath = data.file_path;
             const document_id = data.id;
             this.documentId = document_id;
+
+            this.numberOfPages = data.pages || 0;
+            console.log('este es el numero de pagina: ', this.numberOfPages);
 
             const fullPdfUrl = `${environment.BACKEND_URL_STORAGE}${pdfPath}`;
             this.pdfUrlString = fullPdfUrl;
@@ -155,6 +175,23 @@ export class DailyWorkSignature {
       });
   }
 
+  private roleToStatusMap = new Map<number, string>([
+    [2, '1'],
+    [3, '2'],
+    [4, '3']
+  ]);
+
+  private getCurrentUserRole(): number {
+    if (this.role && this.role.length > 0) {
+      return this.role[0].id;
+    }
+    return 2;
+  }
+
+  private getStatusPositionByRole(roleId: number): string {
+    return this.roleToStatusMap.get(roleId) || '1';
+  }
+
   onSign(): void {
     if (!this.pdfUrlString) {
       console.error('No hay URL de PDF disponible para firmar');
@@ -165,22 +202,22 @@ export class DailyWorkSignature {
     this.error = null;
     this.cdr.detectChanges();
 
+    const currentRoleId = this.getCurrentUserRole();
+    const statusPosition = this.getStatusPositionByRole(currentRoleId);
+
     const firmaParams: FirmaDigitalParams = {
       location_url_pdf: this.pdfUrlString,
       location_logo: `${environment.BACKEND_URL_STORAGE}image_pdf_template/logo_firma_digital.png`,
       post_location_upload: `${environment.BACKEND_URL}/api/document-signature/${this.documentId}`,
-      asunto: `Firma de Parte Diario - ${this.data.date}`,
+      asunto: `Firma de Parte Diario`,
       rol: 'ADMIN',
       tipo: 'daily_parts',
-      status_position: '1',
+      status_position: statusPosition,
       visible_position: false,
       bacht_operation: false,
-      npaginas: 1,
+      npaginas: this.numberOfPages,
       token: ''
     };
-
-    // Llamar al servicio que abrirá la ventana popup
-    console.log(firmaParams);
 
     this.signatureService.firmaDigital(firmaParams)
       .subscribe({

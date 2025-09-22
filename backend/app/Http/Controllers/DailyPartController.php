@@ -14,8 +14,10 @@ use App\Models\WorkEvidence;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Smalot\PdfParser\Parser;
 
 class DailyPartController extends Controller
 {
@@ -53,7 +55,7 @@ class DailyPartController extends Controller
         ]);
 
         $product = ItemPecosa::find($request->product_id);
-        
+
         $product->update([
             'quantity_issued' => $request->initial_fuel,
             'quantity_on_hand' => $product->stock_qty - $request->initial_fuel,
@@ -101,7 +103,7 @@ class DailyPartController extends Controller
         }
 
         $diferentFuelService = $request->initial_fuel - $dailyPart->initial_fuel;
-        
+
         $servicio = Service::find($dailyPart->service_id);
         $servicio->update([
             'fuel_consumed' => $servicio->fuel_consumed + $diferentFuelService
@@ -143,7 +145,7 @@ class DailyPartController extends Controller
         $end = Carbon::createFromFormat('H:i', $request->end_time);
 
         if ($end->lessThan($start)) {
-            $end->addDay(); 
+            $end->addDay();
         }
 
         $diffInSeconds = $end->diffInSeconds($start);
@@ -161,9 +163,9 @@ class DailyPartController extends Controller
                 $timestamp = now()->format('YmdHis');
                 $extension = $image->getClientOriginalExtension();
                 $fileName = "{$dailyPart->id}_evidence_{$index}_{$timestamp}.{$extension}";
-                
+
                 $path = $image->storeAs('work_evidences', $fileName, 'public');
-                
+
                 WorkEvidence::create([
                     'daily_part_id' => $dailyPart->id,
                     'evidence_path' => $path
@@ -207,10 +209,11 @@ class DailyPartController extends Controller
         Storage::disk('public')->put($filePath, $pdf->output());
 
         $document = DocumentDailyPart::firstOrCreate(
+            ['user_id' => Auth::id()],
             ['file_path' => $filePath],
-            ['state' => 1]
+            ['state' => 0]
         );
-        
+
         $dailypart = DailyPart::where('work_date', $request->date);
         $dailypart->update([
             'document_id' => $document->id,
@@ -226,9 +229,17 @@ class DailyPartController extends Controller
     public function getDocumentWokLog($serviceId){
         $dailyPart = DailyPart::where('service_id', $serviceId)->first();
         $document = DocumentDailyPart::find($dailyPart->document_id);
+
+        $parser = new Parser();
+        $pdf = $parser->parseFile(storage_path('app/public/' . $document->file_path));
+        $numPages = count($pdf->getPages());
+
+        Log::info('estas son las paginas: '. $numPages);
+
         return response()->json([
             'message' => 'get document completed successfully',
-            'data' => $document
+            'data' => $document,
+            'pages' => $numPages
         ], 201);
     }
 }

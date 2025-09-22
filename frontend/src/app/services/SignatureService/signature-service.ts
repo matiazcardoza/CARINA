@@ -37,6 +37,7 @@ export class SignatureService {
 
       const fullUrl = `${this.apiUrl}?${urlParams.toString()}`;
 
+      console.log('URL generada para firma digital:', fullUrl);
       const popup = window.open(
         fullUrl,
         'FirmaDigital',

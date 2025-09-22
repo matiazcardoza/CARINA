@@ -5,6 +5,7 @@ use App\Http\Controllers\ObraIndexController;
 // use App\Http\Controllers\Admin\UserIndexController;
 use App\Http\Controllers\UserIndexController;
 use App\Http\Controllers\DailyPartController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\MechanicalEquipmentController;
 use App\Http\Controllers\MovementKardexController;
@@ -39,7 +40,7 @@ use App\Models\User;
 // use App\Http\Controllers\OrderProductoController;
 // use Illuminate\Support\Facades\Storage;
 
-Route::post('/document-signature', [SignatureController::class, 'storeSignature']);
+Route::post('/document-signature/{documentId}', [SignatureController::class, 'storeSignature']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {
@@ -84,6 +85,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/daily-work-log/{id}/generate-pdf', [DailyPartController::class, 'generatePdf']);
     Route::get('/daily-work-document/{WorkLogId}', [DailyPartController::class, 'getDocumentWokLog']);
 
+    //document
+    Route::post('/daily-work-document/send', [DocumentController::class, 'sendDocument']);
+    Route::get('/documents-signature/pending', [DocumentController::class, 'getPendingDocuments']);
+    Route::get('/document-userRole', [DocumentController::class, 'getRoles']);
 
     //mechanical equipment
     Route::get('/mechanical-equipment', [MechanicalEquipmentController::class, 'index']);

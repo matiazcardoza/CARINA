@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DocumentDailyPart;
 use App\Models\Report;
 use App\Models\SignatureFlow;
 use App\Models\SignatureStep;
@@ -325,9 +326,29 @@ class SignatureController extends Controller
 
 
     /////////////////////////////////////////CONTROLADOR PARA PARTES DIARIAS//////////////////////////////////////////////////////////////////////
-    public function storeSignature(Request $request){
-        Log::info('ingreso a function');
-        return response()->json(['ok'=>true]);
+    
+    public function storeSignature(Request $request, $DocumentId)
+    {
+        $document = DocumentDailyPart::find($DocumentId);
+        if ($request->hasFile('signed_file')) {
+            $signedFile = $request->file('signed_file');
+            $filePath = $document->file_path;
+            try {
+                Storage::disk('public')->put($filePath, file_get_contents($signedFile->getRealPath()));
+            } catch (\Exception $e) {
+                Log::error('Error al guardar el archivo firmado: ' . $e->getMessage());
+                return response()->json(['error' => 'Failed to save the signed file'], 500);
+            }
+        } else {
+            return response()->json(['error' => 'No file was uploaded'], 400);
+        }
+
+        $document->update(['state' => 1]);
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Archivo firmado guardado y actualizado exitosamente.'
+        ]);
     }
 }
 

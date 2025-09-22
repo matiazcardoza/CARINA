@@ -34,6 +34,7 @@
     "@primeuix/themes": "^1.2.3",
     "material-icons": "^1.13.14",
     "ngx-material-timepicker": "^13.1.1",
+    "pdfjs-dist": "^5.4.149",
     "primeicons": "^7.0.0",
     "primeng": "^20.0.1",
     "rxjs": "~7.8.0",
