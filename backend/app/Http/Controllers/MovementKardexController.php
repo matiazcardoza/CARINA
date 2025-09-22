@@ -825,6 +825,7 @@ class MovementKardexController extends Controller
 
     public function pdf(Request $request, ItemPecosa $itemPecosa)
     {
+
         $pecosa = $itemPecosa;
         $pecosa->load([
             'movements' => function ($q) {
@@ -874,19 +875,23 @@ class MovementKardexController extends Controller
         $material   = (string)($pecosa->item ?? '—');
         $comprobante= (string)("OC-{$pecosa->cod_meta}" ?? "OC-Indefinido");
 
-        $dir = 'silucia_product_reports';
-        Storage::disk('local')->makeDirectory($dir);
+
 
         /**
          * QR único por PDF (URL firmada simple)
          * kardex_02874_249069_20250831_021917_10.pdf  ---> id de la orden / id del item / año, mes día /  hora, minuto, segundo / milisegundos
          */
-        // $base = 'kardex_'. $pecosaId . '_'. $id_item_pecosa_silucia.'_'. now()->format('Ymd_His_'). substr(now()->format('u'), 0, 3);
-        $base = rtrim(strtr(base64_encode(random_bytes(12)), '+/', 'AZ'), '=');
-        $filename = $base . '.pdf';
-        $relativePath = "{$dir}/{$filename}";
-        // $qrCode = UsefulFunctionsForPdfs::generateQRcode($filename);
-        $qrCode = UsefulFunctionsForPdfs::generateQRcode(url("/api/files-download?name={$filename}"));
+        $basePath = env('PDF_DOWNLOAD_BASE_URL'); 
+        $directory = 'silucia_product_reports';
+        Storage::disk('local')->makeDirectory($directory);
+        $filename = bin2hex(random_bytes(16)) . '.pdf';
+        $endpoint = "/api/files-download";
+
+        // $urlPath = $basePath . "/api/" . $directory . "?name=" . $filename;
+        $urlPath = $basePath . $endpoint . "?name=" . $filename;
+        // $relativePath = "{$directory}/{$filename}";
+        // $qrCode = UsefulFunctionsForPdfs::generateQRcode( env('PDF_DOWNLOAD_BASE_URL') . "/api/files-download?name={$filename}");
+        $qrCode = UsefulFunctionsForPdfs::generateQRcode($urlPath);
 
         // 4) Generar PDF con FPDF
         $headers = ['N', 'Fecha', 'Movimiento', 'Monto', 'Recibido / Encargado', 'Observaciones'];
@@ -907,7 +912,6 @@ class MovementKardexController extends Controller
         url($filename);
         $pdf->setHeaderLogo($qrCode);
         // $opt = ['rule'=>true];
-        // $pdf->renderTitle(opt: ['underline' => true]);
         $pdf->renderTitle();
         $pdf->drawKardexSummary(
             $obra,
@@ -924,56 +928,39 @@ class MovementKardexController extends Controller
         $bytes = $pdf->Output('S');
         // una vez generado el binario, eliminado el codigo qr (eliminado la imagen qr)
         unlink($qrCode); 
-        $ok = Storage::disk('local')->put($relativePath, $bytes);
-        if (!$ok || !Storage::disk('local')->exists($relativePath)) {
+        $ok = Storage::disk('local')->put("{$directory}/{$filename}", $bytes);
+        if (!$ok || !Storage::disk('local')->exists("{$directory}/{$filename}")) {
             abort(500, 'No se pudo guardar el PDF.');
         }
 
         // Contar páginas con FPDI
         $pageCount = 1;
         try {
-            $absolute = Storage::disk('local')->path($relativePath);
+            $absolute = Storage::disk('local')->path("{$directory}/{$filename}");
             $fpdi = new Fpdi();
             $pageCount = (int)$fpdi->setSourceFile($absolute);
         } catch (\Throwable $e) {
-            Log::info("No se pudo contar páginas de {$relativePath}: ".$e->getMessage());
+            Log::info("No se pudo contar páginas de {{$directory}/{$filename}}: ".$e->getMessage());
         }
-
-        // Registrar reporte y flujo de firma (igual que antes)
-        // $report = KardexReport::create([
-        //     'product_id'       => $product->id,
-        //     'pdf_path'         => $filename, // guardas solo el nombre
-        //     'pdf_page_number'  => $pageCount,
-        //     'status'           => 'in_progress',
-        //     'created_by'       => Auth::id(),
-        // ]);
         $report = Report::create([
             'reportable_id'    => $pecosa->id,
             'reportable_type'  => ItemPecosa::class,
-            // 'reportable_type'  => \App\Models\Product::class,
-            'pdf_path'         => $relativePath,   // << guarda la ruta RELATIVA completa
+            // 'pdf_path'         => $relativePath,   
+            'pdf_path'         => $urlPath,   
             'pdf_page_number'  => $pageCount,
             'status'           => 'in_progress',
-            'category'         => 'kardex',
             'created_by'       => Auth::id(),
         ]);
-        $flow = SignatureFlow::create([
-            'report_id' => $report->id,
-            'current_step'     => 1,
-            'status'           => 'in_progress'
-        ]);
-
-        // Ajusta coordenadas si cambiaste orientación P/L
 
         $roles = config('signing.roles_order', [
-            ['role'=>'almacen.operador','page'=>1,'pos_x'=>35,        'pos_y'=>745,'width'=>180,'height'=>60],
-            ['role'=>'almacen.administrador','page'=>1,'pos_x'=>170,    'pos_y'=>745,'width'=>180,'height'=>60],
-            ['role'=>'almacen.residente','page'=>1,'pos_x'=>305,        'pos_y'=>745,'width'=>180,'height'=>60],
-            ['role'=>'almacen.supervisor','page'=>1,'pos_x'=>440,       'pos_y'=>745,'width'=>180,'height'=>60],
+            ['role'=>'almacen.operador',        'page'=>1,'pos_x'=>35,  'pos_y'=>745,'width'=>180,'height'=>60],
+            ['role'=>'almacen.administrador',   'page'=>1,'pos_x'=>170, 'pos_y'=>745,'width'=>180,'height'=>60],
+            ['role'=>'almacen.residente',       'page'=>1,'pos_x'=>305, 'pos_y'=>745,'width'=>180,'height'=>60],
+            ['role'=>'almacen.supervisor',      'page'=>1,'pos_x'=>440, 'pos_y'=>745,'width'=>180,'height'=>60],
         ]);
         foreach (array_values($roles) as $i => $role) {
             SignatureStep::create([
-                'signature_flow_id' => $flow->id,
+                'report_id'         => $report->id,
                 'order'             => $i+1,
                 'role'              => $role['role'],
                 'page'              => $role['page'],
@@ -985,14 +972,7 @@ class MovementKardexController extends Controller
             ]);
         }
 
-        SignatureEvent::create([
-            'signature_flow_id' => $flow->id,
-            'event'   => 'flow_created',
-            'user_id' => Auth::id(),
-            'meta'    => ['report_id'=>$report->id],
-        ]);
-
-        return Storage::download($relativePath, $filename);
+        return Storage::download("{$directory}/{$filename}", $filename);
     }
 
     // funcion incompleta ara crear un pdf de vales de transporte

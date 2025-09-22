@@ -194,7 +194,7 @@
                       <p-button
                         icon="pi pi-download"
                         [text]="true"
-                        (onClick)="downloadReport(r.status)"
+                        (onClick)="downloadReport(r.pdf_path)"
                         ></p-button>
                         <!-- (onClick)="downloadReport(r.status)" -->
 
@@ -202,7 +202,7 @@
                         icon="pi pi-pencil"
                         severity="success"
                         [text]="true"
-                        (onClick)="signReport(r.status)"
+                        (onClick)="signReport(r)"
                         ></p-button>
                         <!-- [disabled]="!r.can_sign || !r.sign_callback_url" -->
                     </div>

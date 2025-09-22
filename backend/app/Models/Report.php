@@ -2,52 +2,51 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToObra;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Report extends Model
 {
+    /**
+     * este valor se usa para filtrar por obra, si es que 
+     * la tabla cuenta con una columna obra_id
+     */
+    // use BelongsToObra;
+
     protected $fillable = [
-        'reportable_id','reportable_type',
-        'pdf_path','pdf_page_number','latest_pdf_path',
-        'status','category','subtype','created_by',
+        'reportable_type',
+        'reportable_id',
+        'pdf_path',
+        'pdf_page_number',
+        'status',
+        'current_step',
+        'generation_params',
+        'signing_starts_at',
+        'signing_ends_at',
+        'created_by',        
     ];
 
-    public function reportable() {
-        return $this->morphTo(); 
-    }
-    
-    public function flow(){ 
-        return $this->hasOne(SignatureFlow::class); 
+    /* ========= Relaciones ========= */
+    /**
+     * sirve para obtner el dueño del reporte y como report funciona para ditintos
+     * modelos entonces la relacion se configura de esta manera
+     */
+    public function reportable(): MorphTo
+    {
+        return $this->morphTo();
     }
 
-    public function scopeWithFlowLight($q)
+    public function steps(): HasMany
     {
-        return $q->select(
-                'id',
-                'reportable_id','reportable_type',
-                'pdf_path','pdf_page_number','latest_pdf_path',
-                'status','category','subtype','created_by','created_at'
-            )
-            ->whereHas('flow') // asegura que tenga flow
-            ->with([
-                'flow:id,report_id,current_step,status',
-                'flow.steps:id,signature_flow_id,order,role,status,callback_token,page,pos_x,pos_y,width,height',
-            ]);
+        // OJO: permite paralelos con el mismo order; por defecto ordenamos por order ASC, id ASC
+        return $this->hasMany(SignatureStep::class)->orderBy('order')->orderBy('id');
+    }
+
+    public function currentStep()
+    {
+        return $this->hasOne(SignatureStep::class)
+            ->whereColumn('signature_steps.order', 'reports.current_step');
     }
 }
-
-
-
-
-// <?php
-
-// namespace App\Models;
-
-// use Illuminate\Database\Eloquent\Model;
-
-// class KardexReport extends Model
-// {
-//     protected $fillable = ['product_id','pdf_path','pdf_page_number','latest_pdf_path','from_date','to_date','type','status','created_by'];
-//     public function product(){ return $this->belongsTo(Product::class); }
-//     public function flow(){ return $this->hasOne(SignatureFlow::class); }
-// }

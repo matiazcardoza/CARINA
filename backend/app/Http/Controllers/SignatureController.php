@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Report;
 use App\Models\SignatureFlow;
 use App\Models\SignatureStep;
 use Illuminate\Http\Request;
@@ -9,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;      
 use Illuminate\Support\Facades\Log;
 use App\Models\SignatureEvent;
+use App\Utils\UsefulFunctionsForPdfs;
 
 class SignatureController extends Controller
 {
@@ -26,9 +28,20 @@ class SignatureController extends Controller
     public function store(Request $req)
     {
         // 1) Identificación segura del paso
-        $flowId = (int) $req->query('flow_id');
+        // $flowId = (int) $req->query('flow_id');
+        $reportId = (int) $req->query('report_id');
         $stepId = (int) $req->query('step_id');
         $token  = (string) $req->query('token');
+        $userId    = (int) $req->query('user_id');
+        // $userRoles = (string) $req->query('user_roles');
+        $userRoles  = $req->query('user_roles', []);
+
+
+        // normaliza a array si llega como string o CSV
+        if (is_string($userRoles)) {
+            $userRoles = array_filter(array_map('trim', explode(',', $userRoles)));
+        }
+        $userRoles = array_map('trim', (array) $userRoles);
 
         // Acepta distintos nombres de campo y mimes (muchos proveedores mandan octet-stream)
         $req->validate([
@@ -46,19 +59,36 @@ class SignatureController extends Controller
         abort_unless($uploaded, 422, 'Archivo PDF requerido.');
 
         // 2) Carga entidades
-        $flow = SignatureFlow::with(['report','steps'])->findOrFail($flowId);
+        // $flow = SignatureFlow::with(['report','steps'])->findOrFail($flowId);
+        $report = Report::with('steps')->findOrFail($reportId);
         $step = SignatureStep::findOrFail($stepId);
+
+        // Si el paso está asignado a un usuario específico, exige ese user_id
+        if ($step->user_id) {
+            abort_unless((int)$userId === (int)$step->user_id, 403, 'Este paso está asignado a otro usuario.');
+        }
+
+        // Si el paso exige un rol, compara contra rol puntual y/o lista de roles del usuario
+        // Si el paso está asignado a un usuario específico, exige ese user_id
+        if ($step->user_id) {
+            abort_unless($userId > 0 && (int)$userId === (int)$step->user_id, 403, 'Este paso está asignado a otro usuario.');
+        }
+
+        // Si el paso exige un rol, valida contra los roles del usuario (user_roles)
+        if (!empty($step->role)) {
+            abort_unless(in_array($step->role, $userRoles, true), 403, 'Lo siento, usted no tiene permiso para firmar este PDF.');
+        }
 
         // 3) Autorización del paso/turno
         // verificamos si stespSignature pertenece a signatureFlow
-        abort_unless($step->signature_flow_id === $flow->id, 404);
+        abort_unless($step->report_id === $report->id, 404);
         // verificamos si el flujo "flow" esta en progreso
-        abort_if($flow->status !== 'in_progress', 409, 'Flujo no activo.');
+        abort_if($report->status !== 'in_progress', 409, 'Flujo no activo.');
         /**
          * si el paso actual (step) es diferente de pendign abortamos el firmado,
          * verificamos si en el flujo el step actual puede firmar es el esperado para firmar
          */
-        abort_if($step->status !== 'pending' || (int)$step->order !== (int)$flow->current_step, 409, 'Paso no activo.');
+        abort_if($step->status !== 'pending' || (int)$step->order !== (int)$report->current_step, 409, 'Paso no activo.');
         /**
          * verificamos si el step actual es quien ha enviado el token para firmar (es una seguridad ), aqui podemos adicionar un control de seguridad más
          * es decir en el paso actual puedo obtener el hash del pdf que espero y lo comparo con el hash del pdf que ha llegado, si ambos son iguales se procede a 
@@ -68,23 +98,24 @@ class SignatureController extends Controller
         abort_unless(hash_equals((string)$step->callback_token, $token), 403, 'Token inválido.');
 
         // 4) Normaliza ruta: SIEMPRE en app/private/silucia_product_reports/<filename>
-        $dir      = 'silucia_product_reports';
-        $stored   = (string) $flow->report->pdf_path;           // puede ser "kardex_...pdf" o incluir carpeta
-        $filename = basename($stored);                          // asegura solo el nombre del archivo
-        $current  = $dir . '/' . $filename;                     // ruta RELATIVA dentro del disk 'local'
+        $directory      = 'silucia_product_reports';
+        $stored   = (string) $report->pdf_path;                 // puede ser "kardex_...pdf" o incluir carpeta
+        // $filename = basename($stored);                          // asegura solo el nombre del archivo
+        $filename = UsefulFunctionsForPdfs::extractPdfFilename($report->pdf_path);                          // asegura solo el nombre del archivo
+        $current  = $directory . '/' . $filename;                     // ruta RELATIVA dentro del disk 'local'
 
         // Crea la carpeta si no existe
-        Storage::disk('local')->makeDirectory($dir);
+        Storage::disk('local')->makeDirectory($directory);
 
         // TMP en la MISMA carpeta para poder mover dentro del mismo filesystem
-        $tmp = $dir . '/.__incoming_' . uniqid() . '.pdf';
+        $tmp = $directory . '/.__incoming_' . uniqid() . '.pdf';
 
-        // Sube a TMP y calcula hash
+        // Sube a TMP y calcula hash. guardamos el archivo obeenido del front en el directorio tmp (temporal)
         Storage::disk('local')->put($tmp, file_get_contents($uploaded->getRealPath()));
         $bytes = Storage::disk('local')->get($tmp);
         $hash  = hash('sha256', $bytes);
 
-        return DB::transaction(function() use ($current, $tmp, $hash, $flow, $step, $req) {
+        return DB::transaction(function() use ($current, $tmp, $hash, $report, $step, $req, $userId) {
             // Swap atómico: reemplaza el PDF original por el firmado
             Storage::disk('local')->delete($current);
             Storage::disk('local')->move($tmp, $current);
@@ -93,10 +124,9 @@ class SignatureController extends Controller
             $step->update([
                 'status'             => 'signed',
                 'signed_at'          => now(),
+                // para indicar la persona que firmo, se debe enviar desde el front el id de la persona que firma el pdf
+                'signed_by'         => $userId, 
                 'provider'           => 'firma_peru',
-                'provider_tx_id'     => $req->input('provider_tx_id'),
-                'certificate_cn'     => $req->input('certificate_cn'),
-                'certificate_serial' => $req->input('certificate_serial'),
                 'sha256'             => $hash,
                 // recomendado: invalidar token si lo usas de un solo uso
                 // 'callback_token'  => null,
@@ -107,21 +137,13 @@ class SignatureController extends Controller
              * actualizamos la columna current step verificanso si todavia hay firmantes, si no hay firmantes
              * cerramos todo, es decir a todo le damos el valor completado
              */
-            $next = $flow->steps()->where('order','>', $step->order)->orderBy('order')->first();
+            $next = $report->steps()->where('order','>', $step->order)->orderBy('order')->first();
             if ($next) {
-                $flow->update(['current_step' => $next->order]);
+                $report->update(['current_step' => $next->order]);
             } else {
-                $flow->update(['status'=>'completed']);
-                $flow->report->update(['status'=>'completed']);
+                $report->update(['status'=>'completed']);
+                // $report->report->update(['status'=>'completed']);
             }
-
-            // Auditoría
-            SignatureEvent::create([
-                'signature_flow_id' => $flow->id,
-                'signature_step_id' => $step->id,
-                'event'             => 'callback_received',
-                'meta'              => ['sha256'=>$hash],
-            ]);
 
             // (Opcional) Log con ruta absoluta para ver dónde quedó
             Log::info('PDF firmado guardado', [

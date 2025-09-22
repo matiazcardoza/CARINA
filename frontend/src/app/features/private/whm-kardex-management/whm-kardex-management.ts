@@ -17,7 +17,7 @@ import { MessageService } from 'primeng/api';
 import { AddNewUserModal } from './components/add-new-user-modal/add-new-user-modal';
 import { WhmKardexManagementService, ObraLite, PecosaLite, MovementsPage } from './services/whm-kardex-management.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-
+import { Report, SignatureParams } from './interfaces/whm-kardex-management.interface';
 @Component({
   selector: 'app-whm-kardex-management',
   imports: [
@@ -74,7 +74,9 @@ export class WhmKardexManagement implements OnInit {
   lastSelectedKey: number | null = null;
   expanded = signal<boolean>(false)
   expandedRowsPecosa = signal<any>([])
+
   ngOnInit(): void {
+
     this.api.getObras()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -110,15 +112,18 @@ export class WhmKardexManagement implements OnInit {
   }
 
   getItemPecosasOfBackend(filters: { page?: number; per_page?: number; numero?: string; anio?: number }) {
-    console.log("obtener pecosas");
+    
     
     if (!this.selectedObraId) return;
     this.loadingPecosas.set(true);
+
     this.api.getItemPecosas(this.selectedObraId, filters)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
+        console.log("obtener pecosas001", res);
           this.pecosas.set(res.data ?? []);
+          // this.pecosas.set(res ?? []);
           this.productsTotal.set(res.total ?? res.data?.length ?? 0);
           this.pageSize = res.per_page ?? this.pageSize;
           this.loadingPecosas.set(false);
@@ -165,13 +170,11 @@ export class WhmKardexManagement implements OnInit {
   }
 
   onSubmitMovement() {
-    console.log("movimiento enviado 001.")
     this.lastSelectedKey = this.selectedProduct?.idsalidadet_silucia ?? null;
     const page = this.lastProductsPage;
     const perPage = this.lastProductsRows;
 
     this.savingMovementLoading.set(true);
-    console.log("formulario enviado",this.form);
     this.api.createKardexMovement(this.form, this.form?.silucia_pecosa?.id, this.selectedObraId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -190,8 +193,6 @@ export class WhmKardexManagement implements OnInit {
   }
 
   openMovementDetailsModal(row: PecosaLite) {
-    console.log("selectad data: ");
-    console.log(row);
     this.selectedPecosaForMovements = row;
     this.showMovementDetailsModal = true;
     this.expandedRowsMovements.set({});
@@ -280,23 +281,79 @@ export class WhmKardexManagement implements OnInit {
    * Funcionalidades para expandir y contraer filas
    */
   // onRowExpandPecosa(data:any){
-  //   console.log("expandir fila: ", data)
   // }
   // onRowCollapsePecosa(data: any){
-  //   console.log("colapsar fila: ", data)
   // }
   downloadReport(url: string | null) {
-    console.log("Datos de ULR: ", url);
-    // if (url) {
-    //   window.open(url, '_blank');
-    // }
+    console.log(url);
+    if (url) {
+      window.open(url, '_blank');
+    }
   }
 
-  signReport(url: string | null) {
-    console.log("Datos de ULR: ", url);
-    // if (url) {
-    //   window.location.href = url;
-    // }
+  working = false;
+  message = '';
+  signReport(url: Report | null) {
+
+    console.log("datos de peticion r: ", url);
+    // r.download_url = 'http://127.0.0.1:8000/api/payments/PDF_NUMERO_1.pdf';
+      // 1) Guards básicos
+    if (!url) return;
+    if (!url.pdf_path) {
+      this.message = 'No hay URL de descarga del PDF.';
+      return;
+    }
+    // url que recibirá el pdf firmado
+    if (!url.pdf_path) {
+      // Cuando no te toca, el backend puede devolver null. Igual mostramos por qué:
+      this.message = 'No hay callback para este usuario o paso. Verifica si te toca firmar.';
+      return;
+    }
+    if (url.current_step.status != "pending") {
+      this.message = 'Aún no es tu turno de firma (botón deshabilitado).';
+      return;
+    }
+
+    // const callback = `${this.environment.API_URL}api/signatures/callback` + `?flow_id=${flowId}&step_id=${stepId}&token=${callbackToken}`;
+    this.working = true;
+    this.message = '';
+
+    // 2) Armar parámetros para el proveedor
+    const params: SignatureParams = {
+      // direccion url que el firmador usara para recoger el pdf
+      location_url_pdf: url.pdf_path,      
+      // dirección url que el firmador usara para devolver el pdf, en esta url incluimos: report_id, step_id, user_id, rol y token ---> por ejemplo: "sign_callback_url": "http://127.0.0.1:8000/api/signatures/callback?report_id=11&step_id=41&token=cH4j0I9vI6XZ9a3VYZUp7qbCVIf0kTgAaCPyzghffW9hN8mv"
+      post_location_upload: url.sign_callback_url, 
+      rol: url.current_step.role ?? 'firmante',
+      tipo: 'recursos',
+      visible_position: false,
+      bacht_operation: false,
+      npaginas: url?.current_step.page ,
+      posx: url?.current_step?.pos_x,
+      posy: url?.current_step?.pos_y,
+      // token: url.current_step.callback_token
+      token: ''
+    };
+
+    // 3) Abrir el firmador
+    this.working = true;
+    this.message = '';
+
+
+    this.api.openSignatureWindow$(params).subscribe({
+        next: () => {
+          this.message = 'Firma completada y recibida por el backend.';
+          // 4) Refrescar la página/tabla para que cambie el estado (current_step, can_sign, etc.)
+          // const base = this.lastLazyLoadEventOrDefault();
+          // this.onProductsLazyLoad({ ...base });
+        },
+        error: (err) => {
+          this.message = `${err?.message || 'Error de firma'}`;
+        },
+        complete: () => {
+          this.working = false;
+        }
+    });
   }
 
   openExternal(url?: string | null) {

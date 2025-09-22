@@ -69,6 +69,8 @@ class ItemPecosa extends Model
         'raw_snapshot'          => 'array',        // longText con JSON
     ];
 
+    /* ========= Relaciones ========= */
+
     public function obra()
     {
         return $this->belongsTo(Obra::class);
@@ -83,12 +85,14 @@ class ItemPecosa extends Model
     {
         return $this->hasMany(MovementKardex::class, 'item_pecosa_id');
     }
+    
+    public function reports() {
+        return $this->morphMany(Report::class, 'reportable');
+    }
 
 
-    /* ================================
-     * Scopes de ayuda para filtrar
-     * ================================ */
-
+    /* ========= Scopes de ayuda para filtrar ========= */
+    
     public function scopeNumero($query, ?string $numero)
     {
         return $numero ? $query->where('id_pecosa_silucia', $numero) : $query;
@@ -137,27 +141,5 @@ class ItemPecosa extends Model
             });
     }
 
-    // public function reports()
-    // {
-    //     return $this->morphMany(\App\Models\KardexReport::class, 'reportable');
-    // }
-    public function reports() { 
-        return $this->morphMany(Report::class, 'reportable'); 
-    }
 
-
-    /* ================================
-     * Relaciones (si las necesitas)
-     * ================================ */
-
-    // Ejemplos (descomentar y ajustar cuando existan estas tablas/modelos):
-    // public function movements()
-    // {
-    //     return $this->hasMany(MovementKardex::class, 'item_pecosa_id'); // clave foránea en movements
-    // }
-
-    // public function container()
-    // {
-    //     return $this->belongsTo(SiluciaContainer::class, 'id_container_silucia', 'id_externo');
-    // }
 }

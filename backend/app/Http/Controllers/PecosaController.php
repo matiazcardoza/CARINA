@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class PecosaController extends Controller
 {
@@ -173,7 +174,7 @@ class PecosaController extends Controller
         ]);
 
         $q = ItemPecosa::query()->where('obra_id', $obra->id);
-
+        return $q;
         if ($request->filled('anio'))   $q->where('anio', $request->integer('anio'));
         if ($request->filled('numero')) $q->where('numero', 'like', '%'.$request->get('numero').'%');
 
@@ -188,6 +189,7 @@ class PecosaController extends Controller
             'per_page' => $p->perPage(),
         ]);
     }
+
     public function testPecosas(Request $request, Obra $obra){
         $user  = $request->user();
         $roles = $user->getRoleNames()->toArray();
@@ -207,29 +209,17 @@ class PecosaController extends Controller
         // - operador => TODOS
         // - admin/residente/supervisor => SOLO con reportes
         if (!$isOperator) {
-            $q->whereHas('reports.flow'); // al menos 1 reporte con flow
+            // se debe modificar, solo entregar aquellos que tieene un reporte
+            $q->whereHas('reports'); // al menos 1 reporte con flow
         }
-
+        
         // filtros UI (opcionales)
         if ($request->filled('anio'))   $q->where('anio', $request->integer('anio'));
+        
         if ($request->filled('numero')) $q->where('numero', 'like', '%'.$request->get('numero').'%');
 
-        // eager loading de reportes con flow y steps
-        $q->with([
-            'reports' => function ($qr) {
-                $qr->select(
-                    'id','reportable_id','reportable_type',
-                    'pdf_path','pdf_page_number','latest_pdf_path',
-                    'status','category','subtype','created_by','created_at'
-                )
-                ->with([
-                    'flow:id,report_id,current_step,status',
-                    'flow.steps:id,signature_flow_id,order,role,status,callback_token,page,pos_x,pos_y,width,height'
-                ]);
-            }
-        ]);
+        $q->with('reports.steps');
 
-        // campos principales
         $q->select([
             'id','obra_id',
             'anio','numero','fecha',
@@ -238,94 +228,34 @@ class PecosaController extends Controller
             'idsalidadet_silucia','idcompradet_silucia'
         ]);
 
+
+        
         $perPage = (int)($request->get('per_page', 20));
         $page    = (int)($request->get('page', 1));
         $p       = $q->orderByDesc('fecha')->paginate($perPage, ['*'], 'page', $page);
 
-        // Transformar reports al shape que consume el front
-        $p->getCollection()->transform(function ($item) use ($roles) {
-            // Formatear fecha si es necesario
-            if ($item->fecha) {
-                $item->fecha = \Carbon\Carbon::parse($item->fecha)->format('Y-m-d');
-            }
-
-            // Transformar cada report para mostrar solo el step del usuario
-            $item->reports = collect($item->reports)->map(function ($report) use ($roles) {
-                $flow = $report->flow;
-
-                // Si no hay flow, retornar estructura básica
-                if (!$flow || !$flow->steps) {
-                    return [
-                        'report_id'      => $report->id,
-                        'type'           => $report->category,
-                        'status'         => $report->status,
-                        'flow_id'        => null,
-                        'current_step'   => null,
-                        'current_role'   => null,
-                        'user_step'      => null,
-                        'can_sign'       => false,
-                        'download_url'   => url("/api/files-download?name={$report->pdf_path}"),
-                        'sign_callback_url' => null,
-                    ];
-                }
-
-                // Obtener el paso actual (quién tiene el turno)
-                $currentStep = $flow->steps->firstWhere('order', (int)$flow->current_step);
-                $currentRole = $currentStep ? $currentStep->role : null;
-
-                // Buscar el paso que corresponde al rol del usuario actual
-                $userStep = $flow->steps->first(function ($step) use ($roles) {
-                    // Verificar si el rol del step coincide con alguno de los roles del usuario
-                    // Nota: Puede que necesites ajustar esta comparación según cómo manejes los nombres de roles
-                    foreach ($roles as $userRole) {
-                        // Convertir el rol del usuario al formato esperado si es necesario
-                        // Por ejemplo: 'almacen.residente' -> 'almacen_residente'
-                        $normalizedRole = str_replace('.', '_', $userRole);
-                        if ($step->role === $normalizedRole) {
-                            return true;
-                        }
+        $p->getCollection()->transform(function ($item) use ($user, $roles) {
+            // $item->reports es una Collection de Report
+            $item->reports->each(function ($r)  use ($user, $roles) {
+                if ($r->relationLoaded('steps')) {
+                    $curr = $r->steps->firstWhere('order', $r->current_step);
+                    $r->setRelation('currentStep', $curr);
+                    // opcional: no enviar todos los steps al frontend
+                    $r->unsetRelation('steps');
+                    if ($curr) {
+                        $qs = http_build_query([
+                            'report_id'     => $r->id,
+                            'step_id'       => $curr->id,
+                            'user_id'       => $user->id,
+                            'user_roles'    => $roles,
+                            'token'         => $curr->callback_token,
+                        ]);
+                        $r->setAttribute('sign_callback_url', env('PDF_DOWNLOAD_BASE_URL')."/api/signatures/callback?{$qs}");
+                    } else {
+                        $r->setAttribute('sign_callback_url', null);
                     }
-                    return false;
-                });
-
-                // Determinar si el usuario puede firmar
-                $canSign = false;
-                if ($userStep) {
-                    $canSign = $userStep->status === 'pending' 
-                        && (int)$userStep->order === (int)$flow->current_step;
                 }
-
-                // Construir URL de callback solo si el usuario puede firmar
-                $signCallbackUrl = null;
-                if ($canSign && $userStep) {
-                    $signCallbackUrl = url("/api/signatures/callback?flow_id={$flow->id}&step_id={$userStep->id}&token={$userStep->callback_token}");
-                }
-
-                // Retornar la estructura esperada con solo el step del usuario
-                return [
-                    'report_id'      => $report->id,
-                    'type'           => $report->category ?? 'kardex',
-                    'status'         => $flow->status,
-                    'flow_id'        => $flow->id,
-                    'current_step'   => $flow->current_step,
-                    'current_role'   => $currentRole,
-                    'user_step'      => $userStep ? [
-                        'id'     => $userStep->id,
-                        'role'   => $userStep->role,
-                        'status' => $userStep->status,
-                        'order'  => $userStep->order,
-                        'page'   => $userStep->page ?? 1,
-                        'pos_x'  => $userStep->pos_x,
-                        'pos_y'  => $userStep->pos_y,
-                        'width'  => $userStep->width,
-                        'height' => $userStep->height,
-                    ] : null,
-                    'can_sign'       => $canSign,
-                    'download_url'   => url("/api/files-download?name={$report->pdf_path}"),
-                    'sign_callback_url' => $signCallbackUrl,
-                ];
-            })->values(); // values() para reindexar el array
-
+            });
             return $item;
         });
 

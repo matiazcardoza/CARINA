@@ -48,3 +48,59 @@ export interface PecosaLite {
     sign_callback_url: string|null;
   }>;
 }
+  type userStep = {
+    id: number;
+    report_id: number;
+    order: number;
+    user_id: number | null;
+    role: string;
+    page: number;
+    pos_x: number;
+    pos_y: number;
+    width: number;
+    height: number;
+    status: string;
+    comment: string | null;
+    signed_at: string | null; // ISO date string
+    signed_by: string | null;
+    provider: string | null;
+    callback_token: string;
+    sha256: string | null;
+    created_at: string; // ISO date string
+    updated_at: string; // ISO date string
+  }
+
+export interface Report {
+  id: number;
+  reportable_type: string;
+  reportable_id: number;
+  pdf_path: string;
+  pdf_page_number: number;
+  status: 'in_progress' | 'signed' | 'rejected' | string;
+  current_step: userStep;
+  generation_params: any | null; // puede tiparse mejor si conoces la estructura
+  signing_starts_at: string | null; // ISO date string
+  signing_ends_at: string | null;   // ISO date string
+  created_by: number;
+  sign_callback_url: string;
+  created_at: string; // ISO date string
+  updated_at: string; // ISO date string
+}
+
+export interface SignatureParams {
+  location_url_pdf: string;
+  post_location_upload: string;
+  asunto?: string;
+  rol?: string;
+  tipo?: string;
+  status_position?: string;
+  visible_position?: boolean | string;
+  bacht_operation?: boolean | string; // (typo replicado si tu proveedor lo exige)
+  npaginas?: number | string;
+  posx?: number | string;
+  posy?: number | string;
+  dni?: string;
+  tipoSalida?: string;
+  siguienteEnFirmar?: string;
+  token?: string; // ideal: JWT corto emitido por tu backend
+}
