@@ -16,7 +16,7 @@ class UserAdminSeeder extends Seeder
      */
     public function run(): void
     {
-        $super_administrador = Role::findByName('Super Administrador', 'api');
+        $super_administrador = Role::findOrCreate('Super Administrador', 'api');
 
         $users = User::firstOrCreate(['email' => 'admin@domain.com'], [
             'name' => 'ADMIN',
@@ -31,5 +31,23 @@ class UserAdminSeeder extends Seeder
             'name' => 'ROYER MATIAZ',
             'last_name' => 'HUANCA CARDOZA'
         ]);
+
+        $super_administrador_almacen = Role::findOrCreate('almacen.superadmin', 'api');
+
+        $user_super_admin = User::firstOrCreate(['email' =>  'admin_almacen@domain.com'], [
+            'name'      => 'ADMIN_ALMACEN',
+            'email'     => 'admin_almacen@domain.com',
+            'password'  => Hash::make('10442312312'),
+            'state'     => 1,
+        ])->assignRole($super_administrador_almacen);
+
+        Persona::updateOrCreate(
+            ['user_id' => $user_super_admin->id],  // clave de búsqueda
+            [
+                'num_doc'   => '71596800',
+                'name'      => 'JUAN C',
+                'last_name' => 'AYALA P',
+            ]
+        );
     }
 }

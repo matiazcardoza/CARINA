@@ -16,7 +16,7 @@ class SetDefaultObra
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $obraId = 6;
+        $obraId = 1;
         $obra = Obra::findOrFail($obraId );
         setPermissionsTeamId($obra->id);  // <- API oficial v6
         // También expón para que tu código pueda leerlo si quiere:
