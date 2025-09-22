@@ -24,6 +24,7 @@ export interface DocumentDailyPartElement {
   id: number;
   file_path: string;
   state: string;
+  pages?: number;
 }
 
 interface DialogData {
@@ -62,7 +63,7 @@ export class DailyWorkSignature {
   userForm: FormGroup;
   users: UserElement[] = [];
   filteredUsers: UserElement[] = [];
-  
+
   constructor(
     public dialogRef: MatDialogRef<DailyWorkSignature>,
     @Inject(MAT_DIALOG_DATA) public data: DialogData,
@@ -180,7 +181,7 @@ export class DailyWorkSignature {
 
     // Llamar al servicio que abrirá la ventana popup
     console.log(firmaParams);
-    
+
     this.signatureService.firmaDigital(firmaParams)
       .subscribe({
         next: (response) => {
@@ -196,7 +197,7 @@ export class DailyWorkSignature {
           this.isSigningInProgress = false;
           this.error = error;
           this.cdr.detectChanges();
-          
+
           if (error.includes('bloqueada')) {
             alert('Por favor, permita las ventanas emergentes para este sitio e intente nuevamente.');
           } else if (error.includes('cancelada') || error.includes('cerrada')) {

@@ -9,6 +9,15 @@ interface DocumentSignatureApiResponse {
   data: DocumentSignatureUserElement[];
 }
 
+export interface UserRoleElement {
+  id: number,
+  name: string
+}
+
+interface UserRoleApiResponse {
+  message: string;
+  data: UserRoleElement[];
+}
 
 @Injectable({
   providedIn: 'root'
@@ -20,6 +29,14 @@ export class DocumentSignatureService {
 
   getPendingDocuments(): Observable<DocumentSignatureUserElement[]> {
     return this.http.get<DocumentSignatureApiResponse>(`${this.apiUrl}/api/documents-signature/pending`, {
+      withCredentials: true
+    }).pipe(
+      map(response => response.data)
+    );
+  }
+
+  getRole(): Observable<UserRoleElement[]> {
+    return this.http.get<UserRoleApiResponse>(`${this.apiUrl}/api/document-userRole`, {
       withCredentials: true
     }).pipe(
       map(response => response.data)

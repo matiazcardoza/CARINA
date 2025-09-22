@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DailyPart;
 use App\Models\DocumentDailyPart;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -36,6 +37,16 @@ class DocumentController extends Controller
         return response()->json([
             'message' => 'Document sent successfully',
             'data' => $document
+        ], 201);
+    }
+
+    public function getRoles(){
+        $user = User::find(Auth::id());
+        $role = $user->roles;
+
+        return response()->json([
+            'message' => 'roles get successfully',
+            'data' => $role
         ], 201);
     }
 }

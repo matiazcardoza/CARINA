@@ -31,6 +31,7 @@ interface EvidenceDataApiResponse {
 interface DocumentDailyPartApiResponse {
   message: string;
   data: DocumentDailyPartElement;
+  pages: number;
 }
 
 
@@ -161,10 +162,13 @@ export class DailyWorkLogService {
     return this.http.get<DocumentDailyPartApiResponse>(`${this.apiUrl}/api/daily-work-document/${documentId}`, {
       withCredentials: true,
     }).pipe(
-      map(response => response.data)
+      map(response => ({
+        ...response.data,
+        pages: response.pages
+      }))
     );
   }
-  
+
   sendDocument(data: SendDocumentData): Observable<any> {
     return this.http.post(`${this.apiUrl}/api/daily-work-document/send`, data, {
       withCredentials: true

@@ -13,6 +13,7 @@ import { environment } from '../../../../../../environments/environment';
 
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { UsersService } from '../../../../../services/UsersService/users-service';
+import { DocumentSignatureService, UserRoleElement } from '../../../../../services/DocumentSignatureService/document-signature-service';
 import { startWith, map } from 'rxjs/operators';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -24,6 +25,7 @@ export interface DocumentDailyPartElement {
   id: number;
   file_path: string;
   state: string;
+  pages?: number;
 }
 
 interface DialogData {
@@ -57,11 +59,14 @@ export class DocumentSignature {
   isSigned = false;
   signatureData: any = null;
   isSigningInProgress = false;
+  numberOfPages: number = 0;
 
   userForm: FormGroup;
   users: UserElement[] = [];
   filteredUsers: UserElement[] = [];
-  
+
+  role: UserRoleElement[] = [];
+
   constructor(
     public dialogRef: MatDialogRef<DocumentSignature>,
     @Inject(MAT_DIALOG_DATA) public data: DialogData,
@@ -70,7 +75,8 @@ export class DocumentSignature {
     private signatureService: SignatureService,
     private sanitizer: DomSanitizer,
     private fb: FormBuilder,
-    private usersService: UsersService
+    private usersService: UsersService,
+    private documentSignatureService: DocumentSignatureService
   ) {
     this.userForm = this.fb.group({
       userId: ['', Validators.required],
@@ -79,7 +85,21 @@ export class DocumentSignature {
 
   ngOnInit(): void {
     this.loadUsers();
+    this.loadRole();
     this.loadPdfDocument();
+  }
+
+  private loadRole(){
+    this.documentSignatureService.getRole().subscribe({
+      next: (role) => {
+        console.log('estos son los roles del usuario: ', role);
+        this.role = role;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error al cargar usuarios:', error);
+      }
+    });
   }
 
   private loadUsers(): void {
@@ -128,11 +148,13 @@ export class DocumentSignature {
     this.dailyWorkLogService.getWorkLogDocument(workLogId)
       .subscribe({
         next: (data: DocumentDailyPartElement) => {
-          console.log('PDF document response:', data);
           try {
             const pdfPath = data.file_path;
             const document_id = data.id;
             this.documentId = document_id;
+
+            this.numberOfPages = data.pages || 0;
+            console.log('este es el numero de pagina: ', this.numberOfPages);
 
             const fullPdfUrl = `${environment.BACKEND_URL_STORAGE}${pdfPath}`;
             this.pdfUrlString = fullPdfUrl;
@@ -153,6 +175,23 @@ export class DocumentSignature {
       });
   }
 
+  private roleToStatusMap = new Map<number, string>([
+    [2, '1'],
+    [3, '2'],
+    [4, '3']
+  ]);
+
+  private getCurrentUserRole(): number {
+    if (this.role && this.role.length > 0) {
+      return this.role[0].id;
+    }
+    return 2;
+  }
+
+  private getStatusPositionByRole(roleId: number): string {
+    return this.roleToStatusMap.get(roleId) || '1';
+  }
+
   onSign(): void {
     if (!this.pdfUrlString) {
       console.error('No hay URL de PDF disponible para firmar');
@@ -163,6 +202,9 @@ export class DocumentSignature {
     this.error = null;
     this.cdr.detectChanges();
 
+    const currentRoleId = this.getCurrentUserRole();
+    const statusPosition = this.getStatusPositionByRole(currentRoleId);
+
     const firmaParams: FirmaDigitalParams = {
       location_url_pdf: this.pdfUrlString,
       location_logo: `${environment.BACKEND_URL_STORAGE}image_pdf_template/logo_firma_digital.png`,
@@ -170,16 +212,13 @@ export class DocumentSignature {
       asunto: `Firma de Parte Diario`,
       rol: 'ADMIN',
       tipo: 'daily_parts',
-      status_position: '2',
+      status_position: statusPosition,
       visible_position: false,
       bacht_operation: false,
-      npaginas: 1,
+      npaginas: this.numberOfPages,
       token: ''
     };
 
-    // Llamar al servicio que abrirá la ventana popup
-    console.log(firmaParams);
-    
     this.signatureService.firmaDigital(firmaParams)
       .subscribe({
         next: (response) => {
@@ -195,7 +234,7 @@ export class DocumentSignature {
           this.isSigningInProgress = false;
           this.error = error;
           this.cdr.detectChanges();
-          
+
           if (error.includes('bloqueada')) {
             alert('Por favor, permita las ventanas emergentes para este sitio e intente nuevamente.');
           } else if (error.includes('cancelada') || error.includes('cerrada')) {
