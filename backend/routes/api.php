@@ -116,16 +116,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
 // ROUTAS DE SEGUNDA VERSION DEL MOVIMIENTOS DE ALMACEN - TENANT
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/me/obras', [ObrasController::class,'mine']);
-    Route::get('/accounts', [UserController::class, 'index']);
+    
 });
 
-Route::middleware(['auth:sanctum'])->prefix('/admin')->group(function () {
-  Route::get('/users', [UserIndexController::class, 'index']);
-  Route::get('/obras', [ObraIndexController::class, 'index']);
-  Route::get('/obras/{obra}/miembros', [MembersController::class,'index']);     // devuelve todos los usuario miembros de esta obra
-  Route::post('/obras/{obra}/miembros', [MembersController::class,'upsert']);   // asigna user + roles por obra
-  Route::delete('/obras/{obra}/miembros/{user}', [MembersController::class,'destroy']);
-});
+
 
 // recibe pdf firmado por firma perú
 Route::post('signatures/callback', [SignatureController::class, 'store']);
@@ -154,7 +148,7 @@ Route::middleware(['auth:sanctum','resolve.obra'])->group(function () {
 
 Route::get('get-roles-by-scope', function(){
     // Fijar el team/obra actual
-    setPermissionsTeamId(2);
+    setPermissionsTeamId(3);
 
     // Obtener el usuario
     $user = User::findOrFail(1);
@@ -166,27 +160,43 @@ Route::get('get-roles-by-scope', function(){
     return $user->roles;
 });
 
-// nuevas rutas para actualizar los permisos por obra - inicio
-Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
-    // catálogos para el front
-    Route::get('/obras',            [AdminCatalogController::class, 'obras']);   // lista todas las obras
-    Route::get('/roles',            [AdminCatalogController::class, 'roles']);   // lista de roles (nombres)
 
-    // gestión de obras y roles por usuario
-    Route::get   ('/users/{user}/obras',                 [UserObrasController::class, 'index']);
-    Route::post  ('/users/{user}/obras',                 [UserObrasController::class, 'store']);   // add obra al user
+Route::middleware(['auth:sanctum','resolve.default.obra'])->prefix('/admin')->group(function () {
+    Route::get('/accounts',                 [UserController::class, 'index'])->middleware(['role:almacen.superadmin']);
+    Route::get('/users',                    [UserIndexController::class, 'index'])->middleware(['role:almacen.superadmin']);
+    Route::get('/obras',                    [ObraIndexController::class, 'index'])->middleware(['role:almacen.superadmin']);
+    Route::get('/obras/{obra}/miembros',    [MembersController::class,'index'])->middleware(['role:almacen.superadmin']);     // devuelve todos los usuario miembros de esta obra
+    Route::post('/obras/{obra}/miembros',   [MembersController::class,'upsert'])->middleware(['role:almacen.superadmin']);   // asigna user + roles por obra
+    Route::delete('/obras/{obra}/miembros/{user}', [MembersController::class,'destroy'])->middleware(['role:almacen.superadmin']);
+
+    Route::get('/roles',                    [AdminCatalogController::class, 'roles'])->middleware(['role:almacen.superadmin']);   // lista de roles (nombres)
+    Route::get('/users/{user}/obras',       [UserObrasController::class, 'index'])->middleware(['role:almacen.superadmin']);
+    Route::post('/users/{user}/obras',      [UserObrasController::class, 'store'])->middleware(['role:almacen.superadmin']);   // add obra al user
+
+    // catálogos para el front
+    Route::get('/obras',                    [AdminCatalogController::class, 'obras'])->middleware(['role:almacen.superadmin']);   // lista todas las obras
+    Route::get('/roles',                    [AdminCatalogController::class, 'roles'])->middleware(['role:almacen.superadmin']);   // lista de roles (nombres)
+
     // NUEVO: importar (crear/actualizar) obra desde externa + asignar al usuario con roles
-    Route::post('/users/{user}/obras/import-assign', [UserObrasController::class, 'importAndAssign']);
-    Route::delete('/users/{user}/obras/{obra}',          [UserObrasController::class, 'destroy']); // quitar obra
+    // gestión de obras y roles por usuario
+    Route::post('/users/{user}/obras/import-assign', [UserObrasController::class, 'importAndAssign'])->middleware(['role:almacen.superadmin']);
+    Route::delete('/users/{user}/obras/{obra}',      [UserObrasController::class, 'destroy'])->middleware(['role:almacen.superadmin']); // quitar obra
 
     // roles por obra
-    Route::put   ('/users/{user}/obras/{obra}/roles',    [UserObrasController::class, 'syncRoles']);   // reemplazar
-    Route::post  ('/users/{user}/obras/{obra}/roles',    [UserObrasController::class, 'attachRoles']); // agregar
-    Route::delete('/users/{user}/obras/{obra}/roles',    [UserObrasController::class, 'detachRoles']); // quitar
+    Route::put   ('/users/{user}/obras/{obra}/roles',    [UserObrasController::class, 'syncRoles'])->middleware(['role:almacen.superadmin']);   // reemplazar
+    Route::post  ('/users/{user}/obras/{obra}/roles',    [UserObrasController::class, 'attachRoles'])->middleware(['role:almacen.superadmin']); // agregar
+    Route::delete('/users/{user}/obras/{obra}/roles',    [UserObrasController::class, 'detachRoles'])->middleware(['role:almacen.superadmin']); // quitar
 
     //NUEVO: importar/actualizar obra (desde API externa) + importar PECOSAs + asignar al usuario + set roles
-    Route::post('/users/{user}/obras/import', [UserObrasController::class, 'importAttachFromExternal']);
+    Route::post('/users/{user}/obras/import', [UserObrasController::class, 'importAttachFromExternal'])->middleware(['role:almacen.superadmin']);
 });
+
+// nuevas rutas para actualizar los permisos por obra - inicio
+// Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
+//     // catálogos para el front
+//     Route::get   ('/users/{user}/obras',                 [UserObrasController::class, 'index'])->middleware(['role:almacen.superadmin']);;
+//     Route::post  ('/users/{user}/obras',                 [UserObrasController::class, 'store'])->middleware(['role:almacen.superadmin']);;   // add obra al user
+// });
 
 
 Route::middleware('auth:sanctum')->group(function () {

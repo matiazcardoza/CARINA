@@ -25,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // middelwrare para rediirgir al usuario a su obra correcta
             'resolve.obra' => \App\Http\Middleware\ResolveCurrentObra::class,
+            'resolve.default.obra' => \App\Http\Middleware\SetDefaultObra::class,
         ]);
         //
     })

@@ -317,6 +317,8 @@ class UserObrasController extends Controller
         ]);
 
         $rows = $batch['data'] ?? [];
+
+        Log::info(['info de pecosas' => $rows]);
         $imported = 0;
 
         foreach ($rows as $r) {

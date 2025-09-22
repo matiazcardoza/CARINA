@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class ItemPecosa extends Model
 {
     use HasFactory;
-    use BelongsToObra;
+    // use BelongsToObra;
     protected $table = 'item_pecosas';
     protected $primaryKey = 'id';
     public $timestamps = true;

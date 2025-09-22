@@ -51,6 +51,11 @@ return new class extends Migration
 
             $table->string('numero_origen', 50)->nullable()->index(); // ej. número de OC
 
+            // columnas usadas para guardar los movimientos tanto de entradas como de salida (los totales)
+            $table->decimal('quantity_received', 18, 3)->default(0); // total ENTRADAS
+            $table->decimal('quantity_issued',   18, 3)->default(0); // total SALIDAS
+            $table->decimal('quantity_on_hand',  18, 3)->default(0); // STOCK FINAL = received - issued
+
             // Metadatos de sincronización
             $table->timestamp('external_last_seen_at')->nullable();
             $table->string('external_hash', 64)->nullable();
