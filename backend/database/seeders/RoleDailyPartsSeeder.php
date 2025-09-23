@@ -65,7 +65,7 @@ class RoleDailyPartsSeeder extends Seeder
                         break;
 
                     case 'work_log':
-                        if ($perm['name'] === 'delete_work_log') {
+                        if ($perm['name'] === 'delete_work_log' || $perm['name'] === 'import_work_log') {
                             $permission->syncRoles([$super_admin, $residente]);
                         } else {
                             $permission->syncRoles([$super_admin, $controlador, $residente]);

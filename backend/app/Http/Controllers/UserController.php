@@ -141,7 +141,6 @@ class UserController extends Controller
 
     function createUser(Request $request)
     {
-        setPermissionsTeamId(1);
         $user = User::create([
             'name' => $request->username,
             'email'=> $request->email,
@@ -200,9 +199,9 @@ class UserController extends Controller
 
     function updateUserRoles(Request $request)
     {
+        setPermissionsTeamId(1);
         $user = User::find($request->userId);
         $user->roles()->sync($request->roles);
-        
 
         return response()->json([
             'message' => 'Roles de usuario actualizados correctamente',

@@ -7,12 +7,12 @@
     </div>
 
     <div class="header-actions">
-      <button mat-raised-button color="accent" (click)="openReceiveDialog()" class="action-button">
+      <button *appHasPermission="'import_work_log'" mat-raised-button color="accent" (click)="openReceiveDialog()" class="action-button">
         <mat-icon>assignment</mat-icon>
         Nueva Maquinaria/Equipo (Orden)
       </button>
 
-      <button mat-raised-button color="accent" (click)="openMechanicalDialog()" class="action-button">
+      <button *appHasPermission="'import_work_log'" mat-raised-button color="accent" (click)="openMechanicalDialog()" class="action-button">
         <mat-icon>assignment</mat-icon>
         Nuevo (Equipo/Mecanico)
       </button>
@@ -144,7 +144,7 @@
                 </button>
 
                 <button mat-icon-button
-                        *appHasPermission="'delete_work_log_pd'"
+                        *appHasPermission="'delete_work_log'"
                         (click)="deleteWorkLog(element.id)"
                         matTooltip="Eliminar registro"
                         class="action-btn delete-btn">
