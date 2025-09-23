@@ -86,7 +86,7 @@
         </ul>
 
         <!-- ALMACÉN DIGITAL - Visible por defecto (agregar permisos cuando estén definidos) -->
-        <ul class="menu">
+        <!-- <ul class="menu">
           <li>
             <button class="menu__toggle" (click)="toggle('app')">
               <span class="menu__section">ALMACÉN DIGITAL</span>
@@ -113,6 +113,25 @@
                     <span>Settings</span>
                   </a>
                 </li>
+              </ul>
+            }
+          </li>
+        </ul> -->
+        <ul class="menu">
+          <li>
+            <!-- APPLICATION -->
+            <button class="menu__toggle" (click)="toggle('app')">
+              <span class="menu__section">ALMACÉN DIGITAL</span>
+              <i class="pi" [class.pi-chevron-down]="!appOpen()" [class.pi-chevron-up]="appOpen()"></i>
+            </button>
+
+            @if (appOpen()) {
+              <ul class="menu__list" animate.enter="slide-down" animate.leave="slide-up">
+                <!-- <li routerLink="kardex-management"><a class="menu__link"><i class="pi pi-folder" ></i><span>Gestión del kardex</span></a></li> -->
+                <!-- <li routerLink="digital-signatures"><a class="menu__link"><i class="pi pi-chart-bar"></i><span>Firmas de reportes</span></a></li> -->
+                <!-- <li routerLink="test-requests"><a class="menu__link"><i class="pi pi-cog"></i><span>Settings</span></a></li> -->
+                <li routerLink="whm-kardex-management"><a class="menu__link"><i class="pi pi-warehouse" ></i><span>kardex</span></a></li>
+                <li routerLink="whm-user-management"><a class="menu__link"><i class="pi pi-android"></i><span>Gestión de usuarios</span></a></li>
               </ul>
             }
           </li>
@@ -146,7 +165,7 @@
         </ul>
 
         <!-- VALES DE TRANSPORTE - Visible por defecto (agregar permisos cuando estén definidos) -->
-        <ul class="menu">
+        <!-- <ul class="menu">
           <li>
             <button class="menu__toggle" (click)="toggle('transportVouchers')">
               <span class="menu__section">VALES DE TRANSPORTE</span>
@@ -164,7 +183,7 @@
               </ul>
             }
           </li>
-        </ul>
+        </ul> -->
         
       </div>
 
