@@ -132,16 +132,15 @@ Route::middleware(['auth:sanctum','resolve.obra'])->group(function () {
     // retora todas los itempecosas a partir de una obra / meta
     Route::get('/pecosas', [PecosaController::class,'getPecosasByWorks']);
     Route::get('/ordenes-compra/{orden}/pecosas', [OCController::class, 'pecosas']);  // nuevo
-    //   Route::get('/ordenes-compra', [ObrasController::class,'index']);
-    Route::post('/items/{item}/movements', [MovementController::class,'store']);
     // devuelve todos los item pecosas de una obra en especifio
     Route::get('/obras/{obra}/item-pecosas', [PecosaController::class, 'testPecosas'])->middleware(['role:almacen.operador']);
     // registra en la base de datos el movimiento hecho por el usuario
     Route::post('/kardex-movements/{itemPecosa}', [MovementKardexController::class, 'store'])->middleware(['role:almacen.operador']);
+    //   Route::get('/ordenes-compra', [ObrasController::class,'index']);
+    Route::post('/items/{item}/movements', [MovementController::class,'store']);
     // me devuelve todos los movimmientos de un itemPecosa
     Route::get('/item-pecosas/{itemPecosa}/movements-kardex',   [PecosaController::class, 'getItemPecosas'])->middleware(['role:almacen.operador']);
-    // http://localhost:8000/api/item-pecosas/002028/movements-kardex/pdf
-    Route::get( '/item-pecosas/{itemPecosa}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen.operador']);
+    Route::get('/item-pecosas/{itemPecosa}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen.operador']);
     // obtenemos los datos de una persona de la api de reniec
     Route::get('/people/{dni}', [PeopleController::class, 'showOrFetch'])->middleware(['role:almacen.operador']); // cache-first (db) → RENIEC
 });
