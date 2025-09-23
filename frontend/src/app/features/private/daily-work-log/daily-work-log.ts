@@ -11,6 +11,7 @@ import { DailyWorkLogMechanical } from './form/daily-work-log-mechanical/daily-w
 import { MatDialog } from '@angular/material/dialog';
 import { ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
+import { HasPermissionDirective } from '../../../shared/directives/permission.directive';
 
 export interface WorkLogElement {
   id: number;
@@ -31,7 +32,8 @@ export interface WorkLogElement {
     MatPaginatorModule,
     CommonModule,
     MatIconModule,
-    MatButtonModule
+    MatButtonModule,
+    HasPermissionDirective
   ],
   standalone: true,
 })

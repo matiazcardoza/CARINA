@@ -45,6 +45,7 @@ Route::post('/document-signature/{documentId}', [SignatureController::class, 'st
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {
+        setPermissionsTeamId(1);
         $user = $request->user();
         return response()->json([
             'id' => $user->id,
@@ -57,13 +58,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Nueva ruta para obtener permisos del usuario
     Route::get('/user/permissions', function (Request $request) {
-        Log::info('request', $request->all());
+        setPermissionsTeamId(1);
         $user = $request->user();
-        Log::info('user'. $user);
         $permission = $user->getAllPermissions()->pluck('name');
         $roles = $user->getRoleNames();
-        Log::info('roles'. $roles);
-        Log::info('permissions'. $permission);
         return response()->json([
             'permissions' => $permission,
             'roles' => $roles

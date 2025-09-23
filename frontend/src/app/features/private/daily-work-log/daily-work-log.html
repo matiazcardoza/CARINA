@@ -144,6 +144,7 @@
                 </button>
 
                 <button mat-icon-button
+                        *appHasPermission="'delete_work_log_pd'"
                         (click)="deleteWorkLog(element.id)"
                         matTooltip="Eliminar registro"
                         class="action-btn delete-btn">

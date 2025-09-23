@@ -15,6 +15,7 @@ class RoleDailyPartsSeeder extends Seeder
     {
         // Crear roles
         $super_admin = Role::firstOrCreate(['name' => 'SuperAdministrador_pd', 'guard_name' => 'api']);
+        $admin_em = Role::firstOrCreate(['name' => 'Admin_equipoMecanico_pd', 'guard_name' => 'api']);
         $controlador = Role::firstOrCreate(['name' => 'Controlador_pd', 'guard_name' => 'api']);
         $residente   = Role::firstOrCreate(['name' => 'Residente_pd', 'guard_name' => 'api']);
         $supervisor  = Role::firstOrCreate(['name' => 'Supervisor_pd', 'guard_name' => 'api']);
@@ -64,7 +65,11 @@ class RoleDailyPartsSeeder extends Seeder
                         break;
 
                     case 'work_log':
-                        $permission->syncRoles([$super_admin, $controlador, $residente]);
+                        if ($perm['name'] === 'delete_work_log') {
+                            $permission->syncRoles([$super_admin, $residente]);
+                        } else {
+                            $permission->syncRoles([$super_admin, $controlador, $residente]);
+                        }
                         break;
 
                     case 'work_log_id':
@@ -72,7 +77,7 @@ class RoleDailyPartsSeeder extends Seeder
                         break;
 
                     case 'equipo_mecanico':
-                        $permission->syncRoles([$super_admin, $controlador]);
+                        $permission->syncRoles([$super_admin, $admin_em]);
                         break;
 
                     case 'reportes':

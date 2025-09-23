@@ -141,6 +141,7 @@ class UserController extends Controller
 
     function createUser(Request $request)
     {
+        setPermissionsTeamId(1);
         $user = User::create([
             'name' => $request->username,
             'email'=> $request->email,
