@@ -1,13 +1,9 @@
-
 <!-- HEADLESS (sin Tailwind + animación nativa) -->
 <p-drawer 
   #drawerRef 
   [visible]="isOpen()"
-  [modal]="false" 
-  >
-  <!-- (onShow)="handleOpenSidebar()" -->
-  <!-- (visble)="handleOpenSidebar()" -->
-  <!-- [(visible)]="visible" -->
+  [modal]="false">
+  
   <ng-template #headless>
     <div class="drawer">
       <!-- Título -->
@@ -25,18 +21,17 @@
             icon="pi pi-times" 
             rounded="true" 
             outlined="true" 
-            styleClass="icon-24"
-            ></p-button>
-            <!-- (click)="close(drawerRef, $event)"  -->
+            styleClass="icon-24">
+          </p-button>
         </span>
       </div>
 
       <!-- Scroll -->
       <div class="drawer__scroll">
 
-        <ul class="menu">
+        <!-- PARTES DIARIOS DIGITALES - Solo mostrar si tiene alguno de estos permisos -->
+        <ul class="menu" *appHasPermission="['access_dashboard', 'access_work_log', 'access_equipo_mecanico', 'access_reportes']">
           <li>
-            <!-- FAVORITES -->
             <button class="menu__toggle" (click)="toggle('fav')">
               <span class="menu__section">PARTES DIARIOS DIGITALES</span>
               <i class="pi" [class.pi-chevron-down]="!favOpen()" [class.pi-chevron-up]="favOpen()"></i>
@@ -44,19 +39,55 @@
 
             @if (favOpen()) {
               <ul class="menu__list" animate.enter="slide-down" animate.leave="slide-up">
-                <li routerLink="home"><a class="menu__link"><i class="pi pi-chart-line" ></i><span>Dashboard</span></a></li>
-                <li routerLink="daily-work-log"><a class="menu__link"><i class="pi pi-pen-to-square" ></i><span>Registro de trabajo diario</span></a></li>
-                <li routerLink="mechanical_equipment"><a class="menu__link"><i class="pi pi-cog" ></i><span>Equipo Mecanico</span></a></li>
-                <li routerLink="reports"><a class="menu__link"><i class="pi pi-table"></i><span>Reportes</span></a></li>
-                <li routerLink="digital-signature-tray"><a class="menu__link"><i class="pi pi-pencil" ></i><span>Bandeja firmas - Partes Diarias</span></a></li>
+                
+                <!-- Dashboard - Solo si tiene permiso access_dashboard -->
+                <li *appHasPermission="'access_dashboard'" routerLink="home">
+                  <a class="menu__link">
+                    <i class="pi pi-chart-line"></i>
+                    <span>Dashboard</span>
+                  </a>
+                </li>
+                
+                <!-- Registro de trabajo diario - Solo si tiene permiso access_work_log -->
+                <li *appHasPermission="'access_work_log'" routerLink="daily-work-log">
+                  <a class="menu__link">
+                    <i class="pi pi-pen-to-square"></i>
+                    <span>Registro de trabajo diario</span>
+                  </a>
+                </li>
+                
+                <!-- Equipo Mecánico - Solo si tiene permiso access_equipo_mecanico -->
+                <li *appHasPermission="'access_equipo_mecanico'" routerLink="mechanical_equipment">
+                  <a class="menu__link">
+                    <i class="pi pi-cog"></i>
+                    <span>Equipo Mecanico</span>
+                  </a>
+                </li>
+                
+                <!-- Reportes - Solo si tiene permiso access_reportes -->
+                <li *appHasPermission="'access_reportes'" routerLink="reports">
+                  <a class="menu__link">
+                    <i class="pi pi-table"></i>
+                    <span>Reportes</span>
+                  </a>
+                </li>
+                
+                <!-- Bandeja firmas - Visible por defecto (agregar permiso específico si es necesario) -->
+                <li routerLink="digital-signature-tray">
+                  <a class="menu__link">
+                    <i class="pi pi-pencil"></i>
+                    <span>Bandeja firmas - Partes Diarias</span>
+                  </a>
+                </li>
+                
               </ul>
             }
           </li>
         </ul>
 
+        <!-- ALMACÉN DIGITAL - Visible por defecto (agregar permisos cuando estén definidos) -->
         <ul class="menu">
           <li>
-            <!-- APPLICATION -->
             <button class="menu__toggle" (click)="toggle('app')">
               <span class="menu__section">ALMACÉN DIGITAL</span>
               <i class="pi" [class.pi-chevron-down]="!appOpen()" [class.pi-chevron-up]="appOpen()"></i>
@@ -64,33 +95,32 @@
 
             @if (appOpen()) {
               <ul class="menu__list" animate.enter="slide-down" animate.leave="slide-up">
-                <!-- <li routerLink="kardex-management"><a class="menu__link"><i class="pi pi-folder" ></i><span>Gestión del kardex</span></a></li> -->
-                <!-- <li routerLink="digital-signatures"><a class="menu__link"><i class="pi pi-chart-bar"></i><span>Firmas de reportes</span></a></li> -->
-                <!-- <li routerLink="test-requests"><a class="menu__link"><i class="pi pi-cog"></i><span>Settings</span></a></li> -->
-                <li routerLink="whm-kardex-management"><a class="menu__link"><i class="pi pi-warehouse" ></i><span>kardex</span></a></li>
-                <li routerLink="whm-user-management"><a class="menu__link"><i class="pi pi-android"></i><span>Gestión de usuarios</span></a></li>
+                <li routerLink="kardex-management">
+                  <a class="menu__link">
+                    <i class="pi pi-folder"></i>
+                    <span>Gestión del kardex</span>
+                  </a>
+                </li>
+                <li routerLink="digital-signatures">
+                  <a class="menu__link">
+                    <i class="pi pi-chart-bar"></i>
+                    <span>Firmas de reportes</span>
+                  </a>
+                </li>
+                <li routerLink="test-requests">
+                  <a class="menu__link">
+                    <i class="pi pi-cog"></i>
+                    <span>Settings</span>
+                  </a>
+                </li>
               </ul>
             }
           </li>
         </ul>
 
-        <!-- <ul class="menu">
+        <!-- USUARIOS - Solo SuperAdministrador -->
+        <ul class="menu" *appHasRole="'SuperAdministrador_pd'">
           <li>
-            <button class="menu__toggle" (click)="toggle('transportVouchers')">
-              <span class="menu__section">VALES DE TRANSPORTE</span>
-              <i class="pi" [class.pi-chevron-down]="!transportVouchersOpen()" [class.pi-chevron-up]="transportVouchersOpen()"></i>
-            </button>
-            @if (transportVouchersOpen()) {
-              <ul class="menu__list" animate.enter="slide-down" animate.leave="slide-up">
-                <li routerLink="fuel-vaucher"><a class="menu__link"><i class="pi pi-folder" ></i><span>Registro de movimiento</span></a></li>
-              </ul>
-            }
-          </li>
-        </ul> -->
-
-        <ul class="menu">
-          <li>
-            <!-- FAVORITES -->
             <button class="menu__toggle" (click)="toggle('fav')">
               <span class="menu__section">USUARIOS</span>
               <i class="pi" [class.pi-chevron-down]="!favOpen()" [class.pi-chevron-up]="favOpen()"></i>
@@ -98,13 +128,44 @@
 
             @if (favOpen()) {
               <ul class="menu__list" animate.enter="slide-down" animate.leave="slide-up">
-                <li routerLink="users"><a class="menu__link"><i class="pi pi-users" ></i><span>Usuarios</span></a></li>
-                <li routerLink="roles"><a class="menu__link"><i class="pi pi-shield" ></i><span>Roles</span></a></li>
+                <li routerLink="users">
+                  <a class="menu__link">
+                    <i class="pi pi-users"></i>
+                    <span>Usuarios</span>
+                  </a>
+                </li>
+                <li routerLink="roles">
+                  <a class="menu__link">
+                    <i class="pi pi-shield"></i>
+                    <span>Roles</span>
+                  </a>
+                </li>
               </ul>
             }
           </li>
         </ul>
 
+        <!-- VALES DE TRANSPORTE - Visible por defecto (agregar permisos cuando estén definidos) -->
+        <ul class="menu">
+          <li>
+            <button class="menu__toggle" (click)="toggle('transportVouchers')">
+              <span class="menu__section">VALES DE TRANSPORTE</span>
+              <i class="pi" [class.pi-chevron-down]="!transportVouchersOpen()" [class.pi-chevron-up]="transportVouchersOpen()"></i>
+            </button>
+
+            @if (transportVouchersOpen()) {
+              <ul class="menu__list" animate.enter="slide-down" animate.leave="slide-up">
+                <li routerLink="fuel-vaucher">
+                  <a class="menu__link">
+                    <i class="pi pi-folder"></i>
+                    <span>First item</span>
+                  </a>
+                </li>
+              </ul>
+            }
+          </li>
+        </ul>
+        
       </div>
 
       <!-- Footer -->
@@ -118,6 +179,3 @@
     </div>
   </ng-template>
 </p-drawer>
-
-<!-- Botón para abrir el headless -->
-<!-- <p-button (click)="visible.set(true)" icon="pi pi-bars"></p-button> -->

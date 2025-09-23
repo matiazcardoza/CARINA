@@ -21,7 +21,6 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { AuthService } from '../../../services/AuthService/auth';
 
 export interface WorkLogDataElement {
   id: number;
@@ -137,7 +136,6 @@ export class Dashboards implements OnInit {
     private cdr: ChangeDetectorRef,
     private dailyWorkLogService: DailyWorkLogService,
     private reportsServicesService: ReportsServicesService,
-    private authService: AuthService
   ) {
     this.searchForm = this.fb.group({
       servicioSearch: ['']
@@ -145,12 +143,6 @@ export class Dashboards implements OnInit {
   }
 
   private dialog = inject(MatDialog);
-
-  canAccessDashboard: boolean = false;
-  canAccessReports: boolean = false;
-  canGenerateReports: boolean = false;
-  canEditWorkLog: boolean = false;
-  canDeleteWorkLog: boolean = false;
 
   ngOnInit(): void {
     this.loadServices();

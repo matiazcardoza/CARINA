@@ -170,7 +170,7 @@ export class DailyWorkSignature {
       location_logo: `${environment.BACKEND_URL_STORAGE}image_pdf_template/logo_firma_digital.png`,
       post_location_upload: `${environment.BACKEND_URL}/api/document-signature/${this.documentId}`,
       asunto: `Firma de Parte Diario - ${this.data.date}`,
-      rol: 'ADMIN',
+      rol: 'CONTROLADOR',
       tipo: 'daily_parts',
       status_position: '1',
       visible_position: false,

@@ -4,9 +4,12 @@ import { ButtonModule } from 'primeng/button';
 import { AvatarModule } from 'primeng/avatar';
 import { RouterModule } from '@angular/router';
 
+import { HasPermissionDirective, HasRoleDirective } from '../../shared/directives/permission.directive';
+
+
 @Component({
   selector: 'app-sidebar',
-  imports: [DrawerModule, ButtonModule, AvatarModule, RouterModule],
+  imports: [DrawerModule, ButtonModule, AvatarModule, RouterModule, HasPermissionDirective, HasRoleDirective],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css'
 })
