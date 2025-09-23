@@ -5,13 +5,11 @@
   </h2>
   
   <mat-dialog-content>
-    <!-- Loading State -->
     <div *ngIf="isLoading" class="loading-container">
       <mat-icon class="spinning">hourglass_empty</mat-icon>
       <p>Cargando permisos...</p>
     </div>
 
-    <!-- Permissions Form -->
     <form *ngIf="!isLoading" [formGroup]="permissionsForm" class="permissions-form">
       <div formArrayName="modules">
         
@@ -19,7 +17,6 @@
                   class="module-card"
                   [formGroupName]="moduleIndex">
           
-          <!-- Module Header -->
           <mat-card-header class="module-header">
             <mat-card-title>
               <div class="module-title-container">
@@ -53,14 +50,11 @@
 
           <mat-divider></mat-divider>
 
-          <!-- Module Permissions -->
           <mat-card-content class="module-content">
             <div formArrayName="permissions" class="permissions-grid">
-              
               <mat-checkbox *ngFor="let permission of moduleData.permissions; let permIndex = index"
                             [formControlName]="permIndex"
                             class="permission-checkbox"
-                            [disabled]="isSaving"
                             (change)="onModuleCheckboxChange(moduleIndex, permIndex, $event)">
                 
                 <div class="permission-info">

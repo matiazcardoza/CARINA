@@ -21,10 +21,8 @@ import { Reports } from './features/private/reports/reports';
 
 import { DigitalSignatureTray } from './features/private/digital-signature-tray/digital-signature-tray';
 import { Dashboards } from './features/private/dashboards/dashboards';
-// import { ValuedKardex } from './features/private/valued-kardex/valued-kardex';
 import { PhysicalBincard } from './features/private/physical-bincard/physical-bincard';
 import { InventoryReports } from './features/private/inventory-reports/inventory-reports';
-// import { ProjectBasedTraceability } from './features/private/project-based-traceability/project-based-traceability';
 import { NotFound } from './layouts/not-found/not-found';
 import { authGuard } from './services/AuthService/auth.guard';
 import { publicGuard } from './services/AuthService/public.guard';
@@ -37,6 +35,11 @@ import { Sidebar } from './layouts/sidebar/sidebar';
 import { SignaturesMovementReports } from './features/private/signatures-movement-reports/signatures-movement-reports';
 import { TestResquests } from './shared/draft/test-resquests/test-resquests';
 import { FuelVouchers } from './features/private/fuel-vouchers/fuel-vouchers';
+import { NoPermissions } from './features/private/no-permissions/no-permissions';
+
+// Importar el guard genérico
+import { PermissionGuard } from './services/AuthService/permission.guard';
+
 export const routes: Routes = [
     // Redirige la ruta raíz a la página de login
     {
@@ -54,107 +57,172 @@ export const routes: Routes = [
     {
         path: 'private',
         component: Dashboard,
-        canActivate: [authGuard], // <--- ¡Esta es la línea clave que añadimos!
+        canActivate: [authGuard],
         children: [
             {
                 path: '',
                 redirectTo: 'home',
                 pathMatch: 'full'
             },
+            // Dashboard - Requiere permiso access_dashboard
             {
                 path: 'home',
-                component: Dashboards
+                component: Dashboards,
+                canActivate: [PermissionGuard],
+                data: { 
+                    permissions: ['access_dashboard'],
+                    redirectTo: '/private/no-permissions'
+                }
             },
+            // Daily Work Log - Requiere permiso access_work_log
             {
                 path: 'daily-work-log',
+                canActivate: [PermissionGuard],
+                data: { 
+                    permissions: ['access_work_log'],
+                    redirectTo: '/private/no-permissions'
+                },
                 children: [
                     {
-                    path: '',
-                    component: DailyWorkLog
+                        path: '',
+                        component: DailyWorkLog
                     },
+                    // Work Log ID específico - Requiere permisos más específicos
                     {
-                    path: 'daily-work-log-id/:id',
-                    component: DailyWorkLogId
+                        path: 'daily-work-log-id/:id',
+                        component: DailyWorkLogId,
+                        canActivate: [PermissionGuard],
+                        data: { 
+                            permissions: ['access_work_log_id', 'edit_work_log_id'],
+                            checkType: 'any', // Puede tener cualquiera de estos permisos
+                            redirectTo: '/private/daily-work-log'
+                        }
                     }
                 ]
             },
+            // Mechanical Equipment - Requiere permiso access_equipo_mecanico
             {
                 path: 'mechanical_equipment',
-                component: MechanicalEquipment
+                component: MechanicalEquipment,
+                canActivate: [PermissionGuard],
+                data: { 
+                    permissions: ['access_equipo_mecanico'],
+                    redirectTo: '/private/no-permissions'
+                }
             },
+            // Users - Solo SuperAdministrador
             {
                 path: 'users',
-                component: Users
+                component: Users,
+                canActivate: [PermissionGuard],
+                data: { 
+                    roles: ['SuperAdministrador_pd'],
+                    redirectTo: '/private/no-permissions'
+                }
             },
+            // Roles - Solo SuperAdministrador
             {
                 path: 'roles',
-                component: Roles
+                component: Roles,
+                canActivate: [PermissionGuard],
+                data: { 
+                    roles: ['SuperAdministrador_pd'],
+                    redirectTo: '/private/no-permissions'
+                }
             },
+            // Reports - Requiere permiso access_reportes
             {
                 path: 'reports',
-                component: Reports
+                component: Reports,
+                canActivate: [PermissionGuard],
+                data: { 
+                    permissions: ['access_reportes'],
+                    redirectTo: '/private/no-permissions'
+                }
             },
+            // Página de sin permisos
+            {
+                path: 'no-permissions',
+                component: NoPermissions
+            },
+            // Digital Signature Tray - Sin permisos específicos por ahora
             {
                 path: 'digital-signature-tray',
                 component: DigitalSignatureTray
+                // Agregar guard cuando definas el permiso específico:
+                // canActivate: [PermissionGuard],
+                // data: { permissions: ['access_signature_tray'] }
             },
+            // Kardex Management - Sección de almacén (agregar permisos cuando estén definidos)
             {
                 path: 'kardex-management',
                 children: [
                     {
                         path: '',
-                        component: KardexManagement,
+                        component: KardexManagement
+                        // Agregar cuando definas permisos de almacén:
+                        // canActivate: [PermissionGuard],
+                        // data: { permissions: ['access_kardex'] }
                     }
                 ]
             },
+            // Digital Signatures - Firmas de reportes
             {
                 path: 'digital-signatures',
                 children: [
                     {
                         path: '',
-                        component: SignaturesMovementReports,
-                    },
+                        component: SignaturesMovementReports
+                        // Agregar cuando definas permisos específicos:
+                        // canActivate: [PermissionGuard],
+                        // data: { permissions: ['access_digital_signatures'] }
+                    }
                 ]
             },
+            // Test Requests
             {
                 path: 'test-requests',
-                component: TestResquests,
+                component: TestResquests
+                // Agregar guard si es necesario
             },
+            // Physical Bincard
             {
                 path: 'physical-bincard',
                 children: [
                     {
                         path: '',
-                        component: PhysicalBincard,
+                        component: PhysicalBincard
                     },
                     {
                         path: ':bincardId',
-                        component: Products,
+                        component: Products
                     },
                     {
                         path: ':bincardId/products',
-                        component: Products,
+                        component: Products
                     },
                     {
                         path: ':bincardId/products/:productId',
-                        component: Products,
+                        component: Products
                     },
                     {
                         path: ':bincardId/products/:productId/edit',
-                        component: Products,
-                    },
-
+                        component: Products
+                    }
                 ]
-
             },
+            // Fuel Vouchers - Vales de combustible
             {
                 path: 'fuel-vaucher',
                 component: FuelVouchers
+                // Agregar cuando definas permisos de vales de transporte:
+                // canActivate: [PermissionGuard],
+                // data: { permissions: ['access_fuel_vouchers'] }
             }
         ]
     },
+    // Draft section para pruebas
     {
-        // This section is to prove new functionalities
         path: 'draft',
         children:[
             {
@@ -185,9 +253,9 @@ export const routes: Routes = [
             {
                 path: 'sidebar-exmple',
                 component: Sidebar
-            },
+            }
         ]
-    },
+    }
     // {
     //     path: '**',
     //     component: NotFound

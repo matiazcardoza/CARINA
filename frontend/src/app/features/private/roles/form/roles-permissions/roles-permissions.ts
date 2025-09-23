@@ -95,7 +95,11 @@ export class RolesPermissions implements OnInit {
       const permissionsArray = this.fb.array([]);
       
       moduleData.permissions.forEach(() => {
-        permissionsArray.push(this.fb.control(false));
+        const control = this.fb.control({
+          value: false,
+          disabled: this.isSaving
+        });
+        permissionsArray.push(control);
       });
       
       const moduleGroup = this.fb.group({
@@ -107,6 +111,21 @@ export class RolesPermissions implements OnInit {
     });
     
     this.permissionsForm.setControl('modules', modulesArray);
+  }
+
+  private updateControlsDisabledState(disabled: boolean): void {
+    this.modulePermissions.forEach((moduleData, moduleIndex) => {
+      const moduleGroup = this.modulesFormArray.at(moduleIndex) as FormGroup;
+      const permissionsArray = moduleGroup.get('permissions') as FormArray;
+      
+      permissionsArray.controls.forEach(control => {
+        if (disabled) {
+          control.disable();
+        } else {
+          control.enable();
+        }
+      });
+    });
   }
 
   private loadCurrentPermissions(currentPermissions: string[]): void {
@@ -169,6 +188,7 @@ export class RolesPermissions implements OnInit {
 
   onSubmit(): void {
     this.isSaving = true;
+    this.updateControlsDisabledState(true);
     
     const selectedPermissions: string[] = [];
     
@@ -177,7 +197,7 @@ export class RolesPermissions implements OnInit {
       const permissionsArray = moduleGroup.get('permissions') as FormArray;
       
       moduleData.permissions.forEach((permission, permIndex) => {
-        if (permissionsArray.at(permIndex).value) {
+        if (permissionsArray.at(permIndex).getRawValue()) {
           selectedPermissions.push(permission.name);
         }
       });
@@ -192,6 +212,7 @@ export class RolesPermissions implements OnInit {
         });
         
         this.isSaving = false;
+        this.updateControlsDisabledState(false);
         this.cdr.detectChanges();
         
         setTimeout(() => {
@@ -206,6 +227,7 @@ export class RolesPermissions implements OnInit {
         });
         
         this.isSaving = false;
+        this.updateControlsDisabledState(false);
         this.cdr.detectChanges();
       }
     });

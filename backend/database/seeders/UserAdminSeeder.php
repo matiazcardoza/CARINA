@@ -16,7 +16,7 @@ class UserAdminSeeder extends Seeder
      */
     public function run(): void
     {
-        $super_administrador = Role::findByName('Super Administrador', 'api');
+        $super_administrador = Role::findByName('SuperAdministrador_pd', 'api');
 
         $users = User::firstOrCreate(['email' => 'admin@domain.com'], [
             'name' => 'ADMIN',

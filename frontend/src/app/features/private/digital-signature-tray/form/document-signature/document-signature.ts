@@ -181,15 +181,34 @@ export class DocumentSignature {
     [4, '3']
   ]);
 
-  private getCurrentUserRole(): number {
-    if (this.role && this.role.length > 0) {
-      return this.role[0].id;
+  private rolePriority = [4, 3, 2];
+
+  private getPriorityRole(): number {
+    if (!this.role || this.role.length === 0) {
+      return 2;
     }
-    return 2;
+
+    const roleIds = this.role.map(r => r.id);
+    for (const priorityRoleId of this.rolePriority) {
+      if (roleIds.includes(priorityRoleId)) {
+        return priorityRoleId;
+      }
+    }
+    return roleIds[0] || 2;
   }
 
-  private getStatusPositionByRole(roleId: number): string {
-    return this.roleToStatusMap.get(roleId) || '1';
+  private getStatusPositionByPriorityRole(): string {
+    const priorityRoleId = this.getPriorityRole();
+    return this.roleToStatusMap.get(priorityRoleId) || '1';
+  }
+
+  private getRoleNameByPriority(): string {
+    if (!this.role || this.role.length === 0) {
+      return 'ADMIN';
+    }
+    const priorityRoleId = this.getPriorityRole();
+    const selectedRole = this.role.find(r => r.id === priorityRoleId);
+    return selectedRole?.name || 'ADMIN';
   }
 
   onSign(): void {
@@ -202,15 +221,15 @@ export class DocumentSignature {
     this.error = null;
     this.cdr.detectChanges();
 
-    const currentRoleId = this.getCurrentUserRole();
-    const statusPosition = this.getStatusPositionByRole(currentRoleId);
+    const statusPosition = this.getStatusPositionByPriorityRole();
+    const cargo = this.getRoleNameByPriority();
 
     const firmaParams: FirmaDigitalParams = {
       location_url_pdf: this.pdfUrlString,
       location_logo: `${environment.BACKEND_URL_STORAGE}image_pdf_template/logo_firma_digital.png`,
       post_location_upload: `${environment.BACKEND_URL}/api/document-signature/${this.documentId}`,
       asunto: `Firma de Parte Diario`,
-      rol: 'ADMIN',
+      rol: cargo,
       tipo: 'daily_parts',
       status_position: statusPosition,
       visible_position: false,
