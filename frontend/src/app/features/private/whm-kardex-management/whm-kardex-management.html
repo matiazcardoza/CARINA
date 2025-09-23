@@ -1,0 +1,410 @@
+<!-- src/app/features/whm/whm-kardex-management.html -->
+<section class="toolbar" style="display:flex; gap:12px; align-items:center; margin-bottom:12px;">
+  <label for="obraSel">Obra:</label>
+
+  @if (obras().length > 0) {
+    <select id="obraSel" [ngModel]="selectedObraId" (ngModelChange)="onObraChange($event)">
+      @for (o of obras(); track o.id) {
+        <option [value]="o.id">{{ o.nombre }} ({{ o.codmeta || o.codigo }})</option>
+      }
+    </select>
+  } @else {
+    <span class="muted">No hay obras disponibles.</span>
+  }
+</section>
+
+<div class="card">
+  <div>
+    <h1 class="text-3xl font-semibold mb-2">Gestión del Kardex</h1>
+    <p class="text-lg text-gray-500">Ítems PECOSA de la obra seleccionada.</p>
+    <!-- <button (click)="seeItemsPecosas()">see item pecosas</button> -->
+  </div>
+
+  <!-- [value]="tableRows()" -->
+  <!-- (onLazyLoad)="onProductsLazyLoad($event)" -->
+       <!-- stateStorage="session"
+    stateKey="whm-kardex-v1" -->
+  <p-table
+    #dt1
+    [value]="pecosas()"
+    [paginator]="true"
+    [rows]="pageSize"
+    [totalRecords]="productsTotal()"
+    (onPage)="onPageChange($event)" 
+    [lazy]="false"
+
+    [globalFilterFields]="['numero','fecha','item','cantidad','desmedida','precio','total','desmeta','cod_meta','prod_proy']"
+    selectionMode="single"
+    [(selection)]="selectedProduct"
+    
+    [scrollable]="true"
+    scrollDirection="both"
+    [tableStyle]="{ 'min-width': '100rem' }"
+    [loading]="loadingPecosas()"
+    dataKey="id"
+    [expandedRowKeys]="expandedRowsPecosa()"
+    (onRowExpand)="onRowExpandPecosa($event)"
+    (onRowCollapse)="onRowCollapsePecosa($event)"
+    >
+    <!-- Filtros en el caption -->
+    <ng-template pTemplate="caption">
+      <div
+        style="
+          display:grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap:12px;
+          align-items:end;
+          grid-auto-flow:dense;
+          width:100%;
+        "
+      >
+        <!-- N° PECOSA -->
+        <p-iconfield style="display:block; width:100%;">
+          <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+          <input pInputText type="text" [(ngModel)]="uiFilters.numero" placeholder="N° de PECOSA" style="width:100%;" />
+        </p-iconfield>
+
+        <!-- Año -->
+        <div style="width:100%;">
+          <input pInputText type="number" [(ngModel)]="uiFilters.anio" placeholder="Año" style="width:100%;" />
+        </div>
+
+        <!-- Ítem (opcional, deshabilitado si aún no lo usas en el backend) -->
+        <div style="width:100%;">
+          <input pInputText type="text" [(ngModel)]="uiFilters.item" placeholder="Ítem (opcional)" style="width:100%;" disabled />
+        </div>
+
+        <!-- Meta (opcional) -->
+        <div style="width:100%;">
+          <input pInputText type="text" [(ngModel)]="uiFilters.desmeta" placeholder="Meta (opcional)" style="width:100%;" disabled />
+        </div>
+
+        <!-- Botones -->
+        <div style="grid-column:1 / -1; display:flex; gap:8px; justify-content:flex-end; margin-top:4px;">
+          <p-button label="Buscar" icon="pi pi-search" (onClick)="onSearchClick()"></p-button>
+          <p-button label="Limpiar" severity="secondary" outlined (onClick)="onClearClick()"></p-button>
+        </div>
+      </div>
+    </ng-template>
+
+    <!-- Header -->
+    <ng-template pTemplate="header">
+      <tr>
+        <th></th>
+        <th><div class="item_head">Año</div></th>
+        <th style="min-width:7rem;"><div class="item_head">Fecha</div></th>
+        <th style="min-width:8rem;"><div class="item_head">N° PECOSA</div></th>
+        <th style="min-width:8rem;"><div class="item_head">ID Item (Silucia)</div></th>
+        <th><div class="item_head">Cantidad</div></th>
+        <th><div class="item_head">Precio</div></th>
+        <th><div class="item_head">Medida</div></th>
+        <th><div class="item_head">Ítem</div></th>
+        <th><div class="item_head">prod_proy</div></th>
+        <th style="min-width:7rem;"><div class="item_head">N° Meta</div></th>
+        <th><div class="item_head">Meta</div></th>
+        <th><div class="item_head">desuoper</div></th>
+        <th><div class="item_head">destipodestino</div></th>
+
+        <!-- Acciones congeladas a la derecha -->
+        <th pFrozenColumn alignFrozen="right" [style]="{ width: '150px', textAlign: 'center' }">
+          <span class="flex items-center gap-2">Acciones <i class="pi pi-cog text-gray-500"></i></span>
+        </th>
+      </tr>
+    </ng-template>
+
+    <!-- Body -->
+    <ng-template pTemplate="body" let-row>
+      <tr>
+        <td>
+          <p-button
+            [pRowToggler]="row"
+            [text]="true"
+            [rounded]="true"
+            severity="secondary"
+            [disabled]="!(row?.reports?.length)"
+            [icon]="(expandedRowsPecosa()[row.id] ? 'pi pi-chevron-down' : 'pi pi-chevron-right')">
+          </p-button>
+        </td>
+        <td>{{ row.anio }}</td>
+        <td>{{ row.fecha }}</td>
+        <td>{{ row.numero }}</td>
+        <td>{{ row.idsalidadet_silucia }}</td>
+        <td>{{ row.cantidad }}</td>
+        <td>{{ row.precio }}</td>
+        <td>{{ row.desmedida }}</td>
+        <td style="padding:0; min-width:12rem;">
+          <div style="max-height:120px; overflow:auto; line-height:1.35; padding:6px 8px; text-align:justify; word-break:break-word;">
+            {{ row.item }}
+          </div>
+        </td>
+        <td>{{ row.prod_proy }}</td>
+        <td>{{ row.cod_meta }}</td>
+        <td>{{ row.desmeta }}</td>
+        <td>{{ row.desuoper }}</td>
+        <td>{{ row.destipodestino }}</td>
+
+        <!-- Acciones (columna congelada) -->
+        <td pFrozenColumn alignFrozen="right">
+          <div class="flex container_action_buttons gap-2">
+            <p-button icon="pi pi-eye" severity="info" (onClick)="openMovementDetailsModal(row)"></p-button>
+            <p-button icon="pi pi-plus" severity="success" (onClick)="openMovementModal(row)"></p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <!-- <ng-template pTemplate="expandedrow" let-row>
+      fila expandida
+    </ng-template> -->
+    <ng-template pTemplate="expandedrow" let-row>
+      <tr>
+        <td colspan="15">
+          <div style="padding:10px 8px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;">
+            <h4 style="margin:0 0 8px 0; font-size:1rem;">Reportes del ítem</h4>
+
+            <p-table [value]="row.reports || []">
+
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="min-width:6rem;">value</th>
+                  <th style="min-width:8rem;">Tipo</th>
+                  <th style="min-width:8rem;">Estado</th>
+                  <th style="min-width:10rem;">Rol actual</th>
+                  <th style="min-width:10rem;">Mi paso</th>
+                  <th style="min-width:9rem; text-align:center;">Acciones</th>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="body" let-r>
+                <tr>
+                  <td>{{ r.id }}</td>
+                  <td>{{ r.reportable_id || '—' }}</td>
+                  <td>{{ r.status }}</td>
+                  <td>{{ r.current_role || '—' }}</td>
+                  <td>
+                    @if (r.user_step) {
+                      <span>#{{ r.user_step.order }} — {{ r.user_step.role }} ({{ r.user_step.status }})</span>
+                    } @else {
+                      <span>—</span>
+                    }
+                  </td>
+
+                  <td style="text-align:center;">
+                    <div class="flex gap-2 justify-center">
+                      <p-button
+                        icon="pi pi-download"
+                        [text]="true"
+                        (onClick)="downloadReport(r.pdf_path)"
+                        ></p-button>
+                        <!-- (onClick)="downloadReport(r.status)" -->
+
+                      <p-button
+                        icon="pi pi-pencil"
+                        severity="success"
+                        [text]="true"
+                        (onClick)="signReport(r)"
+                        ></p-button>
+                        <!-- [disabled]="!r.can_sign || !r.sign_callback_url" -->
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+
+              <ng-template pTemplate="emptymessage">
+                <tr><td colspan="6">Sin reportes.</td></tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+
+    <!-- Empty -->
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="14">No se encontraron registros.</td></tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- ------------------Modal: Registrar movimiento-------------------------------- -->
+<p-dialog
+  header="Registrar movimiento"
+  [(visible)]="showMovementModal"
+  [modal]="true"
+  [closable]="true"
+  [style]="{ width: '450px' }"
+>
+  <div class="p-fluid container_dialog">
+    <!-- Tipo -->
+    <div class="field dialog_item">
+      <span style="display:block; font-weight:bold; margin-bottom:0.5rem;">Tipo de movimiento</span>
+      <div style="display:flex;">
+        <div style="flex-grow:1; display:flex; gap:0.5rem; align-items:center;">
+          <p-radiobutton [inputId]="'movEntrada'" name="movement_type" [value]="'entrada'" [(ngModel)]="form.movement_type" />
+          <label for="movEntrada">Entrada</label>
+        </div>
+        <div style="flex-grow:1; display:flex; gap:0.5rem; align-items:center;">
+          <p-radiobutton [inputId]="'movSalida'" name="movement_type" [value]="'salida'" [(ngModel)]="form.movement_type" />
+          <label for="movSalida">Salida</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cantidad -->
+    <div class="field dialog_item">
+      <label for="cantidad" style="display:block; font-weight:bold; margin-bottom:0.5rem;">Cantidad</label>
+      <p-inputNumber inputId="cantidad" [(ngModel)]="form.amount" [min]="1" [useGrouping]="false" [showButtons]="true"></p-inputNumber>
+    </div>
+
+    <!-- Observaciones -->
+    <div class="field dialog_item">
+      <label for="observations" style="display:block; font-weight:bold; margin-bottom:0.5rem;">Observaciones</label>
+      <textarea id="observations" pInputTextarea [(ngModel)]="form.observations" rows="3" cols="30" placeholder="Escribe tus observaciones aquí" class="text-area"></textarea>
+    </div>
+
+    <!-- Personas -->
+    <div class="field dialog_people">
+      <div class="flex items-center justify-between dialog_people_item">
+        <span class="font-medium">Personas</span>
+        <p-button icon="pi pi-user-plus" (onClick)="OpenModalAddPerson()" [rounded]="true" [text]="true" [ariaLabel]="'Adicionar persona'"></p-button>
+      </div>
+    </div>
+
+    @if (listDniPeople().length > 0) {
+      <p-listbox [options]="listDniPeople()" [style]="{ width: '100%' }" [filter]="false">
+        <ng-template let-item pTemplate="item">
+          <div style="display:flex; flex-direction:column; gap:0.25rem;">
+            <span><strong>DNI:</strong> {{ item.dni }}</span>
+            <span><strong>Nombre:</strong> {{ item.names }}</span>
+            <span><strong>Apellido paterno:</strong> {{ item.first_lastname }}</span>
+            <span><strong>Apellido materno:</strong> {{ item.second_lastname }}</span>
+          </div>
+        </ng-template>
+      </p-listbox>
+    }
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div style="display:flex; justify-content:flex-end; gap:0.5rem; width:100%;">
+      <p-button label="Cancelar" severity="secondary" outlined (onClick)="closeMovementModal()"></p-button>
+      <p-button label="Aceptar" icon="pi pi-check" (onClick)="onSubmitMovement()" [disabled]="!form.movement_type || !form.amount" [loading]="savingMovementLoading()"></p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- ------------------ Modal: Detalles de movimientos -------------------- -->
+<p-dialog header="Detalles de movimientos" [(visible)]="showMovementDetailsModal" [modal]="true" [closable]="false">
+  <div style="overflow:hidden;">
+    <p-table
+      [value]="movementsKardex()"
+      [paginator]="true"
+      [rows]="movementsPageSize"
+      [totalRecords]="movementsTotal()"
+      [lazy]="true"
+      (onLazyLoad)="onMovementsLazyLoad($event)"
+      [loading]="movementsLoading()"
+      dataKey="id"
+      [expandedRowKeys]="expandedRowsMovements()"
+      (onRowExpand)="onRowExpandMovement($event)"
+      (onRowCollapse)="onRowCollapseMovement($event)"
+    >
+      <ng-template pTemplate="caption">
+        <div style="display:flex; flex-wrap:wrap; align-items:center; gap:18px; padding:12px 14px; background:#fafafa; border:1px solid #e5e7eb; border-radius:10px; box-shadow:0 1px 2px rgba(0,0,0,0.04);">
+          <span style="display:flex; align-items:center; gap:8px; font-size:1.1rem; font-weight:600; color:#14532d;">
+            <i class="pi pi-sign-in" style="font-size:1.25rem;"></i>
+            <span>Total entradas: <span style="font-weight:700;">{{ totalEntradas }}</span></span>
+          </span>
+          <span style="display:flex; align-items:center; gap:8px; font-size:1.1rem; font-weight:600; color:#7f1d1d;">
+            <i class="pi pi-sign-out" style="font-size:1.25rem;"></i>
+            <span>Total salidas: <span style="font-weight:700;">{{ totalSalidas }}</span></span>
+          </span>
+          <span style="display:flex; align-items:center; gap:8px; font-size:1.1rem; font-weight:600; color:#0b4191;">
+            <i class="pi pi-box" style="font-size:1.25rem;"></i>
+            <span>Stock: <span style="font-weight:700;">{{ stockSaldo }}</span></span>
+          </span>
+        </div>
+      </ng-template>
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width:3rem;"></th>
+          <th pSortableColumn="id">ID <p-sortIcon field="id"/></th>
+          <th pSortableColumn="movement_type">Tipo <p-sortIcon field="movement_type"/></th>
+          <th pSortableColumn="amount">Cantidad <p-sortIcon field="amount"/></th>
+          <th pSortableColumn="observations" style="max-width:200px; width:200px;">Observaciones <p-sortIcon field="observations"/></th>
+          <th pSortableColumn="movement_date">Fecha <p-sortIcon field="movement_date"/></th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-movement let-expanded="expanded">
+        <tr>
+          <td>
+            <p-button type="button" [pRowToggler]="movement" [disabled]="!movement?.people?.length" [text]="true" [rounded]="true" severity="secondary" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'">
+            </p-button>
+          </td>
+          <td>{{ movement.id }}</td>
+          <td>{{ movement.movement_type }}</td>
+          <td>{{ movement.amount }}</td>
+          <td style="max-width:300px; width:300px; padding:0;">
+            <div style="max-height:84px; overflow-y:auto; line-height:1.35; text-align:justify; padding:6px 8px; word-break:break-word;">
+              {{ movement.observations || 'ninguna' }}
+            </div>
+          </td>
+          <td>{{ movement.movement_date }}</td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="expandedrow" let-movement>
+        <tr>
+          <td colspan="6">
+            <div style="padding:10px 8px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px;">
+              <h4 style="margin:0 0 8px 0; font-size:1rem;">Personas anexadas</h4>
+
+              <p-table [value]="movement.people || []">
+                <ng-template pTemplate="header">
+                  <tr>
+                    <th style="width:8rem;">DNI</th>
+                    <th>Nombre completo</th>
+                    <th style="width:11rem;">Adjuntado</th>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-person>
+                  <tr>
+                    <td>{{ person.dni }}</td>
+                    <td>{{ person.full_name + ' ' + (person.first_lastname || '') + ' ' + (person.second_lastname || '') }}</td>
+                    <td>{{ person.pivot?.attached_at || '—' }}</td>
+                  </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                  <tr><td colspan="3">Sin personas anexadas.</td></tr>
+                </ng-template>
+              </p-table>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr><td colspan="6">Sin movimientos.</td></tr>
+      </ng-template>
+    </p-table>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div style="display:flex; justify-content:flex-end; gap:0.5rem; width:100%;">
+      <p-button label="Cerrar" severity="secondary" outlined (onClick)="closeMovementDetailsModal()"></p-button>
+      <p-button label="Generar informe (pdf)" icon="pi pi-download" (onClick)="onSubmitMovementDetails()"></p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- Modal para buscar y anexar persona por DNI -->
+<app-add-new-user-modal
+  [isOpen]="showAddUserModal"
+  (sentOpenValue)="closeModalAddPerson()"
+  (onListPeopleByDni)="handleListPeopleByDni($event)"
+  [obraId]="selectedObraId"
+/>
+
+<p-toast />

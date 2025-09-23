@@ -27,8 +27,8 @@ class StoreMovementPecosaRequest extends FormRequest
                     // Identificadores del “gancho” al producto SILUCIA
             // 'id_order_silucia'   => ['required','integer'],     // idcompra de SILUCIA
             // 'id_container_silucia'   => ['required','string','max:20','regex:/^\d+$/'],
-            'id_pecosa_silucia'   => ['required','string','max:20','regex:/^\d+$/'],
-            'id_item_pecosa_silucia' => ['required','integer'],     // idcompradet de SILUCIA
+            // 'id_pecosa_silucia'   => ['required','string','max:20','regex:/^\d+$/'],
+            // 'id_item_pecosa_silucia' => ['required','integer'],     // idcompradet de SILUCIA
             // 'id_product_silucia' => ['required','integer'],  
             // Si tu front conoce el id local de la orden, lo puedes mandar (opcional),
             // 'order_id'           => ['nullable','integer','exists:orders_silucia,id'],
@@ -51,23 +51,23 @@ class StoreMovementPecosaRequest extends FormRequest
             'people_dnis.*'      => ['required','string','regex:/^\d{8}$/'],
 
             // para guarddar los nuevo datos de silucia
-            'silucia_pecosa.anio'            => ['bail','digits:4'],
-            'silucia_pecosa.numero'          => ['bail','string','max:20','regex:/^\d+$/'],
-            'silucia_pecosa.fecha'           => ['bail','date'],
-            'silucia_pecosa.prod_proy'       => ['nullable','string','max:20','regex:/^\d+$/'],
-            'silucia_pecosa.cod_meta'        => ['nullable','string','max:20'],
-            'silucia_pecosa.desmeta'         => ['nullable','string'],
-            'silucia_pecosa.desuoper'        => ['nullable','string'],
-            'silucia_pecosa.destipodestino'  => ['nullable','string','max:50'],
-            'silucia_pecosa.item'            => ['bail','string'],
-            'silucia_pecosa.desmedida'       => ['bail','string','max:50'],
-            'silucia_pecosa.idsalidadet'     => ['bail','integer','min:1'],
-            'silucia_pecosa.cantidad'        => ['bail','numeric'],
-            'silucia_pecosa.precio'          => ['bail','numeric'],
-            'silucia_pecosa.tipo'            => ['bail','string','max:20'],
-            'silucia_pecosa.saldo'           => ['bail','numeric'],
-            'silucia_pecosa.total'           => ['bail','numeric'],
-            'silucia_pecosa.numero_origen'   => ['bail','string','max:20','regex:/^\d+$/'],
+            // 'silucia_pecosa.anio'            => ['bail','digits:4'],
+            // 'silucia_pecosa.numero'          => ['bail','string','max:20','regex:/^\d+$/'],
+            // 'silucia_pecosa.fecha'           => ['bail','date'],
+            // 'silucia_pecosa.prod_proy'       => ['nullable','string','max:20','regex:/^\d+$/'],
+            // 'silucia_pecosa.cod_meta'        => ['nullable','string','max:20'],
+            // 'silucia_pecosa.desmeta'         => ['nullable','string'],
+            // 'silucia_pecosa.desuoper'        => ['nullable','string'],
+            // 'silucia_pecosa.destipodestino'  => ['nullable','string','max:50'],
+            // 'silucia_pecosa.item'            => ['bail','string'],
+            // 'silucia_pecosa.desmedida'       => ['bail','string','max:50'],
+            // 'silucia_pecosa.idsalidadet'     => ['bail','integer','min:1'],
+            // 'silucia_pecosa.cantidad'        => ['bail','numeric'],
+            // 'silucia_pecosa.precio'          => ['bail','numeric'],
+            // 'silucia_pecosa.tipo'            => ['bail','string','max:20'],
+            // 'silucia_pecosa.saldo'           => ['bail','numeric'],
+            // 'silucia_pecosa.total'           => ['bail','numeric'],
+            // 'silucia_pecosa.numero_origen'   => ['bail','string','max:20','regex:/^\d+$/'],
 
         ];
     }

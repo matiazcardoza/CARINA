@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToObra;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ItemPecosa extends Model
 {
     use HasFactory;
-
+    // use BelongsToObra;
     protected $table = 'item_pecosas';
     protected $primaryKey = 'id';
     public $timestamps = true;
@@ -17,60 +18,81 @@ class ItemPecosa extends Model
      * Asignación masiva segura
      */
     protected $fillable = [
-        // Referencias Silucia
-        // 'id_container_silucia',
-        // 'id_item_pecosa_silucia',
+        // FKs internas
+        'id',
+        'obra_id',
+        'orden_id',
 
-        'id_pecosa_silucia',
-        'id_item_pecosa_silucia',
+        // Identificadores Silucia
+        'idsalidadet_silucia',   // único
+        'idcompradet_silucia',   // opcional
 
-        // Datos administrativos / logísticos
+        // Búsquedas típicas
         'anio',
         'numero',
+
+        // Datos de pecosa
         'fecha',
         'prod_proy',
         'cod_meta',
         'desmeta',
         'desuoper',
         'destipodestino',
-
-        // Detalle del ítem
         'item',
         'desmedida',
-        'idsalidadet',
+
+        // Detalle numérico
         'cantidad',
         'precio',
-        'tipo',
         'saldo',
         'total',
+
+        // Referencia cruzada
         'numero_origen',
+
+        // Metadatos de sincronización
+        'external_last_seen_at',
+        'external_hash',
+        'raw_snapshot',
     ];
 
     /**
      * Casts para tipos nativos
      */
     protected $casts = [
-        'anio'                  => 'integer',
         'fecha'                 => 'date',
-        'id_pecosa_silucia'  => 'string',
-        'id_item_pecosa_silucia'=> 'integer',
-        'idsalidadet'           => 'integer',
-        'cantidad'              => 'decimal:2',
+        'cantidad'              => 'integer',      // unsigned en DB
         'precio'                => 'decimal:2',
-        'saldo'                 => 'decimal:2',
+        'saldo'                 => 'integer',
         'total'                 => 'decimal:2',
+        'external_last_seen_at' => 'datetime',
+        'raw_snapshot'          => 'array',        // longText con JSON
     ];
+
+    /* ========= Relaciones ========= */
+
+    public function obra()
+    {
+        return $this->belongsTo(Obra::class);
+    }
+
+    public function ordenCompra()
+    {
+        return $this->belongsTo(OrdenCompra::class, 'orden_id');
+    }
 
     public function movements()
     {
         return $this->hasMany(MovementKardex::class, 'item_pecosa_id');
     }
+    
+    public function reports() {
+        return $this->morphMany(Report::class, 'reportable');
+    }
 
 
-    /* ================================
-     * Scopes de ayuda para filtrar
-     * ================================ */
-
+    /* ========= Scopes de ayuda para filtrar ========= */
+    
     public function scopeNumero($query, ?string $numero)
     {
         return $numero ? $query->where('id_pecosa_silucia', $numero) : $query;
@@ -119,27 +141,5 @@ class ItemPecosa extends Model
             });
     }
 
-    // public function reports()
-    // {
-    //     return $this->morphMany(\App\Models\KardexReport::class, 'reportable');
-    // }
-    public function reports() { 
-        return $this->morphMany(Report::class, 'reportable'); 
-    }
 
-
-    /* ================================
-     * Relaciones (si las necesitas)
-     * ================================ */
-
-    // Ejemplos (descomentar y ajustar cuando existan estas tablas/modelos):
-    // public function movements()
-    // {
-    //     return $this->hasMany(MovementKardex::class, 'item_pecosa_id'); // clave foránea en movements
-    // }
-
-    // public function container()
-    // {
-    //     return $this->belongsTo(SiluciaContainer::class, 'id_container_silucia', 'id_externo');
-    // }
 }

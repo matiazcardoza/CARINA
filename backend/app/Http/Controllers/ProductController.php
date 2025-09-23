@@ -72,10 +72,6 @@ class ProductController extends Controller
 
                     // ->whereHas('flow', fn($f) => $f->where('status','in_progress'))
                     ->whereHas('flow')
-                    // ->with([
-                    //     'flow:id,kardex_report_id,current_step,status',
-                    //     'flow.steps:id,signature_flow_id,order,role,status,callback_token'
-                    // ]);
                     ->with([
                         'flow:id,report_id,current_step,status',
                         'flow.steps:id,signature_flow_id,order,role,status,callback_token,page,pos_x,pos_y,width,height',
@@ -88,8 +84,7 @@ class ProductController extends Controller
             ->paginate((int)$req->query('per_page', 20));
 
         // Transformar a la forma que necesita el front
-        // $products->getCollection()->transform(function ($product) use ($roles) {
-        //     $product->reports = $product->reports->map(function ($report) use ($roles) {
+
                 $products->getCollection()->transform(function ($item) use ($roles) {
                 $item->reports = $item->reports->map(function ($report) use ($roles) {
                 // obtiene cada flujo del reporte
@@ -140,18 +135,7 @@ class ProductController extends Controller
                         : null,
                 ];
             });
-            // id','name','id_order_silucia','id_product_silucia', 'detalles_orden','desmeta', 'fecha'
-            // return [
-            //     'product_id'        => $product->id,
-            //     'name'              => $product->name,
-            //     'item'              => $product->item,
-            //     'id_order_silucia'  => $product->id_order_silucia,
-            //     'id_product_silucia'=> $product->id_product_silucia,
-            //     'reports'           => $product->reports,
-            //     'detalles_orden'    => $product->detalles_orden,
-            //     'desmeta'           => $product->desmeta,
-            //     'fecha'             => $product->fecha,
-            // ];
+
                 return [
                 // ID del registro en item_pecosas
                 'item_pecosa_id'          => $item->id,

@@ -1,0 +1,106 @@
+<div class="card">
+  <div class="contenedor">
+    <h1 class="titulo">Gestión de Usuarios</h1>
+    <p class="descripcion">Lista de usuarios del sistema y sus roles.</p>
+  </div>
+
+
+  <p-table
+    #dt
+    [value]="users()"
+    [loading]="loading()"
+    [paginator]="true"
+    [rows]="pageSize"
+    [globalFilterFields]="['usuario','persona','email','num_doc','role_names']"
+    dataKey="id"
+    stateStorage="session"
+    stateKey="whm-users-v1"
+    [tableStyle]="{ 'min-width': '70rem' }"
+    [resizableColumns]="true"
+    columnResizeMode="fit"
+  >
+    <!-- CAPTION: Búsqueda + botones -->
+    <ng-template pTemplate="caption">
+      <div class="flex flex-wrap items-center gap-2 justify-between w-full" style="display: flex; flex-wrap: wrap; justify-content: end; gap: 2rem;">
+        <span class="p-input-icon-left">
+          <!-- <i class="pi pi-search"></i> -->
+          <input
+            pInputText
+            type="text"
+            placeholder="Buscar usuario, persona, email, DNI, rol…"
+            style="width: 320px;"
+            />
+            <!-- (input)="dt.filterGlobal(($event.target as HTMLInputElement).value, 'contains')" -->
+        </span>
+
+        <div class="flex gap-2" style="display: flex; gap: 2rem">
+          <button pButton type="button" icon="pi pi-refresh" label="Refrescar" (click)="onRefresh()"></button>
+          <!-- Agrega aquí botón 'Nuevo' si corresponde -->
+        </div>
+      </div>
+    </ng-template>
+
+    <!-- ENCABEZADOS -->
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="min-width: 6rem;">ID</th>
+        <th style="min-width: 10rem;">DNI</th>
+        <th style="min-width: 14rem;">Usuario</th>
+        <th style="min-width: 16rem;">Persona</th>
+        <th style="min-width: 18rem;">Email</th>
+        <th style="min-width: 20rem;">Roles</th>
+        <th style="min-width: 8rem;">Estado</th>
+        <th style="min-width: 12rem;">Creado</th>
+        <th style="min-width: 12rem; text-align: center;">Acciones</th>
+      </tr>
+    </ng-template>
+
+    <!-- CUERPO -->
+    <ng-template pTemplate="body" let-u>
+      <tr>
+        <td>{{ u.id }}</td>
+        <td>{{ u.num_doc }}</td>
+        <td>{{ u.usuario }}</td>
+        <td>{{ u.persona }}</td>
+        <td>{{ u.email }}</td>
+        <td>
+          <div class="flex flex-wrap gap-2">
+            <p-chip *ngFor="let r of u.roles" [label]="r.name"></p-chip>
+          </div>
+        </td>
+        <td>
+          <p-tag
+            [value]="u.state === 1 ? 'Activo' : 'Inactivo'"
+            [severity]="getStateSeverity(u)"
+          />
+        </td>
+        <td>{{ u.created_at | date:'yyyy-MM-dd HH:mm' }}</td>
+        <td class="text-center">
+          <div class="flex justify-center gap-2" style="display: flex; justify-content: center;">
+            <button pButton icon="pi pi-cog" severity="info" (click)="onView(u)"></button>
+            <!-- <button pButton icon="pi pi-pencil" severity="warning" (click)="onEdit(u)"></button> -->
+            <!-- <button pButton icon="pi pi-trash" severity="danger" (click)="onDelete(u)"></button> -->
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <!-- VACÍO -->
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="9">No se encontraron usuarios.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- -------------------------- Modal para mostrar las ordenes pertenecientes a un usuario junto con sus roles --------------------------  -->
+<app-show-user-details-modal
+  [isOpen]="isOpenModalShowUserDetails()"
+  [user]="selectedUser()"
+  (onCloseModal)="closeModal($event)"
+/>
+<!-- [isOpen]="true" -->
+<!-- [isOpen]="showAddUserModal"
+(sentOpenValue)="closeModalAddPerson()"
+(onListPeopleByDni)="handleListPeopleByDni($event)" -->

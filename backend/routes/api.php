@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\AdminCatalogController;
+use App\Http\Controllers\ObraIndexController;
+// use App\Http\Controllers\Admin\UserIndexController;
+use App\Http\Controllers\UserIndexController;
 use App\Http\Controllers\DailyPartController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EvidenceController;
@@ -16,14 +20,20 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PurchaseOrdersController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\OCController;
 use App\Models\Service;
 
 use App\Http\Controllers\PecosaController;
 use App\Http\Controllers\FuelOrderController;
+use App\Http\Controllers\MembersController;
+use App\Http\Controllers\MovementController;
+use App\Http\Controllers\ObrasController;
 use App\Http\Controllers\SignaturesController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserObrasController;
 use App\Models\SignatureFlow;
 use App\Models\SignatureStep;
+use App\Models\User;
 
 // use App\Http\Controllers\PdfControllerKardex;
 // use Illuminate\Support\Facades\Auth;
@@ -119,63 +129,95 @@ Route::middleware(['auth:sanctum'])->group(function () {
 });
 
 
+// ROUTAS DE SEGUNDA VERSION DEL MOVIMIENTOS DE ALMACEN - TENANT
 Route::middleware(['auth:sanctum'])->group(function () {
-
-    // ---------------------------Revisar y eliminar estas endopitns con sus metodos----------------------------------
-    Route::get('/products/{product}/movements-kardex', [ProductMovementKardexController::class, 'index'])->middleware(['role:almacen_almacenero']);
-    // obtenemos la lista de ordenes de silucia
-    Route::get('silucia-orders', [PurchaseOrdersController::class, 'index'])->middleware(['role:almacen_almacenero']);
-    // buscamos el producto, si no lo encontramos lo creamos y al mismo tiempo guardarmos el movimiento
-    Route::post('/movements-kardex', [MovementKardexController::class, 'store'])->middleware(['role:almacen_almacenero']);
-
-    // mostramos todos los movimientos que pertenecen a un producto de la base de datos de silucia ----- (CAMBIAMOS PARA OBTENER LOS MOVIMIENTOS DE LAS PECOSAS)
-    // Route::get( 'silucia-containers/{containerId}/items-pecosas/{itemId}/movements',  [MovementKardexController::class, 'indexBySiluciaIds'])->middleware(['role:almacen_almacenero']);
-    Route::get( 'silucia-pecosas/{pecosaId}/items-pecosas/{itemId}/movements',  [MovementKardexController::class, 'indexBySiluciaIds'])->middleware(['role:almacen_almacenero']);
-
-    // generamos un reporte de  todos los movimientos que pertenecen a un producto de la base de datos de silucia ----- (CAMBIAMOS PARA OBTENER LOS MOVIMIENTOS DE LAS PECOSAS)
-    // Route::get( 'silucia-containers/{containerId}/items-pecosas/{itemId}/movements/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen_almacenero']);
-    Route::get( 'silucia-pecosas/{pecosaId}/items-pecosas/{itemId}/movements/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen_almacenero']);
-
-    // devuelve los productos guardados de nuestra propia base de datos
-    Route::get('/items-pecosas', [ProductController::class, 'index']);
-
-    // ******************* refactorizacion de codigo: pasar de datos de ordenes a pecosas - (inicio) *******************
-    Route::get('silucia-pecosas', [PecosaController::class, 'index'])->middleware(['role:almacen_almacenero']);
-
-    // muestra datos de una persona, ya sea consultadno a la api de reniec o consultando la propia base de datos
-    Route::get('/people/{dni}', [PeopleController::class, 'showOrFetch'])->middleware(['role:almacen_almacenero']); // cache-first (db) → RENIEC
-    // muestra todas las personas pertenecientes a un movimiento
-    Route::post('/movements-kardex/{movement}/people', [MovementKardexController::class, 'attachPerson'])->middleware(['role:almacen_almacenero']);
-    // endpoint no terminado - sirve para quitar una persona de un movimientoa
-
-    // rutas para vales de transporte
-
-    // LISTA
-    Route::get('/fuel-orders', [FuelOrderController::class, 'index']);
-
-    // GENERAR PDF + FLUJO
-    Route::post('/fuel-orders/{order}/generate-report', [FuelOrderController::class, 'generateReport']);
-
-    // ESTADO DE REPORTE/FLUJO
-    Route::get('/fuel-orders/{order}/report', [FuelOrderController::class, 'showReport']);
-
-    // DESCARGA PDF
-    Route::get('/fuel-orders/{order}/report/download', [FuelOrderController::class, 'downloadReport']);
-
-    // FIRMA (callback genérico)
-    Route::post('/signatures/callback', [SignaturesController::class, 'callback']);
+    Route::get('/me/obras', [ObrasController::class,'mine']);
+    
 });
-    // recibe pdf firmado por firma perú
-    Route::post('signatures/callback', [SignatureController::class, 'store']);
-    // Routa que sirve solamente para retornar pdfs, los valores se envian en el formato query params
-    // Route::get('/signatures/{path}', [SignatureController::class, 'exportPdf']);
-    // peticion esperada GET /files-download?name=24234234.pdf
-    Route::get('/files-download', [SignatureController::class, 'filesDownload']);
-    // Pruebas para generar codigo qr
-    // Route::get('example-qr', [PdfControllerKardex::class, 'generateQRCcode']);
+
+
+
+// recibe pdf firmado por firma perú
+Route::post('signatures/callback', [SignatureController::class, 'store']);
+// Routa que sirve solamente para retornar pdfs, los valores se envian en el formato query params
+Route::get('/files-download', [SignatureController::class, 'filesDownload']);
+
+Route::middleware(['auth:sanctum','resolve.obra'])->group(function () {
+    // Route::middleware(['resolve.obra'])->group(function () {
+    Route::get('/ordenes-compra', [OCController::class,'index']);
+    // retora todas los itempecosas a partir de una obra / meta
+    Route::get('/pecosas', [PecosaController::class,'getPecosasByWorks']);
+    Route::get('/ordenes-compra/{orden}/pecosas', [OCController::class, 'pecosas']);  // nuevo
+    //   Route::get('/ordenes-compra', [ObrasController::class,'index']);
+    Route::post('/items/{item}/movements', [MovementController::class,'store']);
+    // devuelve todos los item pecosas de una obra en especifio
+    Route::get('/obras/{obra}/item-pecosas', [PecosaController::class, 'testPecosas'])->middleware(['role:almacen.operador']);
+    // registra en la base de datos el movimiento hecho por el usuario
+    Route::post('/kardex-movements/{itemPecosa}', [MovementKardexController::class, 'store'])->middleware(['role:almacen.operador']);
+    // me devuelve todos los movimmientos de un itemPecosa
+    Route::get('/item-pecosas/{itemPecosa}/movements-kardex',   [PecosaController::class, 'getItemPecosas'])->middleware(['role:almacen.operador']);
+    // http://localhost:8000/api/item-pecosas/002028/movements-kardex/pdf
+    Route::get( '/item-pecosas/{itemPecosa}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen.operador']);
+    // obtenemos los datos de una persona de la api de reniec
+    Route::get('/people/{dni}', [PeopleController::class, 'showOrFetch'])->middleware(['role:almacen.operador']); // cache-first (db) → RENIEC
+});
+
+Route::get('get-roles-by-scope', function(){
+    // Fijar el team/obra actual
+    setPermissionsTeamId(3);
+
+    // Obtener el usuario
+    $user = User::findOrFail(1);
+    // return $user;
+    // Limpiar relaciones cacheadas para que se recarguen con el nuevo team
+    $user->unsetRelation('roles')->unsetRelation('permissions');
+
+    // Obtener roles del usuario en este team/obra
+    return $user->roles;
+});
+
+
+Route::middleware(['auth:sanctum','resolve.default.obra'])->prefix('/admin')->group(function () {
+    Route::get('/accounts',                 [UserController::class, 'index'])->middleware(['role:almacen.superadmin']);
+    Route::get('/users',                    [UserIndexController::class, 'index'])->middleware(['role:almacen.superadmin']);
+    Route::get('/obras',                    [ObraIndexController::class, 'index'])->middleware(['role:almacen.superadmin']);
+    Route::get('/obras/{obra}/miembros',    [MembersController::class,'index'])->middleware(['role:almacen.superadmin']);     // devuelve todos los usuario miembros de esta obra
+    Route::post('/obras/{obra}/miembros',   [MembersController::class,'upsert'])->middleware(['role:almacen.superadmin']);   // asigna user + roles por obra
+    Route::delete('/obras/{obra}/miembros/{user}', [MembersController::class,'destroy'])->middleware(['role:almacen.superadmin']);
+
+    Route::get('/roles',                    [AdminCatalogController::class, 'roles'])->middleware(['role:almacen.superadmin']);   // lista de roles (nombres)
+    Route::get('/users/{user}/obras',       [UserObrasController::class, 'index'])->middleware(['role:almacen.superadmin']);
+    Route::post('/users/{user}/obras',      [UserObrasController::class, 'store'])->middleware(['role:almacen.superadmin']);   // add obra al user
+
+    // catálogos para el front
+    Route::get('/obras',                    [AdminCatalogController::class, 'obras'])->middleware(['role:almacen.superadmin']);   // lista todas las obras
+    Route::get('/roles',                    [AdminCatalogController::class, 'roles'])->middleware(['role:almacen.superadmin']);   // lista de roles (nombres)
+
+    // NUEVO: importar (crear/actualizar) obra desde externa + asignar al usuario con roles
+    // gestión de obras y roles por usuario
+    Route::post('/users/{user}/obras/import-assign', [UserObrasController::class, 'importAndAssign'])->middleware(['role:almacen.superadmin']);
+    Route::delete('/users/{user}/obras/{obra}',      [UserObrasController::class, 'destroy'])->middleware(['role:almacen.superadmin']); // quitar obra
+
+    // roles por obra
+    Route::put   ('/users/{user}/obras/{obra}/roles',    [UserObrasController::class, 'syncRoles'])->middleware(['role:almacen.superadmin']);   // reemplazar
+    Route::post  ('/users/{user}/obras/{obra}/roles',    [UserObrasController::class, 'attachRoles'])->middleware(['role:almacen.superadmin']); // agregar
+    Route::delete('/users/{user}/obras/{obra}/roles',    [UserObrasController::class, 'detachRoles'])->middleware(['role:almacen.superadmin']); // quitar
+
+    //NUEVO: importar/actualizar obra (desde API externa) + importar PECOSAs + asignar al usuario + set roles
+    Route::post('/users/{user}/obras/import', [UserObrasController::class, 'importAttachFromExternal'])->middleware(['role:almacen.superadmin']);
+});
+
+// nuevas rutas para actualizar los permisos por obra - inicio
+// Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
+//     // catálogos para el front
+//     Route::get   ('/users/{user}/obras',                 [UserObrasController::class, 'index'])->middleware(['role:almacen.superadmin']);;
+//     Route::post  ('/users/{user}/obras',                 [UserObrasController::class, 'store'])->middleware(['role:almacen.superadmin']);;   // add obra al user
+// });
 
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('fuel-orders', FuelOrderController::class);
     Route::patch('fuel-orders/{fuelOrder}/decision', [FuelOrderController::class, 'decision']);
 });
+
+

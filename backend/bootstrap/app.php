@@ -14,16 +14,19 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->api(prepend: [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+
         ]);
 
         $middleware->alias([
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
-
             // estos dos middlewares son necesarios para que spatie funcionen correctamente
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
-        ]);
 
+            // middelwrare para rediirgir al usuario a su obra correcta
+            'resolve.obra' => \App\Http\Middleware\ResolveCurrentObra::class,
+            'resolve.default.obra' => \App\Http\Middleware\SetDefaultObra::class,
+        ]);
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {

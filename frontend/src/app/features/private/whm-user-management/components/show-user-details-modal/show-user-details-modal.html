@@ -1,0 +1,134 @@
+<p-dialog
+  header="Gestión de obras y roles"
+  [modal]="true"
+  [closable]="true"
+  (onHide)="close(false)"
+  [visible]="isOpen()"
+  [style]="{ width: '820px' }"
+>
+  @if (user(); as u) {
+    <div class="mb-3">
+      <strong>Usuario:</strong> {{ u.usuario }} — <small>{{ u.email }}</small>
+    </div>
+
+    <!-- Buscador de obras (API externa) -->
+    <div class="search-bar">
+      <input pInputText type="text" [(ngModel)]="search.idmeta"  placeholder="idmeta (ej. 0801)" />
+      <input pInputText type="text" [(ngModel)]="search.codmeta" placeholder="codmeta (ej. 0001)" />
+      <input pInputText type="text" [(ngModel)]="search.anio"    placeholder="año (ej. 2025)" />
+      <button pButton label="Buscar" icon="pi pi-search" (click)="doSearch()"></button>
+    </div>
+
+    <!-- <div class="add-obra-bar" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+      <p-select
+        [options]="availableObras()"
+        optionLabel="nombre"
+        optionValue="id"
+        placeholder="Selecciona obra para añadir"
+        [ngModel]="obraToAdd()"
+        (ngModelChange)="obraToAdd.set($event)"
+        [style]="{ width:'380px' }"
+      ></p-select>
+
+      <p-multiSelect
+        [options]="catalogRoles()"
+        display="chip"
+        optionLabel="name"
+        optionValue="name"
+        defaultLabel="Roles iniciales (opcional)"
+        [style]="{ width: '320px' }"
+        [ngModel]="rolesToAdd()"
+        (ngModelChange)="rolesToAdd.set($event)"
+        >
+      </p-multiSelect>
+
+      <button pButton label="Añadir" icon="pi pi-plus" (click)="addObra()" [disabled]="!obraToAdd()"></button>
+    </div> -->
+
+
+    @if (searchResults().length > 0) {
+      <div class="results-wrapper">
+        <h4>Resultados de búsqueda</h4>
+        <table class="mini">
+          <thead>
+            <tr><th>idmeta</th><th>año</th><th>codmeta</th><th>nombre</th><th></th></tr>
+          </thead>
+          <tbody>
+            @for (m of searchResults(); track m.idmeta) {
+              <tr>
+                <td>{{ m.idmeta }}</td>
+                <td>{{ m.anio }}</td>
+                <td>{{ m.codmeta }}</td>
+                <td>{{ m.nombre_corto || (m.desmeta | slice:0:50) }}</td>
+                <td>
+                  <button pButton label="Elegir" icon="pi pi-check" (click)="pickExternal(m)"></button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        @if (selectedExternal(); as selected) {
+          <div class="pick-bar">
+            <span><strong>Seleccionada:</strong> {{ selected.idmeta }} / {{ selected.codmeta }} ({{ selected.anio }})</span>
+            <p-multiSelect
+              [options]="catalogRoles()"
+              display="chip"
+              optionLabel="name"
+              optionValue="name"
+              defaultLabel="Roles iniciales (opcional)"
+              [ngModel]="rolesToAdd()"
+              (ngModelChange)="rolesToAdd.set($event)"
+            ></p-multiSelect>
+            <button pButton label="Importar y asignar" icon="pi pi-download" (click)="importAttach()"></button>
+          </div>
+        }
+      </div>
+    }
+
+    <p-table [value]="obrasUsuario()" [loading]="loading()" [tableStyle]="{ 'min-width': '15rem' }" dataKey="obra.id">
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="min-width: 10rem;">Obrass</th>
+          <th style="min-width: 20rem;">Roles del usuario en la obra</th>
+          <th style="width: 180px; text-align:center;">Acciones</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-row>
+        <tr>
+          <td>
+            <div><strong>{{ row.obra.nombre }}</strong></div>
+            <small class="muted">{{ row.obra.codigo }}</small>
+          </td>
+          <td>
+            <p-multiSelect
+              [options]="catalogRoles()"
+              display="chip"
+              optionLabel="name"
+              optionValue="name"
+              [style]="{ width:'100%' }"
+              [ngModel]="rolesEdit()[row.obra.id]"
+              (ngModelChange)="updateRolesForRow(row.obra.id, $event)"
+            ></p-multiSelect>
+          </td>
+          <td style="display: flex; gap:0.5rem">
+            <button pButton label="Guardar cambios" icon="pi pi-save" (click)="syncRoles(row.obra.id)" style="width: 100px;"></button>
+            <button pButton label="Quitar obra" icon="pi pi-trash" severity="danger"  style="width: 100px;" (click)="removeObra(row.obra.id)"></button>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr><td colspan="3">Este usuario aún no pertenece a ninguna obra.</td></tr>
+      </ng-template>
+    </p-table>
+
+  } @else {
+    <div>Cargando datos del usuario...</div>
+  }
+
+  <ng-template pTemplate="footer">
+    <button pButton label="Cerrar" icon="pi pi-times" (click)="close(false)"></button>
+  </ng-template>
+</p-dialog>

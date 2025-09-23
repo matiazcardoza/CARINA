@@ -11,55 +11,57 @@ return new class extends Migration
      */
     public function up(): void
     {
+
         Schema::create('item_pecosas', function (Blueprint $table) {
-            $table->id(); // equivale a bigIncrements('id')
+            $table->id();
 
-            // Referencias externas al sistema Silucia
-            // $table->unsignedBigInteger('id_container_silucia');     // contenedor (nota de entrada / inventario / orden)
-            // $table->unsignedBigInteger('id_pecosa_silucia');     // contenedor (nota de entrada / inventario / orden)
-            $table->string('id_pecosa_silucia', 10);     // contenedor (nota de entrada / inventario / orden)
-            $table->unsignedBigInteger('id_item_pecosa_silucia');   // ID del ítem en Silucia
-
+            // Relación: una obra tiene muchos item_pecosas
+            $table->foreignId('obra_id')->constrained('obras')->cascadeOnDelete();
             
+            // relación con OC (misma obra)
+            // $table->foreignId('orden_id')->constrained('ordenes_compra')->cascadeOnDelete();
+            $table->foreignId('orden_id')
+                ->nullable() // permite que quede en NULL
+                ->constrained('ordenes_compra')
+                ->nullOnDelete(); // si se borra la orden, deja el campo en NULL
 
+            // Identificadores y campos de Silucia
+            $table->string('idsalidadet_silucia', 50)->unique(); // ÚNICO en origen (clave principal externa)
+            $table->string('idcompradet_silucia', 50)->nullable()->index(); // opcional, útil para referencias cruzadas
 
-            // Datos administrativos y logísticos (datos que vienen de silucia)
-            $table->year('anio')->nullable();
-            $table->string('numero', 20);           // nro de PECOSA (o del contenedor si aplica)
+            // Búsquedas típicas en tu UI
+            $table->string('anio', 10)->index();
+            $table->string('numero', 50)->index();           // N° PECOSA (string por seguridad)
+            $table->index(['anio', 'numero']);               // compuesto: (anio,numero)
+
+            // Otros campos del JSON de pecosa (mapea según necesites)
             $table->date('fecha')->nullable();
-            $table->string('prod_proy', 20)->nullable();
-            $table->string('cod_meta', 10)->nullable();
-            $table->string('desmeta')->nullable();
-            $table->string('desuoper')->nullable();
-            $table->string('destipodestino')->nullable();
+            $table->string('prod_proy', 50)->nullable()->index();
+            $table->string('cod_meta', 50)->nullable()->index();  // para doble chequeo con obra
+            $table->string('desmeta', 255)->nullable();
+            $table->string('desuoper', 255)->nullable();
+            $table->string('destipodestino', 100)->nullable();
+            $table->text('item')->nullable();                // descripción del ítem
+            $table->string('desmedida', 50)->nullable();
 
-            // Detalle del ítem (datos que vienen de silucia)
-            $table->text('item')->nullable();
-            $table->string('desmedida', 20)->nullable();
-            $table->unsignedBigInteger('idsalidadet'); // detalle de salida en Silucia (si aplica)
-            $table->decimal('cantidad', 10, 2)->default(0);
-            $table->decimal('precio', 10, 2)->default(0);
-            $table->string('tipo', 20)->nullable();          // 'orden', 'nota_entrada', etc.
-            $table->decimal('saldo', 10, 2)->default(0);
-            $table->decimal('total', 10, 2)->default(0);
-            $table->string('numero_origen', 20)->nullable();
+            $table->unsignedInteger('cantidad')->nullable();
+            $table->decimal('precio', 12, 2)->nullable();
+            $table->integer('saldo')->nullable();
+            $table->decimal('total', 14, 2)->nullable();
 
-            // Datos que deben llenarse con cada movimiento del kardex
-            $table->decimal('quantity_received', 20, 4)->default(0);
-            $table->decimal('quantity_issued', 20, 4)->default(0);
-            $table->decimal('quantity_on_hand', 20, 4)->default(0);
+            $table->string('numero_origen', 50)->nullable()->index(); // ej. número de OC
 
-            // Seguramente necesitare el nombre del pdf
-            // $table->string('pdf_filename', 255)->nullable()->after('saldo');
+            // columnas usadas para guardar los movimientos tanto de entradas como de salida (los totales)
+            $table->decimal('quantity_received', 18, 3)->default(0); // total ENTRADAS
+            $table->decimal('quantity_issued',   18, 3)->default(0); // total SALIDAS
+            $table->decimal('quantity_on_hand',  18, 3)->default(0); // STOCK FINAL = received - issued
 
-            // Info útil para auditoría/UI
-            $table->timestamp('last_movement_at')->nullable();
+            // Metadatos de sincronización
+            $table->timestamp('external_last_seen_at')->nullable();
+            $table->string('external_hash', 64)->nullable();
+            $table->longText('raw_snapshot')->nullable();
 
             $table->timestamps();
-
-            $table->index('id_pecosa_silucia', 'idx_itempecosa_pecosa');
-            $table->index('id_item_pecosa_silucia', 'idx_itempecosa_item');
-            $table->unique(['id_pecosa_silucia', 'id_item_pecosa_silucia'], 'uq_pecosa_item');
         });
     }
 
@@ -68,8 +70,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::disableForeignKeyConstraints();
+        // Schema::disableForeignKeyConstraints();
+        // Schema::dropIfExists('item_pecosas');
+        // Schema::enableForeignKeyConstraints();
         Schema::dropIfExists('item_pecosas');
-        Schema::enableForeignKeyConstraints();
     }
 };

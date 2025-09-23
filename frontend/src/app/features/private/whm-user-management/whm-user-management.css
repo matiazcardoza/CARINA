@@ -1,0 +1,55 @@
+.contenedor {
+  margin-bottom: 1rem; /* equivalente a mb-3 */
+  /* background: red; */
+}
+
+.titulo {
+  font-size: 1.875rem; /* equivalente a text-3xl */
+  font-weight: 600;    /* equivalente a font-semibold */
+  margin-bottom: 0.5rem; /* equivalente a mb-2 */
+}
+
+.descripcion {
+  font-size: 1.125rem; /* equivalente a text-lg */
+  color: #6b7280;      /* equivalente a text-gray-500 */
+}
+
+.caption-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.search-input {
+  padding-left: 30px;
+  width: 320px;
+  height: 2rem;
+  font-size: 1rem;
+}
+
+.button-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.button-group button {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}

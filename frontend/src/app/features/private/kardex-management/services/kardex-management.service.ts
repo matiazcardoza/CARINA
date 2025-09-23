@@ -78,11 +78,13 @@ export class KardexManagementService {
     }
     
     getProductsFromOwnDatabase(filters: { 
+      
       numero?: string; anio?: number; item?: string; desmeta?: string; siaf?: string;
       ruc?: string; rsocial?: string; email?: string;
       page?: number; per_page?: number; 
       sort_field?: string; sort_order?: 'asc'|'desc';
     }): Observable<any> {
+      console.log("obtener pecosas 001")
       const endpoint = `${this.apiUrl}/api/items-pecosas`; // sin slash final
 
       let params = new HttpParams();

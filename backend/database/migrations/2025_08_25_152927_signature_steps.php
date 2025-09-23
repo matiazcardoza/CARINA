@@ -13,10 +13,17 @@ return new class extends Migration
     {
         Schema::create('signature_steps', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('signature_flow_id');
+            // $table->unsignedBigInteger('signature_flow_id');
+            // Steps cuelgan del reporte
+            $table->foreignId('report_id')->constrained('reports')->cascadeOnDelete();
+
+            // el oden en el que debe ser firmado el pdf
             $table->unsignedInteger('order');              // 1..N
-            $table->string('role');                        // almacenero|administrador|residente de obra|supervisor
+
+            // Firmante: usuario específico o rol
             $table->unsignedBigInteger('user_id')->nullable(); // opcional: asignado directo
+            $table->string('role')->nullable();                // almacenero|administrador|residente de obra|supervisor
+
             // Sello visual (si lo usas)
             $table->unsignedInteger('page')->nullable();
             $table->unsignedInteger('pos_x')->nullable();
@@ -24,21 +31,31 @@ return new class extends Migration
             $table->unsignedInteger('width')->nullable();
             $table->unsignedInteger('height')->nullable();
 
-            $table->string('status', 20)->default('pending'); // pending|signed|rejected|skipped
+            // $table->string('status', 20)->default('pending'); // pending|signed|rejected|skipped
+            $table->enum('status', ['pending','signed','rejected','skipped'])
+                  ->default('pending')->index();
+
+            // Motivo/observaciones (rechazo, etc.)
+            $table->text('comment')->nullable();
+
+            // fecha en la que fue firmado
             $table->timestamp('signed_at')->nullable();
-            $table->unsignedBigInteger('signed_by')->nullable();
-            $table->string('provider')->nullable();           // manual|firma_peru|reniec
-            $table->string('provider_tx_id')->nullable();
-            $table->string('certificate_cn')->nullable();
-            $table->string('certificate_serial')->nullable();
-            $table->string('callback_token', 64)->nullable()->index();
+
+            // esta columna indica quien fue el que firmo realmente el pdf
+            // $table->unsignedBigInteger('signed_by')->nullable();
+            $table->foreignId('signed_by')->nullable()->constrained('users')->nullOnDelete();
+
+            $table->string('provider')->nullable();           // manual (ses) |firma_peru|reniec
+            
+            // Seguridad para callbacks
+            $table->string('callback_token', 64)->nullable()->unique();
 
             // SIN signed_pdf_path -> NO almacenamos versiones
+            // antes de firmar verificamos si el pdf que queremos firmar es el pdf que vamos a firmar. cuando el pdf firmado 
             // (opcional) hash para auditoría sin guardar el archivo aparte
             $table->string('sha256', 64)->nullable();
 
             $table->timestamps();
-            $table->foreign('signature_flow_id')->references('id')->on('signature_flows')->cascadeOnDelete();
         });
     }
 

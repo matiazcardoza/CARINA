@@ -1,0 +1,57 @@
+<p-dialog
+  header=""
+  [modal]="true"
+  [closable]="false"
+  [visible]="isOpen()"
+  [style]="{ width: '360px' }"
+>
+  <form (ngSubmit)="onBuscarDni()" style="display:flex; flex-direction:column; gap:14px;">
+
+        <input
+          pInputText 
+          name="dni"
+          placeholder="Ingrese DNI"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          maxlength="8"
+          [(ngModel)]="dniQuery"
+        />
+        @if(personObtainedByDni()?.dni != ''){
+          <div class="user_container">
+
+            <div class="user_data_container">
+              <p>DNI: {{personObtainedByDni().dni}} </p>
+              <p>Nombres: {{personObtainedByDni().full_name}}</p>
+              <p>Apellido Paterno: {{personObtainedByDni().first_lastname}}</p>
+              <p>Apellido Materno: {{personObtainedByDni().second_lastname}}</p>
+            </div>
+
+            <!-- (onClick)="OpenModalAddPerson()" -->
+            <p-button
+              icon="pi pi-plus-circle"
+              [rounded]="true"
+              [text]="true"
+              [ariaLabel]="'Selecciona persona'"
+              (onClick)="sendPesonSelected()"
+            ></p-button>
+          </div>
+        }
+        <div style="display:flex; gap:12px; justify-content:end; ">
+            <p-button
+              type="button"
+              label="Cancelar"
+              (onClick)="closeMovementDetailsModal()"
+              severity="secondary"
+            />
+            <p-button
+
+              type="submit"
+              label="Buscar"
+              icon="pi pi-check"
+              [disabled]="!dniQuery || dniQuery.length  < 8 || loading()"
+              [loading]="loading()"
+            />
+        </div>
+  </form>
+</p-dialog>
+<p-toast />

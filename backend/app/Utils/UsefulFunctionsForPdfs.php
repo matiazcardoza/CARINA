@@ -10,9 +10,26 @@ class UsefulFunctionsForPdfs
         return "hola mundo";
     }
 
-    public static function SetNameForPDF(string $fechaNacimiento): int
+    public static function extractPdfFilename(string $pdfPath): ?string
     {
-        return "hola mundo";
+        // 1) Intentar ?name=archivo.pdf
+        $query = parse_url($pdfPath, PHP_URL_QUERY) ?? '';
+        parse_str($query, $params);
+        $filename = $params['name'] ?? null;
+
+        // 2) Si no viene en query, tomar del path
+        if (!$filename) {
+            $path = parse_url($pdfPath, PHP_URL_PATH) ?? $pdfPath;
+            $filename = basename($path);
+        }
+
+        // 3) Normalizar y validar (evita traversal y exige .pdf)
+        $filename = trim(str_replace(['\\', '/'], '', (string)$filename));
+        if (!preg_match('/^[A-Za-z0-9._-]+\.pdf$/', $filename)) {
+            return null; // inválido
+        }
+
+        return $filename;
     }
 
     public static function generateQRcodeInBinariFormat($contenido){
