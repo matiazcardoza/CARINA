@@ -34,6 +34,7 @@ use App\Http\Controllers\UserObrasController;
 use App\Models\SignatureFlow;
 use App\Models\SignatureStep;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 // use App\Http\Controllers\PdfControllerKardex;
 // use Illuminate\Support\Facades\Auth;
@@ -56,10 +57,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Nueva ruta para obtener permisos del usuario
     Route::get('/user/permissions', function (Request $request) {
+        Log::info('request', $request->all());
         $user = $request->user();
+        Log::info('user'. $user);
+        $permission = $user->getAllPermissions()->pluck('name');
+        $roles = $user->getRoleNames();
+        Log::info('roles'. $roles);
+        Log::info('permissions'. $permission);
         return response()->json([
-            'permissions' => $user->getAllPermissions()->pluck('name'),
-            'roles' => $user->getRoleNames()
+            'permissions' => $permission,
+            'roles' => $roles
         ]);
     });
 

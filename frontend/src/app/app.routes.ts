@@ -174,7 +174,6 @@ export const routes: Routes = [
                 path: 'whm-kardex-management',
                 component: WhmKardexManagement,
             },
-            // Digital Signatures - Firmas de reportes
             {
                 path: 'digital-signatures',
                 children: [
@@ -262,7 +261,6 @@ export const routes: Routes = [
                 path: 'rendering-test',
                 component: RenderingTest
             },
-            }
         ]
     }
     // {

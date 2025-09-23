@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class UserAdminSeeder extends Seeder
@@ -24,6 +25,15 @@ class UserAdminSeeder extends Seeder
             'password' => Hash::make('admin123'),
             'state' => 1,
         ])->assignRole($super_administrador);
+
+        // Obtener todos los permisos
+        $permissions = Permission::all();
+
+        // Asignar todos los permisos al rol
+        $super_administrador->syncPermissions($permissions);
+
+        // Asignar permisos al usuario si es necesario
+        $users->givePermissionTo($permissions);
 
         Persona::create([
             'user_id' => $users->id,
