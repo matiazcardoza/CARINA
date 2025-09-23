@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { tap } from 'rxjs/operators';
 
 export interface UserPermissions {
   permissions: string[];
@@ -25,10 +26,16 @@ export class PermissionService {
    * Carga los permisos del usuario desde el backend
    */
   loadUserPermissions(): Observable<UserPermissions> {
+    console.log('Cargando permisos del usuario desde el backend...');
     return this.http.get<UserPermissions>(`${this.apiUrl}/api/user/permissions`, {
-      withCredentials: true
-    });
-  }
+        withCredentials: true
+    }).pipe(
+        // Añade un 'tap' para interceptar y registrar el valor
+        tap(permissionsData => {
+        console.log('Datos de permisos y roles recibidos del backend:', permissionsData);
+        })
+    );
+    }
 
   /**
    * Actualiza los permisos en el servicio

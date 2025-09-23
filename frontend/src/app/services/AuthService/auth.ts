@@ -31,6 +31,7 @@ export class AuthService {
       next: (user) => {
         this.isAuthenticatedSubject.next(true);
         this.permissionService.setPermissions(user.permissions, user.roles);
+        this.refreshPermissions().subscribe();
       },
       error: () => {
         this.isAuthenticatedSubject.next(false);
