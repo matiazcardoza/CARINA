@@ -14,12 +14,16 @@ use Illuminate\Support\Str;
 
 class ObraImportUsersController extends Controller
 {
+    
     public function __invoke(Request $request, Obra $obra, UserSiluciaClient $client)
     {
-        // idmeta a partir de tu persistencia local
-        $idmeta = $obra->idmeta_silucia;
+       // Construye un Request con el idmeta que exige el cliente
+        $siluciaRequest = new Request([
+            'idmeta' => $obra->idmeta_silucia,
+        ]);
 
-        $externos = $client->fetchPersonalByMeta($idmeta);
+        // Llama al cliente (SOLO Request)
+        $externos = $client->fetchPersonalByMeta($siluciaRequest);
 
         $createdUsers = 0;
         $updatedPersonas = 0;
