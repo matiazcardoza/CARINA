@@ -33,6 +33,7 @@ class RoleDailyPartsSeeder extends Seeder
             ],
             'work_log_id' => [
                 ['name' => 'access_work_log_id', 'label' => 'Acceder a Trabajo Diario'],
+                ['name' => 'create_work_log_id', 'label' => 'Crear Trabajo Diario'],
                 ['name' => 'edit_work_log_id', 'label' => 'Editar Trabajo Diario'],
                 ['name' => 'delete_work_log_id', 'label' => 'Eliminar Trabajo Diario'],
                 ['name' => 'completed_work_log_id', 'label' => 'Completar Trabajo Diario'],

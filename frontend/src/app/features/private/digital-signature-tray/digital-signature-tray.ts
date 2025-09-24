@@ -10,8 +10,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 // Asume que estos servicios y diálogos existen
 import { DocumentSignatureService } from '../../../services/DocumentSignatureService/document-signature-service';
 import { DocumentSignature } from './form/document-signature/document-signature';
-//import { DocumentSignDialogComponent } from './document-sign-dialog/document-sign-dialog.component';
 
+import { HasPermissionDirective } from '../../../shared/directives/permission.directive';
 export interface DocumentSignatureUserElement {
   id: number;
   description: string;

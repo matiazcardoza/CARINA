@@ -18,6 +18,8 @@ import { DailyWorkLogUpload } from '../form/daily-work-log-upload/daily-work-log
 import { DailyWorkSignature } from './form/daily-work-signature/daily-work-signature';
 import { startWith } from 'rxjs/operators';
 
+import { HasPermissionDirective } from '../../../../shared/directives/permission.directive';
+
 export interface WorkLogIdElement {
   id: number;
   work_date: string;
@@ -40,8 +42,9 @@ export interface WorkLogIdElement {
     MatInputModule,
     MatFormFieldModule,
     MatNativeDateModule,
-    ReactiveFormsModule
-  ],
+    ReactiveFormsModule,
+    HasPermissionDirective
+],
   templateUrl: './daily-work-log-id.html',
   styleUrl: './daily-work-log-id.css'
 })

@@ -28,30 +28,36 @@
         </div>
         
       </div>
-      <button *ngIf="showCreateButton" 
-              mat-raised-button 
-              color="primary" 
-              (click)="openCreateDialog()" 
-              class="action-button">
-        <mat-icon>add</mat-icon>
-        Nuevo Registro
-      </button>
-
-      <button *ngIf="showPdfButton"
-              mat-icon-button
-              (click)="generatePdf(convertWorkLogId(serviceId))"
-              matTooltip="Generar PDF"
-              class="action-btn pdf-btn">
-        <mat-icon>picture_as_pdf</mat-icon>
-      </button>
-
-      <button *ngIf="showSignatureButton"
-              mat-icon-button
-              (click)="signaturePdf(convertWorkLogId(serviceId))"
-              matTooltip="Firmar Documento"
-              class="action-btn signature-btn">
-        <mat-icon>draw</mat-icon>
-      </button>
+      <ng-container *ngIf="showCreateButton">
+        <button *appHasPermission="'create_work_log_id'"
+                mat-raised-button 
+                color="primary" 
+                (click)="openCreateDialog()" 
+                class="action-button">
+          <mat-icon>add</mat-icon>
+          Nuevo Registro
+        </button>
+      </ng-container>
+      
+      <ng-container *ngIf="showPdfButton">
+        <button *appHasPermission="'generate_pdf_work_log_id'"
+                mat-icon-button
+                (click)="generatePdf(convertWorkLogId(serviceId))"
+                matTooltip="Generar PDF"
+                class="action-btn pdf-btn">
+          <mat-icon>picture_as_pdf</mat-icon>
+        </button>
+      </ng-container>
+      
+      <ng-container *ngIf="showSignatureButton">
+        <button *appHasPermission="'signature_work_log_id'"
+                mat-icon-button
+                (click)="signaturePdf(convertWorkLogId(serviceId))"
+                matTooltip="Firmar Documento"
+                class="action-btn signature-btn">
+          <mat-icon>draw</mat-icon>
+        </button>
+      </ng-container>
 
       <button mat-icon-button (click)="reloadData()" matTooltip="Actualizar datos" class="refresh-button">
         <mat-icon>refresh</mat-icon>
@@ -197,6 +203,7 @@
             <td mat-cell *matCellDef="let element" class="actions-cell">
               <div class="action-buttons">
                 <button mat-icon-button
+                        *appHasPermission="'edit_work_log_id'"
                         (click)="openEditDialog(element)"
                         matTooltip="Editar registro"
                         class="action-btn edit-btn">
@@ -204,6 +211,7 @@
                 </button>
 
                 <button mat-icon-button
+                        *appHasPermission="'delete_work_log_id'"
                         (click)="deleteWorkLog(element.id)"
                         matTooltip="Eliminar registro"
                         class="action-btn delete-btn">
@@ -211,6 +219,7 @@
                 </button>
 
                 <button mat-icon-button
+                        *appHasPermission="'completed_work_log_id'"
                         (click)="openCompleteModal(element.id)"
                         matTooltip="Completar registro"
                         class="action-btn complete-btn">
@@ -240,7 +249,7 @@
           <mat-icon class="state-icon empty">inbox</mat-icon>
           <h3>No hay registros disponibles</h3>
           <p>Comienza agregando tu primer registro de trabajo diario</p>
-          <button mat-raised-button color="primary" (click)="openCreateDialog()" class="create-first-button">
+          <button mat-raised-button *appHasPermission="'create_work_log_id'" color="primary" (click)="openCreateDialog()" class="create-first-button">
             <mat-icon>add</mat-icon>
             Crear Primer Registro
           </button>
