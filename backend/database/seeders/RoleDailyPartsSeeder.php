@@ -27,17 +27,17 @@ class RoleDailyPartsSeeder extends Seeder
                 ['name' => 'download_reports', 'label' => 'Descargar Reportes'],
             ],
             'work_log' => [
-                ['name' => 'access_work_log', 'label' => 'Acceder a Work Log'],
-                ['name' => 'import_work_log', 'label' => 'Importar Work Log'],
-                ['name' => 'delete_work_log', 'label' => 'Eliminar Work Log'],
+                ['name' => 'access_work_log', 'label' => 'Acceder a Registro de Partes Diarios'],
+                ['name' => 'import_work_log', 'label' => 'Importar Registro de Partes Diarios'],
+                ['name' => 'delete_work_log', 'label' => 'Eliminar Registro de Partes Diarios'],
             ],
             'work_log_id' => [
-                ['name' => 'access_work_log_id', 'label' => 'Acceder a Work Log ID'],
-                ['name' => 'edit_work_log_id', 'label' => 'Editar Work Log ID'],
-                ['name' => 'delete_work_log_id', 'label' => 'Eliminar Work Log ID'],
-                ['name' => 'completed_work_log_id', 'label' => 'Completar Work Log ID'],
-                ['name' => 'generate_pdf_work_log_id', 'label' => 'Generar PDF Work Log ID'],
-                ['name' => 'signature_work_log_id', 'label' => 'Firmar Work Log ID'],
+                ['name' => 'access_work_log_id', 'label' => 'Acceder a Trabajo Diario'],
+                ['name' => 'edit_work_log_id', 'label' => 'Editar Trabajo Diario'],
+                ['name' => 'delete_work_log_id', 'label' => 'Eliminar Trabajo Diario'],
+                ['name' => 'completed_work_log_id', 'label' => 'Completar Trabajo Diario'],
+                ['name' => 'generate_pdf_work_log_id', 'label' => 'Generar PDF Trabajo Diario'],
+                ['name' => 'signature_work_log_id', 'label' => 'Firmar Trabajo Diario'],
             ],
             'equipo_mecanico' => [
                 ['name' => 'access_equipo_mecanico', 'label' => 'Acceder a Equipo Mecánico'],
@@ -49,6 +49,10 @@ class RoleDailyPartsSeeder extends Seeder
             'reportes' => [
                 ['name' => 'access_reportes', 'label' => 'Acceder a Reportes'],
                 ['name' => 'generate_reportes', 'label' => 'Generar Reportes'],
+            ],
+            'tray_signature' => [
+                ['name' => 'access_tray_signature', 'label' => 'Acceder a Bandeja de firma'],
+                ['name' => 'sing_tray_signature', 'label' => 'Firmar Documento'],
             ],
         ];
 
@@ -66,14 +70,18 @@ class RoleDailyPartsSeeder extends Seeder
 
                     case 'work_log':
                         if ($perm['name'] === 'delete_work_log' || $perm['name'] === 'import_work_log') {
-                            $permission->syncRoles([$super_admin, $residente]);
+                            $permission->syncRoles([$super_admin, $admin_em]);
                         } else {
-                            $permission->syncRoles([$super_admin, $controlador, $residente]);
+                            $permission->syncRoles([$super_admin, $controlador, $residente, $supervisor]);
                         }
                         break;
 
                     case 'work_log_id':
-                        $permission->syncRoles([$super_admin, $controlador]);
+                        if ($perm['name'] === 'edit_work_log_id' || $perm['name'] === 'delete_work_log_id') {
+                            $permission->syncRoles([$super_admin]);
+                        } else {
+                            $permission->syncRoles([$super_admin, $controlador]);
+                        }
                         break;
 
                     case 'equipo_mecanico':
@@ -81,7 +89,15 @@ class RoleDailyPartsSeeder extends Seeder
                         break;
 
                     case 'reportes':
-                        $permission->syncRoles([$super_admin, $supervisor]);
+                        if ($perm['name'] === 'generate_reportes') {
+                            $permission->syncRoles([$controlador, $residente, $supervisor]);
+                        } else {
+                            $permission->syncRoles([$super_admin, $admin_em, $controlador, $residente, $supervisor]);
+                        }
+                        break;
+                    
+                    case 'tray_signature':
+                        $permission->syncRoles([$super_admin, $controlador, $residente, $supervisor]);
                         break;
                 }
             }
