@@ -47,7 +47,8 @@ class UserAdminSeeder extends Seeder
             'last_name' => 'CONTROLADOR'
         ]);
 
-        $super_administrador_almacen = Role::findOrCreate('almacen.superadmin', 'api');
+        // $super_administrador_almacen = Role::findOrCreate('almacen.superadmin', 'api');
+        $super_administrador_almacen = Role::findByName('almacen.superadmin', 'api');
 
         $user_super_admin = User::firstOrCreate(['email' =>  'admin_almacen@domain.com'], [
             'name'      => 'ADMIN_ALMACEN',

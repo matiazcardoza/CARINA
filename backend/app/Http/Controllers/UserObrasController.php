@@ -123,6 +123,42 @@ class UserObrasController extends Controller
         $user->syncRoles($validos);
 
         return response()->json(['ok'=>true, 'roles'=>$validos]);
+        
+        // -------------------------
+            // $data = $request->validate([
+            //     'roles'   => ['required','array'],
+            //     'roles.*' => ['string'],
+            // ]);
+
+            // // Team scope (Spatie v6 con teams)
+            // setPermissionsTeamId($obra->id);
+
+            // // Evita relaciones cacheadas
+            // $user->unsetRelation('roles')->unsetRelation('permissions');
+
+            // // Guard a usar (por tu User::$guard_name será 'api')
+            // $guard = 'api';
+
+            // // Solo roles que existan con ese guard (y team actual por el scope de arriba)
+            // $validos = Role::query()
+            //     ->where('guard_name', $guard)
+            //     ->whereIn('name', $data['roles'])
+            //     ->pluck('name')
+            //     ->all();
+
+            // // (Opcional) reporta faltantes en vez de lanzar excepción
+            // $faltantes = array_values(array_diff($data['roles'], $validos));
+            // if ($faltantes) {
+            //     return response()->json([
+            //         'ok'      => false,
+            //         'message' => 'Algunos roles no existen para este guard/obra',
+            //         'missing' => $faltantes,
+            //     ], 422);
+            // }
+
+            // $user->syncRoles($validos);
+
+            // return response()->json(['ok'=>true, 'roles'=>$validos]);
     }
 
     // POST /admin/users/{user}/obras/{obra}/roles  { roles: string[] }  (agrega)

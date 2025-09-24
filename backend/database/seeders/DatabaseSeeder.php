@@ -16,8 +16,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             DefaultObraSeeder::class,
             RoleDailyPartsSeeder::class,
-            UserAdminSeeder::class,
             RolesWarehouseMovementSeeder::class,
+            UserAdminSeeder::class,
         ]);
     }
 }

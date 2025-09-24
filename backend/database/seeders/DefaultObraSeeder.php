@@ -17,7 +17,7 @@ class DefaultObraSeeder extends Seeder
                 ['idmeta_silucia' => '0000000000'],
                 [
                     // 'idmeta_silucia'    => '0000000000',
-                    'anio'              => '2000',
+                    'anio'   => '2000',
                     'nombre' => 'GENERAL',
                     'codmeta' => '0000'
                 ]

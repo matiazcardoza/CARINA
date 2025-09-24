@@ -27,6 +27,7 @@ use App\Http\Controllers\PecosaController;
 use App\Http\Controllers\FuelOrderController;
 use App\Http\Controllers\MembersController;
 use App\Http\Controllers\MovementController;
+use App\Http\Controllers\ObraImportUsersController;
 use App\Http\Controllers\ObrasController;
 use App\Http\Controllers\SignaturesController;
 use App\Http\Controllers\RoleController;
@@ -209,9 +210,13 @@ Route::middleware(['auth:sanctum','resolve.default.obra'])->prefix('/admin')->gr
 
     //NUEVO: importar/actualizar obra (desde API externa) + importar PECOSAs + asignar al usuario + set roles
     Route::post('/users/{user}/obras/import', [UserObrasController::class, 'importAttachFromExternal'])->middleware(['role:almacen.superadmin']);
+
+    //Api para importar los uusarios de las obras
+    Route::post('/obras/{obra}/import-users', ObraImportUsersController::class)->middleware(['role:almacen.superadmin']);
+    Route::get('/get-all-obras', [AdminCatalogController::class, 'allObras'])->middleware(['role:almacen.superadmin']);
 });
 
-// nuevas rutas para actualizar los permisos por obra - inicio
+// nuevas rutas para actualizar los permisosallObraspor obra - inicio
 // Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
 //     // catálogos para el front
 //     Route::get   ('/users/{user}/obras',                 [UserObrasController::class, 'index'])->middleware(['role:almacen.superadmin']);;
