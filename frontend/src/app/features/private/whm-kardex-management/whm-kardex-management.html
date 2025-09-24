@@ -1,15 +1,20 @@
 <!-- src/app/features/whm/whm-kardex-management.html -->
-<section class="toolbar" style="display:flex; gap:12px; align-items:center; margin-bottom:12px;">
-  <label for="obraSel">Obra:</label>
+<section class="toolbar">
+  <label for="obraSel" class="toolbar__label">Obra:</label>
 
   @if (obras().length > 0) {
-    <select id="obraSel" [ngModel]="selectedObraId" (ngModelChange)="onObraChange($event)">
-      @for (o of obras(); track o.id) {
-        <option [value]="o.id">{{ o.nombre }} ({{ o.codmeta || o.codigo }})</option>
-      }
-    </select>
+    <div class="toolbar__field">
+      <select id="obraSel"
+              class="toolbar__select"
+              [ngModel]="selectedObraId"
+              (ngModelChange)="onObraChange($event)">
+        @for (o of obras(); track o.id) {
+          <option [value]="o.id">{{ o.nombre }} ({{ o.codmeta || o.codigo }})</option>
+        }
+      </select>
+    </div>
   } @else {
-    <span class="muted">No hay obras disponibles.</span>
+    <span class="toolbar__muted">No hay obras disponibles.</span>
   }
 </section>
 
@@ -241,11 +246,21 @@
       <span style="display:block; font-weight:bold; margin-bottom:0.5rem;">Tipo de movimiento</span>
       <div style="display:flex;">
         <div style="flex-grow:1; display:flex; gap:0.5rem; align-items:center;">
-          <p-radiobutton [inputId]="'movEntrada'" name="movement_type" [value]="'entrada'" [(ngModel)]="form.movement_type" />
+          <p-radiobutton 
+            [inputId]="'movEntrada'" 
+            name="movement_type" 
+            [value]="'entrada'" 
+            [(ngModel)]="form.movement_type" 
+          />
           <label for="movEntrada">Entrada</label>
         </div>
         <div style="flex-grow:1; display:flex; gap:0.5rem; align-items:center;">
-          <p-radiobutton [inputId]="'movSalida'" name="movement_type" [value]="'salida'" [(ngModel)]="form.movement_type" />
+          <p-radiobutton 
+            [inputId]="'movSalida'" 
+            name="movement_type" 
+            [value]="'salida'" 
+            [(ngModel)]="form.movement_type" 
+          />
           <label for="movSalida">Salida</label>
         </div>
       </div>
@@ -254,20 +269,40 @@
     <!-- Cantidad -->
     <div class="field dialog_item">
       <label for="cantidad" style="display:block; font-weight:bold; margin-bottom:0.5rem;">Cantidad</label>
-      <p-inputNumber inputId="cantidad" [(ngModel)]="form.amount" [min]="1" [useGrouping]="false" [showButtons]="true"></p-inputNumber>
+      <p-inputNumber 
+        inputId="cantidad" 
+        [(ngModel)]="form.amount" 
+        [min]="1" 
+        [useGrouping]="false" 
+        [showButtons]="true"
+      ></p-inputNumber>
     </div>
 
     <!-- Observaciones -->
     <div class="field dialog_item">
       <label for="observations" style="display:block; font-weight:bold; margin-bottom:0.5rem;">Observaciones</label>
-      <textarea id="observations" pInputTextarea [(ngModel)]="form.observations" rows="3" cols="30" placeholder="Escribe tus observaciones aquí" class="text-area"></textarea>
+      <textarea 
+        id="observations" 
+        pInputTextarea 
+        [(ngModel)]="form.observations" 
+        rows="3" 
+        cols="30" 
+        placeholder="Escribe tus observaciones aquí" 
+        class="text-area"
+        ></textarea>
     </div>
 
     <!-- Personas -->
     <div class="field dialog_people">
       <div class="flex items-center justify-between dialog_people_item">
         <span class="font-medium">Personas</span>
-        <p-button icon="pi pi-user-plus" (onClick)="OpenModalAddPerson()" [rounded]="true" [text]="true" [ariaLabel]="'Adicionar persona'"></p-button>
+        <p-button 
+          icon="pi pi-user-plus" 
+          (onClick)="OpenModalAddPerson()" 
+          [rounded]="true" 
+          [text]="true" 
+          [ariaLabel]="'Adicionar persona'"
+        ></p-button>
       </div>
     </div>
 
@@ -287,8 +322,19 @@
 
   <ng-template pTemplate="footer">
     <div style="display:flex; justify-content:flex-end; gap:0.5rem; width:100%;">
-      <p-button label="Cancelar" severity="secondary" outlined (onClick)="closeMovementModal()"></p-button>
-      <p-button label="Aceptar" icon="pi pi-check" (onClick)="onSubmitMovement()" [disabled]="!form.movement_type || !form.amount" [loading]="savingMovementLoading()"></p-button>
+      <p-button 
+        label="Cancelar" 
+        severity="secondary" 
+        outlined 
+        (onClick)="closeMovementModal()"
+      ></p-button>
+      <p-button 
+        label="Aceptar" 
+        icon="pi pi-check" 
+        (onClick)="onSubmitMovement()" 
+        [disabled]="!form.movement_type || !form.amount" 
+        [loading]="savingMovementLoading()"
+      ></p-button>
     </div>
   </ng-template>
 </p-dialog>

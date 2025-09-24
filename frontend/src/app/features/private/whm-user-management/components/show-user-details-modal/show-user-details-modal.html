@@ -79,6 +79,7 @@
               defaultLabel="Roles iniciales (opcional)"
               [ngModel]="rolesToAdd()"
               (ngModelChange)="rolesToAdd.set($event)"
+              appendTo="body"
             ></p-multiSelect>
             <button pButton label="Importar y asignar" icon="pi pi-download" (click)="importAttach()"></button>
           </div>
@@ -110,6 +111,7 @@
               [style]="{ width:'100%' }"
               [ngModel]="rolesEdit()[row.obra.id]"
               (ngModelChange)="updateRolesForRow(row.obra.id, $event)"
+              appendTo="body"
             ></p-multiSelect>
           </td>
           <td style="display: flex; gap:0.5rem">
