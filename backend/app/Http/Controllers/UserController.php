@@ -170,7 +170,6 @@ class UserController extends Controller
 
     function updateUser(Request $request)
     {
-        Log::info('Actualizando usuario con datos: ' . json_encode($request->all()));
         $user = User::find($request->id);
         $user->update([
             'name' => $request->username,
