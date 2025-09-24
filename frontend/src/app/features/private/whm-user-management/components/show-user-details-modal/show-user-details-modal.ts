@@ -11,6 +11,7 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { ButtonModule } from 'primeng/button';
 import { FormsModule } from '@angular/forms'; // Necesario para ngModel
 
+import { InputTextModule } from 'primeng/inputtext';
 
 // Services
 import { ShowUserDetailsModalService, UserObraRow, ObraLite, RoleLite, ExternalMeta } from '../../services/show-user-details-modal.service';
@@ -26,6 +27,7 @@ import { ShowUserDetailsModalService, UserObraRow, ObraLite, RoleLite, ExternalM
     MultiSelectModule,
     SelectModule,
     ButtonModule,
+    InputTextModule,
   ],
   templateUrl: './show-user-details-modal.html',
   styleUrl: './show-user-details-modal.css'

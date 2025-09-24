@@ -1,0 +1,66 @@
+<p-toast />
+
+<div class="card">
+  <div class="flex items-center justify-between mb-3">
+    <div>
+      <h1 class="text-2xl font-semibold">Obras</h1>
+      <p class="text-gray-500">Importa usuarios desde Silucia por obra.</p>
+    </div>
+
+    <div class="flex gap-2">
+      <!-- <input pInputText [(ngModel)]="filtro()" placeholder="Buscar..." (keyup.enter)="onSearch()" /> -->
+             <input pInputText 
+       [ngModel]="filtro()" 
+       (ngModelChange)="filtro.set($event)" 
+       placeholder="Buscar..." />
+      <p-button pButton type="button" label="Buscar" icon="pi pi-search" (click)="onSearch()"></p-button>
+    </div>
+  </div>
+
+  <p-table
+    [value]="obras()"
+    [lazy]="true"
+    (onLazyLoad)="onLazyLoad($event)"
+    [paginator]="true"
+    [rows]="rows()"
+    [totalRecords]="total()"
+    [first]="first()"
+    [loading]="loading()"
+    dataKey="id"
+    [tableStyle]="{ 'min-width': '70rem' }"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="min-width:8rem;">Año</th>
+        <th style="min-width:10rem;">Código</th>
+        <th>Nombre</th>
+        <th>Descripción</th>
+        <th style="width:12rem;" class="text-center">Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-obra>
+      <tr>
+        <td>{{ obra.anio }}</td>
+        <td>{{ obra.codmeta }}</td>
+        <td>{{ obra.nombre || obra.nombre_corto || '—' }}</td>
+        <td>
+          <div style="max-height:76px; overflow:auto; line-height:1.3;">
+            {{ obra.desmeta || '—' }}
+          </div>
+        </td>
+        <td class="text-center">
+<p-button
+  label="Importar usuarios"
+  icon="pi pi-download"
+  (onClick)="onImport(obra)">
+</p-button>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr><td colspan="5">No hay obras.</td></tr>
+    </ng-template>
+  </p-table>
+</div>

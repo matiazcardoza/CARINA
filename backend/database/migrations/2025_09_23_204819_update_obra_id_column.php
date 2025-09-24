@@ -26,11 +26,11 @@ return new class extends Migration
             });
         }
 
-        if (Schema::hasTable($tableNames['roles'])) {
-            Schema::table($tableNames['roles'], function (Blueprint $table) use ($teamForeignKey) {
-                $table->unsignedBigInteger($teamForeignKey)->default(1)->nullable()->change();
-            });
-        }
+        // if (Schema::hasTable($tableNames['roles'])) {
+        //     Schema::table($tableNames['roles'], function (Blueprint $table) use ($teamForeignKey) {
+        //         $table->unsignedBigInteger($teamForeignKey)->default(1)->nullable()->change();
+        //     });
+        // }
     }
 
     public function down(): void
@@ -51,10 +51,10 @@ return new class extends Migration
             });
         }
 
-        if (Schema::hasTable($tableNames['roles'])) {
-            Schema::table($tableNames['roles'], function (Blueprint $table) use ($teamForeignKey) {
-                $table->unsignedBigInteger($teamForeignKey)->nullable()->change();
-            });
-        }
+        // if (Schema::hasTable($tableNames['roles'])) {
+        //     Schema::table($tableNames['roles'], function (Blueprint $table) use ($teamForeignKey) {
+        //         $table->unsignedBigInteger($teamForeignKey)->nullable()->change();
+        //     });
+        // }
     }
 };

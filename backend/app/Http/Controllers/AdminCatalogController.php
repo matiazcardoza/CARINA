@@ -54,4 +54,24 @@ class AdminCatalogController extends Controller
             ], $status);
         }
     }
+
+    public function allObras(Request $request)
+    {
+        $q = Obra::query()
+            ->select(['id','idmeta_silucia','anio','codmeta','nombre','desmeta','nombre_corto'])
+            ->when($request->filled('search'), function ($qq) use ($request) {
+                $s = $request->string('search')->toString();
+                $qq->where(function($w) use ($s) {
+                    $w->where('nombre','like',"%{$s}%")
+                      ->orWhere('desmeta','like',"%{$s}%")
+                      ->orWhere('codmeta','like',"%{$s}%")
+                      ->orWhere('anio','like',"%{$s}%");
+                });
+            })
+            ->orderByDesc('id');
+
+        // Paginado opcional (?page=, ?per_page=)
+        $perPage = (int) $request->input('per_page', 15);
+        return response()->json($q->paginate($perPage));
+    }
 }

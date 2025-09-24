@@ -36,7 +36,7 @@ import { WhmKardexManagement } from './features/private/whm-kardex-management/wh
 import { RenderingTest } from './shared/draft/rendering-test/rendering-test';
 import { WhmUserManagement } from './features/private/whm-user-management/whm-user-management';
 import { NoPermissions } from './features/private/no-permissions/no-permissions';
-
+import { WhmObrasManagement } from './features/private/whm-obras-management/whm-obras-management';
 // Importar el guard genérico
 import { PermissionGuard } from './services/AuthService/permission.guard';
 
@@ -173,6 +173,10 @@ export const routes: Routes = [
             {
                 path: 'whm-kardex-management',
                 component: WhmKardexManagement,
+            },
+            {
+                path: 'whm-obras-management',
+                component: WhmObrasManagement,
             },
             {
                 path: 'digital-signatures',
