@@ -170,8 +170,13 @@
             </th>
             <td mat-cell *matCellDef="let element" class="fuel-cell">
               <div class="fuel-info">
-                <span class="fuel-value">{{element.initial_fuel}}</span>
-                <span class="fuel-unit">G</span>
+                <ng-container *ngIf="serviceState === '2'">
+                  <span style="color: green;"><strong>Máquina servida</strong></span>
+                </ng-container>
+                <ng-container *ngIf="serviceState !== '2'">
+                  <span class="fuel-value">{{element.initial_fuel}}</span>
+                  <span class="fuel-unit">G</span>
+                </ng-container>
               </div>
             </td>
           </ng-container>

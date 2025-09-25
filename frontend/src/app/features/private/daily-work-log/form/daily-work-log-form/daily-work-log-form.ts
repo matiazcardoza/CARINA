@@ -21,6 +21,7 @@ export interface DialogData {
   isEdit: boolean;
   workLog: any;
   serviceId?: string | number;
+  serviceState?: string | number;
 }
 
 @Component({
@@ -66,18 +67,43 @@ export class DailyWorkLogForm implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: DialogData,
     private cdr: ChangeDetectorRef
   ) {
+    // Configurar validadores dinámicamente basándose en serviceState
+    const productValidators = this.shouldRequireProductFields ? [Validators.required] : [];
+    const fuelValidators = this.shouldRequireProductFields ? [Validators.required, Validators.min(0)] : [];
+
     this.workLogForm = this.fb.group({
       work_date: ['', Validators.required],
       start_time: ['', Validators.required],
-      initial_fuel: ['', [Validators.required, Validators.min(0)]],
-      product_id: ['', Validators.required],
+      initial_fuel: ['', fuelValidators],
+      product_id: ['', productValidators],
       description: ['']
     });
   }
 
-  ngOnInit() {
-    this.loadProducts();
+  // Getter para determinar si los campos de producto son requeridos
+  get shouldRequireProductFields(): boolean {
+    return this.data.serviceState !== 2 && this.data.serviceState !== '2';
+  }
 
+  // Getter para mostrar/ocultar campos de producto
+  get shouldShowProductFields(): boolean {
+    return this.shouldRequireProductFields;
+  }
+
+  ngOnInit() {
+    // Solo cargar productos si son necesarios
+    if (this.shouldRequireProductFields) {
+      this.loadProducts();
+      this.setupProductFieldLogic();
+    } else {
+      // Si no se requieren campos de producto, habilitamos directamente el combustible
+      this.workLogForm.get('initial_fuel')?.disable();
+    }
+
+    this.setupFormValues();
+  }
+
+  private setupProductFieldLogic() {
     this.workLogForm.get('initial_fuel')?.disable();
 
     this.workLogForm.get('product_id')?.valueChanges.pipe(
@@ -93,17 +119,25 @@ export class DailyWorkLogForm implements OnInit {
         this.workLogForm.get('initial_fuel')?.setValue('');
       }
     });
+  }
 
+  private setupFormValues() {
     if (this.data.isEdit && this.data.workLog) {
-      const product = { id: this.data.workLog.products_id, numero: this.data.workLog.numero, item: this.data.workLog.item } as ProductsElement;
-      this.workLogForm.patchValue({
+      const formValues: any = {
         work_date: this.data.workLog.work_date ? new Date(this.data.workLog.work_date) : null,
         start_time: this.data.workLog.start_time,
-        product_id: product,
-        initial_fuel: this.data.workLog.initial_fuel,
         description: this.data.workLog.description || ''
-      });
-      this.workLogForm.get('initial_fuel')?.enable();
+      };
+
+      // Solo agregar campos de producto si son requeridos
+      if (this.shouldRequireProductFields) {
+        const product = { id: this.data.workLog.products_id, numero: this.data.workLog.numero, item: this.data.workLog.item } as ProductsElement;
+        formValues.product_id = product;
+        formValues.initial_fuel = this.data.workLog.initial_fuel;
+        this.workLogForm.get('initial_fuel')?.enable();
+      }
+
+      this.workLogForm.patchValue(formValues);
       this.workLogForm.get('work_date')?.disable();
       this.workLogForm.get('start_time')?.disable();
     } else {
@@ -119,6 +153,7 @@ export class DailyWorkLogForm implements OnInit {
   }
 
   get isProductSelected(): boolean {
+    if (!this.shouldRequireProductFields) return true;
     const product = this.workLogForm.get('product_id')?.value;
     return product && typeof product === 'object' && product.id;
   }
@@ -187,20 +222,23 @@ export class DailyWorkLogForm implements OnInit {
       this.isLoading = true;
 
       const formValue = this.workLogForm.getRawValue();
-      const productObject = formValue.product_id;
       
-      const workLogData = {
+      const workLogData: any = {
         id: this.data.workLog?.id,
         work_date: this.formatDate(formValue.work_date),
         start_time: formValue.start_time,
-        initial_fuel: parseFloat(formValue.initial_fuel),
-        product_id: productObject.id,
         description: formValue.description,
         service_id: this.data.serviceId ? Number(this.data.serviceId) : null
       };
 
-      if (this.data.isEdit && this.data.workLog?.id) {
+      // Solo agregar campos de producto si son requeridos
+      if (this.shouldRequireProductFields) {
+        const productObject = formValue.product_id;
+        workLogData.initial_fuel = parseFloat(formValue.initial_fuel);
+        workLogData.product_id = productObject.id;
+      }
 
+      if (this.data.isEdit && this.data.workLog?.id) {
         setTimeout(() => {
           this.dailyWorkLogService.updateWorkLog(workLogData)
             .subscribe({
@@ -241,7 +279,6 @@ export class DailyWorkLogForm implements OnInit {
   }
 
   private formatDate(date: Date): string {
-
     const year = date.getFullYear();
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
@@ -257,7 +294,6 @@ export class DailyWorkLogForm implements OnInit {
 
     return minutes1 - minutes2;
   }
-
 
   get workDateError() {
     const control = this.workLogForm.get('work_date');
@@ -276,6 +312,7 @@ export class DailyWorkLogForm implements OnInit {
   }
 
   get productError() {
+    if (!this.shouldRequireProductFields) return '';
     const control = this.workLogForm.get('product_id');
     if (control?.hasError('required') && control?.touched) {
       return 'El producto es requerido';
@@ -284,6 +321,7 @@ export class DailyWorkLogForm implements OnInit {
   }
 
   get initialFuelError() {
+    if (!this.shouldRequireProductFields) return '';
     const control = this.workLogForm.get('initial_fuel');
     if (control?.hasError('required') && control?.touched) {
       return 'El combustible inicial es requerido';

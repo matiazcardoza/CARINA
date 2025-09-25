@@ -165,7 +165,7 @@
               <th mat-header-cell *matHeaderCellDef>Evidencias</th>
               <td mat-cell *matCellDef="let parte">
                 <div class="evidence-info">
-                  <button mat-icon-button color="primary" (click)="viewEvidenceData(parte.id, parte)">
+                  <button mat-icon-button matTooltip="Ver Evidencias" color="primary" (click)="viewEvidenceData(parte.id, parte)">
                     <mat-icon>photo_camera</mat-icon>
                   </button>
                 </div>

@@ -170,7 +170,7 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
     });
   }
 
-  navigateToWorkLogId(id: number) {
-    this.router.navigate(['/private/daily-work-log/daily-work-log-id', id]);
+  navigateToWorkLogId(id: number, state: number) {
+    this.router.navigate(['/private/daily-work-log/daily-work-log-id', id, state]);
   }
 }

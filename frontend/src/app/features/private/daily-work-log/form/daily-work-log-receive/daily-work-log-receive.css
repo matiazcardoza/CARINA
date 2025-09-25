@@ -1,10 +1,9 @@
 .dialog-container {
-  /* max-width: 1200px; */ /* Eliminar esta línea */
-  width: 100%; /* Añadir esto */
+  width: 100%;
   margin: 0 auto;
   padding: 24px;
-  background: #fafafa;
-  min-height: 100vh;
+  max-height: 100vh;
+  overflow: auto;
 }
 
 .header-section {

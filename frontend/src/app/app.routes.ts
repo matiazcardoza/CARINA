@@ -37,23 +37,19 @@ import { RenderingTest } from './shared/draft/rendering-test/rendering-test';
 import { WhmUserManagement } from './features/private/whm-user-management/whm-user-management';
 import { NoPermissions } from './features/private/no-permissions/no-permissions';
 import { WhmObrasManagement } from './features/private/whm-obras-management/whm-obras-management';
-// Importar el guard genérico
 import { PermissionGuard } from './services/AuthService/permission.guard';
 
 export const routes: Routes = [
-    // Redirige la ruta raíz a la página de login
     {
         path: '',
         redirectTo: 'login',
         pathMatch: 'full'
     },
-    // Ruta para el componente de login
     {
         path: 'login',
         component: Login,
         canActivate: [publicGuard]
     },
-    // Rutas protegidas que requieren autenticación (dashboard y sus hijos)
     {
         path: 'private',
         component: Dashboard,
@@ -64,7 +60,6 @@ export const routes: Routes = [
                 redirectTo: 'home',
                 pathMatch: 'full'
             },
-            // Dashboard - Requiere permiso access_dashboard
             {
                 path: 'home',
                 component: Dashboards,
@@ -74,7 +69,6 @@ export const routes: Routes = [
                     redirectTo: '/private/no-permissions'
                 }
             },
-            // Daily Work Log - Requiere permiso access_work_log
             {
                 path: 'daily-work-log',
                 canActivate: [PermissionGuard],
@@ -87,14 +81,13 @@ export const routes: Routes = [
                         path: '',
                         component: DailyWorkLog
                     },
-                    // Work Log ID específico - Requiere permisos más específicos
                     {
-                        path: 'daily-work-log-id/:id',
+                        path: 'daily-work-log-id/:id/:state',
                         component: DailyWorkLogId,
                         canActivate: [PermissionGuard],
                         data: { 
                             permissions: ['access_work_log_id', 'edit_work_log_id'],
-                            checkType: 'any', // Puede tener cualquiera de estos permisos
+                            checkType: 'any',
                             redirectTo: '/private/daily-work-log'
                         }
                     }
@@ -110,7 +103,6 @@ export const routes: Routes = [
                     redirectTo: '/private/no-permissions'
                 }
             },
-            // Users - Solo SuperAdministrador
             {
                 path: 'users',
                 component: Users,
@@ -120,7 +112,6 @@ export const routes: Routes = [
                     redirectTo: '/private/no-permissions'
                 }
             },
-            // Roles - Solo SuperAdministrador
             {
                 path: 'roles',
                 component: Roles,
@@ -130,7 +121,6 @@ export const routes: Routes = [
                     redirectTo: '/private/no-permissions'
                 }
             },
-            // Reports - Requiere permiso access_reportes
             {
                 path: 'reports',
                 component: Reports,
@@ -140,18 +130,18 @@ export const routes: Routes = [
                     redirectTo: '/private/no-permissions'
                 }
             },
-            // Página de sin permisos
             {
                 path: 'no-permissions',
                 component: NoPermissions
             },
-            // Digital Signature Tray - Sin permisos específicos por ahora
             {
                 path: 'digital-signature-tray',
-                component: DigitalSignatureTray
-                // Agregar guard cuando definas el permiso específico:
-                // canActivate: [PermissionGuard],
-                // data: { permissions: ['access_signature_tray'] }
+                component: DigitalSignatureTray,
+                canActivate: [PermissionGuard],
+                data: { 
+                    permissions: ['access_tray_signature'],
+                    redirectTo: '/private/no-permissions'
+                }
             },
             // Kardex Management - Sección de almacén (agregar permisos cuando estén definidos)
             {

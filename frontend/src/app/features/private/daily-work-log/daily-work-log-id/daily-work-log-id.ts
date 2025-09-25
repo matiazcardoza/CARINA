@@ -51,6 +51,7 @@ export interface WorkLogIdElement {
 export class DailyWorkLogId implements AfterViewInit, OnInit {
 
   serviceId: string | null = null;
+  serviceState: string | null = null;
 
   dateControl = new FormControl(new Date());
   selectedDate: string = this.formatDate(new Date());
@@ -70,6 +71,7 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
 
   ngOnInit() {
   this.serviceId = this.route.snapshot.paramMap.get('id');
+  this.serviceState = this.route.snapshot.paramMap.get('state');
 
   this.dateControl.valueChanges
     .pipe(
@@ -170,7 +172,8 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
       data: {
         isEdit: false,
         workLog: null,
-        serviceId: this.serviceId
+        serviceId: this.serviceId,
+        serviceState: this.serviceState
       }
     });
 
@@ -187,7 +190,8 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
       data: {
         isEdit: true,
         workLog: workLog,
-        serviceId: this.serviceId
+        serviceId: this.serviceId,
+        serviceState: this.serviceState
       }
     });
 

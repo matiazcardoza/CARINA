@@ -30,7 +30,8 @@ export interface DocumentSignatureUserElement {
     MatTableModule,
     MatPaginatorModule,
     MatDialogModule,
-    MatTooltipModule
+    MatTooltipModule,
+    HasPermissionDirective
   ],
   templateUrl: './digital-signature-tray.html',
   styleUrl: './digital-signature-tray.css'

@@ -22,8 +22,6 @@ class EvidenceController extends Controller
             return $dailyPart;
         });
         
-        Log::info('dailyParts with evidences: ', $dailyPartsWithEvidence->toArray());
-        
         return response()->json([
             'message' => 'Evidence fetched successfully',
             'data' => $dailyPartsWithEvidence
