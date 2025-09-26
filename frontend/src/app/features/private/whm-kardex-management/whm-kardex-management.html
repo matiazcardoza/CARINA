@@ -448,7 +448,7 @@
 <!-- Modal para buscar y anexar persona por DNI -->
 <app-add-new-user-modal
   [isOpen]="showAddUserModal"
-  (sentOpenValue)="closeModalAddPerson()"
+  (isOpenChange)="closeModalAddPerson()"
   (onListPeopleByDni)="handleListPeopleByDni($event)"
   [obraId]="selectedObraId"
 />

@@ -18,14 +18,15 @@ class RolesWarehouseMovementSeeder extends Seeder
        
         // Crear roles
         $super_admin    = Role::firstOrCreate(['name' => 'almacen.superadmin', 'guard_name' => 'api']);
-        $almacenero     = Role::firstOrCreate(['name' => 'almacen.operador', 'guard_name' => 'api']);
+        $almacenero     = Role::firstOrCreate(['name' => 'almacen.almacenero', 'guard_name' => 'api']);
         $administrador  = Role::firstOrCreate(['name' => 'almacen.administrador', 'guard_name' => 'api']);
         $residente      = Role::firstOrCreate(['name' => 'almacen.residente', 'guard_name' => 'api']);
         $supervisor     = Role::firstOrCreate(['name' => 'almacen.supervisor', 'guard_name' => 'api']);
+        $operario       = Role::firstOrCreate(['name' => 'almacen.operario', 'guard_name' => 'api']);   /** Obrero, trabajadores, persona que reciben los productos que se extraen del almacen */
         // Definir permisos por módulo
         $modules = [
             'kardex_management' => [
-                ['name' => 'access_movement_kardex', 'label' => 'Acceder a Gestión del Kardex'],
+                ['name' => 'access_kardex_management', 'label' => 'Acceder a Gestión del Kardex'],
                 ['name' => 'create_new_movement', 'label' => 'Crear un nuevo movimiento'],
                 ['name' => 'create_see_movements', 'label' => 'Ver movimientos'],
             ],
@@ -33,6 +34,9 @@ class RolesWarehouseMovementSeeder extends Seeder
                 ['name' => 'access_user_management', 'label' => 'Acceder al módulo de gestión del usuario'],
 
             ],
+            'obras_management' => [
+                ['name' => 'access_obras_management', 'label' =>  'Acceder al módulo de gestión de obras'],
+            ]
         ];
 
                 // Crear permisos y asignar roles
@@ -48,8 +52,10 @@ class RolesWarehouseMovementSeeder extends Seeder
                     case 'kardex_management':
                         $permission->syncRoles([$super_admin, $almacenero, $administrador, $residente, $supervisor]);
                         break;
-
                     case 'user_management':
+                        $permission->syncRoles([$super_admin]);
+                        break;
+                    case 'obras_management':
                         $permission->syncRoles([$super_admin]);
                         break;
                 }

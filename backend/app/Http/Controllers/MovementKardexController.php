@@ -953,7 +953,7 @@ class MovementKardexController extends Controller
         ]);
 
         $roles = config('signing.roles_order', [
-            ['role'=>'almacen.operador',        'page'=>1,'pos_x'=>35,  'pos_y'=>745,'width'=>180,'height'=>60],
+            ['role'=>'almacen.almacenero',       'page'=>1,'pos_x'=>35,  'pos_y'=>745,'width'=>180,'height'=>60],
             ['role'=>'almacen.administrador',   'page'=>1,'pos_x'=>170, 'pos_y'=>745,'width'=>180,'height'=>60],
             ['role'=>'almacen.residente',       'page'=>1,'pos_x'=>305, 'pos_y'=>745,'width'=>180,'height'=>60],
             ['role'=>'almacen.supervisor',      'page'=>1,'pos_x'=>440, 'pos_y'=>745,'width'=>180,'height'=>60],

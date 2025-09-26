@@ -7,11 +7,14 @@ import { InputTextModule } from 'primeng/inputtext';
 import { Toast } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { WhmObrasManagementService, Obra, Paginated } from './services/whm-obras-management.service';
+import { ButtonModule } from 'primeng/button';
+import { ShowAllObrasModal } from './components/show-all-obras-modal/show-all-obras-modal';
+
 
 @Component({
   selector: 'app-whm-obras-management',
   standalone: true,
-  imports: [TableModule, Button, InputTextModule, Toast, FormsModule],
+  imports: [TableModule, Button, InputTextModule, Toast, FormsModule, ButtonModule, ShowAllObrasModal],
   providers: [MessageService],
   templateUrl: './whm-obras-management.html',
   styleUrls: ['./whm-obras-management.css'],
@@ -23,6 +26,7 @@ export class WhmObrasManagement {
   obras   = signal<Obra[]>([]);
   total   = signal(0);
   loading = signal(false);
+  showAllObrasModal = signal<boolean>(false)
 
   // paginación (server-side)
   rows  = signal(10);  // tamaño de página
@@ -77,5 +81,13 @@ export class WhmObrasManagement {
         this.msg.add({ severity: 'error', summary: 'Error al importar', detail: err?.error?.message || 'Revise el log.' });
       },
     });
+  }
+
+  getObras(){
+    this.showAllObrasModal.set(true)
+    console.log("importar obra")
+  }
+  cerrarModal(){
+    this.showAllObrasModal.set(false)
   }
 }

@@ -2,6 +2,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../../environments/environment';
+import { MetasDetalladoResponse } from '../interfaces/whm-obras-management.interface';
+import { Filters } from '../interfaces/whm-obras-management.interface';
+
 export type Obra = {
   id: number;
   idmeta_silucia: string;
@@ -49,6 +52,22 @@ export class WhmObrasManagementService {
     // tu endpoint real (según el JSON que pegaste)
     return this.http.get<Obra[]>(`${this.apiUrl}/api/admin/get-all-obras`,this.options);
     // return this.http.get<Paginated<Obra>>(`${this.base}/get-all-obras`, { params });
+  }
+
+  getObrasSilucia(page = 1, perPage = 10, filters: Filters){
+    let params = new HttpParams()
+      .set('page', page)
+      .set('per_page', perPage);
+      if(filters.anio){
+        params = params.set('anio', filters.anio)
+      }
+
+      if(filters.codmeta){
+        params = params.set('codmeta', filters.codmeta)
+      }
+
+
+    return this.http.get<MetasDetalladoResponse>(`${this.apiUrl}/api/admin/obras`,{...this.options, params});
   }
 
   importUsers(obraId: number) {

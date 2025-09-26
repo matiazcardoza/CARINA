@@ -29,3 +29,13 @@ export interface UserRow {
   state: number;
   created_at: string | null;
 }
+
+export type Obra = {
+  id: number;
+  idmeta_silucia: string;
+  anio: string;
+  codmeta: string;
+  nombre: string | null;
+  desmeta: string | null;
+  nombre_corto: string | null;
+};
