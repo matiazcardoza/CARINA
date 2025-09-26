@@ -83,6 +83,7 @@
             <td mat-cell *matCellDef="let element" class="actions-cell">
               <div class="action-buttons">
                 <button mat-icon-button
+                        *appHasPermission="'sing_tray_signature'"
                         (click)="openSignDialog(element.id)"
                         matTooltip="Firmar documento"
                         class="action-btn sign-btn">

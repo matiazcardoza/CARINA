@@ -27,7 +27,8 @@
         <mat-error>{{ startTimeError }}</mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
+      <!-- Campo de Producto - Solo se muestra si shouldShowProductFields es true -->
+      <mat-form-field appearance="outline" class="full-width" *ngIf="shouldShowProductFields">
         <mat-label>Producto</mat-label>
         <input type="text"
               placeholder="Buscar producto..."
@@ -50,8 +51,8 @@
         <mat-error *ngIf="productError">{{ productError }}</mat-error>
       </mat-form-field>
 
-      <!-- Campo de Combustible Inicial -->
-      <mat-form-field appearance="outline" class="full-width">
+      <!-- Campo de Combustible Inicial - Solo se muestra si shouldShowProductFields es true -->
+      <mat-form-field appearance="outline" class="full-width" *ngIf="shouldShowProductFields">
         <mat-label>Combustible Inicial (Galones)</mat-label>
         <input matInput
               type="number"

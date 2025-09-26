@@ -176,9 +176,9 @@ export class DocumentSignature {
   }
 
   private roleToStatusMap = new Map<number, string>([
-    [2, '1'],
-    [3, '2'],
-    [4, '3']
+    [3, '1'],
+    [4, '2'],
+    [5, '3']
   ]);
 
   private rolePriority = [4, 3, 2];

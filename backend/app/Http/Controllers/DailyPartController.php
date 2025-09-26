@@ -39,7 +39,6 @@ class DailyPartController extends Controller
 
     function store(Request $request)
     {
-        Log::info('request', $request->all());
         $dailyPart = DailyPart::create([
             'service_id' => $request->service_id,
             'itemPecosa_id' => $request->product_id,
@@ -50,19 +49,19 @@ class DailyPartController extends Controller
         ]);
 
         $servicio = Service::find($request->service_id);
-        $servicio->update([
-            'fuel_consumed' => $servicio->fuel_consumed + $request->initial_fuel
-        ]);
-
-        $product = ItemPecosa::find($request->product_id);
-
-        $product->update([
-            'quantity_issued' => $request->initial_fuel,
-            'quantity_on_hand' => $product->stock_qty - $request->initial_fuel,
-            'last_movement_at'=> now(),
-        ]);
-
         if($request->initial_fuel){
+            $servicio->update([
+                'fuel_consumed' => $servicio->fuel_consumed + $request->initial_fuel
+            ]);
+        
+            $product = ItemPecosa::find($request->product_id);
+        
+            $product->update([
+                'quantity_issued' => $request->initial_fuel,
+                'quantity_on_hand' => $product->stock_qty - $request->initial_fuel,
+                'last_movement_at'=> now(),
+            ]);
+
             $MovementKardex = MovementKardex::create([
                 'item_pecosa_id' => $product->id,
                 'movement_type' => 'salida',
@@ -75,7 +74,7 @@ class DailyPartController extends Controller
                 'movement_kardex_id' => $MovementKardex->id
             ]);
         }
-
+        
         return response()->json([
             'message' => 'Daily work log created successfully',
             'data' => $dailyPart
@@ -86,46 +85,51 @@ class DailyPartController extends Controller
     {
         $dailyPart = DailyPart::findOrFail($request->id);
 
-        if($dailyPart->products_id != $request->product_id){
-            $prevProduct = ItemPecosa::find($dailyPart->products_id);
+        if ($request->initial_fuel) {
+            if ($dailyPart->itemPecosa_id != $request->product_id) {
+                $prevProduct = ItemPecosa::find($dailyPart->itemPecosa_id);
+                $prevProduct->update([
+                    'quantity_received' => $dailyPart->initial_fuel,
+                    'quantity_on_hand' => $prevProduct->stock_qty + $dailyPart->initial_fuel
+                ]);
+            }
 
-            $prevProduct->update([
-                'quantity_received' => $dailyPart->initial_fuel,
-                'quantity_on_hand' => $prevProduct->stock_qty + $dailyPart->initial_fuel
-            ]);
-        } else {
             $product = ItemPecosa::find($request->product_id);
             $diferentFuel = $request->initial_fuel - $dailyPart->initial_fuel;
             $product->update([
                 'quantity_issued' => $request->initial_fuel,
                 'quantity_on_hand' => $product->stock_qty + $diferentFuel
             ]);
+
+            $diferentFuelService = $request->initial_fuel - $dailyPart->initial_fuel;
+            $servicio = Service::find($dailyPart->service_id);
+            $servicio->update([
+                'fuel_consumed' => $servicio->fuel_consumed + $diferentFuelService
+            ]);
+
+            $dailyPart->update([
+                'itemPecosa_id' => $request->product_id,
+                'initial_fuel' => $request->initial_fuel,
+                'description' => $request->description
+            ]);
+
+            $MovementKardex = MovementKardex::find($dailyPart->movement_kardex_id);
+            $MovementKardex->update([
+                'item_pecosa_id' => $request->product_id,
+                'amount' => $request->initial_fuel
+            ]);
+        } else {
+            $dailyPart->update([
+                'itemPecosa_id' => $request->product_id,
+                'description' => $request->description
+            ]);
         }
-
-        $diferentFuelService = $request->initial_fuel - $dailyPart->initial_fuel;
-
-        $servicio = Service::find($dailyPart->service_id);
-        $servicio->update([
-            'fuel_consumed' => $servicio->fuel_consumed + $diferentFuelService
-        ]);
-
-        $dailyPart->update([
-            'itemPecosa_id' => $request->product_id,
-            'initial_fuel' => $request->initial_fuel,
-            'description' => $request->description
-        ]);
-
-        $MovementKardex = MovementKardex::find($dailyPart->movement_kardex_id);
-        $MovementKardex->update([
-            'item_pecosa_id' => $request->product_id,
-            'amount' => $request->initial_fuel
-        ]);
-
         return response()->json([
-            'message' => 'Daily work log successfully',
+            'message' => 'Daily work log updated successfully',
             'data' => $dailyPart
-        ], 201);
+        ], 200);
     }
+
 
     public function destroy($id)
     {
@@ -233,8 +237,6 @@ class DailyPartController extends Controller
         $parser = new Parser();
         $pdf = $parser->parseFile(storage_path('app/public/' . $document->file_path));
         $numPages = count($pdf->getPages());
-
-        Log::info('estas son las paginas: '. $numPages);
 
         return response()->json([
             'message' => 'get document completed successfully',

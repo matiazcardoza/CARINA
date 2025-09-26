@@ -342,8 +342,14 @@ class SignatureController extends Controller
         } else {
             return response()->json(['error' => 'No file was uploaded'], 400);
         }
-
-        $document->update(['state' => 1]);
+        
+        if($document->state == 0){
+            $document->update(['state' => 1]);
+        } elseif ($document->state == 1){
+            $document->update(['state' => 2]);
+        } elseif ($document->state == 2){
+            $document->update(['state' => 3]);
+        }
 
         return response()->json([
             'ok' => true,

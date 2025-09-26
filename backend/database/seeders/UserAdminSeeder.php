@@ -17,7 +17,7 @@ class UserAdminSeeder extends Seeder
     public function run(): void
     {
         $super_administrador = Role::findByName('SuperAdministrador_pd', 'api');
-        $controlador = Role::findByName('Controlador_pd', 'api');
+        $residente = Role::findByName('Residente_pd', 'api');
 
         $users = User::firstOrCreate(['email' => 'admin@domain.com'], [
             'name' => 'ADMIN',
@@ -33,18 +33,18 @@ class UserAdminSeeder extends Seeder
             'last_name' => 'HUANCA CARDOZA'
         ]);
 
-        $user2 = User::firstOrCreate(['email' => 'controlador@domain.com'], [
-            'name' => 'controlador',
-            'email' => 'controlador@domain.com',
+        $user2 = User::firstOrCreate(['email' => 'residente@domain.com'], [
+            'name' => 'residente',
+            'email' => 'residente@domain.com',
             'password' => Hash::make('admin123'),
             'state' => 1,
-        ])->assignRole($controlador);
+        ])->assignRole($residente);
 
         Persona::create([
             'user_id' => $user2->id,
             'num_doc' => '74033068',
             'name' => 'ROYER',
-            'last_name' => 'CONTROLADOR'
+            'last_name' => 'Residente'
         ]);
 
         // $super_administrador_almacen = Role::findOrCreate('almacen.superadmin', 'api');

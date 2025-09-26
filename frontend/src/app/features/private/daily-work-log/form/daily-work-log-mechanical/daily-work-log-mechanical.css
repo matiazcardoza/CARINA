@@ -1,7 +1,9 @@
 /* Estilos existentes */
 .dialog-container {
-  max-width: 800px;
+  max-width: 100%;
   padding: 24px;
+  max-height: 100vh;
+  overflow: auto;
 }
 
 .header-section {

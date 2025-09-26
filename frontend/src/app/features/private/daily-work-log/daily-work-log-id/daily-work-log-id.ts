@@ -18,6 +18,8 @@ import { DailyWorkLogUpload } from '../form/daily-work-log-upload/daily-work-log
 import { DailyWorkSignature } from './form/daily-work-signature/daily-work-signature';
 import { startWith } from 'rxjs/operators';
 
+import { HasPermissionDirective } from '../../../../shared/directives/permission.directive';
+
 export interface WorkLogIdElement {
   id: number;
   work_date: string;
@@ -40,14 +42,16 @@ export interface WorkLogIdElement {
     MatInputModule,
     MatFormFieldModule,
     MatNativeDateModule,
-    ReactiveFormsModule
-  ],
+    ReactiveFormsModule,
+    HasPermissionDirective
+],
   templateUrl: './daily-work-log-id.html',
   styleUrl: './daily-work-log-id.css'
 })
 export class DailyWorkLogId implements AfterViewInit, OnInit {
 
   serviceId: string | null = null;
+  serviceState: string | null = null;
 
   dateControl = new FormControl(new Date());
   selectedDate: string = this.formatDate(new Date());
@@ -67,6 +71,7 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
 
   ngOnInit() {
   this.serviceId = this.route.snapshot.paramMap.get('id');
+  this.serviceState = this.route.snapshot.paramMap.get('state');
 
   this.dateControl.valueChanges
     .pipe(
@@ -167,7 +172,8 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
       data: {
         isEdit: false,
         workLog: null,
-        serviceId: this.serviceId
+        serviceId: this.serviceId,
+        serviceState: this.serviceState
       }
     });
 
@@ -184,7 +190,8 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
       data: {
         isEdit: true,
         workLog: workLog,
-        serviceId: this.serviceId
+        serviceId: this.serviceId,
+        serviceState: this.serviceState
       }
     });
 

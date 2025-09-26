@@ -31,8 +31,7 @@ class DocumentController extends Controller
 
         $document = DocumentDailyPart::find($request->documentId);
         $document->update([
-            'user_id' => $request->userId,
-            'state' => 2
+            'user_id' => $request->userId
         ]);
         return response()->json([
             'message' => 'Document sent successfully',
@@ -41,6 +40,7 @@ class DocumentController extends Controller
     }
 
     public function getRoles(){
+        setPermissionsTeamId(1);
         $user = User::find(Auth::id());
         $role = $user->roles;
 
