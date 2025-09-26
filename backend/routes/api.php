@@ -185,12 +185,12 @@ Route::get('get-roles-by-scope', function(){
 Route::middleware(['auth:sanctum','resolve.default.obra'])->prefix('/admin')->group(function () {
     Route::get('/accounts',                 [UserController::class, 'index'])->middleware(['role:almacen.superadmin']);
     Route::get('/users',                    [UserIndexController::class, 'index'])->middleware(['role:almacen.superadmin']);
-    Route::get('/obras',                    [ObraIndexController::class, 'index'])->middleware(['role:almacen.superadmin']);
+    // Route::get('/obras',                    [ObraIndexController::class, 'index'])->middleware(['role:almacen.superadmin']);
     Route::get('/obras/{obra}/miembros',    [MembersController::class,'index'])->middleware(['role:almacen.superadmin']);     // devuelve todos los usuario miembros de esta obra
     Route::post('/obras/{obra}/miembros',   [MembersController::class,'upsert'])->middleware(['role:almacen.superadmin']);   // asigna user + roles por obra
     Route::delete('/obras/{obra}/miembros/{user}', [MembersController::class,'destroy'])->middleware(['role:almacen.superadmin']);
 
-    Route::get('/roles',                    [AdminCatalogController::class, 'roles'])->middleware(['role:almacen.superadmin']);   // lista de roles (nombres)
+    // Route::get('/roles',                    [AdminCatalogController::class, 'roles'])->middleware(['role:almacen.superadmin']);   // lista de roles (nombres)
     Route::get('/users/{user}/obras',       [UserObrasController::class, 'index'])->middleware(['role:almacen.superadmin']);
     Route::post('/users/{user}/obras',      [UserObrasController::class, 'store'])->middleware(['role:almacen.superadmin']);   // add obra al user
 
