@@ -109,10 +109,8 @@ export class DigitalSignatureTray implements AfterViewInit, OnInit {
           const html = document.documentElement;
           body.style.overflow = '';
           html.style.overflow = '';
-            
-          if (result) {
-            this.reloadData();
-          }
+          this.reloadData();
+          this.cdr.detectChanges();
         });
   }
 }

@@ -14,6 +14,11 @@ export interface User {
   permissions: string[];
 }
 
+export interface LoginCredentials {
+  num_doc: string;
+  password: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -47,7 +52,7 @@ export class AuthService {
     );
   }
 
-  login(credentials: { email: string; password: string }): Observable<any> {
+  login(credentials: LoginCredentials): Observable<any> {
     return this.getCsrfToken().pipe(
       switchMap(() =>
         this.http.post(`${this.apiUrl}/login`, credentials, { 

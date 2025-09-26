@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../services/AuthService/auth';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { environment } from '../../../../environments/environment'; // ajusta la ruta si tu estructura difiere
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -25,7 +25,7 @@ export class Login implements OnInit {
     private http: HttpClient
   ) {
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
+      num_doc: ['', [Validators.required, Validators.minLength(8)]], // Cambiado de email
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
@@ -51,7 +51,7 @@ export class Login implements OnInit {
           this.isLoading = false;
 
           if (err.status === 422) {
-            this.errorMessage = 'Datos de login inválidos. Verifica tu email y contraseña.';
+            this.errorMessage = 'Datos de login inválidos. Verifica tu número de documento y contraseña.';
           } else if (err.status === 401) {
             this.errorMessage = 'Credenciales incorrectas.';
           } else if (err.status === 500) {
@@ -80,9 +80,15 @@ export class Login implements OnInit {
   getFieldError(fieldName: string): string {
     const field = this.loginForm.get(fieldName);
     if (field?.errors && field.touched) {
-      if (field.errors['required']) return `${fieldName} es requerido`;
-      if (field.errors['email']) return 'Email no válido';
-      if (field.errors['minlength']) return `${fieldName} debe tener al menos ${field.errors['minlength'].requiredLength} caracteres`;
+      if (field.errors['required']) {
+        return fieldName === 'num_doc' ? 'El número de documento es requerido' : 'La contraseña es requerida';
+      }
+      if (field.errors['minlength']) {
+        const minLength = field.errors['minlength'].requiredLength;
+        return fieldName === 'num_doc' 
+          ? `El número de documento debe tener al menos ${minLength} caracteres`
+          : `La contraseña debe tener al menos ${minLength} caracteres`;
+      }
     }
     return '';
   }

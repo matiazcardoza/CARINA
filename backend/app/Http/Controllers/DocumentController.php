@@ -16,6 +16,7 @@ class DocumentController extends Controller
             ->leftJoin('daily_parts', 'documents_daily_parts.id', '=', 'daily_parts.document_id')
             ->leftJoin('services', 'daily_parts.service_id', '=', 'services.id')
             ->where('user_id', Auth::id())
+            ->where('documents_daily_parts.state', '!=', 3)
             ->get();
         return response()->json([
             'message' => 'Documents retrieved successfully',

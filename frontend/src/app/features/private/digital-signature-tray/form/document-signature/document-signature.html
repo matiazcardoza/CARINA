@@ -52,8 +52,8 @@
         {{ isSigned ? 'Documento firmado digitalmente' : 'Documento pendiente de firma' }}
       </span>
     </div>
-    
-    <button mat-raised-button 
+    <button *ngIf="documentState !== 3"
+            mat-raised-button 
             [color]="isSigned ? 'accent' : 'warn'"
             [disabled]="isLoading"
             (click)="onSign()"

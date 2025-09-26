@@ -23,7 +23,7 @@ import { UserElement } from '../../../../users/users';
 export interface DocumentDailyPartElement {
   id: number;
   file_path: string;
-  state: string;
+  state: number;
   pages?: number;
 }
 

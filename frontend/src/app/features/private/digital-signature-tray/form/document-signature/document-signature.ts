@@ -24,7 +24,7 @@ import { UserElement } from '../../../users/users';
 export interface DocumentDailyPartElement {
   id: number;
   file_path: string;
-  state: string;
+  state: number;
   pages?: number;
 }
 
@@ -66,6 +66,7 @@ export class DocumentSignature {
   filteredUsers: UserElement[] = [];
 
   role: UserRoleElement[] = [];
+  documentState: number = 0;
 
   constructor(
     public dialogRef: MatDialogRef<DocumentSignature>,
@@ -153,8 +154,9 @@ export class DocumentSignature {
             const document_id = data.id;
             this.documentId = document_id;
 
+            this.documentState = data.state || 0;
+
             this.numberOfPages = data.pages || 0;
-            console.log('este es el numero de pagina: ', this.numberOfPages);
 
             const fullPdfUrl = `${environment.BACKEND_URL_STORAGE}${pdfPath}`;
             this.pdfUrlString = fullPdfUrl;
@@ -175,40 +177,61 @@ export class DocumentSignature {
       });
   }
 
-  private roleToStatusMap = new Map<number, string>([
-    [3, '1'],
-    [4, '2'],
-    [5, '3']
+  private roleIdToName = new Map<number, string>([
+    [3, 'CONTROLADOR'],
+    [4, 'RESIDENTE'], 
+    [5, 'SUPERVISOR']
   ]);
 
-  private rolePriority = [4, 3, 2];
-
-  private getPriorityRole(): number {
-    if (!this.role || this.role.length === 0) {
-      return 2;
+  private getRoleToSignByDocumentState(): { roleId: number | null, statusPosition: string } {
+    const userRoleIds = this.role.map(r => r.id);
+    
+    switch (this.documentState) {
+      case 0:
+        if (userRoleIds.includes(3)) {
+          return { roleId: 3, statusPosition: '1' };
+        }
+        break;
+        
+      case 1:
+        if (userRoleIds.includes(4)) {
+          return { roleId: 4, statusPosition: '2' };
+        }
+        if (userRoleIds.includes(5) && !userRoleIds.includes(4)) {
+          return { roleId: 5, statusPosition: '2' };
+        }
+        break;
+        
+      case 2:
+        if (userRoleIds.includes(5)) {
+          return { roleId: 5, statusPosition: '3' };
+        }
+        break;
+        
+      default:
+        console.warn('Estado de documento no reconocido:', this.documentState);
+        break;
     }
-
-    const roleIds = this.role.map(r => r.id);
-    for (const priorityRoleId of this.rolePriority) {
-      if (roleIds.includes(priorityRoleId)) {
-        return priorityRoleId;
-      }
-    }
-    return roleIds[0] || 2;
+    return { roleId: null, statusPosition: '1' };
   }
 
-  private getStatusPositionByPriorityRole(): string {
-    const priorityRoleId = this.getPriorityRole();
-    return this.roleToStatusMap.get(priorityRoleId) || '1';
+  private getStatusPositionByDocumentState(): string {
+    const result = this.getRoleToSignByDocumentState();
+    return result.statusPosition;
   }
 
-  private getRoleNameByPriority(): string {
-    if (!this.role || this.role.length === 0) {
+  private getRoleNameByDocumentState(): string {
+    const result = this.getRoleToSignByDocumentState();
+    
+    if (result.roleId === null) {
       return 'ADMIN';
     }
-    const priorityRoleId = this.getPriorityRole();
-    const selectedRole = this.role.find(r => r.id === priorityRoleId);
-    return selectedRole?.name || 'ADMIN';
+    
+    if (result.roleId === 5 && this.documentState === 1) {
+      return 'RESIDENTE';
+    }
+    
+    return this.roleIdToName.get(result.roleId) || 'ADMIN';
   }
 
   onSign(): void {
@@ -221,8 +244,8 @@ export class DocumentSignature {
     this.error = null;
     this.cdr.detectChanges();
 
-    const statusPosition = this.getStatusPositionByPriorityRole();
-    const cargo = this.getRoleNameByPriority();
+    const statusPosition = this.getStatusPositionByDocumentState();
+    const cargo = this.getRoleNameByDocumentState();
 
     const firmaParams: FirmaDigitalParams = {
       location_url_pdf: this.pdfUrlString,
