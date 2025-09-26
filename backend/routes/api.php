@@ -135,37 +135,70 @@ Route::middleware(['auth:sanctum'])->group(function () {
 });
 
 
-// ROUTAS DE SEGUNDA VERSION DEL MOVIMIENTOS DE ALMACEN - TENANT
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/me/obras', [ObrasController::class,'mine']);
-    
+// RUTAS DE SEGUNDA VERSION DEL MOVIMIENTOS DE ALMACEN - TENANT
+Route::middleware(['auth:sanctum'])->group(function () {            
+    /** === en uso === */ Route::get('me/obras', [ObrasController::class,'mine']);
 });
 
+Route::middleware(['auth:sanctum','resolve.obra', 'permission:access_movement_kardex'])->group(function () {
+    // Route::middleware(['resolve.obra'])->group(function () {
+    // Route::get('ordenes-compra', [OCController::class,'index']);
+    // retorna todas los itempecosas a partir de una obra / meta
+    // Route::get('pecosas', [PecosaController::class,'getPecosasByWorks']);
+    // Route::get('ordenes-compra/{orden}/pecosas', [OCController::class, 'pecosas']);  // nuevo
+    // devuelve todos los item pecosas de una obra en específico
+    // /** === en uso === */ Route::get('obras/{obra}/item-pecosas', [PecosaController::class, 'testPecosas'])->middleware(['permission:access_movement_kardex']);
+    /** === en uso === */ Route::get('obras/{obra}/item-pecosas', [PecosaController::class, 'testPecosas']);
+    // registra en la base de datos el movimiento hecho por el usuario
+    /** === en uso === */ Route::post('kardex-movements/{itemPecosa}', [MovementKardexController::class, 'store']);
+    //   Route::get('/ordenes-compra', [ObrasController::class,'index']);
+    // Route::post('items/{item}/movements', [MovementController::class,'store']);
+    // me devuelve todos los movimmientos de un itemPecosa
+    /** === en uso === */ Route::get('item-pecosas/{itemPecosa}/movements-kardex', [PecosaController::class, 'getItemPecosas']);
+    /** === en uso === */ Route::get('item-pecosas/{itemPecosa}/movements-kardex/pdf', [MovementKardexController::class, 'pdf']);
+    // obtenemos los datos de una persona de la api de reniec
+    /** === en uso === */ Route::get('people/{dni}', [PeopleController::class, 'showOrFetch'])->middleware(['role:almacen.operador']); // cache-first (db) → RENIEC
+});
 
+Route::middleware(['auth:sanctum','resolve.default.obra'])->prefix('admin')->group(function () {
+    // me devuelve todos os usuarios
+    /** === en uso === */ Route::get('accounts', [UserController::class, 'index'])->middleware(['role:almacen.superadmin']);
+    // Route::get('users',                    [UserIndexController::class, 'index'])->middleware(['role:almacen.superadmin']);
+    // Route::get('/obras',                    [ObraIndexController::class, 'index'])->middleware(['role:almacen.superadmin']);
+    // Route::get('obras/{obra}/miembros',    [MembersController::class,'index'])->middleware(['role:almacen.superadmin']);     // devuelve todos los usuario miembros de esta obra
+    // Route::post('obras/{obra}/miembros',   [MembersController::class,'upsert'])->middleware(['role:almacen.superadmin']);   // asigna user + roles por obra
+    // Route::delete('obras/{obra}/miembros/{user}', [MembersController::class,'destroy'])->middleware(['role:almacen.superadmin']);
+
+    // Route::get('/roles',                    [AdminCatalogController::class, 'roles'])->middleware(['role:almacen.superadmin']);   // lista de todos los roles (nombres)
+    /** === en uso === */ Route::get('users/{user}/obras', [UserObrasController::class, 'index'])->middleware(['role:almacen.superadmin']);
+    // Route::post('users/{user}/obras',      [UserObrasController::class, 'store'])->middleware(['role:almacen.superadmin']);   // add obra al user
+
+    // catálogos para el front
+    /** === en uso === */Route::get('obras', [AdminCatalogController::class, 'obras'])->middleware(['role:almacen.superadmin']);   // lista todas las obras de silucia para vista antigua
+    /** === en uso === */ Route::get('roles', [AdminCatalogController::class, 'roles'])->middleware(['role:almacen.superadmin']);   // lista de roles (nombres)
+
+    // NUEVO: importar (crear/actualizar) obra desde externa + asignar al usuario con roles
+    // gestión de obras y roles por usuario
+    // Route::post('users/{user}/obras/import-assign', [UserObrasController::class, 'importAndAssign'])->middleware(['role:almacen.superadmin']);
+    /** === en uso === */  Route::delete('users/{user}/obras/{obra}', [UserObrasController::class, 'destroy'])->middleware(['role:almacen.superadmin']); // quitar obra
+
+    // roles por obra
+    /** === en uso === */ Route::put   ('users/{user}/obras/{obra}/roles', [UserObrasController::class, 'syncRoles'])->middleware(['role:almacen.superadmin']);   // reemplazar
+    // Route::post  ('users/{user}/obras/{obra}/roles',    [UserObrasController::class, 'attachRoles'])->middleware(['role:almacen.superadmin']); // agregar
+    // Route::delete('users/{user}/obras/{obra}/roles',    [UserObrasController::class, 'detachRoles'])->middleware(['role:almacen.superadmin']); // quitar
+
+    //NUEVO: importar/actualizar obra (desde API externa) + importar PECOSAs + asignar al usuario + set roles
+    /** === en uso === */ Route::post('users/{user}/obras/import', [UserObrasController::class, 'importAttachFromExternal'])->middleware(['role:almacen.superadmin']);
+
+    //Api para importar los uusarios de las obras
+    /** === en uso === */ Route::post('obras/{obra}/import-users', ObraImportUsersController::class)->middleware(['role:almacen.superadmin']);
+    /** === en uso === */ Route::get('get-all-obras', [AdminCatalogController::class, 'allObras'])->middleware(['role:almacen.superadmin']);
+});
 
 // recibe pdf firmado por firma perú
-Route::post('signatures/callback', [SignatureController::class, 'store']);
-// Routa que sirve solamente para retornar pdfs, los valores se envian en el formato query params
-Route::get('/files-download', [SignatureController::class, 'filesDownload']);
-
-Route::middleware(['auth:sanctum','resolve.obra'])->group(function () {
-    // Route::middleware(['resolve.obra'])->group(function () {
-    Route::get('/ordenes-compra', [OCController::class,'index']);
-    // retora todas los itempecosas a partir de una obra / meta
-    Route::get('/pecosas', [PecosaController::class,'getPecosasByWorks']);
-    Route::get('/ordenes-compra/{orden}/pecosas', [OCController::class, 'pecosas']);  // nuevo
-    // devuelve todos los item pecosas de una obra en especifio
-    Route::get('/obras/{obra}/item-pecosas', [PecosaController::class, 'testPecosas'])->middleware(['role:almacen.operador']);
-    // registra en la base de datos el movimiento hecho por el usuario
-    Route::post('/kardex-movements/{itemPecosa}', [MovementKardexController::class, 'store'])->middleware(['role:almacen.operador']);
-    //   Route::get('/ordenes-compra', [ObrasController::class,'index']);
-    Route::post('/items/{item}/movements', [MovementController::class,'store']);
-    // me devuelve todos los movimmientos de un itemPecosa
-    Route::get('/item-pecosas/{itemPecosa}/movements-kardex',   [PecosaController::class, 'getItemPecosas'])->middleware(['role:almacen.operador']);
-    Route::get('/item-pecosas/{itemPecosa}/movements-kardex/pdf',  [MovementKardexController::class, 'pdf'])->middleware(['role:almacen.operador']);
-    // obtenemos los datos de una persona de la api de reniec
-    Route::get('/people/{dni}', [PeopleController::class, 'showOrFetch'])->middleware(['role:almacen.operador']); // cache-first (db) → RENIEC
-});
+/** === en uso === */ Route::post('signatures/callback', [SignatureController::class, 'store']);
+// Rutas que sirve solamente para retornar pdfs, los valores se envian en el formato query params
+/** === en uso === */  Route::get('files-download', [SignatureController::class, 'filesDownload']);
 
 Route::get('get-roles-by-scope', function(){
     // Fijar el team/obra actual
@@ -181,49 +214,7 @@ Route::get('get-roles-by-scope', function(){
     return $user->roles;
 });
 
-
-Route::middleware(['auth:sanctum','resolve.default.obra'])->prefix('/admin')->group(function () {
-    Route::get('/accounts',                 [UserController::class, 'index'])->middleware(['role:almacen.superadmin']);
-    Route::get('/users',                    [UserIndexController::class, 'index'])->middleware(['role:almacen.superadmin']);
-    // Route::get('/obras',                    [ObraIndexController::class, 'index'])->middleware(['role:almacen.superadmin']);
-    Route::get('/obras/{obra}/miembros',    [MembersController::class,'index'])->middleware(['role:almacen.superadmin']);     // devuelve todos los usuario miembros de esta obra
-    Route::post('/obras/{obra}/miembros',   [MembersController::class,'upsert'])->middleware(['role:almacen.superadmin']);   // asigna user + roles por obra
-    Route::delete('/obras/{obra}/miembros/{user}', [MembersController::class,'destroy'])->middleware(['role:almacen.superadmin']);
-
-    // Route::get('/roles',                    [AdminCatalogController::class, 'roles'])->middleware(['role:almacen.superadmin']);   // lista de roles (nombres)
-    Route::get('/users/{user}/obras',       [UserObrasController::class, 'index'])->middleware(['role:almacen.superadmin']);
-    Route::post('/users/{user}/obras',      [UserObrasController::class, 'store'])->middleware(['role:almacen.superadmin']);   // add obra al user
-
-    // catálogos para el front
-    Route::get('/obras',                    [AdminCatalogController::class, 'obras'])->middleware(['role:almacen.superadmin']);   // lista todas las obras
-    Route::get('/roles',                    [AdminCatalogController::class, 'roles'])->middleware(['role:almacen.superadmin']);   // lista de roles (nombres)
-
-    // NUEVO: importar (crear/actualizar) obra desde externa + asignar al usuario con roles
-    // gestión de obras y roles por usuario
-    Route::post('/users/{user}/obras/import-assign', [UserObrasController::class, 'importAndAssign'])->middleware(['role:almacen.superadmin']);
-    Route::delete('/users/{user}/obras/{obra}',      [UserObrasController::class, 'destroy'])->middleware(['role:almacen.superadmin']); // quitar obra
-
-    // roles por obra
-    Route::put   ('/users/{user}/obras/{obra}/roles',    [UserObrasController::class, 'syncRoles'])->middleware(['role:almacen.superadmin']);   // reemplazar
-    Route::post  ('/users/{user}/obras/{obra}/roles',    [UserObrasController::class, 'attachRoles'])->middleware(['role:almacen.superadmin']); // agregar
-    Route::delete('/users/{user}/obras/{obra}/roles',    [UserObrasController::class, 'detachRoles'])->middleware(['role:almacen.superadmin']); // quitar
-
-    //NUEVO: importar/actualizar obra (desde API externa) + importar PECOSAs + asignar al usuario + set roles
-    Route::post('/users/{user}/obras/import', [UserObrasController::class, 'importAttachFromExternal'])->middleware(['role:almacen.superadmin']);
-
-    //Api para importar los uusarios de las obras
-    Route::post('/obras/{obra}/import-users', ObraImportUsersController::class)->middleware(['role:almacen.superadmin']);
-    Route::get('/get-all-obras', [AdminCatalogController::class, 'allObras'])->middleware(['role:almacen.superadmin']);
-});
-
-// nuevas rutas para actualizar los permisosallObraspor obra - inicio
-// Route::middleware(['auth:sanctum'])->prefix('admin')->group(function () {
-//     // catálogos para el front
-//     Route::get   ('/users/{user}/obras',                 [UserObrasController::class, 'index'])->middleware(['role:almacen.superadmin']);;
-//     Route::post  ('/users/{user}/obras',                 [UserObrasController::class, 'store'])->middleware(['role:almacen.superadmin']);;   // add obra al user
-// });
-
-
+// RUTAS PARA SISTEMA DE VALES DE TRANSPORTE
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('fuel-orders', FuelOrderController::class);
     Route::patch('fuel-orders/{fuelOrder}/decision', [FuelOrderController::class, 'decision']);
