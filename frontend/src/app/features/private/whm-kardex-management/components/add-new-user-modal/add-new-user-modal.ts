@@ -27,6 +27,7 @@ export class AddNewUserModal {
     isOpen = input<boolean>(false)
     obraId = input<number | null>(null)
     sentOpenValue = output<boolean>()
+    isOpenChange = output<boolean>()
     dniQuery: string = '';
     loading = signal<boolean>(false)
     onListPeopleByDni = output<boolean>();
@@ -72,7 +73,9 @@ export class AddNewUserModal {
     }
 
     closeMovementDetailsModal() {
-      this.sentOpenValue.emit(false);
+      // this.sentOpenValue.emit(false);
+      this.isOpenChange.emit(false);
+      // this.isOpen(false)
       // cierra el diálogo como lo manejes hoy
       // this.showMovementDetailsModal = false; // o tu signal/acción equivalente
     }
@@ -97,7 +100,8 @@ export class AddNewUserModal {
             "updated_at": null
       });
       this.dniQuery = '';
-      this.sentOpenValue.emit(false)
+      this.isOpenChange.emit(false);
+      // this.sentOpenValue.emit(false)
     }
 
 
