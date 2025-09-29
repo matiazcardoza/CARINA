@@ -15,6 +15,7 @@ use App\Models\Report;
 use App\Models\SignatureEvent;
 use App\Models\SignatureFlow;
 use App\Models\SignatureStep;
+use App\Models\User;
 use App\Services\ReniecClient;
 use App\Utils\FpdfExample;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -507,16 +508,12 @@ class MovementKardexController extends Controller
 // public function pecosas(Request $request, OrdenCompra $orden)
     public function store(StoreMovementPecosaRequest $request, ItemPecosa $itemPecosa)
     {
-        return $itemPecosa;
+
         $data = $request->validated();
         return DB::transaction(function () use ($data, $itemPecosa) {
-            // Normaliza tipos clave
-            // $data['id_pecosa_silucia'] = (string) $data['id_pecosa_silucia'];
+
             $amount = (float) $data['amount'];
             $isEntrada = $data['movement_type'] === 'entrada';
-
-            // Log::info($item_pecosa);
-            // 2) Deltas según tipo
 
             $deltaIn  = $isEntrada ? $amount : 0;
             $deltaOut = $isEntrada ? 0       : $amount;
@@ -531,13 +528,14 @@ class MovementKardexController extends Controller
             // $newStock = $newIn - $newOut;
 
             // 4) Crear movimiento
+
             $movement = MovementKardex::create([
                 'item_pecosa_id'   => $itemPecosa->id,
+                'created_by'    => Auth::user()->id,
                 'movement_date' => now(),
                 'movement_type' => $data['movement_type'],   // 'entrada' | 'salida'
                 'amount'        => $amount,
                 'observations'  => $data['observations'] ?? null,
-
             ]);
 
             // 5) Actualizar contadores en products
@@ -552,20 +550,24 @@ class MovementKardexController extends Controller
             // 6) Adjuntar personas (tu bloque actual tal cual)
             $attached = [];
             $missing  = [];
-            if (!empty($data['people_dnis']) && is_array($data['people_dnis'])) {
-                $peopleDnis = collect($data['people_dnis'])
+            // if (!empty($data['people_dnis']) && is_array($data['people_dnis'])) {
+            Log::info($data['people_ids']);
+            if (!empty($data['people_ids']) && is_array($data['people_ids'])) {
+                $usersIds = collect($data['people_ids'])
                     ->filter()
-                    ->map(fn ($dni) => str_pad(preg_replace('/\D/','', $dni), 8, '0', STR_PAD_LEFT))
+                    // ->map(fn ($dni) => str_pad(preg_replace('/\D/','', $dni), 8, '0', STR_PAD_LEFT))
                     ->unique()
                     ->values();
-
-                if ($peopleDnis->isNotEmpty()) {
-                    $found = \App\Models\Person::whereIn('dni', $peopleDnis)->pluck('dni');
-                    $movement->people()->syncWithoutDetaching(
-                        $found->mapWithKeys(fn ($dni) => [$dni => ['attached_at' => now()]])->all()
+                Log::info($usersIds);
+                if ($usersIds->isNotEmpty()) {
+                    $found = User::whereIn('id', $usersIds)->pluck('id');
+                    $movement->users()->syncWithoutDetaching(
+                        $found->mapWithKeys(fn ($id) => [$id => ['attached_at' => now()]])->all()
                     );
+                    // $movement->users()->syncWithoutDetaching([$found->id => ['attached_at' => now()]]);
+
                     $attached = $found->values()->all();
-                    $missing  = $peopleDnis->diff($found)->values()->all();
+                    $missing  = $usersIds->diff($found)->values()->all();
                 }
             }
 
@@ -574,8 +576,8 @@ class MovementKardexController extends Controller
                 'item_pecosa'  => $itemPecosa->only(['id','id_pecosa_silucia','id_item_pecosa_silucia','quantity_received','quantity_issued','quantity_on_hand']),
                 'movement' => $movement,
                 'people'   => [
-                    'attached_dnis' => $attached,
-                    'missing_dnis'  => $missing,
+                    'attached_ids' => $attached,
+                    'missing_ids'  => $missing,
                 ],
             ], 201);
         });
@@ -594,7 +596,7 @@ class MovementKardexController extends Controller
         $itemPecosa = ItemPecosa::where('id_pecosa_silucia', $pecosaId)->where('id_item_pecosa_silucia', $itemId)->firstOrFail(); // 404 si no existe
         // return $itemPecosa;
         // $itemPecosa = ItemPecosa::where('id_pecosa_silucia', 1)->where('id_item_pecosa_silucia', 42336)->firstOrFail(); // 404 si no existe
-// return $itemPecosa;
+        // return $itemPecosa;
         // 2) Traer movimientos (puedes paginar si quieres)
         //    Si quieres TODO: ->get();
         //    Si prefieres paginar: ?per_page=20
@@ -633,221 +635,28 @@ class MovementKardexController extends Controller
         ]);
     }
 
-    public function pdfv01(Request $request, $pecosaId, $id_item_pecosa_silucia){
 
-
-        // no se usaran estos filtros, deberan eliminarse
-        // orden -> producto
-        // orden ->itemPecosa
-        // $pecosa = Product::where('id_order_silucia', $id_order_silucia)->where('id_product_silucia', $id_product_silucia)->firstOrFail();
-        // $pecosa = ItemPecosa::where('id_container_silucia', $pecosaId)->where('id_item_pecosa_silucia', $id_item_pecosa_silucia)->firstOrFail();
-        $pecosa = ItemPecosa::where('id_pecosa_silucia', $pecosaId)->where('id_item_pecosa_silucia', $id_item_pecosa_silucia)->firstOrFail();
-        // Log::info($pecosa);
-
-        // Cargar relaciones con filtros/orden
-        $pecosa->load([
-            // 'movements' => function ($q) use ($from, $to, $type) {
-            'movements' => function ($q) {
-                $q->orderBy('movement_date', 'asc')
-                ->select([
-                    'id','item_pecosa_id','movement_date',
-                    'movement_type','amount','observations'
-                ]);
-            },
-            'movements.people' => function ($q) {
-                $q->select([
-                    'people.dni',
-                    'people.full_name',
-                    'people.names',
-                    'people.first_lastname',
-                    'people.second_lastname',
-                ])->orderBy('movement_person.attached_at', 'asc');
-            },
-        ]);
-
-        $movements = $pecosa->movements;
-        $totalEntradas = $movements->where('movement_type','entrada')->sum('amount');
-        $totalSalidas  = $movements->where('movement_type','salida')->sum('amount');
-        $stockFinal    = $totalEntradas - $totalSalidas;
-
-        // ============================
-        // REEMPLAZO: DOMPDF -> FPDF
-        // ============================
-
-        // 1) Mapear a las filas requeridas por KardexReportPdf
-        // $nombre = auth()->user()->name;
-        $nombre = Auth::user()->name;
-        $rows = [];
-        foreach ($movements as $m) {
-            $id = $m->id;
-            $fecha   = Carbon::parse($m->movement_date)->format('Y-m-d');
-            $tipo    = (string)($m->movement_type ?? '');
-            $monto   = (float)$m->amount;
-            // $persona = optional(  $m->people->first()  )->full_name ?: 'Julia Mamani Yampasi';
-            $personaObj = $m->people->first();
-            $persona = $personaObj
-                ? trim(($personaObj->full_name ?? '') . ' ' . ($personaObj->first_lastname ?? '') . ' ' . ($personaObj->second_lastname ?? ''))
-                // : 'Julia Mamani Yampasi';
-                : $nombre;
-            // $persona = optional($m->people->first())->full_name . optional($m->people->first())->first_lastname?: 'Julia Mamani Yampasi';
-            $obs     = (string)($m->observations ?? '');
-            $rows[]  = [$id, $fecha, $tipo, $monto, $persona, $obs];
-            
-        }
-
-
-        // 2) Texto de introducción (USA lo que tengas en product, con fallback)
-        $obra       = (string)($pecosa->desmeta ?? '—');
-        $material   = (string)($pecosa->item ?? '—');
-        $comprobante= (string)("OC-{$pecosa->id_order_silucia}" ?? "OC-{$pecosaId}");
-
-        // ============================
-        // Guardado idéntico a tu flujo
-        // ============================
-        $dir = 'silucia_product_reports';
-        Storage::disk('local')->makeDirectory($dir);
-
-        // 3) QR único por PDF (URL firmada simple)
-        // kardex_02874_249069_20250831_021917_10.pdf  ---> id de la orden / id del item / año, mes día /  hora, minuto, segundo / milisegundos
-        $base = 'kardex_'. $pecosaId . '_'. $id_item_pecosa_silucia.'_'. now()->format('Ymd_His_'). substr(now()->format('u'), 0, 3);
-        $filename = $base . '.pdf';
-        $relativePath = "{$dir}/{$filename}";
-        // se debe crear el path para que se pueda descargar nuevamente el pdf por un codigo qr
-
-        // $qrCode = UsefulFunctionsForPdfs::generateQRcode($filename);
-        $qrCode = UsefulFunctionsForPdfs::generateQRcode(url("/api/files-download?name={$filename}"));
-
-        // 4) Generar PDF con FPDF
-        $headers = ['N', 'Fecha', 'Movimiento', 'Monto', 'Recibido / Encargado', 'Observaciones'];
-        $widths = [0.1, 0.15, 0.15, 0.15, 0.23, 0.22];
-        $styles = [
-            'lineHeight' => 4,
-            'padX'       => 2,
-            'padY'       => 1,
-            'aligns'     => ['C','L','L'],
-            'border'     => 1,
-            'headerFill' => [230,230,230],
-        ];
-
-
-        // antes de que el pdf se cree necesitamos crear el qr e insertarlo
-        // http://127.0.0.1:8000/api/files-download?name=kardex_02874_249069_20250829_213601.pdf
-
-        $pdf = new FpdfExample();
-        url($filename);
-        $pdf->setHeaderLogo($qrCode);
-        // $opt = ['rule'=>true];
-        // $pdf->renderTitle(opt: ['underline' => true]);
-        $pdf->renderTitle();
-        $pdf->drawKardexSummary(
-            $obra,
-            $material,
-            $comprobante,
-            $totalEntradas, 
-            $totalSalidas, 
-            $stockFinal,
-            ['labelW'=>38, 'lineHeight'=>5, 'padX'=>2, 'padY'=>1]
-        );
-        
-        $pdf->renderTable($headers, $rows, $widths, $styles);
-        $pdf->SignatureBoxTest();
-        $bytes = $pdf->Output('S');
-        // una vez generado el binario, eliminado el codigo qr (eliminado la imagen qr)
-        unlink($qrCode); 
-        $ok = Storage::disk('local')->put($relativePath, $bytes);
-        if (!$ok || !Storage::disk('local')->exists($relativePath)) {
-            abort(500, 'No se pudo guardar el PDF.');
-        }
-
-        // Contar páginas con FPDI
-        $pageCount = 1;
-        try {
-            $absolute = Storage::disk('local')->path($relativePath);
-            $fpdi = new Fpdi();
-            $pageCount = (int)$fpdi->setSourceFile($absolute);
-        } catch (\Throwable $e) {
-            Log::info("No se pudo contar páginas de {$relativePath}: ".$e->getMessage());
-        }
-
-        // Registrar reporte y flujo de firma (igual que antes)
-        // $report = KardexReport::create([
-        //     'product_id'       => $product->id,
-        //     'pdf_path'         => $filename, // guardas solo el nombre
-        //     'pdf_page_number'  => $pageCount,
-        //     'status'           => 'in_progress',
-        //     'created_by'       => Auth::id(),
-        // ]);
-        $report = Report::create([
-            'reportable_id'    => $pecosa->id,
-            'reportable_type'  => \App\Models\ItemPecosa::class,
-            // 'reportable_type'  => \App\Models\Product::class,
-            'pdf_path'         => $relativePath,   // << guarda la ruta RELATIVA completa
-            'pdf_page_number'  => $pageCount,
-            'status'           => 'in_progress',
-            'category'         => 'kardex',
-            'created_by'       => Auth::id(),
-        ]);
-        $flow = SignatureFlow::create([
-            'report_id' => $report->id,
-            'current_step'     => 1,
-            'status'           => 'in_progress'
-        ]);
-
-        // Ajusta coordenadas si cambiaste orientación P/L
-        $roles = config('signing.roles_order', [
-            ['role'=>'almacen_almacenero','page'=>1,'pos_x'=>35,        'pos_y'=>745,'width'=>180,'height'=>60],
-            ['role'=>'almacen_administrador','page'=>1,'pos_x'=>170,    'pos_y'=>745,'width'=>180,'height'=>60],
-            ['role'=>'almacen_residente','page'=>1,'pos_x'=>305,        'pos_y'=>745,'width'=>180,'height'=>60],
-            ['role'=>'almacen_supervisor','page'=>1,'pos_x'=>440,       'pos_y'=>745,'width'=>180,'height'=>60],
-        ]);
-        foreach (array_values($roles) as $i => $role) {
-            SignatureStep::create([
-                'signature_flow_id' => $flow->id,
-                'order'             => $i+1,
-                'role'              => $role['role'],
-                'page'              => $role['page'],
-                'pos_x'             => $role['pos_x'],
-                'pos_y'             => $role['pos_y'],
-                'width'             => $role['width'],
-                'height'            => $role['height'],
-                'callback_token'    => Str::random(48),
-            ]);
-        }
-
-        SignatureEvent::create([
-            'signature_flow_id' => $flow->id,
-            'event'   => 'flow_created',
-            'user_id' => Auth::id(),
-            'meta'    => ['report_id'=>$report->id],
-        ]);
-
-        return Storage::download($relativePath, $filename);
-    }
 
     public function pdf(Request $request, ItemPecosa $itemPecosa)
     {
 
         $pecosa = $itemPecosa;
-        $pecosa->load([
+        $itemPecosa->load([
             'movements' => function ($q) {
                 $q->orderBy('movement_date', 'asc')
-                ->select([
-                    'id','item_pecosa_id','movement_date',
-                    'movement_type','amount','observations'
+                ->orderBy('id', 'asc')
+                // Importante: NO uses select() aquí, así no te olvidas de 'created_by'
+                ->with([
+                    'users:id,name,email',
+                    'users.persona:user_id,num_doc,name,last_name',
+                    'creator:id,name,email',
+                    'creator.persona:user_id,num_doc,name,last_name',
                 ]);
-            },
-            'movements.people' => function ($q) {
-                $q->select([
-                    'people.dni',
-                    'people.full_name',
-                    'people.names',
-                    'people.first_lastname',
-                    'people.second_lastname',
-                ])->orderBy('movement_person.attached_at', 'asc');
             },
         ]);
 
-        $movements = $pecosa->movements;
+
+        $movements = $itemPecosa->movements;
         $totalEntradas = $movements->where('movement_type','entrada')->sum('amount');
         $totalSalidas  = $movements->where('movement_type','salida')->sum('amount');
         $stockFinal    = $totalEntradas - $totalSalidas;
@@ -856,19 +665,50 @@ class MovementKardexController extends Controller
         /**
          * Guardar en rows[] todas las iflas que iran en el pdf
          */
-        $nombre = Auth::user()->name;
+        // $nombre = Auth::user()->name;
+        $nombre = "";
         $rows = [];
         foreach ($movements as $m) {
             $id = $m->id;
             $fecha   = Carbon::parse($m->movement_date)->format('Y-m-d');
             $tipo    = (string)($m->movement_type ?? '');
             $monto   = (float)$m->amount;
-            $personaObj = $m->people->first();
-            $persona = $personaObj
-                ? trim(($personaObj->full_name ?? '') . ' ' . ($personaObj->first_lastname ?? '') . ' ' . ($personaObj->second_lastname ?? ''))
-                : $nombre;
+            $firstUser = $m->users->sortBy(fn ($u) => $u->pivot?->attached_at ?? $m->movement_date)->first();
+            
+            $nombreReceptor = null;
+            if($m->movement_type == "salida"){
+                $nombreReceptor = $firstUser?->persona?->name
+                ? trim($firstUser->persona->name . ' ' . ($firstUser->persona->last_name ?? ''))
+                : ($firstUser?->name);
+            }else{
+                $creator = $m->creator;
+                $nombreReceptor = $creator?->persona?->name
+                    ? trim($creator->persona->name . ' ' . ($creator->persona->last_name ?? ''))
+                    : ($creator?->name);
+                if (!$nombreReceptor) {
+                    $nombreReceptor = $firstUser?->persona?->name
+                        ? trim($firstUser->persona->name . ' ' . ($firstUser->persona->last_name ?? ''))
+                        : ($firstUser?->name);
+                }
+            }
+            if (!$nombreReceptor) {
+                $nombreReceptor = 'NINUGUNO';
+            }
+            // $firstUser = $m->users
+            //     ->sortBy(fn ($u) => $u->pivot?->attached_at ?? now()) // orden por pivote
+            //     ->first();
+            // $persona = $firstUser?->persona?->name;
+
+            // DNI y nombre desde persona; si no hay persona, usamos el name del usuario; si no hay usuario, fallback al actual
+            // $dni = $firstUser?->persona?->num_doc;
+            // $apellidoPersona = $firstUser?->persona?->last_name;
+            // $personaObj = $m->people->first();
+            // $persona = $personaObj
+            //     ? trim(($personaObj->full_name ?? '') . ' ' . ($personaObj->first_lastname ?? '') . ' ' . ($personaObj->second_lastname ?? ''))
+            //     : $nombre;
             $obs     = (string)($m->observations ?? '');
-            $rows[]  = [$id, $fecha, $tipo, $monto, $persona, $obs];
+            $rows[]  = [$id, $fecha, $tipo, $monto, $nombreReceptor, $obs];
+            // $rows[] = [$id, $fecha, $tipo, $monto, $nombreCompleto, $obs];
         }
 
         // 2) Texto de introducción (USA lo que tengas en product, con fallback)

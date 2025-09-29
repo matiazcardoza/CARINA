@@ -286,6 +286,7 @@ class PecosaController extends Controller
             'email'    => 'nullable|string|max:255',
         ]);
     }
+
     public function getItemPecosas(Request $request, ItemPecosa $itemPecosa){
         // Validar parámetros
 
@@ -293,17 +294,9 @@ class PecosaController extends Controller
 
         $query = $itemPecosa->movements()
             ->with([
-                    'people' => function ($q) {
-                        // IMPORTANTE: incluye la PK 'dni' del related para hidratar bien el modelo
-                        $q->select([
-                            'people.dni',
-                            'people.full_name',
-                            'people.names',
-                            'people.first_lastname',
-                            'people.second_lastname',
-                        ]);
-                    }
-                ])
+                'users:id,name,email',
+                'users.persona:user_id,num_doc,name,last_name',
+            ])
             ->orderByDesc('movement_date') // fecha más reciente primero
             ->orderByDesc('id');           // y a igualdad de fecha, el último creado
 

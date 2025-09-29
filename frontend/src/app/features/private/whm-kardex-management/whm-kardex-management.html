@@ -475,7 +475,7 @@
       <ng-template pTemplate="body" let-movement let-expanded="expanded">
         <tr>
           <td>
-            <p-button type="button" [pRowToggler]="movement" [disabled]="!movement?.people?.length" [text]="true" [rounded]="true" severity="secondary" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'">
+            <p-button type="button" [pRowToggler]="movement" [disabled]="!movement?.users?.length" [text]="true" [rounded]="true" severity="secondary" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'">
             </p-button>
           </td>
           <td>{{ movement.id }}</td>
@@ -496,7 +496,8 @@
             <div style="padding:10px 8px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px;">
               <h4 style="margin:0 0 8px 0; font-size:1rem;">Personas anexadas</h4>
 
-              <p-table [value]="movement.people || []">
+              <p-table [value]="movement.users || []">
+
                 <ng-template pTemplate="header">
                   <tr>
                     <th style="width:8rem;">DNI</th>
@@ -504,13 +505,21 @@
                     <th style="width:11rem;">Adjuntado</th>
                   </tr>
                 </ng-template>
+
                 <ng-template pTemplate="body" let-person>
                   <tr>
-                    <td>{{ person.dni }}</td>
-                    <td>{{ person.full_name + ' ' + (person.first_lastname || '') + ' ' + (person.second_lastname || '') }}</td>
-                    <td>{{ person.pivot?.attached_at || '—' }}</td>
+                    <td>{{ person.persona?.num_doc || '—' }}</td>
+                    <td>
+                      {{
+                        person.persona?.name
+                          ? (person.persona?.name + (person.persona?.last_name ? ' ' + person.persona?.last_name : ''))
+                          : person.name
+                      }}
+                    </td>
+                    <td>{{ person.pivot?.attached_at | date:'yyyy-MM-dd HH:mm' }}</td>
                   </tr>
                 </ng-template>
+
                 <ng-template pTemplate="emptymessage">
                   <tr><td colspan="3">Sin personas anexadas.</td></tr>
                 </ng-template>

@@ -14,8 +14,12 @@ return new class extends Migration
         Schema::create('movements_kardex', function (Blueprint $table) {
             // $table->id('id');
             $table->id();
-            // $table->unsignedBigInteger('product_id');
+
             $table->foreignId('item_pecosa_id')->constrained('item_pecosas')->cascadeOnUpdate()->cascadeOnDelete();
+
+            // autor del movimiento
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete(); // si borran al usuario, se conserva el movimiento con created_by = null
+
             $table->string('movement_type');
             $table->date('movement_date')->nullable();
             $table->decimal('amount', 12, 2);
