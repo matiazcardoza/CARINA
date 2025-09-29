@@ -154,3 +154,21 @@
     max-width:none;
   }
 }
+
+
+/* ------------- estilos para inputs de busqueda ------------- */
+.search_container{
+  /* background: red; */
+  display: flex;
+  /* flex-direction: column; */
+  flex: wrap;
+  /* flex-grow: 1; */
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+  .search_item{
+     flex-grow: 1;
+    /* background: blue; */
+    /* width: 100%; */
+    min-width: 200px;
+  }

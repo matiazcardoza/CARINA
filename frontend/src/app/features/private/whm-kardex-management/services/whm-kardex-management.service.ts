@@ -4,38 +4,17 @@ import { HttpClient, HttpHeaders, HttpParams, HttpResponse  } from '@angular/com
 import { environment } from '../../../../../environments/environment';
 import { SignatureParams } from '../interfaces/whm-kardex-management.interface';
 import { defer, filter, finalize, fromEvent, map, Observable, take, throwError, timeout } from 'rxjs';
-
+import { FiltersPecosas } from '../interfaces/whm-kardex-management.interface';
 export type Obra = { id: number; nombre: string; codigo: string };
 export interface ObraLite { id: number; nombre: string; codmeta?: string; codigo?: string; }
-export interface PecosaLite {
-  id: number;
-  obra_id: number;
-  anio: string;
-  numero: string;
-  fecha: string;
-  prod_proy?: string;
-  cod_meta?: string;
-  desmeta?: string;
-  desuoper?: string;
-  destipodestino?: string;
-  item?: string;
-  desmedida?: string;
-  cantidad?: number;
-  precio?: number;
-  total?: number;
-  saldo?: number;
-  numero_origen?: string;
-  idsalidadet_silucia: number | string;
-  idcompradet_silucia?: number | string;
-}
-export interface PageResp<T> { data: T[]; total: number; per_page: number; }
+
 export interface MovementsPage { movements: { data: any[]; total: number; per_page: number; }; }
 export type OC   = { id: number; ext_order_id: string; fecha: string; proveedor: string; monto_total: number };
-export type OCx = OC & {
-  pecosas?: Pecosa[];
-  childLoading?: boolean;
-};
-export type Pecosa = { idcompradet: number; /* ...campos que ya tienes... */ };
+// export type OCx = OC & {
+//   pecosas?: Pecosa[];
+//   childLoading?: boolean;
+// };
+// export type Pecosa = { idcompradet: number; /* ...campos que ya tienes... */ };
 
 export type Page<T> = {
   data: T[];
@@ -44,6 +23,8 @@ export type Page<T> = {
   total: number;
 };
 
+import { PecosaResponse } from '../interfaces/whm-kardex-management.interface';
+import { Pecosa } from '../interfaces/whm-kardex-management.interface';
 @Injectable({ providedIn: 'root' })
 export class WhmKardexManagementService {
   private apiUrl = environment.BACKEND_URL;
@@ -54,13 +35,27 @@ export class WhmKardexManagementService {
     return this.http.get<Obra[]>(`${this.apiUrl}/api/me/obras`,this.options);
     
   }
+  // import { FiltersPecosas } from '../interfaces/whm-kardex-management.interface';
+  
+  getItemPecosas(obraId: number | null, page: number, perPage: number, filters: FiltersPecosas) {
+      let params = new HttpParams()
+        .set('page',page)
+        .set('per_page', perPage);
 
-  getItemPecosas(obraId: number, params: { page?: number; per_page?: number; numero?: string; anio?: number }) {
-    let p = new HttpParams();
-    for (const [k, v] of Object.entries(params || {})) if (v !== undefined && v !== null && v !== '') p = p.set(k, String(v));
-    return this.http.get<PageResp<PecosaLite>>(`${this.apiUrl}/api/obras/${obraId}/item-pecosas`, {
-      params: p, withCredentials: true, headers: { 'X-Obra-Id': String(obraId) }
-    });
+      if(filters.anio){
+        params = params.set('anio', filters.anio)
+      }
+
+      if(filters.numero){
+        params = params.set('numero', filters.numero)
+      }
+
+      return this.http.get<PecosaResponse<Pecosa>>(`${this.apiUrl}/api/obras/${obraId}/item-pecosas`, 
+      {
+        ...this.options,
+        params: params, 
+        headers: {'X-Obra-Id': String(obraId) }
+      });
   }
 
   getOrdenesCompra(obraId: number, search?: string): Observable<OC[]> {
@@ -167,5 +162,6 @@ export class WhmKardexManagementService {
       
     });
   }
+  
 }
 

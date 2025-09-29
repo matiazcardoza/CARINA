@@ -7,7 +7,8 @@
       <select id="obraSel"
               class="toolbar__select"
               [ngModel]="selectedObraId"
-              (ngModelChange)="onObraChange($event)">
+              (ngModelChange)="onObraChange($event)"
+              >
         @for (o of obras(); track o.id) {
           <option [value]="o.id">{{ o.nombre }} ({{ o.codmeta || o.codigo }})</option>
         }
@@ -30,65 +31,111 @@
        <!-- stateStorage="session"
     stateKey="whm-kardex-v1" -->
   <p-table
-    #dt1
-    [value]="pecosas()"
-    [paginator]="true"
-    [rows]="pageSize"
-    [totalRecords]="productsTotal()"
-    (onPage)="onPageChange($event)" 
-    [lazy]="false"
+      [loading]="pecosasx().loading"
+      paginatorDropdownAppendTo="body"
 
-    [globalFilterFields]="['numero','fecha','item','cantidad','desmedida','precio','total','desmeta','cod_meta','prod_proy']"
-    selectionMode="single"
-    [(selection)]="selectedProduct"
-    
-    [scrollable]="true"
-    scrollDirection="both"
-    [tableStyle]="{ 'min-width': '100rem' }"
-    [loading]="loadingPecosas()"
-    dataKey="id"
-    [expandedRowKeys]="expandedRowsPecosa()"
-    (onRowExpand)="onRowExpandPecosa($event)"
-    (onRowCollapse)="onRowCollapsePecosa($event)"
+      [value]="pecosasx().value"
+      [rows]="pecosasx().rows"
+      [paginator]="true"
+
+      [first]="pecosasx().first"
+      [totalRecords]="pecosasx().totalRecords"
+
+      (onLazyLoad)="onLazyLoadPecosa($event)"
+      [rowsPerPageOptions]="pecosasx().rowsPerPageOptions"
+      [lazy]="true"
+
+      [lazyLoadOnInit]="false"
+
+      selectionMode="single"
+      [(selection)]="selectedProduct"
+      
+      [scrollable]="true"
+      scrollDirection="both"
+
+      dataKey="id"
+      [expandedRowKeys]="expandedRowsPecosa()"
+      (onRowExpand)="onRowExpandPecosa($event)"
+      (onRowCollapse)="onRowCollapsePecosa($event)"
     >
     <!-- Filtros en el caption -->
     <ng-template pTemplate="caption">
       <div
-        style="
-          display:grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-          gap:12px;
-          align-items:end;
-          grid-auto-flow:dense;
-          width:100%;
-        "
+        class="search_container"
       >
-        <!-- N° PECOSA -->
-        <p-iconfield style="display:block; width:100%;">
-          <p-inputicon><i class="pi pi-search"></i></p-inputicon>
-          <input pInputText type="text" [(ngModel)]="uiFilters.numero" placeholder="N° de PECOSA" style="width:100%;" />
-        </p-iconfield>
+          <!-- N° PECOSA -->
+          <p-iconfield class="search_item">
+            <p-inputicon><i class="pi pi-search"></i></p-inputicon>
+            <input 
+              pInputText 
+              type="text" 
+              placeholder='Número "pecosa"' 
+              style="width: 100%"
+              [value]="pecosasx().filters.numero"
+              (input)="onAddFilters('numero', $event.target.value)"
+              />
+              <!-- [(ngModel)]="uiFilters.numero"  -->
+          </p-iconfield>
 
-        <!-- Año -->
-        <div style="width:100%;">
-          <input pInputText type="number" [(ngModel)]="uiFilters.anio" placeholder="Año" style="width:100%;" />
-        </div>
+          <!-- Año -->
+          <div class="search_item">
+            <input 
+              pInputText 
+              type="number" 
+              placeholder="Año" 
+              style="width: 100%"
+              [value]="pecosasx().filters.anio"
+              (input)="onAddFilters('anio', $event.target.value)"
+              />
+              <!-- [(ngModel)]="uiFilters.anio"  -->
+          </div>
 
-        <!-- Ítem (opcional, deshabilitado si aún no lo usas en el backend) -->
-        <div style="width:100%;">
-          <input pInputText type="text" [(ngModel)]="uiFilters.item" placeholder="Ítem (opcional)" style="width:100%;" disabled />
-        </div>
+          <!-- Ítem (opcional, deshabilitado si aún no lo usas en el backend) -->
+          <div class="search_item">
+            <input 
+              pInputText 
+              type="text" 
+              placeholder="Ítem (opcional)" 
+              disabled 
+              style="width: 100%"
 
-        <!-- Meta (opcional) -->
-        <div style="width:100%;">
-          <input pInputText type="text" [(ngModel)]="uiFilters.desmeta" placeholder="Meta (opcional)" style="width:100%;" disabled />
-        </div>
+              />
+              <!-- [(ngModel)]="uiFilters.item"  -->
+          </div>
 
-        <!-- Botones -->
-        <div style="grid-column:1 / -1; display:flex; gap:8px; justify-content:flex-end; margin-top:4px;">
-          <p-button label="Buscar" icon="pi pi-search" (onClick)="onSearchClick()"></p-button>
-          <p-button label="Limpiar" severity="secondary" outlined (onClick)="onClearClick()"></p-button>
-        </div>
+          <!-- Meta (opcional) -->
+          <div class="search_item"> 
+            <input 
+              pInputText 
+              type="text" 
+              [(ngModel)]="uiFilters.desmeta" 
+              placeholder="Meta (opcional)" 
+              disabled 
+              style="width: 100%"
+            />
+          </div>
+
+          <!-- Botones -->
+          <div class="search_item">
+          <p-button
+              [style]="{width:'100%'}"
+              label="Buscar" 
+              icon="pi pi-search" 
+              (onClick)="search()"
+          ></p-button>
+          </div>
+          <!-- <button (click)="verdatos()">ver datos</button> -->
+              <!-- (onClick)="onSearchClick()" -->
+          <div class="search_item">
+          <p-button 
+              [style]="{width:'100%'}"
+              label="Limpiar" 
+              severity="secondary" 
+              outlined 
+              (onClick)="cleanFilters()"
+          ></p-button>
+          </div>
+          
       </div>
     </ng-template>
 
@@ -144,7 +191,11 @@
         </td>
         <td>{{ row.prod_proy }}</td>
         <td>{{ row.cod_meta }}</td>
-        <td>{{ row.desmeta }}</td>
+        <td style="padding:0; min-width:12rem;">
+          <div style="max-height:120px; overflow:auto; line-height:1.35; padding:6px 8px; text-align:justify; word-break:break-word;">
+          {{ row.desmeta }}
+          </div>
+        </td>
         <td>{{ row.desuoper }}</td>
         <td>{{ row.destipodestino }}</td>
 
@@ -162,37 +213,40 @@
       fila expandida
     </ng-template> -->
     <ng-template pTemplate="expandedrow" let-row>
+      
       <tr>
-        <td colspan="15">
-          <div style="padding:10px 8px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;">
+        <td colspan="10">
+          <!-- <td [attr.colspan]="columns.length"> -->
+          <!-- <div style="padding:10px 8px; background:#f9fafb; border:1px solid #e5e7eb;border-radius:8px;"> -->
+          <div style="padding:10px 8px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; text-align:center; min-width: 50%; background: rgb(240, 240, 240);">
             <h4 style="margin:0 0 8px 0; font-size:1rem;">Reportes del ítem</h4>
 
             <p-table [value]="row.reports || []">
 
               <ng-template pTemplate="header">
                 <tr>
-                  <th style="min-width:6rem;">value</th>
-                  <th style="min-width:8rem;">Tipo</th>
-                  <th style="min-width:8rem;">Estado</th>
-                  <th style="min-width:10rem;">Rol actual</th>
-                  <th style="min-width:10rem;">Mi paso</th>
-                  <th style="min-width:9rem; text-align:center;">Acciones</th>
+                  <th style="min-width:1rem;">Id</th>
+                  <!-- <th style="min-width:1rem;">Tipo</th> -->
+                  <th style="min-width:1rem;">Estado de documento</th>
+                  <th style="min-width:1rem;">Firmante autorizado</th>
+                  <!-- <th style="min-width:1rem;">Puede firmar</th> -->
+                  <th style="min-width:1rem; text-align:center;">Acciones</th>
                 </tr>
               </ng-template>
 
               <ng-template pTemplate="body" let-r>
                 <tr>
                   <td>{{ r.id }}</td>
-                  <td>{{ r.reportable_id || '—' }}</td>
+                  <!-- <td>{{ r.reportable_id || '—' }}</td> -->
                   <td>{{ r.status }}</td>
-                  <td>{{ r.current_role || '—' }}</td>
-                  <td>
+                  <td>{{ r.current_step.role || '—' }}</td>
+                  <!-- <td>
                     @if (r.user_step) {
                       <span>#{{ r.user_step.order }} — {{ r.user_step.role }} ({{ r.user_step.status }})</span>
                     } @else {
                       <span>—</span>
                     }
-                  </td>
+                  </td> -->
 
                   <td style="text-align:center;">
                     <div class="flex gap-2 justify-center">
@@ -218,9 +272,12 @@
               <ng-template pTemplate="emptymessage">
                 <tr><td colspan="6">Sin reportes.</td></tr>
               </ng-template>
+
             </p-table>
+            
           </div>
         </td>
+        <!-- </td> -->
       </tr>
     </ng-template>
 
@@ -245,6 +302,7 @@
     <div class="field dialog_item">
       <span style="display:block; font-weight:bold; margin-bottom:0.5rem;">Tipo de movimiento</span>
       <div style="display:flex;">
+
         <div style="flex-grow:1; display:flex; gap:0.5rem; align-items:center;">
           <p-radiobutton 
             [inputId]="'movEntrada'" 
@@ -254,6 +312,7 @@
           />
           <label for="movEntrada">Entrada</label>
         </div>
+
         <div style="flex-grow:1; display:flex; gap:0.5rem; align-items:center;">
           <p-radiobutton 
             [inputId]="'movSalida'" 
@@ -263,6 +322,7 @@
           />
           <label for="movSalida">Salida</label>
         </div>
+        
       </div>
     </div>
 
@@ -329,11 +389,11 @@
         (onClick)="closeMovementModal()"
       ></p-button>
       <p-button 
-        label="Aceptar" 
-        icon="pi pi-check" 
-        (onClick)="onSubmitMovement()" 
-        [disabled]="!form.movement_type || !form.amount" 
-        [loading]="savingMovementLoading()"
+      label="Aceptar" 
+      icon="pi pi-check" 
+      [disabled]="!form.movement_type || !form.amount" 
+      [loading]="savingMovementLoading()"
+      (onClick)="onSubmitMovement()" 
       ></p-button>
     </div>
   </ng-template>

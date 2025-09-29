@@ -104,3 +104,33 @@ export interface SignatureParams {
   siguienteEnFirmar?: string;
   token?: string; // ideal: JWT corto emitido por tu backend
 }
+
+/**
+ * Interfaces para items pecosas
+ */
+export type FiltersPecosas = { anio: string; numero: string};
+
+export interface PecosaResponse<T> { data: T[]; total: number; per_page: number; }
+export interface Pecosa {
+  id: number;
+  obra_id: number;
+  anio: string;
+  numero: string;
+  fecha: string;
+  prod_proy?: string;
+  cod_meta?: string;
+  desmeta?: string;
+  desuoper?: string;
+  destipodestino?: string;
+  item?: string;
+  desmedida?: string;
+  cantidad?: number;
+  precio?: number;
+  total?: number;
+  saldo?: number;
+  numero_origen?: string;
+  idsalidadet_silucia: number | string;
+  idcompradet_silucia?: number | string;
+}
+
+

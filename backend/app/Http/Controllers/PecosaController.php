@@ -191,9 +191,14 @@ class PecosaController extends Controller
     }
 
     public function testPecosas(Request $request, Obra $obra){
+        /**
+         * Verifica si la obra esta anexada al usuario, si no lo esta, entonces debe mostrarse un mensaje de error.
+         * Pero esta verificación ya esta siendo realizada en el middleware "ResolveCurrentObra"
+         */
+
         $user  = $request->user();
         $roles = $user->getRoleNames()->toArray();
-        $isOperator = $user->hasRole('almacen.operador');
+        $isOperator = $user->hasRole('almacen.almacenero');
 
         $request->validate([
             'page' => 'nullable|integer|min:1',
@@ -239,6 +244,7 @@ class PecosaController extends Controller
             $item->reports->each(function ($r)  use ($user, $roles) {
                 if ($r->relationLoaded('steps')) {
                     $curr = $r->steps->firstWhere('order', $r->current_step);
+                    // $curr = $r->steps->firstWhere('role', $r->current_step);
                     $r->setRelation('currentStep', $curr);
                     // opcional: no enviar todos los steps al frontend
                     $r->unsetRelation('steps');

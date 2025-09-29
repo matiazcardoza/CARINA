@@ -15,9 +15,15 @@ import { RadioButton } from 'primeng/radiobutton';
 import { Toast } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { AddNewUserModal } from './components/add-new-user-modal/add-new-user-modal';
-import { WhmKardexManagementService, ObraLite, PecosaLite, MovementsPage } from './services/whm-kardex-management.service';
+import { WhmKardexManagementService, ObraLite, MovementsPage } from './services/whm-kardex-management.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Report, SignatureParams } from './interfaces/whm-kardex-management.interface';
+import { FiltersPecosas } from './interfaces/whm-kardex-management.interface';
+import { PecosaResponse } from './interfaces/whm-kardex-management.interface';
+import { Pecosa } from './interfaces/whm-kardex-management.interface';
+// import { finalize } from 'rxjs';
+import { finalize } from 'rxjs/operators';
+
 @Component({
   selector: 'app-whm-kardex-management',
   imports: [
@@ -37,7 +43,7 @@ export class WhmKardexManagement implements OnInit {
    window = window; // Hace que 'window' esté disponible en el template
   obras = signal<ObraLite[]>([]);
   selectedObraId: number | null = null;
-  pecosas = signal<PecosaLite[]>([]);
+  pecosas = signal<Pecosa[]>([]);
   loadingPecosas = signal<boolean>(false);
   productsTotal = signal<number>(0);
   pageSize = 20;
@@ -75,8 +81,20 @@ export class WhmKardexManagement implements OnInit {
   expanded = signal<boolean>(false)
   expandedRowsPecosa = signal<any>([])
 
-  ngOnInit(): void {
+  pecosasx = signal({
+    value: <Pecosa[]>[],
+    rows: 5,
+    first: 0,
+    totalRecords: 0,
+    rowsPerPageOptions: [5,10,15,20],
+    loading: false,
+    filters: {
+      anio: '',
+      numero: ''
+    }
+  })
 
+  ngOnInit(): void {
     this.api.getObras()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
@@ -84,71 +102,91 @@ export class WhmKardexManagement implements OnInit {
           this.obras.set(list ?? []);
           if (this.obras().length) {
             const first = this.obras()[0];
-            if (first) this.onObraChange(first.id);
+            if(first){
+              this.getItemsPecosas(first.id, 0, this.pecosasx().rows, this.pecosasx().filters)
+            }
           }
         }
       });
   }
 
-  onObraChange(obraId: number) {
+  getItemsPecosas(obraId:number | null, first:number, rows: number, filters: FiltersPecosas){
     this.selectedObraId = obraId;
-    this.loadFirstPage();
-  }
+    const page = Math.floor(first / rows) + 1; // 1-based 
+    const perPage = rows;
 
+    this.pecosasx.update(objects => ({ 
+      ...objects, 
+      loading: true,
+      rows: rows,
+      first: first,
+    }));
 
-  onSearchClick() {
-    const raw = this.uiFilters.anio as any;
-    const anio = raw === '' || raw == null ? undefined : Number(raw);
-    this.getItemPecosasOfBackend({ ...this.uiFilters, anio, page: 1, per_page: this.pageSize });
-  }
-
-  onClearClick() {
-    this.uiFilters = { numero: '', anio: undefined, item: '', desmeta: '' };
-    this.getItemPecosasOfBackend({ page: 1, per_page: this.pageSize });
-  }
-
-  private loadFirstPage() {
-    this.getItemPecosasOfBackend({ ...this.uiFilters, page: 1, per_page: this.pageSize });
-  }
-
-  getItemPecosasOfBackend(filters: { page?: number; per_page?: number; numero?: string; anio?: number }) {
-    
-    
-    if (!this.selectedObraId) return;
-    this.loadingPecosas.set(true);
-
-    this.api.getItemPecosas(this.selectedObraId, filters)
+    this.api.getItemPecosas(obraId, page, perPage, filters)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (res) => {
-        console.log("obtener pecosas001", res);
-          this.pecosas.set(res.data ?? []);
-          // this.pecosas.set(res ?? []);
-          this.productsTotal.set(res.total ?? res.data?.length ?? 0);
-          this.pageSize = res.per_page ?? this.pageSize;
-          this.loadingPecosas.set(false);
+          next: (response) => {
 
-          if (this.lastSelectedKey != null) {
-            const match = (res.data ?? []).find((r: any) => String(r.idsalidadet_silucia) === String(this.lastSelectedKey));
-            this.selectedProduct = match || null;
-          }
-        },
-        error: _ => { this.loadingPecosas.set(false); }
-      });
+              this.pecosasx.update((object)=>({
+                ...object,
+                value: response.data ?? [],
+                totalRecords: response.total ?? response.data.length,
+                loading: false
+              }))
+              // ---------------------------------------
+              // this.pecosas.set(response.data ?? []);
+              // this.productsTotal.set(response.total ?? response.data?.length ?? 0);
+              // this.pageSize = response.per_page ?? this.pageSize;
+              // this.loadingPecosas.set(false);
+
+              // if (this.lastSelectedKey != null) {
+              //     const match = (response.data ?? []).find((r: any) => String(r.idsalidadet_silucia) === String(this.lastSelectedKey));
+              //     this.selectedProduct = match || null;
+              // }
+              // -------------------------------
+          },
+        error: () => {
+            this.loadingPecosas.set(false);
+            this.pecosasx.update(objects => ({...objects, loading: false})) 
+        }
+    });
   }
 
-  onPageChange(e: any) {
-    const first = e.first ?? 0;        // El índice del primer registro de la página
-    const rows = e.rows ?? this.pageSize; // El número de filas por página
-    const page = Math.floor(first / rows) + 1;
-
-    this.lastProductsPage = page;
-    this.lastProductsRows = rows;
-
-    this.getItemPecosasOfBackend({ ...this.uiFilters, page, per_page: rows });
+  onObraChange(obraId: number) {
+    // this.selectedObraId = obraId;
+    // this.loadFirstPage();
+    this.getItemsPecosas(obraId, 0, this.pecosasx().rows, this.pecosasx().filters)
   }
 
-  openMovementModal(row: PecosaLite) {
+  onLazyLoadPecosa(event:any){
+    this.getItemsPecosas(this.selectedObraId, event.first, event.rows, this.pecosasx().filters)
+  }
+
+  onAddFilters(type:string, filter: string){
+    switch (type) {
+      case 'anio':
+        this.pecosasx.update((object)=>({...object, filters: {...object.filters, anio: filter}}));
+        break;
+      case 'numero':
+        this.pecosasx.update((object)=>({...object, filters: {...object.filters, numero: filter}}));
+        break;
+      default:
+        // console.log('No reconocido');
+    }
+  }
+
+  search(){
+    this.getItemsPecosas(this.selectedObraId, this.pecosasx().first, this.pecosasx().rows, this.pecosasx().filters)
+  }
+  cleanFilters(){
+    this.pecosasx.update(object => ({...object, filters: {anio: '', numero: ''}}))
+    this.getItemsPecosas(this.selectedObraId,0, this.pecosasx().rows, this.pecosasx().filters);
+  }
+  verdatos(){
+    console.log(this.pecosasx())
+  }
+
+  openMovementModal(row: Pecosa) {
     this.form.id_pecosa_silucia = row.numero;
     this.form.id_item_pecosa_silucia = Number(row.idsalidadet_silucia);
     this.form.silucia_pecosa = JSON.parse(JSON.stringify(row));
@@ -185,14 +223,15 @@ export class WhmKardexManagement implements OnInit {
           }
           this.closeMovementModal();
           this.toast('success', 'Operación exitosa', 'El registro se completó correctamente.');
-          this.getItemPecosasOfBackend({ ...this.uiFilters, page, per_page: perPage });
+          // this.getItemPecosasOfBackend({ ...this.uiFilters, page, per_page: perPage });
+          this.getItemsPecosas(this.selectedObraId, this.pecosasx().first, this.pecosasx().rows, this.pecosasx().filters)
         },
         error: _ => this.toast('error', 'Error', 'Por favor vuelva a intentarlo'),
         complete: () => this.savingMovementLoading.set(false)
       });
   }
 
-  openMovementDetailsModal(row: PecosaLite) {
+  openMovementDetailsModal(row: Pecosa) {
     this.selectedPecosaForMovements = row;
     this.showMovementDetailsModal = true;
     this.expandedRowsMovements.set({});
@@ -230,14 +269,21 @@ export class WhmKardexManagement implements OnInit {
   onSubmitMovementDetails() {
     if (!this.selectedPecosaForMovements) return;
     const idItemPecosa = Number(this.selectedPecosaForMovements.id);
-    this.api.downloadPdf(this.selectedObraId, idItemPecosa).subscribe(res => {
+    this.api.downloadPdf(this.selectedObraId, idItemPecosa)
+    .pipe(
+      finalize(()=>{
+        this.getItemsPecosas(this.selectedObraId, this.pecosasx().first, this.pecosasx().rows, this.pecosasx().filters)
+      })
+    )
+    .subscribe(res => {
       const blob = res.body!;
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url; a.download = '';
       document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setTimeout(()=>{URL.revokeObjectURL(url)}, 1000);
     });
+
   }
 
   OpenModalAddPerson(){ this.showAddUserModal = true; }
@@ -384,9 +430,9 @@ export class WhmKardexManagement implements OnInit {
   }
 
   /**
-   * Funciones para ver consoles logs
+   * funciones del modal para adicionar movimientos kardex
    */
-  seeItemsPecosas(){
-    console.log(this.pecosas());
-  }
+
+  
+
 }

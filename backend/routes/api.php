@@ -35,6 +35,7 @@ use App\Http\Controllers\UserObrasController;
 use App\Models\SignatureFlow;
 use App\Models\SignatureStep;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 // use App\Http\Controllers\PdfControllerKardex;
@@ -48,12 +49,29 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {
         setPermissionsTeamId(1);
         $user = $request->user();
+        // Obtener todos los roles del usuario sin filtrar por team_id
+       $roles = DB::table('model_has_roles')
+            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+            ->where('model_has_roles.model_id', $user->id)
+            ->where('model_has_roles.model_type', get_class($user))
+            ->pluck('roles.id', 'roles.name');
+
+        // Obtener los permisos asociados a esos roles
+        $permissions = DB::table('role_has_permissions')
+            ->join('permissions', 'role_has_permissions.permission_id', '=', 'permissions.id')
+            ->whereIn('role_has_permissions.role_id', $roles->values())
+            ->pluck('permissions.name')
+            ->unique()
+            ->values();
+        
         return response()->json([
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
-            'roles' => $user->getRoleNames(),
-            'permissions' => $user->getAllPermissions()->pluck('name')
+            // 'roles' => $user->getRoleNames(),
+            'roles' => $roles->keys()->values(),       // nombres de roles
+            // 'permissions' => $user->getAllPermissions()->pluck('name')
+            'permissions' => $permissions
         ]);
     });
 
@@ -140,7 +158,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     /** === en uso === */ Route::get('me/obras', [ObrasController::class,'mine']);
 });
 
-Route::middleware(['auth:sanctum','resolve.obra', 'permission:access_movement_kardex'])->group(function () {
+Route::middleware(['auth:sanctum','resolve.obra', 'permission:access_kardex_management'])->group(function () {
     // Route::middleware(['resolve.obra'])->group(function () {
     // Route::get('ordenes-compra', [OCController::class,'index']);
     // retorna todas los itempecosas a partir de una obra / meta
@@ -157,7 +175,7 @@ Route::middleware(['auth:sanctum','resolve.obra', 'permission:access_movement_ka
     /** === en uso === */ Route::get('item-pecosas/{itemPecosa}/movements-kardex', [PecosaController::class, 'getItemPecosas']);
     /** === en uso === */ Route::get('item-pecosas/{itemPecosa}/movements-kardex/pdf', [MovementKardexController::class, 'pdf']);
     // obtenemos los datos de una persona de la api de reniec
-    /** === en uso === */ Route::get('people/{dni}', [PeopleController::class, 'showOrFetch'])->middleware(['role:almacen.operador']); // cache-first (db) → RENIEC
+    /** === en uso === */ Route::get('people/{dni}', [PeopleController::class, 'showOrFetch'])->middleware(['role:almacen.almacenero']); // cache-first (db) → RENIEC
 });
 
 Route::middleware(['auth:sanctum','resolve.default.obra'])->prefix('admin')->group(function () {

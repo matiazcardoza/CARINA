@@ -51,6 +51,8 @@
         (onLazyLoad)="onLazyLoad($event)"
         [rowsPerPageOptions]="tableData().rowsPerPageOptions"
         [lazy]="true"
+        
+        [lazyLoadOnInit]="false"
     >
         <ng-template pTemplate="header">
             <tr>

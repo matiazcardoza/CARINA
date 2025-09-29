@@ -15,39 +15,39 @@ import { TooltipModule } from 'primeng/tooltip';
 
 
 @Component({
-  selector: 'app-show-all-obras-modal',
-  imports: [DialogModule, TableModule, Button, InputIcon, InputTextModule, TooltipModule],
-  templateUrl: './show-all-obras-modal.html',
-  styleUrl: './show-all-obras-modal.css'
+    selector: 'app-show-all-obras-modal',
+    imports: [DialogModule, TableModule, Button, InputIcon, InputTextModule, TooltipModule],
+    templateUrl: './show-all-obras-modal.html',
+    styleUrl: './show-all-obras-modal.css'
 })
 
 export class ShowAllObrasModal {
-  service = inject(WhmObrasManagementService)
-  isOpen = input<boolean>(false)
-  isOpenChange = output<boolean>() 
-  private destroyRef = inject(DestroyRef);
+    service = inject(WhmObrasManagementService)
+    isOpen = input<boolean>(false)
+    isOpenChange = output<boolean>() 
+    private destroyRef = inject(DestroyRef);
 
   tableData = signal({
-    value: <Obra[]> [],   // registros (array de objetos)
-    rows: 5,              // cantidad de filas que hay en cada pagina
-    first: 0,             // indice (id) del primer registros que se ve por pagina (cambia cuando cambias de paginas)
-    totalRecords: 0,      // total de filas que existe en la base de datos
-    rowsPerPageOptions: [5,10,15],
-    loading: false,
-    filters: {
-      anio: null,
-      codmeta: null
-    } as Filters
+      value: <Obra[]> [],   // registros (array de objetos)
+      rows: 5,              // cantidad de filas que hay en cada pagina
+      first: 0,             // indice (id) del primer registros que se ve por pagina (cambia cuando cambias de paginas)
+      totalRecords: 0,      // total de filas que existe en la base de datos
+      rowsPerPageOptions: [5,10,15],
+      loading: false,
+      filters: {
+          anio: null,
+          codmeta: null
+      } as Filters
   })
 
   constructor(){
-    effect(()=>{
-      if(this.isOpen()){
-        const rows = untracked(() => this.tableData().rows);
-        const filters = untracked(() => this.tableData().filters);
-        this.loadPage(0, rows, filters)
-      }
-    })
+      effect(()=>{
+          if(this.isOpen()){
+              const rows = untracked(() => this.tableData().rows);
+              const filters = untracked(() => this.tableData().filters);
+              this.loadPage(0, rows, filters)
+          }
+      })
   }
 
   private loadPage(first: number, rows: number, filters: Filters){
