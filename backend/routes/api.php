@@ -176,6 +176,8 @@ Route::middleware(['auth:sanctum','resolve.obra', 'permission:access_kardex_mana
     /** === en uso === */ Route::get('item-pecosas/{itemPecosa}/movements-kardex/pdf', [MovementKardexController::class, 'pdf']);
     // obtenemos los datos de una persona de la api de reniec
     /** === en uso === */ Route::get('people/{dni}', [PeopleController::class, 'showOrFetch'])->middleware(['role:almacen.almacenero']); // cache-first (db) → RENIEC
+                          Route::get('users-operarios', [UserController::class, 'operarios']);
+
 });
 
 Route::middleware(['auth:sanctum','resolve.default.obra'])->prefix('admin')->group(function () {

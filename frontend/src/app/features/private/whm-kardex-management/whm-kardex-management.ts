@@ -18,11 +18,14 @@ import { AddNewUserModal } from './components/add-new-user-modal/add-new-user-mo
 import { WhmKardexManagementService, ObraLite, MovementsPage } from './services/whm-kardex-management.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Report, SignatureParams } from './interfaces/whm-kardex-management.interface';
+import { ApiResponseOperarios } from './interfaces/whm-kardex-management.interface';
 import { FiltersPecosas } from './interfaces/whm-kardex-management.interface';
 import { PecosaResponse } from './interfaces/whm-kardex-management.interface';
 import { Pecosa } from './interfaces/whm-kardex-management.interface';
 // import { finalize } from 'rxjs';
 import { finalize } from 'rxjs/operators';
+import { FormMovementKardex } from './interfaces/whm-kardex-management.interface';
+import { OperarioOption } from './interfaces/whm-kardex-management.interface';
 
 @Component({
   selector: 'app-whm-kardex-management',
@@ -40,7 +43,19 @@ export class WhmKardexManagement implements OnInit {
   private api = inject(WhmKardexManagementService);
   private readonly messageService = inject(MessageService);
   private readonly destroyRef = inject(DestroyRef);
-   window = window; // Hace que 'window' esté disponible en el template
+
+  constructor(){
+    let prev: 'entrada'|'salida'|null = null;
+    effect(() => {
+      const curr = this.formx().movement_type; // se reejeuta por cualquier cambio del form
+      if (curr === 'salida' && curr !== prev) {
+        this.getUsersOfMovementKardex();  // sólo cuando cambia a 'salida'
+      }
+      prev = curr;
+    });
+  }
+
+  window = window; // Hace que 'window' esté disponible en el template
   obras = signal<ObraLite[]>([]);
   selectedObraId: number | null = null;
   pecosas = signal<Pecosa[]>([]);
@@ -48,12 +63,14 @@ export class WhmKardexManagement implements OnInit {
   productsTotal = signal<number>(0);
   pageSize = 20;
   selectedProduct: any | null = null;
-  uiFilters: { numero?: string; anio?: number | undefined; item?: string; desmeta?: string } = {
-    numero: '',
-    anio: undefined,
-    item: '',
-    desmeta: '',
-  };
+  // uiFilters: { numero?: string; anio?: number | undefined; item?: string; desmeta?: string } = {
+  //   numero: '',
+  //   anio: undefined,
+  //   item: '',
+  //   desmeta: '',
+  // };
+  operarios = signal<OperarioOption[]>([]);
+  selectedOperarioId = signal<number | null>(null);
   showMovementModal = false;
   showMovementDetailsModal = false;
   movementOptionsStr: Array<'entrada' | 'salida'> = ['entrada', 'salida'];
@@ -66,6 +83,70 @@ export class WhmKardexManagement implements OnInit {
     people_dnis: [] as string[],
     silucia_pecosa: null as any
   };
+
+  formx = signal<FormMovementKardex>({
+    id_pecosa: null,      // numero PECOSA (Silucia)
+    movement_type: null,
+    amount: null,
+    observations: null,
+    // people_dnis: [],
+    people_ids: [],
+  })
+
+  setMovementType(type:string, data: 'entrada'|'salida'|number|null|string){
+    switch (type) {
+      case 'entrada':
+        this.formx.update((object)=>({...object, movement_type: data as 'entrada'|'salida'}));
+        break;
+      case 'salida':
+        this.formx.update((object)=>({...object, movement_type: data as 'entrada'|'salida'}));
+        break;
+      case 'observations':
+        this.formx.update((object)=>({...object, observations: (data as string) ?? null}));
+        break;
+      case 'cantidad':
+        this.formx.update((object)=>({...object, amount: (data as number) ?? null}));
+        break;
+      default:
+        // console.log('No reconocido');
+    }
+  }
+
+  getUsersOfMovementKardex(){
+    console.log("peticion para obtener usuarios");
+      this.api.getOperarios(this.selectedObraId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response:ApiResponseOperarios) => {
+          const options = (response?.data ?? [])
+              .filter(u => !!u.persona)
+              .map(u => ({
+                id: u.id,
+                num_doc: u.persona!.num_doc,
+                label: `${u.persona!.num_doc} ${u.persona!.name} ${u.persona!.last_name}`,
+              }))
+          this.operarios.set(options);
+          console.log(response);
+        },
+        error: () => {
+            // this.loadingPecosas.set(false);
+            // this.pecosasx.update(objects => ({...objects, loading: false})) 
+        }
+    });
+  }
+
+  onOperarioChange(id: number | null) {
+    this.selectedOperarioId.set(id);
+    this.formx.update(object => ({
+      ...object,
+      people_ids: id? [id] : []
+    }));
+  }
+
+  verdatosdemovementkardex(){
+    console.log(this.formx())
+  }
+
   savingMovementLoading = signal<boolean>(false);
   listDniPeople = signal<any[]>([]);
   showAddUserModal = false;
@@ -187,9 +268,14 @@ export class WhmKardexManagement implements OnInit {
   }
 
   openMovementModal(row: Pecosa) {
-    this.form.id_pecosa_silucia = row.numero;
-    this.form.id_item_pecosa_silucia = Number(row.idsalidadet_silucia);
-    this.form.silucia_pecosa = JSON.parse(JSON.stringify(row));
+    // this.form.id_pecosa_silucia = row.numero;
+    // this.form.id_item_pecosa_silucia = Number(row.idsalidadet_silucia);
+    // this.form.silucia_pecosa = JSON.parse(JSON.stringify(row));
+    this.formx.update((object)=>({
+      ...object,
+      id_pecosa: row.id
+    }));
+
     this.showMovementModal = true;
   }
 
@@ -208,12 +294,12 @@ export class WhmKardexManagement implements OnInit {
   }
 
   onSubmitMovement() {
-    this.lastSelectedKey = this.selectedProduct?.idsalidadet_silucia ?? null;
-    const page = this.lastProductsPage;
-    const perPage = this.lastProductsRows;
+    // this.lastSelectedKey = this.selectedProduct?.idsalidadet_silucia ?? null;
+    // const page = this.lastProductsPage;
+    // const perPage = this.lastProductsRows;
 
     this.savingMovementLoading.set(true);
-    this.api.createKardexMovement(this.form, this.form?.silucia_pecosa?.id, this.selectedObraId)
+    this.api.createKardexMovement(this.selectedObraId, this.formx()?.id_pecosa, this.formx(),  )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res: any) => {
@@ -223,7 +309,6 @@ export class WhmKardexManagement implements OnInit {
           }
           this.closeMovementModal();
           this.toast('success', 'Operación exitosa', 'El registro se completó correctamente.');
-          // this.getItemPecosasOfBackend({ ...this.uiFilters, page, per_page: perPage });
           this.getItemsPecosas(this.selectedObraId, this.pecosasx().first, this.pecosasx().rows, this.pecosasx().filters)
         },
         error: _ => this.toast('error', 'Error', 'Por favor vuelva a intentarlo'),
@@ -432,7 +517,5 @@ export class WhmKardexManagement implements OnInit {
   /**
    * funciones del modal para adicionar movimientos kardex
    */
-
-  
 
 }

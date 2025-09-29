@@ -86,4 +86,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(Persona::class);
     }
+    public function firstPersona(): HasOne
+    {
+        // primera persona por id (ajusta el orden si necesitas otro criterio)
+        return $this->hasOne(Persona::class)->oldestOfMany('id');
+    }
 }

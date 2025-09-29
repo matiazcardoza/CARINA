@@ -10,6 +10,8 @@ export interface ObraLite { id: number; nombre: string; codmeta?: string; codigo
 
 export interface MovementsPage { movements: { data: any[]; total: number; per_page: number; }; }
 export type OC   = { id: number; ext_order_id: string; fecha: string; proveedor: string; monto_total: number };
+// import { OperarioDTO } from '../interfaces/whm-kardex-management.interface';
+import { ApiResponseOperarios } from '../interfaces/whm-kardex-management.interface';
 // export type OCx = OC & {
 //   pecosas?: Pecosa[];
 //   childLoading?: boolean;
@@ -76,8 +78,13 @@ export class WhmKardexManagementService {
     const headers = new HttpHeaders({ 'X-Obra-Id': String(obraId) }); // ← sólo aquí
     return this.http.get<Pecosa[]>(`${this.apiUrl}/api/ordenes-compra/${ordenId}/pecosas`, {...this.options, headers });
   }
+  getOperarios(obraId: number | null): Observable<ApiResponseOperarios> {
+    const headers = new HttpHeaders({ 'X-Obra-Id': String(obraId) }); // ← sólo aquí
+    // /obras/{obra}/users/operarios
+    return this.http.get<any>(`${this.apiUrl}/api/users-operarios`, {...this.options, headers });
+  }
 
-  createKardexMovement(payload: any, itemPecosaId:number, obraId: number |null ) {
+  createKardexMovement(obraId: number |null, itemPecosaId:number |null, payload: any,   ) {
     const headers = new HttpHeaders({ 'X-Obra-Id': String(obraId) });
     return this.http.post(`${this.apiUrl}/api/kardex-movements/${itemPecosaId}`, payload, { withCredentials: true, headers });
   }

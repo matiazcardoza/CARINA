@@ -24,6 +24,7 @@
     <h1 class="text-3xl font-semibold mb-2">Gestión del Kardex</h1>
     <p class="text-lg text-gray-500">Ítems PECOSA de la obra seleccionada.</p>
     <!-- <button (click)="seeItemsPecosas()">see item pecosas</button> -->
+    <button (click)="verdatosdemovementkardex()">ver datos de formulario</button>
   </div>
 
   <!-- [value]="tableRows()" -->
@@ -108,12 +109,12 @@
             <input 
               pInputText 
               type="text" 
-              [(ngModel)]="uiFilters.desmeta" 
               placeholder="Meta (opcional)" 
               disabled 
               style="width: 100%"
-            />
-          </div>
+              />
+            </div>
+            <!-- [(ngModel)]="uiFilters.desmeta"  -->
 
           <!-- Botones -->
           <div class="search_item">
@@ -143,6 +144,7 @@
     <ng-template pTemplate="header">
       <tr>
         <th></th>
+        <th>Id</th>
         <th><div class="item_head">Año</div></th>
         <th style="min-width:7rem;"><div class="item_head">Fecha</div></th>
         <th style="min-width:8rem;"><div class="item_head">N° PECOSA</div></th>
@@ -177,6 +179,7 @@
             [icon]="(expandedRowsPecosa()[row.id] ? 'pi pi-chevron-down' : 'pi pi-chevron-right')">
           </p-button>
         </td>
+        <td>{{ row.id }}</td>
         <td>{{ row.anio }}</td>
         <td>{{ row.fecha }}</td>
         <td>{{ row.numero }}</td>
@@ -308,33 +311,54 @@
             [inputId]="'movEntrada'" 
             name="movement_type" 
             [value]="'entrada'" 
-            [(ngModel)]="form.movement_type" 
+            [ngModel]="formx().movement_type"
+            (ngModelChange)="setMovementType('entrada', $event)"
           />
+
           <label for="movEntrada">Entrada</label>
         </div>
 
         <div style="flex-grow:1; display:flex; gap:0.5rem; align-items:center;">
           <p-radiobutton 
-            [inputId]="'movSalida'" 
-            name="movement_type" 
-            [value]="'salida'" 
-            [(ngModel)]="form.movement_type" 
-          />
+              [inputId]="'movSalida'" 
+              name="movement_type" 
+              [value]="'salida'"
+              [ngModel]="formx().movement_type"
+              (ngModelChange)="setMovementType('salida', $event)" 
+           />
           <label for="movSalida">Salida</label>
         </div>
         
       </div>
     </div>
 
+    @if (formx().movement_type == 'salida') {
+      <div class="field dialog_item">
+        <select
+          id="operarioSel"
+          class="toolbar__select"
+          [ngModel]="selectedOperarioId()"
+          (ngModelChange)="onOperarioChange($event)"
+        >
+          <option [ngValue]="null" disabled selected>— Selecciona operario —</option>
+          @for (u of operarios(); track u.id) {
+            <option [ngValue]="u.id">{{ u.label }}</option>
+          }
+        </select>
+      </div>
+    }
+
+
     <!-- Cantidad -->
     <div class="field dialog_item">
       <label for="cantidad" style="display:block; font-weight:bold; margin-bottom:0.5rem;">Cantidad</label>
       <p-inputNumber 
-        inputId="cantidad" 
-        [(ngModel)]="form.amount" 
-        [min]="1" 
-        [useGrouping]="false" 
-        [showButtons]="true"
+          inputId="cantidad" 
+          [min]="1" 
+          [useGrouping]="false" 
+          [showButtons]="true"
+          [ngModel]="formx().amount"
+          (ngModelChange)="setMovementType('cantidad', $event)" 
       ></p-inputNumber>
     </div>
 
@@ -342,14 +366,17 @@
     <div class="field dialog_item">
       <label for="observations" style="display:block; font-weight:bold; margin-bottom:0.5rem;">Observaciones</label>
       <textarea 
-        id="observations" 
-        pInputTextarea 
-        [(ngModel)]="form.observations" 
-        rows="3" 
-        cols="30" 
-        placeholder="Escribe tus observaciones aquí" 
-        class="text-area"
-        ></textarea>
+          id="observations" 
+          pInputTextarea 
+          rows="3" 
+          cols="30" 
+          placeholder="Escribe tus observaciones aquí" 
+          class="text-area"
+          [ngModel]="formx().observations"
+          (ngModelChange)="setMovementType('observations', $event)" 
+      >
+          <!-- [(ngModel)]="form.observations"  -->
+      </textarea>
     </div>
 
     <!-- Personas -->
@@ -381,21 +408,23 @@
   </div>
 
   <ng-template pTemplate="footer">
+
     <div style="display:flex; justify-content:flex-end; gap:0.5rem; width:100%;">
       <p-button 
-        label="Cancelar" 
-        severity="secondary" 
-        outlined 
-        (onClick)="closeMovementModal()"
+          label="Cancelar" 
+          severity="secondary" 
+          outlined 
+          (onClick)="closeMovementModal()"
       ></p-button>
       <p-button 
-      label="Aceptar" 
-      icon="pi pi-check" 
-      [disabled]="!form.movement_type || !form.amount" 
-      [loading]="savingMovementLoading()"
-      (onClick)="onSubmitMovement()" 
+          label="Aceptar" 
+          icon="pi pi-check" 
+          [disabled]="!formx().movement_type || !formx().amount" 
+          [loading]="savingMovementLoading()"
+          (onClick)="onSubmitMovement()" 
       ></p-button>
     </div>
+
   </ng-template>
 </p-dialog>
 

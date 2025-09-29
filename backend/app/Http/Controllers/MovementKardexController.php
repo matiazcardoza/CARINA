@@ -507,6 +507,7 @@ class MovementKardexController extends Controller
 // public function pecosas(Request $request, OrdenCompra $orden)
     public function store(StoreMovementPecosaRequest $request, ItemPecosa $itemPecosa)
     {
+        return $itemPecosa;
         $data = $request->validated();
         return DB::transaction(function () use ($data, $itemPecosa) {
             // Normaliza tipos clave

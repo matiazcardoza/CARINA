@@ -133,4 +133,48 @@ export interface Pecosa {
   idcompradet_silucia?: number | string;
 }
 
+/**
+ * Interfaces para formulario del "movimeinto de kardex"
+ */
 
+export interface FormMovementKardex {
+    id_pecosa: number | null, 
+    movement_type: 'entrada' | 'salida' | null,
+    amount: number | null,
+    observations: string | null,
+    // people_dnis: string[],
+    people_ids: number[],
+}
+
+/**
+ * Interfaces para operarios:
+ */
+export type OperarioOption = { id: number; label: string; num_doc: string };
+// export type OperarioDTO = {
+//   id: number;
+//   name: string;
+//   email: string;
+//   persona: { id: number; num_doc: string; name: string; last_name: string; state: number } | null;
+// };
+
+export interface Persona {
+  id: number;
+  num_doc: string;
+  name: string;
+  last_name: string;
+  state: number;
+}
+
+export interface Usuario {
+  id: number;
+  name: string;
+  email: string;
+  persona: Persona;
+}
+
+export interface ApiResponseOperarios {
+  ok: boolean;
+  role: string; // Ej: 'almacen.operario'
+  count: number;
+  data: Usuario[];
+}

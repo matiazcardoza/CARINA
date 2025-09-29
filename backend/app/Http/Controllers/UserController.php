@@ -65,6 +65,55 @@ class UserController extends Controller
         ], 200);
     }
 
+    public function operarios(Request $request){
+
+        $q = trim((string) $request->query('q', ''));
+
+        $query = User::query()
+            // Si tus roles son guard 'api', especifícalo:
+            ->role('almacen.operario', 'api')
+            ->select('id','name','email')
+            // Eager load de SOLO la primera persona:
+            ->with(['persona:id,user_id,num_doc,name,last_name,state']);
+
+        if ($q !== '') {
+            $query->where(function ($w) use ($q) {
+                $w->where('name', 'like', "%{$q}%")
+                  ->orWhere('email', 'like', "%{$q}%")
+                  ->orWhereHas('persona', function ($p) use ($q) {
+                      $p->where('num_doc', 'like', "%{$q}%")
+                        ->orWhere('name', 'like', "%{$q}%")
+                        ->orWhere('last_name', 'like', "%{$q}%");
+                  });
+            });
+        }
+
+        $users = $query->get(); // SIN paginación
+
+        // (Opcional) Formatear respuesta combinada
+        $data = $users->map(function ($u) {
+            return [
+                'id'        => $u->id,
+                'name'      => $u->name,
+                'email'     => $u->email,
+                'persona'   => $u->persona ? [
+                    'id'        => $u->persona->id,
+                    'num_doc'   => $u->persona->num_doc,
+                    'name'      => $u->persona->name,
+                    'last_name' => $u->persona->last_name,
+                    'state'     => $u->persona->state,
+                ] : null,
+            ];
+        });
+
+        return response()->json([
+            'ok'    => true,
+            'role'  => 'almacen.operario',
+            'count' => $data->count(),
+            'data'  => $data,
+        ]);
+    }
+
     function getRoles()
     {
         $roles = Role::get();

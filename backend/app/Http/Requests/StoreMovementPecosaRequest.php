@@ -47,8 +47,11 @@ class StoreMovementPecosaRequest extends FormRequest
             // 'unit_price'         => ['nullable','numeric'],
             // 'quantity'           => ['nullable','numeric'], // stock planificado, si aplica
                     // nuevo: adjuntar personas por DNI (opcional)
-            'people_dnis'        => ['sometimes','array'],
-            'people_dnis.*'      => ['required','string','regex:/^\d{8}$/'],
+            // 'people_dnis'        => ['sometimes','array'],
+            // 'people_dnis.*'      => ['required','string','regex:/^\d{8}$/'],
+            'people_ids' => ['nullable', 'array'],
+            'people_ids.*' => ['numeric'],
+
 
             // para guarddar los nuevo datos de silucia
             // 'silucia_pecosa.anio'            => ['bail','digits:4'],
