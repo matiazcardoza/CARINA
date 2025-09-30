@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Role;
+use Carbon\Carbon;
+
 
 class UserObrasController extends Controller
 {
@@ -417,6 +419,121 @@ class UserObrasController extends Controller
             'imported_items' => $imported,
             'roles_assigned' => $roles ?? [],
         ]);
+    }
+
+    public function importWork(Request $request)
+    {
+        $data = $request->validate([
+            'meta' => ['required','array'],
+            'meta.idmeta' => ['required','string','max:100'],
+            'meta.anio'   => ['required','string','max:10'],
+            'meta.codmeta'=> ['required','string','max:50'],
+            'meta.nombre_corto' => ['nullable','string','max:255'],
+            'meta.desmeta'      => ['nullable','string'],
+        ]);
+
+        $m = $data['meta'];
+
+        return DB::transaction(function () use ($m) {
+
+            // 1) Upsert de OBRA por idmeta_silucia (sin raw_snapshot para ahorrar espacio)
+            $obra = Obra::updateOrCreate(
+                ['idmeta_silucia' => $m['idmeta']],
+                [
+                    'anio'    => $m['anio'],
+                    'codmeta' => $m['codmeta'],
+                    'nombre'  => $m['nombre_corto'] ?? $m['desmeta'] ?? ('Meta '.$m['codmeta']),
+                    'desmeta' => $m['desmeta'] ?? null,
+                    'external_last_seen_at' => now(),
+                    'external_hash' => sha1(json_encode($m, JSON_UNESCAPED_UNICODE|JSON_PRESERVE_ZERO_FRACTION)),
+                ]
+            );
+
+            // 2) Traer TODOS los itempecosas en UNA llamada (sin iterar)
+            //    Usa el tope que garantice "todo de golpe" según tu API (1000 o 10000).
+            $perPage = 10000; // o 1000 si ese es el límite real garantizado por la API
+            $batch = $this->pecosas->index([
+                'idmeta'   => $m['idmeta'],
+                'per_page' => $perPage,
+            ]);
+
+            $rows = $batch['data'] ?? [];
+            $fetched = count($rows);
+
+            // (Opcional) si tu API devuelve "total" para verificar que realmente vinieron todos:
+            if (isset($batch['total']) && $batch['total'] > $fetched) {
+                // No iteramos: solo dejamos constancia en logs para monitoreo
+                Log::warning("API devolvió {$fetched} de {$batch['total']} itempecosas (sin iterar por diseño). idmeta={$m['idmeta']}");
+            }
+
+            $created = 0;
+            $updated = 0;
+
+            foreach ($rows as $r) {
+                $incomingHash = sha1(json_encode($r, JSON_UNESCAPED_UNICODE|JSON_PRESERVE_ZERO_FRACTION));
+
+                $model = ItemPecosa::firstOrNew([
+                    'idsalidadet_silucia' => $r['idsalidadet'],
+                ]);
+
+                // Mapea/convierte tipos (fecha a date; numéricos a float/decimal si aplica)
+                $payload = [
+                    'obra_id'               => $obra->id,
+                    'idcompradet_silucia'   => $r['idcompradet'] ?? null,
+                    'anio'                  => isset($r['anio']) ? (string)$r['anio'] : null,
+                    'numero'                => isset($r['numero']) ? (string)$r['numero'] : null,
+                    'fecha'                 => isset($r['fecha']) ? Carbon::parse($r['fecha'])->toDateString() : null,
+                    'prod_proy'             => $r['prod_proy'] ?? null,
+                    'cod_meta'              => $r['cod_meta'] ?? null,
+                    'desmeta'               => $r['desmeta'] ?? null,
+                    'desuoper'              => $r['desuoper'] ?? null,
+                    'destipodestino'        => $r['destipodestino'] ?? null,
+                    'item'                  => $r['item'] ?? null,
+                    'desmedida'             => $r['desmedida'] ?? null,
+                    'cantidad'              => isset($r['cantidad']) ? (float)$r['cantidad'] : null,
+                    'precio'                => isset($r['precio']) ? (float)$r['precio'] : null,
+                    'saldo'                 => isset($r['saldo']) ? (float)$r['saldo'] : null,
+                    'total'                 => isset($r['total']) ? (float)$r['total'] : null,
+                    'numero_origen'         => $r['numero_origen'] ?? null,
+                    'external_last_seen_at' => now(),
+                ];
+
+                if ($model->exists) {
+                    if ($model->external_hash !== $incomingHash) {
+                        $model->fill($payload);
+                        // Quita esta línea si tampoco quieres snapshot en itempecosa:
+                        // $model->raw_snapshot = json_encode($r, JSON_UNESCAPED_UNICODE|JSON_PRESERVE_ZERO_FRACTION);
+                        $model->external_hash = $incomingHash;
+                        $model->save();
+                        $updated++;
+                    }
+                } else {
+                    $model->fill($payload);
+                    // Quita esta línea si no quieres snapshot:
+                    // $model->raw_snapshot = json_encode($r, JSON_UNESCAPED_UNICODE|JSON_PRESERVE_ZERO_FRACTION);
+                    $model->external_hash = $incomingHash;
+                    $model->save();
+                    $created++;
+                }
+            }
+
+            Log::info("Import meta {$m['idmeta']} (sin iterar): fetched={$fetched}, created={$created}, updated={$updated}");
+
+            return response()->json([
+                'ok' => true,
+                'obra' => [
+                    'id'        => $obra->id,
+                    'nombre'    => $obra->nombre,
+                    'codmeta'   => $obra->codmeta,
+                    'idmeta'    => $m['idmeta'],
+                    'anio'      => $m['anio'],
+                ],
+                'fetched_items'  => $fetched,
+                'created_items'  => $created,
+                'updated_items'  => $updated,
+                // (Opcional) 'warning' => 'La API reportó más que lo recibido, revisar logs' 
+            ]);
+        });
     }
 
 }

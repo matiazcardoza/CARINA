@@ -14,6 +14,12 @@ export type Obra = {
   desmeta: string | null;
   nombre_corto: string | null;
 };
+export type ObratoImport = {
+  idmeta: string;
+  anio: string;
+  codmeta: string;
+  desmeta: string | null;
+};
 
 export type Paginated<T> = {
   data: T[];
@@ -72,5 +78,10 @@ export class WhmObrasManagementService {
 
   importUsers(obraId: number) {
     return this.http.post(`${this.apiUrl}/api/admin/obras/${obraId}/import-users`, {},this.options);
+  }
+
+  importAndAttach(meta: ObratoImport) {
+    console.log(meta);
+    return this.http.post(`${this.apiUrl}/api/admin/obras/import`, { meta }, { withCredentials: true });
   }
 }

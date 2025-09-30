@@ -174,6 +174,7 @@ Route::middleware(['auth:sanctum','resolve.default.obra'])->prefix('admin')->gro
     Route::delete('users/{user}/obras/{obra}', [UserObrasController::class, 'destroy'])->middleware(['role:almacen.superadmin']);
     Route::put('users/{user}/obras/{obra}/roles', [UserObrasController::class, 'syncRoles'])->middleware(['role:almacen.superadmin']);
     Route::post('users/{user}/obras/import', [UserObrasController::class, 'importAttachFromExternal'])->middleware(['role:almacen.superadmin']);
+    Route::post('obras/import', [UserObrasController::class, 'importWork'])->middleware(['role:almacen.superadmin']);
     Route::post('obras/{obra}/import-users', ObraImportUsersController::class)->middleware(['role:almacen.superadmin']);
     Route::get('get-all-obras', [AdminCatalogController::class, 'allObras'])->middleware(['role:almacen.superadmin']);
 });

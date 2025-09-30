@@ -122,10 +122,25 @@ export class ShowAllObrasModal {
     this.loadPage(0, this.tableData().rows, this.tableData().filters);
   }
 
+
+
+  importObra(obra:any){
+    if (!obra.idmeta) return; // AHORA: Leemos el valor de la señal con ()
+    this.tableData.update(object => ({...object, loading: true}))
+    this.service.importAndAttach(obra).subscribe({
+      next: () => { 
+      },
+      complete: () => {
+        this.isOpenChange.emit(false)
+        this.tableData.update(object => ({...object, loading: false}))
+      }
+    });
+    
+  }
+
   closeModal(){
     this.isOpenChange.emit(false)
   }
-
   receibevalue(value: number){
     console.log("value received: ", value)
   }
