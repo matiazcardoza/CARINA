@@ -280,20 +280,29 @@ export class WhmKardexManagement implements OnInit {
   }
 
   closeMovementModal() {
-    this.showMovementModal = false;
-    this.form = {
-      silucia_pecosa: null,
+    this.formx.set({
+      id_pecosa: null,      // numero PECOSA (Silucia)
       movement_type: null,
       amount: null,
-      id_pecosa_silucia: null,
-      id_item_pecosa_silucia: null,
       observations: null,
-      people_dnis: [],
-    };
-    this.listDniPeople.set([]);
+      // people_dnis: [],
+      people_ids: [],
+    })
+    this.showMovementModal = false;
+    // this.form = {
+    //   silucia_pecosa: null,
+    //   movement_type: null,
+    //   amount: null,
+    //   id_pecosa_silucia: null,
+    //   id_item_pecosa_silucia: null,
+    //   observations: null,
+    //   people_dnis: [],
+    // };
+    // this.listDniPeople.set([]);
   }
 
   onSubmitMovement() {
+    console.log("cerramos modal");
     // this.lastSelectedKey = this.selectedProduct?.idsalidadet_silucia ?? null;
     // const page = this.lastProductsPage;
     // const perPage = this.lastProductsRows;

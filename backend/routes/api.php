@@ -159,11 +159,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
 });
 
 Route::middleware(['auth:sanctum','resolve.obra', 'permission:access_kardex_management'])->group(function () {
+// Route::middleware(['auth:sanctum','resolve.obra', 'role:almacen.residente'])->group(function () {
     Route::get('obras/{obra}/item-pecosas', [PecosaController::class, 'testPecosas']);
     Route::post('kardex-movements/{itemPecosa}', [MovementKardexController::class, 'store']);
     Route::get('item-pecosas/{itemPecosa}/movements-kardex', [PecosaController::class, 'getItemPecosas']);
     Route::get('item-pecosas/{itemPecosa}/movements-kardex/pdf', [MovementKardexController::class, 'pdf']);
-    Route::get('people/{dni}', [PeopleController::class, 'showOrFetch'])->middleware(['role:almacen.almacenero']); 
+    Route::get('people/{dni}', [PeopleController::class, 'show'])->middleware(['role:almacen.almacenero']); 
+    Route::get('people-save/{dni}', [PeopleController::class, 'save'])->middleware(['role:almacen.almacenero']); 
+    Route::get('users-operarios', [UserController::class, 'operarios']);
 });
 
 Route::middleware(['auth:sanctum','resolve.default.obra'])->prefix('admin')->group(function () {
@@ -175,8 +178,9 @@ Route::middleware(['auth:sanctum','resolve.default.obra'])->prefix('admin')->gro
     Route::put('users/{user}/obras/{obra}/roles', [UserObrasController::class, 'syncRoles'])->middleware(['role:almacen.superadmin']);
     Route::post('users/{user}/obras/import', [UserObrasController::class, 'importAttachFromExternal'])->middleware(['role:almacen.superadmin']);
     Route::post('obras/import', [UserObrasController::class, 'importWork'])->middleware(['role:almacen.superadmin']);
-    Route::post('obras/{obra}/import-users', ObraImportUsersController::class)->middleware(['role:almacen.superadmin']);
+    Route::post('obras/{obra}/import-users', [ObraImportUsersController::class, 'getSiluciaUsers'])->middleware(['role:almacen.superadmin']);
     Route::get('get-all-obras', [AdminCatalogController::class, 'allObras'])->middleware(['role:almacen.superadmin']);
+    
 });
 
 

@@ -119,6 +119,11 @@ export class WhmKardexManagementService {
     const headers = new HttpHeaders({ 'X-Obra-Id': String(obraId) });
     return this.http.get<any>(`${this.apiUrl}/api/people/${dni}`,{...this.options, headers});
   }
+  postSavePersonByDni(obraId: number |null , dni: string): Observable<any> {
+    console.log("enviado con datos: ", obraId, "y: ", dni)
+    const headers = new HttpHeaders({ 'X-Obra-Id': String(obraId) });
+    return this.http.get<any>(`${this.apiUrl}/api/people-save/${dni}`,{...this.options, headers});
+  }
 
   environment = {
     LOGO: 'https://sistemas.regionpuno.gob.pe/sisplan-api/logo_firma_digital.png',
