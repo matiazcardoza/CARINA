@@ -29,10 +29,10 @@ export class ShowAllObrasModal {
 
   tableData = signal({
       value: <Obra[]> [],   // registros (array de objetos)
-      rows: 5,              // cantidad de filas que hay en cada pagina
+      rows: 10,              // cantidad de filas que hay en cada pagina
       first: 0,             // indice (id) del primer registros que se ve por pagina (cambia cuando cambias de paginas)
       totalRecords: 0,      // total de filas que existe en la base de datos
-      rowsPerPageOptions: [5,10,15],
+      rowsPerPageOptions: [10,15,20],
       loading: false,
       filters: {
           anio: null,

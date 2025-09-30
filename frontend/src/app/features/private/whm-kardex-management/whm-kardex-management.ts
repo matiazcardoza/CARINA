@@ -161,13 +161,13 @@ export class WhmKardexManagement implements OnInit {
   lastSelectedKey: number | null = null;
   expanded = signal<boolean>(false)
   expandedRowsPecosa = signal<any>([])
-
+  myCurrentRoles = signal([]);
   pecosasx = signal({
     value: <Pecosa[]>[],
-    rows: 5,
+    rows: 10,
     first: 0,
     totalRecords: 0,
-    rowsPerPageOptions: [5,10,15,20],
+    rowsPerPageOptions: [10,15,20],
     loading: false,
     filters: {
       anio: '',
@@ -184,7 +184,8 @@ export class WhmKardexManagement implements OnInit {
           if (this.obras().length) {
             const first = this.obras()[0];
             if(first){
-              this.getItemsPecosas(first.id, 0, this.pecosasx().rows, this.pecosasx().filters)
+              this.getItemsPecosas(first.id, 0, this.pecosasx().rows, this.pecosasx().filters);
+              this.getRolesByObra(first.id);
             }
           }
         }
@@ -236,7 +237,20 @@ export class WhmKardexManagement implements OnInit {
   onObraChange(obraId: number) {
     // this.selectedObraId = obraId;
     // this.loadFirstPage();
-    this.getItemsPecosas(obraId, 0, this.pecosasx().rows, this.pecosasx().filters)
+    this.getItemsPecosas(obraId, 0, this.pecosasx().rows, this.pecosasx().filters);
+    this.getRolesByObra(obraId);
+  }
+
+  getRolesByObra(obraId: number){
+    this.api.userRolesByObra(obraId)
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe({
+      next: (response) => {
+        console.log(response);
+        this.myCurrentRoles.set(response.roles)
+      },
+      error:  () => {}
+    })
   }
 
   onLazyLoadPecosa(event:any){
