@@ -94,7 +94,7 @@ export class UsersForm implements OnInit {
       password: ['', [
         Validators.required, 
         Validators.minLength(8),
-        Validators.pattern(/^(?=.*[a-z])(?=.*\d)[a-z\d]*$/)
+        Validators.pattern(/^[a-zA-Z0-9]+$/)
       ]],
       confirmPassword: ['', [Validators.required]],
       roles: this.fb.array([]),

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/AuthService/auth';
@@ -11,7 +11,8 @@ import { environment } from '../../../../environments/environment';
   templateUrl: './login.html',
   styleUrls: ['./login.css'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule]
+  imports: [CommonModule, ReactiveFormsModule],
+  encapsulation: ViewEncapsulation.None
 })
 export class Login implements OnInit {
   loginForm: FormGroup;
@@ -45,7 +46,7 @@ export class Login implements OnInit {
 
       this.authService.login(formData).subscribe({
         next: () => {
-          this.router.navigate(['/private']);
+          this.router.navigate(['/carina']);
         },
         error: (err: HttpErrorResponse) => {
           this.isLoading = false;
