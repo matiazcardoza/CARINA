@@ -26,6 +26,7 @@ import { Pecosa } from './interfaces/whm-kardex-management.interface';
 import { finalize } from 'rxjs/operators';
 import { FormMovementKardex } from './interfaces/whm-kardex-management.interface';
 import { OperarioOption } from './interfaces/whm-kardex-management.interface';
+import { Chip } from "primeng/chip";
 
 @Component({
   selector: 'app-whm-kardex-management',
@@ -33,8 +34,9 @@ import { OperarioOption } from './interfaces/whm-kardex-management.interface';
     CommonModule, FormsModule,
     TableModule, Button, InputTextModule, DialogModule, InputNumberModule,
     IconField, InputIcon, ListboxModule, RadioButton, Toast,
-    AddNewUserModal
-  ],
+    AddNewUserModal,
+    Chip
+],
   providers: [MessageService],
   templateUrl: './whm-kardex-management.html',
   styleUrl: './whm-kardex-management.css'
@@ -162,6 +164,9 @@ export class WhmKardexManagement implements OnInit {
   expanded = signal<boolean>(false)
   expandedRowsPecosa = signal<any>([])
   myCurrentRoles = signal([]);
+
+
+
   pecosasx = signal({
     value: <Pecosa[]>[],
     rows: 10,
@@ -190,6 +195,33 @@ export class WhmKardexManagement implements OnInit {
           }
         }
       });
+  }
+  seeDebugerData(){
+    console.log(this.myCurrentRoles())
+  }
+
+  items = [
+    {
+      id: 1,
+      name: "juan"
+    },
+    {
+      id: 2,
+      name: "jose"
+    }
+  ]
+  // Mapa de metadatos por rol (opcional)
+  roleMeta: Record<string, { label: string; icon?: string; styleClass?: string }> = {
+    'almacen.superadmin':   { label: 'Superadmin',      icon: 'pi pi-crown',     styleClass: 'bg-purple-100' },
+    'almacen.almacenero':   { label: 'Almacenero',      icon: 'pi pi-box',       styleClass: 'bg-blue-100'   },
+    'almacen.administrador':{ label: 'Administrador',   icon: 'pi pi-shield',    styleClass: 'bg-teal-100'   },
+  };
+
+  // Para cubrir roles desconocidos o sin meta
+  humanizeRole(r: string): string {
+    // "almacen.superadmin" -> "Superadmin"
+    const last = r.split('.').pop() ?? r;
+    return last.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
 
   getItemsPecosas(obraId:number | null, first:number, rows: number, filters: FiltersPecosas){
