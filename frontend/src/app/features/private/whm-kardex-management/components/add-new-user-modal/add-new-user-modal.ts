@@ -81,27 +81,54 @@ export class AddNewUserModal {
     }
 
     sendPesonSelected(){
-      this.onListPeopleByDni.emit(this.personObtainedByDni());
-      this.personObtainedByDni.set({
-            "dni": "",
-            "first_lastname": "",
-            "second_lastname": "",
-            "names": "",
-            "full_name": "",
-            "civil_status": null,
-            "address": null,
-            "ubigeo": null,
-            "ubg_department": null,
-            "ubg_province": null,
-            "ubg_district": null,
-            "photo_base64": null,
-            "reniec_consulted_at": null,
-            "created_at": null,
-            "updated_at": null
+      const dni = (this.dniQuery || '').trim();
+        if (!dni) return;
+        // this.loading.set(true);
+        this.service.postSavePersonByDni(this.obraId(), dni).subscribe({
+          next: person => {
+            // this.personObtainedByDni.set(person.data);
+            this.showToastMessage({detail: "DNI obtenido correctamente", severity: 'success', summary: "Success"});
+            this.isOpenChange.emit(false);
+
+          },
+          error: err => {
+            console.error('Error al consultar DNI:', err)
+            // this.loading.set(false); 
+            this.showToastMessage({detail: "El DNI solicitado no existe", severity: 'error', summary: 'Error'});
+            this.isOpenChange.emit(false);
+          },
+
+          complete: () => {
+            // this.loading.set(false); 
+          },
       });
+
+
+
+      // this.onListPeopleByDni.emit(this.personObtainedByDni());
+      // this.personObtainedByDni.set({
+      //       "dni": "",
+      //       "first_lastname": "",
+      //       "second_lastname": "",
+      //       "names": "",
+      //       "full_name": "",
+      //       "civil_status": null,
+      //       "address": null,
+      //       "ubigeo": null,
+      //       "ubg_department": null,
+      //       "ubg_province": null,
+      //       "ubg_district": null,
+      //       "photo_base64": null,
+      //       "reniec_consulted_at": null,
+      //       "created_at": null,
+      //       "updated_at": null
+      // });
+
       this.dniQuery = '';
       this.isOpenChange.emit(false);
       // this.sentOpenValue.emit(false)
+
+      
     }
 
 
