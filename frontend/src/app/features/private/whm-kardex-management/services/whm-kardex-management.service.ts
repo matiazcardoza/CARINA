@@ -125,6 +125,11 @@ export class WhmKardexManagementService {
     return this.http.get<any>(`${this.apiUrl}/api/people-save/${dni}`,{...this.options, headers});
   }
 
+  userRolesByObra(obraId: number){
+    const headers = new HttpHeaders({ 'X-Obra-Id': String(obraId) });
+    return this.http.get<any>(`${this.apiUrl}/api/roles-by-obra`,{...this.options, headers});
+  }
+
   environment = {
     LOGO: 'https://sistemas.regionpuno.gob.pe/sisplan-api/logo_firma_digital.png',
     PROVEEDOR_URL: 'https://sistemas.regionpuno.gob.pe/firma-api/'                         // <- tu backend

@@ -60,7 +60,7 @@ class UserObrasController extends Controller
                 'roles' => $rolesPorObra[$o->id] ?? collect(),
             ];
         });
-// use Illuminate\Support\Facades\Log;
+        // use Illuminate\Support\Facades\Log;
 
         Log::info($result);
 
@@ -536,4 +536,10 @@ class UserObrasController extends Controller
         });
     }
 
+    public function userRolesByObra(Request $request){
+        $user = $request->user();
+        return response()->json([
+            'roles' => $user->getRoleNames() // Devuelve ['admin', 'editor', ...]
+        ]);
+    }
 }
