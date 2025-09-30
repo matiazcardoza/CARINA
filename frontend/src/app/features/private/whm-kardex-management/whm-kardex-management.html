@@ -24,7 +24,7 @@
     <h1 class="text-3xl font-semibold mb-2">Gestión del Kardex</h1>
     <p class="text-lg text-gray-500">Ítems PECOSA de la obra seleccionada.</p>
     <!-- <button (click)="seeItemsPecosas()">see item pecosas</button> -->
-    <button (click)="verdatosdemovementkardex()">ver datos de formulario</button>
+    <!-- <button (click)="verdatosdemovementkardex()">ver datos de formulario</button> -->
   </div>
 
   <!-- [value]="tableRows()" -->
@@ -550,6 +550,7 @@
   [isOpen]="showAddUserModal"
   (isOpenChange)="closeModalAddPerson()"
   (onListPeopleByDni)="handleListPeopleByDni($event)"
+  (onAddNewOperario)="getUsersOfMovementKardex()"
   [obraId]="selectedObraId"
 />
 

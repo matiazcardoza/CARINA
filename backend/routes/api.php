@@ -166,6 +166,7 @@ Route::middleware(['auth:sanctum','resolve.obra', 'permission:access_kardex_mana
     Route::get('item-pecosas/{itemPecosa}/movements-kardex/pdf', [MovementKardexController::class, 'pdf']);
     Route::get('people/{dni}', [PeopleController::class, 'show'])->middleware(['role:almacen.almacenero']); 
     Route::get('people-save/{dni}', [PeopleController::class, 'save'])->middleware(['role:almacen.almacenero']); 
+    Route::get('users-operarios', [UserController::class, 'operarios']);
 });
 
 Route::middleware(['auth:sanctum','resolve.default.obra'])->prefix('admin')->group(function () {
@@ -179,6 +180,7 @@ Route::middleware(['auth:sanctum','resolve.default.obra'])->prefix('admin')->gro
     Route::post('obras/import', [UserObrasController::class, 'importWork'])->middleware(['role:almacen.superadmin']);
     Route::post('obras/{obra}/import-users', [ObraImportUsersController::class, 'getSiluciaUsers'])->middleware(['role:almacen.superadmin']);
     Route::get('get-all-obras', [AdminCatalogController::class, 'allObras'])->middleware(['role:almacen.superadmin']);
+    
 });
 
 
