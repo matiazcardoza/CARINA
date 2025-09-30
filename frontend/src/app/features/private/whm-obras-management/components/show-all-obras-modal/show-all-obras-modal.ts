@@ -131,7 +131,7 @@ export class ShowAllObrasModal {
       next: () => { 
       },
       complete: () => {
-        this.isOpenChange.emit(false)
+        // this.isOpenChange.emit(false)
         this.tableData.update(object => ({...object, loading: false}))
       }
     });

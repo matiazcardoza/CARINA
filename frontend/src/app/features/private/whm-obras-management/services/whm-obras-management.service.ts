@@ -50,13 +50,14 @@ export class WhmObrasManagementService {
     return this.http.get<Obra[]>(`${this.apiUrl}/api/admin/get-all-obras`,this.options);
   }
   getObras(page = 1, perPage = 10, search = '') {
+    console.log("se realiza la consulta",  page, perPage, search);
     let params = new HttpParams()
       .set('page', String(page))
       .set('per_page', String(perPage));
     if (search) params = params.set('search', search);
 
     // tu endpoint real (según el JSON que pegaste)
-    return this.http.get<Obra[]>(`${this.apiUrl}/api/admin/get-all-obras`,this.options);
+    return this.http.get<Obra[]>(`${this.apiUrl}/api/admin/get-all-obras`,{...this.options, params});
     // return this.http.get<Paginated<Obra>>(`${this.base}/get-all-obras`, { params });
   }
 
