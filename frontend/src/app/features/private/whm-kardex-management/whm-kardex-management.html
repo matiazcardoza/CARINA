@@ -340,7 +340,7 @@
           [ngModel]="selectedOperarioId()"
           (ngModelChange)="onOperarioChange($event)"
         >
-          <option [ngValue]="null" disabled selected>— Selecciona operario —</option>
+          <option [ngValue]="null" disabled selected>Selecciona operario</option>
           @for (u of operarios(); track u.id) {
             <option [ngValue]="u.id">{{ u.label }}</option>
           }
@@ -380,18 +380,20 @@
     </div>
 
     <!-- Personas -->
-    <div class="field dialog_people">
-      <div class="flex items-center justify-between dialog_people_item">
-        <span class="font-medium">Personas</span>
-        <p-button 
-          icon="pi pi-user-plus" 
-          (onClick)="OpenModalAddPerson()" 
-          [rounded]="true" 
-          [text]="true" 
-          [ariaLabel]="'Adicionar persona'"
-        ></p-button>
+    @if (formx().movement_type == 'salida') {
+      <div class="field dialog_people">
+        <div class="flex items-center justify-between dialog_people_item">
+          <span class="font-medium">Añadir nuevo operario</span>
+          <p-button 
+            icon="pi pi-user-plus" 
+            (onClick)="OpenModalAddPerson()" 
+            [rounded]="true" 
+            [text]="true" 
+            [ariaLabel]="'Adicionar persona'"
+          ></p-button>
+        </div>
       </div>
-    </div>
+    }
 
     @if (listDniPeople().length > 0) {
       <p-listbox [options]="listDniPeople()" [style]="{ width: '100%' }" [filter]="false">
