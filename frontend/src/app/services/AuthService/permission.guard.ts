@@ -24,7 +24,7 @@ export class PermissionGuard implements CanActivate {
     const requiredPermissions = route.data['permissions'] as string[] | string;
     const requiredRoles = route.data['roles'] as string[] | string;
     const checkType = route.data['checkType'] as 'any' | 'all' || 'any';
-    const redirectTo = route.data['redirectTo'] as string || '/private/home';
+    const redirectTo = route.data['redirectTo'] as string || '/carina/home';
 
     return this.authService.isAuthenticated$.pipe(
       take(1),
