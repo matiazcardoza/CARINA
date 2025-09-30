@@ -668,11 +668,18 @@ class MovementKardexController extends Controller
         // $nombre = Auth::user()->name;
         $nombre = "";
         $rows = [];
+        $saldoAcum = 0.0;
         foreach ($movements as $m) {
             $id = $m->id;
             $fecha   = Carbon::parse($m->movement_date)->format('Y-m-d');
-            $tipo    = (string)($m->movement_type ?? '');
-            $monto   = (float)$m->amount;
+            // $tipo    = (string)($m->movement_type ?? '');
+            // $monto   = (float)$m->amount;
+            // calcular columnas Entrada / Salida
+            $movementType = (string)($m->movement_type ?? '');
+            $amount       = (float)($m->amount);
+            $entrada = $movementType === 'entrada' ? $amount : 0.0;
+            $salida  = $movementType === 'salida'  ? $amount : 0.0;
+            $saldoAcum   += ($entrada - $salida);
             $firstUser = $m->users->sortBy(fn ($u) => $u->pivot?->attached_at ?? $m->movement_date)->first();
             
             $nombreReceptor = null;
@@ -694,20 +701,10 @@ class MovementKardexController extends Controller
             if (!$nombreReceptor) {
                 $nombreReceptor = 'NINUGUNO';
             }
-            // $firstUser = $m->users
-            //     ->sortBy(fn ($u) => $u->pivot?->attached_at ?? now()) // orden por pivote
-            //     ->first();
-            // $persona = $firstUser?->persona?->name;
 
-            // DNI y nombre desde persona; si no hay persona, usamos el name del usuario; si no hay usuario, fallback al actual
-            // $dni = $firstUser?->persona?->num_doc;
-            // $apellidoPersona = $firstUser?->persona?->last_name;
-            // $personaObj = $m->people->first();
-            // $persona = $personaObj
-            //     ? trim(($personaObj->full_name ?? '') . ' ' . ($personaObj->first_lastname ?? '') . ' ' . ($personaObj->second_lastname ?? ''))
-            //     : $nombre;
             $obs     = (string)($m->observations ?? '');
-            $rows[]  = [$id, $fecha, $tipo, $monto, $nombreReceptor, $obs];
+            // $rows[]  = [$id, $fecha, $tipo, $monto, $nombreReceptor, $obs];
+            $rows[] = [$id, $fecha, $entrada, $salida, $saldoAcum, $nombreReceptor, $obs];
             // $rows[] = [$id, $fecha, $tipo, $monto, $nombreCompleto, $obs];
         }
 
@@ -735,13 +732,16 @@ class MovementKardexController extends Controller
         $qrCode = UsefulFunctionsForPdfs::generateQRcode($urlPath);
 
         // 4) Generar PDF con FPDF
-        $headers = ['N', 'Fecha', 'Movimiento', 'Monto', 'Recibido / Encargado', 'Observaciones'];
-        $widths = [0.1, 0.15, 0.15, 0.15, 0.23, 0.22];
+        // $headers = ['N', 'Fecha', 'Movimiento', 'Monto', 'Recibido / Encargado', 'Observaciones'];
+        $headers = ['N', 'Fecha', 'Entrada', 'Salida', 'Saldo', 'Recibido / Encargado', 'Observaciones'];
+        // $widths = [0.1, 0.15, 0.15, 0.15, 0.23, 0.22];
+        $widths = [0.07, 0.12, 0.12, 0.12, 0.12, 0.23, 0.22];
         $styles = [
             'lineHeight' => 4,
             'padX'       => 2,
             'padY'       => 1,
-            'aligns'     => ['C','L','L'],
+            // 'aligns'     => ['C','L','L'],
+            'aligns'     => ['C','L','R','R','R','L','L'],
             'border'     => 1,
             'headerFill' => [230,230,230],
         ];
