@@ -26,6 +26,7 @@ import { Pecosa } from './interfaces/whm-kardex-management.interface';
 import { finalize } from 'rxjs/operators';
 import { FormMovementKardex } from './interfaces/whm-kardex-management.interface';
 import { OperarioOption } from './interfaces/whm-kardex-management.interface';
+import { Chip } from "primeng/chip";
 
 @Component({
   selector: 'app-whm-kardex-management',
@@ -33,8 +34,9 @@ import { OperarioOption } from './interfaces/whm-kardex-management.interface';
     CommonModule, FormsModule,
     TableModule, Button, InputTextModule, DialogModule, InputNumberModule,
     IconField, InputIcon, ListboxModule, RadioButton, Toast,
-    AddNewUserModal
-  ],
+    AddNewUserModal,
+    Chip
+],
   providers: [MessageService],
   templateUrl: './whm-kardex-management.html',
   styleUrl: './whm-kardex-management.css'
@@ -162,6 +164,9 @@ export class WhmKardexManagement implements OnInit {
   expanded = signal<boolean>(false)
   expandedRowsPecosa = signal<any>([])
   myCurrentRoles = signal([]);
+
+
+
   pecosasx = signal({
     value: <Pecosa[]>[],
     rows: 10,
@@ -190,6 +195,37 @@ export class WhmKardexManagement implements OnInit {
           }
         }
       });
+  }
+  seeDebugerData(){
+    console.log(this.myCurrentRoles())
+  }
+
+  items = [
+    {
+      id: 1,
+      name: "juan"
+    },
+    {
+      id: 2,
+      name: "jose"
+    }
+  ]
+  // Mapa de metadatos por rol (opcional)
+  roleMeta: Record<string, { label: string; icon?: string; styleClass?: object }> = {
+    'almacen.superadmin':   { label: 'Superadmin',      icon: 'pi pi-crown',     styleClass: {'background-color': '#e0e7ff', 'color': '#3730a3'}},
+    'almacen.almacenero':   { label: 'Almacenero',      icon: 'pi pi-box',       styleClass: {'background-color': '#d1fae5', 'color': '#065f46'}},
+    'almacen.administrador':{ label: 'Administrador',   icon: 'pi pi-shield',    styleClass: {'background-color': '#f3f4f6', 'color': '#1f2937'}},
+    'almacen.residente': {label: 'Residente', icon: 'pi pi-user-edit', styleClass:           {'background-color': '#fefce8', 'color': '#854d0e'}},
+    'almacen.supervisor': {label: 'Supervisor', icon: 'pi pi-eye', styleClass:               {'background-color': '#ffedd5', 'color': '#9a3412'  }},
+    'almacen.operario': { label: 'Operario', icon: 'pi pi-cog', styleClass:                  {'background-color': '#e5e7eb', 'color': '#374151'  }},
+  
+  };
+
+  // Para cubrir roles desconocidos o sin meta
+  humanizeRole(r: string): string {
+    // "almacen.superadmin" -> "Superadmin"
+    const last = r.split('.').pop() ?? r;
+    return last.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
 
   getItemsPecosas(obraId:number | null, first:number, rows: number, filters: FiltersPecosas){
