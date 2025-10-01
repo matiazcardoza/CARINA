@@ -160,7 +160,7 @@ class RolesWarehouseMovementSeeder extends Seeder
 
             // Operario (solo ver lo que le corresponde)
             'almacen.operario' => [
-                'almacen.access_kardex_management',
+                // 'almacen.access_kardex_management',
                 // 'almacen.create_see_movements',
             ],
         ];
