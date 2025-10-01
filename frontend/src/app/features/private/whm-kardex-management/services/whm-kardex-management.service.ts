@@ -73,6 +73,10 @@ export class WhmKardexManagementService {
     if (search) params = params.set('q', search);
     return this.http.get<OC[]>(`${this.apiUrl}/api/pecosas`, { ...this.options, headers, params });
   }
+  deleteReport(obraId: number | null, reportId: number) {
+    const headers = new HttpHeaders({ 'X-Obra-Id': String(obraId) }); // ← sólo aquí
+    return this.http.delete(`${this.apiUrl}/api/reports/${reportId}`, { ...this.options, headers });
+  }
 
   getPecosasDeOrden(obraId: number, ordenId: number): Observable<Pecosa[]> {
     const headers = new HttpHeaders({ 'X-Obra-Id': String(obraId) }); // ← sólo aquí

@@ -177,7 +177,13 @@
         <th style="min-width:7rem;"><div class="item_head">Fecha</div></th>
         <th style="min-width:8rem;"><div class="item_head">N° PECOSA</div></th>
         <th style="min-width:8rem;"><div class="item_head">ID Item (Silucia)</div></th>
+        <th style="min-width:8rem;"><div class="item_head">Reportes</div></th>
         <th><div class="item_head">Cantidad</div></th>
+
+        <th><div class="item_head">Entradas</div></th>
+        <th><div class="item_head">Salidas</div></th>
+        <th><div class="item_head">Stock</div></th>
+
         <th><div class="item_head">Precio</div></th>
         <th><div class="item_head">Medida</div></th>
         <th><div class="item_head">Ítem</div></th>
@@ -209,10 +215,35 @@
         </td>
         <td>{{ row.id }}</td>
         <td>{{ row.anio }}</td>
-        <td>{{ row.fecha }}</td>
+        <td>{{ row.fecha | date: 'dd/MM/yyyy' }}</td>
         <td>{{ row.numero }}</td>
         <td>{{ row.idsalidadet_silucia }}</td>
+        
+        <!-- <td>{{ row.number_reports }}</td> -->
+        <td>
+          <!-- <p-badge
+            [value]="row.number_reports"
+            [severity]="row.number_reports === 0 ? 'secondary'
+                        : row.number_reports < 3 ? 'info'
+                        : row.number_reports < 6 ? 'warning'
+                        : 'danger'"
+          /> -->
+          <p-badge [value]="row.number_reports" [severity]="getReportSeverity(row.number_reports)"></p-badge>
+        </td>
         <td>{{ row.cantidad }}</td>
+
+        <td>
+          <p-badge [value]="row.quantity_received" [severity]="'success'"></p-badge>
+        </td>
+        <td>
+          <p-badge [value]="row.quantity_issued" [severity]="'warn'"></p-badge>
+        </td>
+        <td>
+          <p-badge [value]="row.quantity_on_hand" [severity]="'info'"></p-badge>
+        </td>
+        <!-- <td>{{ row.quantity_issued }}</td>
+        <td>{{ row.quantity_on_hand }}</td> -->
+
         <td>{{ row.precio }}</td>
         <td>{{ row.desmedida }}</td>
         <td style="padding:0; min-width:12rem;">
@@ -233,7 +264,9 @@
         <!-- Acciones (columna congelada) -->
         <td pFrozenColumn alignFrozen="right">
           <div class="flex container_action_buttons gap-2">
-            <p-button icon="pi pi-eye" severity="info" (onClick)="openMovementDetailsModal(row)"></p-button>
+                                    <!-- [style]="{ width: '2.5rem', height: '2.5rem', 'border-radius': '50%' }" -->
+
+            <p-button icon="pi pi-eye" severity="info"  (onClick)="openMovementDetailsModal(row)"></p-button>
             <p-button icon="pi pi-plus" severity="success" (onClick)="openMovementModal(row)"></p-button>
           </div>
         </td>
@@ -246,7 +279,7 @@
     <ng-template pTemplate="expandedrow" let-row>
       
       <tr>
-        <td colspan="10">
+        <td colspan="13">
           <!-- <td [attr.colspan]="columns.length"> -->
           <!-- <div style="padding:10px 8px; background:#f9fafb; border:1px solid #e5e7eb;border-radius:8px;"> -->
           <div style="padding:10px 8px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; text-align:center; min-width: 50%; background: rgb(240, 240, 240);">
@@ -260,6 +293,7 @@
                   <!-- <th style="min-width:1rem;">Tipo</th> -->
                   <th style="min-width:1rem;">Estado de documento</th>
                   <th style="min-width:1rem;">Firmante autorizado</th>
+                  <th style="min-width:1rem;">Puede firmar</th>
                   <!-- <th style="min-width:1rem;">Puede firmar</th> -->
                   <th style="min-width:1rem; text-align:center;">Acciones</th>
                 </tr>
@@ -269,8 +303,17 @@
                 <tr>
                   <td>{{ r.id }}</td>
                   <!-- <td>{{ r.reportable_id || '—' }}</td> -->
-                  <td>{{ r.status }}</td>
-                  <td>{{ r.current_step.role || '—' }}</td>
+                  <td>
+                    {{getStatusLabel(r.status)}}
+                  </td>
+                  <td>{{ getAuthorizedSignatoryLabel(r.current_step.role) || '—' }}</td>
+
+                  @if(r.can_you_sign){
+                    <td>SI</td>
+                  }@else {
+                    <td >NO</td>
+                  }
+                  <!-- <td>{{r.can_you_sign || '—' }}</td> -->
                   <!-- <td>
                     @if (r.user_step) {
                       <span>#{{ r.user_step.order }} — {{ r.user_step.role }} ({{ r.user_step.status }})</span>
@@ -279,21 +322,39 @@
                     }
                   </td> -->
 
-                  <td style="text-align:center;">
-                    <div class="flex gap-2 justify-center">
+                  <td style="text-align:end;">
+                    <div class="flex gap-2 justify-center" style="display: flex; gap: 0.5rem; justify-content: center;">
                       <p-button
                         icon="pi pi-download"
-                        [text]="true"
+                        severity="secondary"
+                        [text]="true" 
+                        pTooltip="Descargar PDF"
+                        tooltipPosition="top"
+                        [style]="{ width: '2.5rem', height: '2.5rem', 'border-radius': '50%' }"
                         (onClick)="downloadReport(r.pdf_path)"
                         ></p-button>
+                        <!-- styleClass="rounded-full" -->
                         <!-- (onClick)="downloadReport(r.status)" -->
 
                       <p-button
                         icon="pi pi-pencil"
                         severity="success"
-                        [text]="true"
+                        [text]="true" 
+                        pTooltip="firmar digitalmente"
+                        [style]="{ width: '2.5rem', height: '2.5rem', 'border-radius': '50%' }"
                         (onClick)="signReport(r)"
                         ></p-button>
+                        <!-- styleClass="rounded-full" -->
+
+                      <p-button
+                        icon="pi pi-trash"
+                        severity="danger"
+                        [text]="true" 
+                        styleClass="rounded-full"
+                        pTooltip="eliminar reporte"
+                        [style]="{ width: '2.5rem', height: '2.5rem', 'border-radius': '50%' }"
+                        (onClick)="deleteReport(r)"
+                      ></p-button>
                         <!-- [disabled]="!r.can_sign || !r.sign_callback_url" -->
                     </div>
                   </td>

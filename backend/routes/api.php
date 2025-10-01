@@ -164,6 +164,7 @@ Route::middleware(['auth:sanctum','resolve.obra', 'permission:access_kardex_mana
     Route::post('kardex-movements/{itemPecosa}', [MovementKardexController::class, 'store']);
     Route::get('item-pecosas/{itemPecosa}/movements-kardex', [PecosaController::class, 'getItemPecosas']);
     Route::get('item-pecosas/{itemPecosa}/movements-kardex/pdf', [MovementKardexController::class, 'pdf']);
+    Route::delete('reports/{report}', [MovementKardexController::class, 'destroy']);
     Route::get('people/{dni}', [PeopleController::class, 'show'])->middleware(['role:almacen.almacenero']); 
     Route::get('people-save/{dni}', [PeopleController::class, 'save'])->middleware(['role:almacen.almacenero']); 
     Route::get('users-operarios', [UserController::class, 'operarios']);

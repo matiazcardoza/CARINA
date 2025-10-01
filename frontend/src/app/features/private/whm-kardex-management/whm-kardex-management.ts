@@ -27,6 +27,9 @@ import { finalize } from 'rxjs/operators';
 import { FormMovementKardex } from './interfaces/whm-kardex-management.interface';
 import { OperarioOption } from './interfaces/whm-kardex-management.interface';
 import { Chip } from "primeng/chip";
+import { Tooltip } from 'primeng/tooltip';
+import { Badge } from "primeng/badge";
+
 
 @Component({
   selector: 'app-whm-kardex-management',
@@ -35,7 +38,8 @@ import { Chip } from "primeng/chip";
     TableModule, Button, InputTextModule, DialogModule, InputNumberModule,
     IconField, InputIcon, ListboxModule, RadioButton, Toast,
     AddNewUserModal,
-    Chip
+    Chip, Tooltip,
+    Badge
 ],
   providers: [MessageService],
   templateUrl: './whm-kardex-management.html',
@@ -542,8 +546,54 @@ export class WhmKardexManagement implements OnInit {
         },
         complete: () => {
           this.working = false;
+          this.getItemsPecosas(this.selectedObraId, 0, this.pecosasx().rows, this.pecosasx().filters);
         }
     });
+  }
+
+  deleteReport(data: any){
+    console.log(data);
+
+      this.api.deleteReport(this.selectedObraId, data.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          console.log(response);
+          this.toast('success', 'Eliminado', 'Reporte eliminado correctamente.');
+          this.getItemsPecosas(this.selectedObraId, 0, this.pecosasx().rows, this.pecosasx().filters);
+
+        },
+        error: (err) => {
+          const msg = err?.error?.message || err?.message || 'No se pudo eliminar el reporte.';
+          const status = err?.status;
+          const sev = status === 409 ? 'warn' : (status === 403 ? 'warn' : 'error');
+          this.toast(sev as any, 'No eliminado', msg);
+        }
+    });
+  }
+
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'in_progress': return 'en progreso';
+      case 'completed': return 'completado';
+      case 'cancelled': return 'cancelado';
+      default: return 'indefinido';
+    }
+  }
+  getAuthorizedSignatoryLabel(status: string): string {
+    switch (status) {
+      case 'almacen.almacenero': return 'Almacenero';
+      case 'almacen.administrador': return 'Administrador';
+      case 'almacen.residente': return 'Residente';
+      case 'almacen.supervisor': return 'Supervisor';
+      default: return 'indefinido';
+    }
+  }
+  getReportSeverity(n: number): 'secondary' | 'info' | 'warn' | 'danger' {
+    if (!n) return 'secondary';
+    // if (n < 3) return 'info';
+    // if (n < 6) return 'warn';
+    return 'danger';
   }
 
   openExternal(url?: string | null) {

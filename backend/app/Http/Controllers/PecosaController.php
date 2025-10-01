@@ -228,6 +228,7 @@ class PecosaController extends Controller
         $q->select([
             'id','obra_id',
             'anio','numero','fecha',
+            'quantity_received', 'quantity_issued', 'quantity_on_hand',
             'prod_proy','cod_meta','desmeta','desuoper','destipodestino',
             'item','desmedida','cantidad','precio','total','saldo','numero_origen',
             'idsalidadet_silucia','idcompradet_silucia'
@@ -241,27 +242,45 @@ class PecosaController extends Controller
 
         $p->getCollection()->transform(function ($item) use ($user, $roles) {
             // $item->reports es una Collection de Report
-            $item->reports->each(function ($r)  use ($user, $roles) {
-                if ($r->relationLoaded('steps')) {
-                    $curr = $r->steps->firstWhere('order', $r->current_step);
-                    // $curr = $r->steps->firstWhere('role', $r->current_step);
-                    $r->setRelation('currentStep', $curr);
-                    // opcional: no enviar todos los steps al frontend
-                    $r->unsetRelation('steps');
-                    if ($curr) {
-                        $qs = http_build_query([
-                            'report_id'     => $r->id,
-                            'step_id'       => $curr->id,
-                            'user_id'       => $user->id,
-                            'user_roles'    => $roles,
-                            'token'         => $curr->callback_token,
-                        ]);
-                        $r->setAttribute('sign_callback_url', env('PDF_DOWNLOAD_BASE_URL')."/api/signatures/callback?{$qs}");
-                    } else {
-                        $r->setAttribute('sign_callback_url', null);
+            $item->reports->each(
+                function ($r)  use ($user, $roles) {
+                    if ($r->relationLoaded('steps')) {
+                        $curr = $r->steps->firstWhere('order', $r->current_step);
+                        // $curr = $r->steps->firstWhere('role', $r->current_step);
+                        $r->setRelation('currentStep', $curr);
+                        // opcional: no enviar todos los steps al frontend
+                        $r->unsetRelation('steps');
+                        if ($curr) {
+                            $qs = http_build_query([
+                                'report_id'     => $r->id,
+                                'step_id'       => $curr->id,
+                                'user_id'       => $user->id,
+                                'user_roles'    => $roles,
+                                'token'         => $curr->callback_token,
+                            ]);
+                            $r->setAttribute('sign_callback_url', env('PDF_DOWNLOAD_BASE_URL')."/api/signatures/callback?{$qs}");
+                        } else {
+                            $r->setAttribute('sign_callback_url', null);
+                        }
                     }
-                }
-            });
+                    if($user->hasRole($curr->role)){
+                        $r->can_you_sign = true;
+                    }else{
+                        $r->can_you_sign = false;
+                    }
+                    // if ($user->hasRole('almacen.almacenero') && $r->current_step == 1){
+                    //     $r->can_you_sign = true;
+                    // }elseif($user->hasRole('almacen.administrador') && $r->current_step == 2){
+                    //     $r->can_you_sign = true;
+                    // }elseif($user->hasRole('almacen.residente') && $r->current_step == 3){
+                    //     $r->can_you_sign = true;
+                    // }elseif($user->hasRole('almacen.supervisor') && $r->current_step == 4){
+                    //     $r->can_you_sign = true;
+                    // }else{
+                    //     $r->can_you_sign = false;
+                    // }
+                });
+            $item->number_reports = $item->reports->count();
             return $item;
         });
 

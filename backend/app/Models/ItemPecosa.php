@@ -26,6 +26,9 @@ class ItemPecosa extends Model
         // Identificadores Silucia
         'idsalidadet_silucia',   // único
         'idcompradet_silucia',   // opcional
+        'quantity_received',
+        'quantity_issued',
+        'quantity_on_hand',
 
         // Búsquedas típicas
         'anio',
