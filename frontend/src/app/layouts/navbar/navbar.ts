@@ -22,11 +22,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     ButtonModule,
     InputTextModule,
     IconField,
-    InputIcon,
     MenuModule
   ],
   templateUrl: './navbar.html',
-  styleUrl: './navbar.css'
+  styleUrl: './navbar.css',
 })
 export class Navbar {
   private auth = inject(AuthService);

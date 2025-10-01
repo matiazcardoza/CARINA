@@ -9,10 +9,9 @@
       <!-- Título -->
       <div class="drawer__header">
         <span class="brand">
-          <svg class="brand__logo" width="31" height="33" viewBox="0 0 31 33" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M15.1934 0V0V0L0.0391235 5.38288L2.35052 25.3417L15.1934 32.427V32.427V32.427L28.0364 25.3417L30.3478 5.38288L15.1934 0Z" fill="var(--p-primary-color)"/>
-          </svg>
-          <span class="brand__text">CARINA</span>
+          <strong>
+            <span class="brand__text" style="color: rgb(63, 75, 179); font-family: 'Italianno', cursive; font-size: 70px;">Carina</span>
+          </strong>
         </span>
         <span>
           <p-button 
@@ -41,7 +40,7 @@
               <ul class="menu__list" animate.enter="slide-down" animate.leave="slide-up">
                 
                 <!-- Dashboard - Solo si tiene permiso access_dashboard -->
-                <li *appHasPermission="'access_dashboard'" routerLink="home">
+                <li *appHasPermission="'access_dashboard'" routerLink="dashboard">
                   <a class="menu__link">
                     <i class="pi pi-chart-line"></i>
                     <span>Dashboard</span>
