@@ -116,7 +116,7 @@
             }
           </li>
         </ul> -->
-        <ul class="menu" *appHasPermission="['access_kardex_management', 'access_user_management', 'access_obras_management']">
+        <ul class="menu" *appHasPermission="['almacen.access_kardex_management', 'access_user_management', 'access_obras_management']">
           <li>
             <!-- APPLICATION -->
             <button class="menu__toggle" (click)="toggle('app')">
@@ -129,9 +129,9 @@
                 <!-- <li routerLink="kardex-management"><a class="menu__link"><i class="pi pi-folder" ></i><span>Gestión del kardex</span></a></li> -->
                 <!-- <li routerLink="digital-signatures"><a class="menu__link"><i class="pi pi-chart-bar"></i><span>Firmas de reportes</span></a></li> -->
                 <!-- <li routerLink="test-requests"><a class="menu__link"><i class="pi pi-cog"></i><span>Settings</span></a></li> -->
-                <li *appHasPermission="['access_kardex_management']" routerLink="whm-kardex-management"><a class="menu__link"><i class="pi pi-warehouse" ></i><span>kardex</span></a></li>
-                <li *appHasPermission="['access_user_management']" routerLink="whm-user-management"><a class="menu__link"><i class="pi pi-android"></i><span>Gestión de usuarios</span></a></li>
-                <li *appHasPermission="['access_obras_management']" routerLink="whm-obras-management"><a class="menu__link"><i class="pi pi-building"></i><span>Gestión de Obras</span></a></li>
+                <li *appHasPermission="['almacen.access_kardex_management']" routerLink="whm-kardex-management"><a class="menu__link"><i class="pi pi-warehouse" ></i><span>kardex</span></a></li>
+                <li *appHasPermission="['almacen.access_user_management']" routerLink="whm-user-management"><a class="menu__link"><i class="pi pi-android"></i><span>Gestión de usuarios</span></a></li>
+                <li *appHasPermission="['almacen.access_obras_management']" routerLink="whm-obras-management"><a class="menu__link"><i class="pi pi-building"></i><span>Gestión de Obras</span></a></li>
               </ul>
             }
           </li>
