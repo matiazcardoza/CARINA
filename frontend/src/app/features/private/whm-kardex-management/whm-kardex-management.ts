@@ -211,10 +211,14 @@ export class WhmKardexManagement implements OnInit {
     }
   ]
   // Mapa de metadatos por rol (opcional)
-  roleMeta: Record<string, { label: string; icon?: string; styleClass?: string }> = {
-    'almacen.superadmin':   { label: 'Superadmin',      icon: 'pi pi-crown',     styleClass: 'bg-purple-100' },
-    'almacen.almacenero':   { label: 'Almacenero',      icon: 'pi pi-box',       styleClass: 'bg-blue-100'   },
-    'almacen.administrador':{ label: 'Administrador',   icon: 'pi pi-shield',    styleClass: 'bg-teal-100'   },
+  roleMeta: Record<string, { label: string; icon?: string; styleClass?: object }> = {
+    'almacen.superadmin':   { label: 'Superadmin',      icon: 'pi pi-crown',     styleClass: {'background-color': '#e0e7ff', 'color': '#3730a3'}},
+    'almacen.almacenero':   { label: 'Almacenero',      icon: 'pi pi-box',       styleClass: {'background-color': '#d1fae5', 'color': '#065f46'}},
+    'almacen.administrador':{ label: 'Administrador',   icon: 'pi pi-shield',    styleClass: {'background-color': '#f3f4f6', 'color': '#1f2937'}},
+    'almacen.residente': {label: 'Residente', icon: 'pi pi-user-edit', styleClass:           {'background-color': '#fefce8', 'color': '#854d0e'}},
+    'almacen.supervisor': {label: 'Supervisor', icon: 'pi pi-eye', styleClass:               {'background-color': '#ffedd5', 'color': '#9a3412'  }},
+    'almacen.operario': { label: 'Operario', icon: 'pi pi-cog', styleClass:                  {'background-color': '#e5e7eb', 'color': '#374151'  }},
+  
   };
 
   // Para cubrir roles desconocidos o sin meta

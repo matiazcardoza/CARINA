@@ -20,17 +20,17 @@
 </section>
 
 <div class="card">
-  <div>
+  <div style="margin-bottom: 2rem;">
     <h1 class="text-3xl font-semibold mb-2">Gestión del Kardex</h1>
     <p class="text-lg text-gray-500">Ítems PECOSA de la obra seleccionada.</p>
-    <button (click)="seeDebugerData()">see item pecosas</button>
+    <!-- <button (click)="seeDebugerData()">see item pecosas</button> -->
     <!-- <button (click)="verdatosdemovementkardex()">ver datos de formulario</button> -->
 
     <div class="mt-4">
-      <h2 class="text-xl font-semibold mb-2">Tus roles</h2>
+      <!-- <h2 class="text-xl font-semibold mb-2">Tus roles</h2> -->
 
       @if (myCurrentRoles().length > 0) {
-        <div class="flex flex-wrap gap-2">
+        <div class="flex flex-wrap gap-2" class="p_chip_style">
           @for (item of myCurrentRoles(); track item) {
             <!-- <p-chip
               [label]="roleMeta[item]?.label || humanizeRole(item)"
@@ -38,27 +38,25 @@
               [class]="'px-2 py-1 text-sm ' + (roleMeta[item]?.styleClass || 'bg-gray-200')">
             </p-chip> -->
             <p-chip
-            [label]="roleMeta[item]?.label || humanizeRole(item)"
-            [icon]="roleMeta[item]?.icon"
-            [ngStyle]="{
-                'padding': '0.25rem 0.5rem',      
-                'font-size': '0.875rem',         
-                'line-height': '1.25rem',         
-                'background-color': roleMeta[item]?.styleClass || '#e5e7eb' 
-            }">
-        </p-chip>
+              [label]="roleMeta[item]?.label"
+              [icon]="roleMeta[item]?.icon"
+              [ngStyle]="roleMeta[item]?.styleClass"
+              
+              >
+            </p-chip>
+
           }
         </div>
       } @else {
         <!-- <p-message severity="warn" text="No tienes roles asignados."></p-message> -->
       }
-    </div>
+  </div>
     
-    @for (item of items; track item.id) {
+    <!-- @for (item of items; track item.id) {
       <div>{{ item.name }}</div>
-    }
-  <!-- [value]="tableRows()" -->
-  <!-- (onLazyLoad)="onProductsLazyLoad($event)" -->
+    } -->
+    <!-- [value]="tableRows()" -->
+    <!-- (onLazyLoad)="onProductsLazyLoad($event)" -->
        <!-- stateStorage="session"
     stateKey="whm-kardex-v1" -->
   <p-table

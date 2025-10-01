@@ -172,3 +172,11 @@
     /* width: 100%; */
     min-width: 200px;
   }
+
+
+  /* ------------- estilos para chips -------------- */
+  .p_chip_style{
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+  }
