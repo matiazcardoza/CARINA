@@ -29,6 +29,7 @@ import { OperarioOption } from './interfaces/whm-kardex-management.interface';
 import { Chip } from "primeng/chip";
 import { Tooltip } from 'primeng/tooltip';
 import { Badge } from "primeng/badge";
+import { Card } from "primeng/card";
 
 
 @Component({
@@ -39,7 +40,8 @@ import { Badge } from "primeng/badge";
     IconField, InputIcon, ListboxModule, RadioButton, Toast,
     AddNewUserModal,
     Chip, Tooltip,
-    Badge
+    Badge,
+    Card
 ],
   providers: [MessageService],
   templateUrl: './whm-kardex-management.html',

@@ -7,40 +7,27 @@ import { csrfInterceptor } from './services/AuthService/csrf-interceptor';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
 import { importProvidersFrom } from '@angular/core';
-
-/* Proveedores para primeng */
-// import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import MyPreset from '../theme/mypreset';
 import { providePrimeNG } from 'primeng/config';
-import Aura from '@primeuix/themes/aura';
-import Material from '@primeuix/themes/material';
-import Lara from '@primeuix/themes/lara';
-import Nora from '@primeuix/themes/nora';
 import { authExpirationInterceptor } from './services/AuthService/auth-expiration.interceptor';
-// Aura – look moderno por defecto.
-
-// Material – inspirado en Material Design v2.
-
-// Lara – basado en Bootstrap.
-
-// Nora – estilo “enterprise”
 export const appConfig: ApplicationConfig = {
   providers: [
-    // provideAnimations(),
-
-    providePrimeNG({
-      theme: { 
-        preset:Aura,
-        options: {
-          darkModeSelector: 'none' // o false
-        } 
-      },
-      ripple: true, // opcional
-    }),
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
     provideRouter(routes),
-    // provideAnimationsAsync(),
-    provideAnimations(),
+    provideAnimationsAsync(),
+    // provideAnimations(),
+    providePrimeNG({
+      theme: { 
+        // preset:Aura,
+        preset:MyPreset,
+        options: {
+          darkModeSelector: '.my-app-dark' ,
+        } 
+      },
+      // ripple: true, 
+    }),
     provideHttpClient(
       withInterceptors([csrfInterceptor, authExpirationInterceptor]),
       withXsrfConfiguration({

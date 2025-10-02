@@ -1,5 +1,5 @@
 :root {
-  --primary-purple: #7c3aed;
+  /* --primary-purple: #7c3aed;
   --primary-purple-light: #8b5cf6;
   --primary-purple-dark: #6d28d9;
   --accent-purple: #a78bfa;
@@ -31,7 +31,7 @@
   --border-radius: 0.5rem;
   --border-radius-lg: 0.75rem;
   --border-radius-xl: 1rem;
-  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); */
 }
 
 * {
