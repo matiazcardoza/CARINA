@@ -230,8 +230,8 @@ class DailyPartController extends Controller
         ], 201);
     }
 
-    public function getDocumentWokLog($serviceId){
-        $dailyPart = DailyPart::where('service_id', $serviceId)->first();
+    public function getDocumentWokLog($serviceId, $date){
+        $dailyPart = DailyPart::where('service_id', $serviceId)->where('work_date', $date)->first();
         $document = DocumentDailyPart::find($dailyPart->document_id);
 
         $parser = new Parser();

@@ -223,13 +223,14 @@
                   <mat-icon>delete</mat-icon>
                 </button>
 
-                <button mat-icon-button
+                <ng-container *ngIf="element.state == 1">
+                  <button mat-icon-button 
                         *appHasPermission="'completed_work_log_id'"
                         (click)="openCompleteModal(element.id)"
                         matTooltip="Completar registro"
-                        class="action-btn complete-btn">
+                        class="action-btn complete-btn">  
                   <mat-icon>check_circle</mat-icon>
-                </button>
+                </button></ng-container>
 
                 <!--<button mat-icon-button
                         (click)="generatePdf(element.id)"

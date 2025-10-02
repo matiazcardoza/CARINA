@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Smalot\PdfParser\Parser;
 
 class DocumentController extends Controller
 {
@@ -48,6 +49,21 @@ class DocumentController extends Controller
         return response()->json([
             'message' => 'roles get successfully',
             'data' => $role
+        ], 201);
+    }
+
+    function getDocumentSignature($documentId)
+    {
+        $document = DocumentDailyPart::find($documentId);
+
+        $parser = new Parser();
+        $pdf = $parser->parseFile(storage_path('app/public/' . $document->file_path));
+        $numPages = count($pdf->getPages());
+
+        return response()->json([
+            'message' => 'get document completed successfully',
+            'data' => $document,
+            'pages' => $numPages
         ], 201);
     }
 }

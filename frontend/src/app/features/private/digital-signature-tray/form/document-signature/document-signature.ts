@@ -144,9 +144,9 @@ export class DocumentSignature {
     this.pdfUrl = null;
     this.cdr.detectChanges();
 
-    const workLogId = this.data.documentId;
+    const documentId = this.data.documentId;
 
-    this.dailyWorkLogService.getWorkLogDocument(workLogId)
+    this.documentSignatureService.getWorkLogDocument(documentId)
       .subscribe({
         next: (data: DocumentDailyPartElement) => {
           try {
