@@ -126,14 +126,14 @@ class PeopleController extends Controller
             $full    = trim($ext->full_name ?? ($names.' '.$ap1.' '.$ap2));
 
             // 4.1) USER (crea si no existe)
-            $email = "u{$dni}@domain.com"; // ajusta dominio si corresponde
+            $email = "{$dni}@domain.com"; // ajusta dominio si corresponde
             $user  = User::where('email', $email)->first();
             // return $user;
             if (!$user) {
                 $user = User::create([
                     'name'     => $full !== '' ? $full : "Usuario $dni",
                     'email'    => $email,
-                    'password' => bcrypt('karina'.$dni), // regla que usas
+                    'password' => bcrypt($dni), // regla que usas
                     'state'    => 1,
                 ]);
             }
@@ -213,13 +213,13 @@ class PeopleController extends Controller
                 $full  = trim($ext->full_name ?? ($names.' '.$ap1.' '.$ap2));
 
                 // 4.1) USER (crea si no existe)
-                $email = "u{$dni}@domain.com";
+                $email = "{$dni}@domain.com";
                 $user  = User::where('email', $email)->first();
                 if (!$user) {
                     $user = User::create([
                         'name'     => $full !== '' ? $full : "Usuario $dni",
                         'email'    => $email,
-                        'password' => bcrypt('karina'.$dni),
+                        'password' => bcrypt($dni),
                         'state'    => 1,
                     ]);
                     $created['user'] = true;
@@ -241,13 +241,13 @@ class PeopleController extends Controller
 
                 // Si Persona existe pero NO tiene user asociado: crearlo y vincularlo
                 if (!$user) {
-                    $email = "u{$dni}@domain.com";
+                    $email = "{$dni}@domain.com";
                     $user  = User::where('email', $email)->first();
                     if (!$user) {
                         $user = User::create([
                             'name'     => $persona->name ?: "Usuario $dni",
                             'email'    => $email,
-                            'password' => bcrypt('karina'.$dni),
+                            'password' => bcrypt($dni),
                             'state'    => 1,
                         ]);
                         $created['user'] = true;

@@ -522,10 +522,12 @@ class MovementKardexController extends Controller
 
             // $currentIn   = (float) ($item_pecosa->quantity_received ?? 0);
             // $currentOut  = (float) ($item_pecosa->quantity_issued   ?? 0);
+            $currentIn   = (float) ($itemPecosa->quantity_received ?? 0);
+            $currentOut  = (float) ($itemPecosa->quantity_issued   ?? 0);
 
-            // $newIn    = $currentIn  + $deltaIn;
-            // $newOut   = $currentOut + $deltaOut;
-            // $newStock = $newIn - $newOut;
+            $newIn    = $currentIn  + $deltaIn;
+            $newOut   = $currentOut + $deltaOut;
+            $newStock = $newIn - $newOut;
 
             // 4) Crear movimiento
 
@@ -539,12 +541,12 @@ class MovementKardexController extends Controller
             ]);
 
             // 5) Actualizar contadores en products
-            // $item_pecosa->forceFill([
-            //     'quantity_received' => $newIn,
-            //     'quantity_issued'   => $newOut,
-            //     'quantity_on_hand'  => $newStock,
-            //     'last_movement_at'  => now(),
-            // ])->save();
+            $itemPecosa->update([
+                'quantity_received' => $newIn,
+                'quantity_issued'   => $newOut,
+                'quantity_on_hand'  => $newStock,
+                'last_movement_at'  => now(),
+            ]);
 
 
             // 6) Adjuntar personas (tu bloque actual tal cual)
@@ -634,8 +636,6 @@ class MovementKardexController extends Controller
             'movements' => $movements,
         ]);
     }
-
-
 
     public function pdf(Request $request, ItemPecosa $itemPecosa)
     {
@@ -816,6 +816,60 @@ class MovementKardexController extends Controller
         return Storage::download("{$directory}/{$filename}", $filename);
     }
 
+    public function destroy(Request $request, Report $report){
+        // 1) Obra/tenant fijada por tu middleware resolve.obra
+
+        // 2) Validar pertenencia del reporte a la obra actual
+
+
+        // 3) Reglas de negocio: solo borrar si NO está finalizado/firmado
+        // Ajusta según tus estados reales
+        if ((int)($report->current_step ?? 1) > 1) {
+            return response()->json([
+                'ok'      => false,
+                'message' => 'No se puede eliminar un reporte que ya tiene la primera firma.',
+                'current_step' => (int)$report->current_step,
+            ], 409);
+        }
+
+        // 4) Transacción: borrar archivo + relaciones dependientes + el registro
+        DB::transaction(function () use ($report) {
+            $this->deleteReportPdfFromLocal($report->pdf_path);
+
+            // Si NO tienes FK en cascada, elimina relaciones aquí:
+            // $report->steps()->delete();        // SignatureStep
+            // $report->signers()->detach();      // si tienes pivot de firmantes
+
+            $report->delete();
+        });
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Reporte eliminado correctamente.',
+            'id' => $report->id,
+        ], 200);
+    }
+
+    private function deleteReportPdfFromLocal(?string $pdfPath): void
+    {
+        if (!$pdfPath) return;
+
+        $parts = parse_url($pdfPath);
+        if (!isset($parts['query'])) return;
+
+        parse_str($parts['query'], $q);
+        $name = $q['name'] ?? null;
+
+        // Debe ser 32 hex + .pdf (así lo generas en pdf())
+        if (!$name || !preg_match('/^[a-f0-9]{32}\.pdf$/i', $name)) return;
+
+        $directory = 'silucia_product_reports';
+        $relative = "{$directory}/{$name}";
+
+        if (Storage::disk('local')->exists($relative)) {
+            Storage::disk('local')->delete($relative);
+        }
+    }
     // funcion incompleta ara crear un pdf de vales de transporte
     public function generatePdfAndFlow(FuelOrder $order)
     {

@@ -159,14 +159,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
    Route::get('me/obras', [ObrasController::class,'mine']);
 });
 
-Route::middleware(['auth:sanctum','resolve.obra', 'permission:access_kardex_management'])->group(function () {
+Route::middleware(['auth:sanctum','resolve.obra', 'permission:almacen.access_kardex_management'])->group(function () {
 // Route::middleware(['auth:sanctum','resolve.obra', 'role:almacen.residente'])->group(function () {
     Route::get('obras/{obra}/item-pecosas', [PecosaController::class, 'testPecosas']);
-    Route::post('kardex-movements/{itemPecosa}', [MovementKardexController::class, 'store']);
+    Route::post('kardex-movements/{itemPecosa}', [MovementKardexController::class, 'store'])->middleware(['permission:almacen.create_new_movement']);
     Route::get('item-pecosas/{itemPecosa}/movements-kardex', [PecosaController::class, 'getItemPecosas']);
-    Route::get('item-pecosas/{itemPecosa}/movements-kardex/pdf', [MovementKardexController::class, 'pdf']);
-    Route::get('people/{dni}', [PeopleController::class, 'show'])->middleware(['role:almacen.almacenero']); 
-    Route::get('people-save/{dni}', [PeopleController::class, 'save'])->middleware(['role:almacen.almacenero']); 
+    Route::get('item-pecosas/{itemPecosa}/movements-kardex/pdf', [MovementKardexController::class, 'pdf'])->middleware(['permission:almacen.generate_report']);
+    Route::delete('reports/{report}', [MovementKardexController::class, 'destroy'])->middleware(['permission:almacen.delete_report']);
+    Route::get('people/{dni}', [PeopleController::class, 'show'])->middleware(['permission:almacen.create_operator']); 
+    Route::get('people-save/{dni}', [PeopleController::class, 'save'])->middleware(['permission:almacen.create_operator']); 
     Route::get('users-operarios', [UserController::class, 'operarios']);
     Route::get('roles-by-obra', [UserObrasController::class, 'userRolesByObra']);
 });
@@ -182,7 +183,6 @@ Route::middleware(['auth:sanctum','resolve.default.obra'])->prefix('admin')->gro
     Route::post('obras/import', [UserObrasController::class, 'importWork'])->middleware(['role:almacen.superadmin']);
     Route::post('obras/{obra}/import-users', [ObraImportUsersController::class, 'getSiluciaUsers'])->middleware(['role:almacen.superadmin']);
     Route::get('get-all-obras', [AdminCatalogController::class, 'allObras'])->middleware(['role:almacen.superadmin']);
-    
 });
 
 

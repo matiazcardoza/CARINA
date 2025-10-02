@@ -6,7 +6,7 @@ import { SignatureParams } from '../interfaces/whm-kardex-management.interface';
 import { defer, filter, finalize, fromEvent, map, Observable, take, throwError, timeout } from 'rxjs';
 import { FiltersPecosas } from '../interfaces/whm-kardex-management.interface';
 export type Obra = { id: number; nombre: string; codigo: string };
-export interface ObraLite { id: number; nombre: string; codmeta?: string; codigo?: string; }
+export interface ObraLite { id: number; nombre: string; codmeta?: string; codigo?: string; anio?: string }
 
 export interface MovementsPage { movements: { data: any[]; total: number; per_page: number; }; }
 export type OC   = { id: number; ext_order_id: string; fecha: string; proveedor: string; monto_total: number };
@@ -72,6 +72,10 @@ export class WhmKardexManagementService {
     let params = new HttpParams();
     if (search) params = params.set('q', search);
     return this.http.get<OC[]>(`${this.apiUrl}/api/pecosas`, { ...this.options, headers, params });
+  }
+  deleteReport(obraId: number | null, reportId: number) {
+    const headers = new HttpHeaders({ 'X-Obra-Id': String(obraId) }); // ← sólo aquí
+    return this.http.delete(`${this.apiUrl}/api/reports/${reportId}`, { ...this.options, headers });
   }
 
   getPecosasDeOrden(obraId: number, ordenId: number): Observable<Pecosa[]> {

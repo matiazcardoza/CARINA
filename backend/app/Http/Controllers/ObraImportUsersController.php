@@ -162,7 +162,7 @@ class ObraImportUsersController extends Controller
                 $nombres = trim($row['nombres'] ?? '');
                 $paterno = trim($row['paterno'] ?? '');
                 $materno = trim($row['materno'] ?? '');
-                $email   = "u{$dni}@domain.com";
+                $email   = "{$dni}@domain.com";
 
                 // *CHG: 2) USER: si existe, NO modificar datos personales ni password
                 $user = User::where('email', $email)->first();
@@ -172,7 +172,7 @@ class ObraImportUsersController extends Controller
                     $user = User::create([
                         'name'     => trim($nombres.' '.$paterno),
                         'email'    => $email,
-                        'password' => bcrypt('karina'.$dni),   // +ADD (regla)
+                        'password' => bcrypt($dni),   // +ADD (regla)
                         'state'    => 1,
                     ]);
                     $createdUsers++;
