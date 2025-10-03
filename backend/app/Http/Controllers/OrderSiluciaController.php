@@ -20,8 +20,8 @@ class OrderSiluciaController extends Controller
                 'description' => $request->maquinaria_equipo . ' ' . $request->maquinaria_marca . ' ' . $request->maquinaria_modelo . ' ' . $request->maquinaria_placa,
                 'goal_project' => $request->meta_codigo,
                 'goal_detail' => $request->meta_descripcion,
-                'start_date' => $request->start_date,
-                'end_date' => $request->end_date,
+                'start_date' => ($request->start_date === 'NaN-NaN-NaN') ? null : $request->start_date,
+                'end_date' => ($request->end_date === 'NaN-NaN-NaN') ? null : $request->end_date,
                 'state' => 3
             ]);
 

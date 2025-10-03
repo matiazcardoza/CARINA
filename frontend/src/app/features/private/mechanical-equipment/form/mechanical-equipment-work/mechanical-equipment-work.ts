@@ -102,8 +102,8 @@ export class MechanicalEquipmentWork implements OnInit {
 
     this.operatorForm = this.fb.group({
       operatorName: ['', Validators.required],
-      start_date: ['', Validators.required],
-      end_date: ['', Validators.required]
+      start_date: [''],
+      end_date: ['']
     }, { validators: dateRangeValidator });
   }
 
