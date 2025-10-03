@@ -39,6 +39,7 @@ class DailyPartController extends Controller
 
     function store(Request $request)
     {
+        Log::info('este es el request: ', $request->all());
         $dailyPart = DailyPart::create([
             'service_id' => $request->service_id,
             'itemPecosa_id' => $request->product_id,
@@ -54,7 +55,7 @@ class DailyPartController extends Controller
                 'fuel_consumed' => $servicio->fuel_consumed + $request->initial_fuel
             ]);
         
-            $product = ItemPecosa::find($request->product_id);
+            /*$product = ItemPecosa::find($request->product_id);
         
             $product->update([
                 'quantity_issued' => $request->initial_fuel,
@@ -72,7 +73,7 @@ class DailyPartController extends Controller
 
             $dailyPart->update([
                 'movement_kardex_id' => $MovementKardex->id
-            ]);
+            ]);*/
         }
         
         return response()->json([
@@ -94,7 +95,7 @@ class DailyPartController extends Controller
                 ]);
             }
 
-            $product = ItemPecosa::find($request->product_id);
+            /*$product = ItemPecosa::find($request->product_id);
             $diferentFuel = $request->initial_fuel - $dailyPart->initial_fuel;
             $product->update([
                 'quantity_issued' => $request->initial_fuel,
@@ -117,12 +118,12 @@ class DailyPartController extends Controller
             $MovementKardex->update([
                 'item_pecosa_id' => $request->product_id,
                 'amount' => $request->initial_fuel
-            ]);
+            ]);*/
         } else {
-            $dailyPart->update([
+            /*$dailyPart->update([
                 'itemPecosa_id' => $request->product_id,
                 'description' => $request->description
-            ]);
+            ]);*/
         }
         return response()->json([
             'message' => 'Daily work log updated successfully',
