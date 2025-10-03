@@ -39,7 +39,7 @@ export interface MechanicalEquipmentElement {
 })
 export class MechanicalEquipment implements AfterViewInit, OnInit {
   
-  displayedColumns: string[] = ['id', 'machinery_equipment', 'ability', 'brand', 'model', 'state', 'actions'];
+  displayedColumns: string[] = ['id', 'machinery_equipment', 'ability', 'brand', 'model', 'plate', 'state', 'actions'];
   dataSource = new MatTableDataSource<MechanicalEquipmentElement>([]);
 
   private mechanicalEquipmentService = inject(MechanicalEquipmentService);

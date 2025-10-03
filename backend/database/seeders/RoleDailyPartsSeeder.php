@@ -66,14 +66,14 @@ class RoleDailyPartsSeeder extends Seeder
 
                 switch ($module) {
                     case 'dashboard':
-                        $permission->syncRoles([$super_admin, $controlador, $residente, $supervisor]);
+                        $permission->syncRoles([$super_admin, $admin_em, $controlador, $residente, $supervisor]);
                         break;
 
                     case 'work_log':
                         if ($perm['name'] === 'delete_work_log' || $perm['name'] === 'import_work_log') {
                             $permission->syncRoles([$super_admin, $admin_em]);
                         } else {
-                            $permission->syncRoles([$super_admin, $controlador, $residente, $supervisor]);
+                            $permission->syncRoles([$super_admin, $admin_em, $controlador, $residente, $supervisor]);
                         }
                         break;
 
