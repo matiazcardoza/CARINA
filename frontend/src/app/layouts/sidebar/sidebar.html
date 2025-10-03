@@ -1,9 +1,9 @@
 <!-- HEADLESS (sin Tailwind + animación nativa) -->
-<p-drawer 
+<p-drawer
   #drawerRef 
   [visible]="isOpen()"
-  [modal]="false">
-  
+  [modal]="false"
+  [style]="{ 'background': 'red' }">
   <ng-template #headless>
     <div class="drawer">
       <!-- Título -->
@@ -190,9 +190,9 @@
       <!-- Footer -->
       <div class="drawer__footer">
         <hr class="hr" />
-        <a class="profile">
-          <p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle"></p-avatar>
-          <span class="profile__name">Amy Elsner</span>
+        <a class="profile flex justify-content-center">
+          <!-- <p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle"></p-avatar> -->
+          <span class="profile__name flex justify-content-center ">Versión 1.0.0</span>
         </a>
       </div>
     </div>

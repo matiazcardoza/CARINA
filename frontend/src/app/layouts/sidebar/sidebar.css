@@ -16,7 +16,7 @@
 /* HEADLESS layout (CSS puro) */
 .drawer { display:flex; flex-direction:column; height:100%; background:var(--p-content-background,#fff); color:var(--p-text-color,#2a2a2a); }
 .drawer__header { display:flex; align-items:center; justify-content:space-between; padding:1rem 1.5rem .75rem; flex-shrink:0; }
-.brand { display:inline-flex; align-items:center; gap:.75rem; }
+.brand { display:inline-flex; align-itaems:center; gap:.75rem; }
 .brand__logo { display:block; }
 .brand__text { font-weight:600; font-size:1.25rem; color:var(--p-primary-color,#860ee9); }
 .icon-24 { width:2rem; height:2rem; }

@@ -1,4 +1,4 @@
-import { Component, inject, output } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { Toolbar } from 'primeng/toolbar';
 import { AvatarModule } from 'primeng/avatar';
 import { SharedModule } from 'primeng/api';
@@ -32,6 +32,7 @@ const STORAGE_KEY = 'isDark';
 export class Navbar {
   private auth = inject(AuthService);
   sentOpenValue = output<boolean>();
+  isOpen = input<boolean>(false);
   handleOpenSidebar(value: boolean){
     this.sentOpenValue.emit(true)
   }

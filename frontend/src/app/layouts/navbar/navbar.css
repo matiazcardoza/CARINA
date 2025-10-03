@@ -6,6 +6,17 @@
     z-index: 5;
     height: 4rem;
     border-radius: 0;
+    transition: left 0.3s ease;
+}
+
+.dark_container_right_side{
+    left: 320px;
+}
+
+@media (max-width: 768px) {
+  .dark_container_right_side {
+    left: 0px;
+  }
 }
 
   /* Contenedor lado derecho (alineación y separaciones) */
@@ -70,3 +81,5 @@
   /* Menu un poco más compacto (opcional) */
   .p-menu { min-width: 190px; }
   .p-menu .p-menuitem-link { padding: .55rem .75rem; }
+
+  

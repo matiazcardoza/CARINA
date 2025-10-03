@@ -4,7 +4,7 @@
 />
 <app-navbar
     (sentOpenValue)="handleOpenSidebar($event)"
-    
+    [isOpen]="isOpen()"
 />
 <div class="outlet-container" [class.dark_container_right_side]="isOpen()">
     <router-outlet />
