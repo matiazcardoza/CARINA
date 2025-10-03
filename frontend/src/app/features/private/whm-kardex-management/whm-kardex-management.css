@@ -1,8 +1,9 @@
 /* -- Esta es una sección -- */
 .container{
-  /* background: var(--p-box-background); */
-  background: red;
-  padding: 1rem;
+  background: var(--p-box-background);
+  /* background: red; */
+  padding: 1.5rem;
+  height: calc(100vh - 4rem);
 }
     .miCajaToken {
       background: var(--p-box-background);

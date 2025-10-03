@@ -22,8 +22,6 @@ export class Sidebar {
     this.sentOpenValue.emit(false)
   }
   // Position (4 cajones)
-
-
   // Headless - estados de secciones (sustituyen pStyleClass)
   favOpen     = signal(true);
   reportsOpen = signal(false);
@@ -40,4 +38,5 @@ export class Sidebar {
   }
 
   close(drawerRef: any, e: Event) { drawerRef.close(e); }
+
 }

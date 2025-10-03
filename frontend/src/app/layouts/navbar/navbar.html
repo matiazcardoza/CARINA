@@ -1,5 +1,7 @@
-<div class="card">
-  <p-toolbar [style]="{ 'border-radius': '3rem', 'padding': '1rem 1rem 1rem 1.5rem' }">
+    <p-toolbar 
+        class="custom-toolbar" 
+    >
+        <!-- [style]="{ 'border-radius': '3rem', 'padding': '1rem 1rem 1rem 1.5rem' }" -->
         <ng-template #start>
             <div class="flex items-center gap-2" style="display: flex; align-items: center; gap: 0.5rem;">
                 <svg xmlns="http://www.w3.org/2000/svg" 
@@ -24,13 +26,12 @@
                     [style]="{ width: '32px', height: '32px' }"
                 />
             </div> -->
-  
+
             <div class="right-wrap">
                 <!-- Buscador tipo pill con icono a la izquierda -->
-                <p-iconfield iconPosition="left" class="search-pill">
-                <!-- <p-inputicon styleClass="pi pi-search"></p-inputicon> -->
-                <input pInputText type="text" placeholder="Search" />
-                </p-iconfield>
+                <!-- <p-iconfield iconPosition="left" class="search-pill">
+                    <input pInputText type="text" placeholder="Search" />
+                </p-iconfield> -->
 
                 <!-- Botón redondo (morado del tema) -->
                 <!-- <p-button
@@ -58,11 +59,11 @@
         </ng-template>
     </p-toolbar>
       <!-- Menú emergente anclado al avatar -->
-  <p-menu
-    #profileMenu
-    id="profile_menu"
-    [popup]="true"
-    [model]="profileItems"
-    [baseZIndex]="1100">
-  </p-menu>
-</div>
+    <p-menu
+        #profileMenu
+        id="profile_menu"
+        [popup]="true"
+        [model]="profileItems"
+        [baseZIndex]="1100">
+    </p-menu>
+

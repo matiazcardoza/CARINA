@@ -54,7 +54,6 @@ export class Navbar {
     const isDark = localStorage.getItem(STORAGE_KEY) === '1';
     document.documentElement.classList.toggle(DARK_CLASS, isDark);
   }
-
   // Conecta estas acciones a tu Router/servicios
   onGoProfile() {}
   onGoSettings() {}

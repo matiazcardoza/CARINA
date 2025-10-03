@@ -5,14 +5,14 @@ const MyPreset = definePreset(Aura, {
     colorScheme: {
       light: {
         box: {
-          background: '{surface.0}',
+          background: '{surface.50}',
           color: '{surface.900}',
           border: '{surface.700}'
         }
       },
       dark: {
         box: {
-          background: '{surface.900}',
+          background: '{surface.800}',
           color: '{surface.0}',
           border: '{surface.300}'
         }
