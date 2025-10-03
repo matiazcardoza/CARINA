@@ -27,6 +27,11 @@
 
   <!-- Tarjeta principal con contenido -->
   <div class="content-card mat-elevation-z4">
+
+    <div class="filter-section" *ngIf="!isLoading && !error && dataSource.data.length > 0">
+      <input matInput (keyup)="applyFilter($event)" placeholder="Buscar por placa, nombre, serie..." #input class="filter-input">
+      <mat-icon class="filter-icon">search</mat-icon>
+    </div>
     
     <!-- Estados de carga y error -->
     <div *ngIf="isLoading" class="state-container loading-state">
@@ -234,8 +239,10 @@
       <!-- Paginación -->
       <div class="pagination-container" *ngIf="dataSource.data.length > 0">
         <mat-paginator 
+          #paginator
           [pageSizeOptions]="[5, 10, 20, 50]"
           [pageSize]="10"
+          [length]="dataSource.data.length"
           showFirstLastButtons
           aria-label="Seleccionar página de equipos mecánicos">
         </mat-paginator>

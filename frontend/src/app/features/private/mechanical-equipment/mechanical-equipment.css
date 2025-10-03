@@ -176,6 +176,36 @@
   color: #666;
 }
 
+/* mechanical-equipment.css */
+
+.filter-section {
+    position: relative;
+    padding: 16px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+}
+
+.filter-input {
+    width: 100%;
+    padding: 8px 12px 8px 36px; /* Deja espacio para el icono */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.filter-input:focus {
+    border-color: #3f51b5; /* Color primario de Material */
+    outline: none;
+}
+
+.filter-icon {
+    position: absolute;
+    left: 24px;
+    color: #999;
+}
+
 /* Filas de tabla */
 .table-row {
   transition: background-color 0.2s ease;
