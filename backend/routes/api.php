@@ -123,10 +123,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/daily-work-log/{id}', [DailyPartController::class, 'destroy']);
     Route::post('/daily-work-log/complete', [DailyPartController::class, 'completeWork']);
     Route::post('/daily-work-log/{id}/generate-pdf', [DailyPartController::class, 'generatePdf']);
-    Route::get('/daily-work-document/{WorkLogId}', [DailyPartController::class, 'getDocumentWokLog']);
+    Route::get('/daily-work-document/{WorkLogId}/{date?}', [DailyPartController::class, 'getDocumentWokLog']);
 
     //document
     Route::post('/daily-work-document/send', [DocumentController::class, 'sendDocument']);
+    Route::get('/document-signature/{documentId}', [DocumentController::class, 'getDocumentSignature']);
     Route::get('/documents-signature/pending', [DocumentController::class, 'getPendingDocuments']);
     Route::get('/document-userRole', [DocumentController::class, 'getRoles']);
 

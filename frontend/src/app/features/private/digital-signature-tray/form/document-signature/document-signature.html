@@ -61,6 +61,28 @@
       <mat-icon>{{ isSigned ? 'refresh' : 'create' }}</mat-icon>
       {{ isSigned ? 'Firmar nuevamente' : 'Firmar documento' }}
     </button>
+    <button *ngIf="hasResidentRole() && documentState !== 2"
+            mat-raised-button 
+            color="primary"
+            [disabled]="isLoading"
+            (click)="toggleReturnSection()"
+            class="return-button">
+      <mat-icon>keyboard_return</mat-icon>
+      {{ showReturnSection ? 'Cancelar devolución' : 'Devolver a controlador' }}
+    </button>
+  </div>
+
+  <div *ngIf="showReturnSection && hasResidentRole()" class="return-section">
+    <mat-form-field appearance="outline" class="observation-field">
+      <mat-label>Observación de devolución</mat-label>
+      <textarea matInput
+          formControlName="observation"
+          placeholder="Ingrese el motivo de la devolución..."
+          rows="3"></textarea>
+      <mat-error *ngIf="userForm.get('observation')?.hasError('required')">
+        La observación es requerida
+      </mat-error>
+    </mat-form-field>
   </div>
 
   <mat-toolbar class="signature-actions">

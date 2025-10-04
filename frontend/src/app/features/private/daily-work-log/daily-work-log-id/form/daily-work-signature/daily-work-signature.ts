@@ -28,7 +28,7 @@ export interface DocumentDailyPartElement {
 }
 
 interface DialogData {
-  workLogId: number;
+  serviceId: number;
   date: string;
 }
 
@@ -125,9 +125,12 @@ export class DailyWorkSignature {
     this.pdfUrl = null;
     this.cdr.detectChanges();
 
-    const workLogId = this.data.workLogId;
+    const serviceId = this.data.serviceId;
+    const dateWork = this.data.date;
+    console.log('serviceId:', serviceId);
+    console.log('dateWork:', dateWork);
 
-    this.dailyWorkLogService.getWorkLogDocument(workLogId)
+    this.dailyWorkLogService.getWorkLogDocument(serviceId, dateWork)
       .subscribe({
         next: (data: DocumentDailyPartElement) => {
           console.log('PDF document response:', data);

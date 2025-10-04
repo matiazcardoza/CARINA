@@ -3,10 +3,17 @@ import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { DocumentSignatureUserElement } from '../../features/private/digital-signature-tray/digital-signature-tray';
+import { DocumentDailyPartElement } from '../../features/private/digital-signature-tray/form/document-signature/document-signature';
 
 interface DocumentSignatureApiResponse {
   message: string;
   data: DocumentSignatureUserElement[];
+}
+
+interface DocumentDailyPartApiResponse {
+  message: string;
+  data: DocumentDailyPartElement;
+  pages: number;
 }
 
 export interface UserRoleElement {
@@ -40,6 +47,17 @@ export class DocumentSignatureService {
       withCredentials: true
     }).pipe(
       map(response => response.data)
+    );
+  }
+
+  getWorkLogDocument(documentId: number): Observable<DocumentDailyPartElement> {
+    return this.http.get<DocumentDailyPartApiResponse>(`${this.apiUrl}/api/document-signature/${documentId}`, {
+      withCredentials: true,
+    }).pipe(
+      map(response => ({
+        ...response.data,
+        pages: response.pages
+      }))
     );
   }
 }

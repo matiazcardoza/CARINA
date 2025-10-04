@@ -74,8 +74,8 @@ export class DailyWorkLogForm implements OnInit {
     this.workLogForm = this.fb.group({
       work_date: ['', Validators.required],
       start_time: ['', Validators.required],
-      initial_fuel: ['', fuelValidators],
-      product_id: ['', productValidators],
+      initial_fuel: [''],
+      product_id: [''],
       description: ['']
     });
   }
@@ -87,18 +87,20 @@ export class DailyWorkLogForm implements OnInit {
 
   // Getter para mostrar/ocultar campos de producto
   get shouldShowProductFields(): boolean {
-    return this.shouldRequireProductFields;
+    //return this.shouldRequireProductFields;
+    return false;
   }
 
   ngOnInit() {
     // Solo cargar productos si son necesarios
-    if (this.shouldRequireProductFields) {
+    /*if (this.shouldRequireProductFields) {
       this.loadProducts();
       this.setupProductFieldLogic();
     } else {
       // Si no se requieren campos de producto, habilitamos directamente el combustible
       this.workLogForm.get('initial_fuel')?.disable();
-    }
+    }*/
+    this.workLogForm.get('initial_fuel')?.enable();
 
     this.setupFormValues();
   }
@@ -130,12 +132,13 @@ export class DailyWorkLogForm implements OnInit {
       };
 
       // Solo agregar campos de producto si son requeridos
-      if (this.shouldRequireProductFields) {
+      /*if (this.shouldRequireProductFields) {
         const product = { id: this.data.workLog.products_id, numero: this.data.workLog.numero, item: this.data.workLog.item } as ProductsElement;
         formValues.product_id = product;
         formValues.initial_fuel = this.data.workLog.initial_fuel;
         this.workLogForm.get('initial_fuel')?.enable();
-      }
+      }*/
+      formValues.initial_fuel = this.data.workLog.initial_fuel;
 
       this.workLogForm.patchValue(formValues);
       this.workLogForm.get('work_date')?.disable();
@@ -153,9 +156,10 @@ export class DailyWorkLogForm implements OnInit {
   }
 
   get isProductSelected(): boolean {
-    if (!this.shouldRequireProductFields) return true;
+    return true;
+    /*if (!this.shouldRequireProductFields) return true;
     const product = this.workLogForm.get('product_id')?.value;
-    return product && typeof product === 'object' && product.id;
+    return product && typeof product === 'object' && product.id;*/
   }
 
   onProductSelected(product: ProductsElement) {
@@ -228,15 +232,18 @@ export class DailyWorkLogForm implements OnInit {
         work_date: this.formatDate(formValue.work_date),
         start_time: formValue.start_time,
         description: formValue.description,
-        service_id: this.data.serviceId ? Number(this.data.serviceId) : null
+        service_id: this.data.serviceId ? Number(this.data.serviceId) : null,
+
+
+        initial_fuel: parseFloat(formValue.initial_fuel)
       };
 
       // Solo agregar campos de producto si son requeridos
-      if (this.shouldRequireProductFields) {
+      /*if (this.shouldRequireProductFields) {
         const productObject = formValue.product_id;
         workLogData.initial_fuel = parseFloat(formValue.initial_fuel);
         workLogData.product_id = productObject.id;
-      }
+      }*/
 
       if (this.data.isEdit && this.data.workLog?.id) {
         setTimeout(() => {

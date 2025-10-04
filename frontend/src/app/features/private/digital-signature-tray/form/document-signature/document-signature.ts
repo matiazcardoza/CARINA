@@ -68,6 +68,9 @@ export class DocumentSignature {
   role: UserRoleElement[] = [];
   documentState: number = 0;
 
+  showReturnSection: boolean = false;
+  returnObservation: string = '';
+
   constructor(
     public dialogRef: MatDialogRef<DocumentSignature>,
     @Inject(MAT_DIALOG_DATA) public data: DialogData,
@@ -81,6 +84,7 @@ export class DocumentSignature {
   ) {
     this.userForm = this.fb.group({
       userId: ['', Validators.required],
+      observation: ['']
     });
   }
 
@@ -134,6 +138,17 @@ export class DocumentSignature {
     );
   }
 
+  hasResidentRole(): boolean {
+    return this.role.some(r => r.id === 4);
+  }
+
+  toggleReturnSection(): void {
+    this.showReturnSection = !this.showReturnSection;
+    if (!this.showReturnSection) {
+      this.userForm.get('observation')?.setValue('');
+    }
+  }
+
   onUserSelected(user: UserElement): void {
     this.userForm.get('userId')?.setValue(user);
   }
@@ -144,9 +159,9 @@ export class DocumentSignature {
     this.pdfUrl = null;
     this.cdr.detectChanges();
 
-    const workLogId = this.data.documentId;
+    const documentId = this.data.documentId;
 
-    this.dailyWorkLogService.getWorkLogDocument(workLogId)
+    this.documentSignatureService.getWorkLogDocument(documentId)
       .subscribe({
         next: (data: DocumentDailyPartElement) => {
           try {
@@ -308,6 +323,33 @@ export class DocumentSignature {
         }
     });
   }
+
+  /*onReturnToController(): void {
+    const observation = this.userForm.get('observation')?.value;
+    
+    if (!observation || observation.trim() === '') {
+      alert('Debe ingresar una observación para devolver el documento');
+      return;
+    }
+
+    const formReturn = {
+      documentId: this.documentId,
+      observation: observation
+    };
+
+    // Aquí debes crear el método en tu servicio
+    this.dailyWorkLogService.returnDocumentToController(formReturn)
+      .subscribe({
+        next: (response) => {
+          console.log('Documento devuelto exitosamente:', response);
+          this.dialogRef.close(true);
+        },
+        error: (error) => {
+          console.error('Error al devolver documento:', error);
+          alert('Error al devolver el documento');
+        }
+    });
+  }*/
 
   onNoClick(): void {
     this.dialogRef.close(false);

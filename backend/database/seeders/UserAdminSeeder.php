@@ -17,7 +17,9 @@ class UserAdminSeeder extends Seeder
     public function run(): void
     {
         $super_administrador = Role::findByName('SuperAdministrador_pd', 'api');
+        $controlador = Role::findByName('Controlador_pd', 'api');
         $residente = Role::findByName('Residente_pd', 'api');
+        $supervisor = Role::findByName('Supervisor_pd', 'api');
 
         $users = User::firstOrCreate(['email' => 'admin@domain.com'], [
             'name' => 'ADMIN',
@@ -33,18 +35,46 @@ class UserAdminSeeder extends Seeder
             'last_name' => 'HUANCA CARDOZA'
         ]);
 
-        $user2 = User::firstOrCreate(['email' => 'residente@domain.com'], [
-            'name' => 'residente',
-            'email' => 'residente@domain.com',
-            'password' => Hash::make('admin123'),
+        $user2 = User::firstOrCreate(['email' => 'CONTROLADOR@domain.com'], [
+            'name' => 'CONTROLADOR',
+            'email' => 'CONTROLADOR@domain.com',
+            'password' => Hash::make('12345678'),
+            'state' => 1,
+        ])->assignRole($controlador);
+
+        Persona::create([
+            'user_id' => $user2->id,
+            'num_doc' => '12345678',
+            'name' => 'CONTROLADOR',
+            'last_name' => 'CONTROLADOR'
+        ]);
+
+        $user3 = User::firstOrCreate(['email' => 'RESIDENTE@domain.com'], [
+            'name' => 'RESIDENTE',
+            'email' => 'RESIDENTE@domain.com',
+            'password' => Hash::make('12345678'),
             'state' => 1,
         ])->assignRole($residente);
 
         Persona::create([
-            'user_id' => $user2->id,
-            'num_doc' => '74033068',
-            'name' => 'ROYER',
-            'last_name' => 'Residente'
+            'user_id' => $user3->id,
+            'num_doc' => '23456781',
+            'name' => 'RESIDENTE',
+            'last_name' => 'RESIDENTE'
+        ]);
+
+        $user4 = User::firstOrCreate(['email' => 'supervisor@domain.com'], [
+            'name' => 'SUPERVISOR',
+            'email' => 'SUPERVISOR@domain.com',
+            'password' => Hash::make('12345678'),
+            'state' => 1,
+        ])->assignRole($supervisor);
+
+        Persona::create([
+            'user_id' => $user4->id,
+            'num_doc' => '34567812',
+            'name' => 'SUPERVISOR',
+            'last_name' => 'SUPERVISOR'
         ]);
 
         // $super_administrador_almacen = Role::findOrCreate('almacen.superadmin', 'api');

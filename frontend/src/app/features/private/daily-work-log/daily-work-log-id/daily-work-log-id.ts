@@ -84,7 +84,7 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
         this.loadWorkLogData();
       }
     });
-}
+  }
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
@@ -220,7 +220,7 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
     });
   }
 
-  signaturePdf(id: number) {
+  signaturePdf(serviceId: number) {
     const dialogRef = this.dialog.open(DailyWorkSignature, {
       width: '100vw',
       height: '100vh',
@@ -233,7 +233,7 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
       autoFocus: false,
       restoreFocus: false,
       data: {
-        workLogId: id,
+        serviceId: serviceId,
         date: this.selectedDate
       }
     });

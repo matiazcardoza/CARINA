@@ -39,7 +39,7 @@ export interface MechanicalEquipmentElement {
 })
 export class MechanicalEquipment implements AfterViewInit, OnInit {
   
-  displayedColumns: string[] = ['id', 'machinery_equipment', 'ability', 'brand', 'model', 'state', 'actions'];
+  displayedColumns: string[] = ['id', 'machinery_equipment', 'ability', 'brand', 'model', 'plate', 'state', 'actions'];
   dataSource = new MatTableDataSource<MechanicalEquipmentElement>([]);
 
   private mechanicalEquipmentService = inject(MechanicalEquipmentService);
@@ -51,7 +51,12 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
   
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   
-  constructor(private cdr: ChangeDetectorRef) {}
+  constructor(private cdr: ChangeDetectorRef) {
+    this.dataSource.filterPredicate = (data: MechanicalEquipmentElement, filter: string) => {
+      const dataStr = (data.machinery_equipment + data.ability + data.brand + data.model + data.plate + data.serial_number + data.year).toLowerCase();
+      return dataStr.indexOf(filter) !== -1;
+    };
+  }
   
   ngOnInit() {
     this.isLoading = false;
@@ -65,6 +70,7 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
   
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
+    this.cdr.detectChanges();
   }
   
   loadMechanicalEquipmentData(): void {
@@ -77,6 +83,10 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
         .subscribe({
           next: (data) => {
             this.dataSource.data = data;
+            if (this.paginator) {
+              this.dataSource.paginator = this.paginator;
+              this.paginator.length = data.length;
+            }
             this.isLoading = false;
             this.cdr.detectChanges();
           },
@@ -187,6 +197,15 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
         return 'status-inactive';
       default:
         return 'status-unknown';
+    }
+  }
+
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
     }
   }
 }

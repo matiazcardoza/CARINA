@@ -51,7 +51,7 @@
         <mat-error *ngIf="productError">{{ productError }}</mat-error>
       </mat-form-field>
 
-      <!-- Campo de Combustible Inicial - Solo se muestra si shouldShowProductFields es true -->
+      <!-- Campo de Combustible Inicial - Solo se muestra si shouldShowProductFields es true 
       <mat-form-field appearance="outline" class="full-width" *ngIf="shouldShowProductFields">
         <mat-label>Combustible Inicial (Galones)</mat-label>
         <input matInput
@@ -67,6 +67,18 @@
         <mat-hint *ngIf="isProductSelected">
           Ingresa la cantidad inicial de combustible
         </mat-hint>
+        <mat-error>{{ initialFuelError }}</mat-error>
+      </mat-form-field>-->
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Combustible Inicial (Galones)</mat-label>
+        <input matInput
+              type="number"
+              formControlName="initial_fuel"
+              placeholder="0"
+              min="0"
+              step="0.01">
+        <mat-hint>Ingresa la cantidad inicial de combustible</mat-hint>
         <mat-error>{{ initialFuelError }}</mat-error>
       </mat-form-field>
 
