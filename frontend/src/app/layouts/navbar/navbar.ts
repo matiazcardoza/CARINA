@@ -1,4 +1,4 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { Toolbar } from 'primeng/toolbar';
 import { AvatarModule } from 'primeng/avatar';
 // import { SharedModule } from 'primeng/api';
@@ -14,6 +14,7 @@ import { finalize } from 'rxjs';
 // import { updatePrimaryPalette, updateSurfacePalette } from '@primeuix/themes';
 const DARK_CLASS = 'my-app-dark';
 const STORAGE_KEY = 'isDark';
+import { OverlayBadgeModule } from 'primeng/overlaybadge';
 
 @Component({
   selector: 'app-navbar',
@@ -24,7 +25,8 @@ const STORAGE_KEY = 'isDark';
     ButtonModule,
     InputTextModule,
     // IconField,
-    MenuModule
+    MenuModule,
+    OverlayBadgeModule
   ],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
@@ -36,10 +38,11 @@ export class Navbar {
   loading = false;
   isAuthenticated$ = this.auth.isAuthenticated$;
   errorMsg = '';
+  iconName = signal<string>('pi pi-moon')
   profileItems: MenuItem[] = [
     { label: 'Mi perfil',     icon: 'pi pi-user',     command: () => this.onGoProfile()   },
     { label: 'Ajustes',       icon: 'pi pi-cog',      command: () => this.onGoSettings()  },
-    { label: 'cambiar tema',  icon: 'pi pi-pencil',   command: () => this.toggleDark()    },
+    // { label: 'cambiar tema',  icon: 'pi pi-pencil',   command: () => this.toggleDark()    },
     { separator: true },
     { label: 'Cerrar sesión', icon: 'pi pi-sign-out', command: () => this.onLogout()      }
   ];
@@ -93,14 +96,18 @@ export class Navbar {
 
   }
 
-  toggleDark( ){
+  toggleTheme( ){
     const el = document.documentElement;
     const isDark = !el.classList.contains(DARK_CLASS);
     el.classList.toggle(DARK_CLASS, isDark);
     localStorage.setItem(STORAGE_KEY, isDark ? '1' : '0');
     // Función para alternar tema oscuro o claro para meterial angular
     this.setMaterialTheme(isDark);
+    isDark ? this.iconName.set('pi pi-sun') : this.iconName.set('pi pi-moon');
   }
+
+  // iconName = computed(() => this.isDark() ? 'pi pi-moon' : 'pi pi-sun');
+
 
   setPrimaryTheme(){
     // updatePrimaryPalette({

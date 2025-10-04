@@ -48,6 +48,9 @@ input, select{
     font-size: inherit;
 } */
 
+/* @import "tailwindcss"; */
 @import 'material-icons/iconfont/material-icons.css';
 @import "primeicons/primeicons.css";
-@import 'primeflex/primeflex.css';
+/* @import 'primeflex/primeflex.css'; */
+/* @import "tailwindcss"; */
+/* @plugin "tailwindcss-primeui"; */

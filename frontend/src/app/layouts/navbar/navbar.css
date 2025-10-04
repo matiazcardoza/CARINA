@@ -7,6 +7,7 @@
     height: 4rem;
     border-radius: 0;
     transition: left 0.3s ease;
+    padding: 0 1.5rem;
 }
 
 .dark_container_right_side{

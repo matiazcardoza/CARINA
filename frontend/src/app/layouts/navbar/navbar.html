@@ -29,51 +29,27 @@
             </div> -->
 
             <div class="right-wrap">
-                <!-- Buscador tipo pill con icono a la izquierda -->
-                <!-- <p-iconfield iconPosition="left" class="search-pill">
-                    <input pInputText type="text" placeholder="Search" />
-                </p-iconfield> -->
-
-                <!-- Botón redondo (morado del tema) -->
-                <!-- <p-button
-                [rounded]="true"
-                [raised]="true"
-                severity="help"
-                icon="pi pi-sparkles"
-                class="brain-btn"
-                (click)="onAiClick()">
-                </p-button> -->
-
-                <!-- Avatar que abre el menú popup -->
-                <div class="layout-topbar-menu-content">
-                    
-                    <button 
-                        type="button" 
-                        class="layout-topbar-action"
-                    >
-                        <i class="pi pi-calendar"></i>
-                        <span>Calendar</span>
-                    </button>
-
-                    <button 
-                        type="button" 
-                        class="layout-topbar-action"
-                    >
-                        <i class="pi pi-inbox"></i>
-                        <span>Messages</span>
-                    </button>
-
-                    <button 
-                        type="button" 
-                        class="layout-topbar-action"
-                    >
-                        <i class="pi pi-user"></i>
-                        <span>Profile</span>
-                    </button>
-                    
-                </div>
-
-
+                <p-button
+                    (onClick)="toggleTheme()"
+                    [icon]="iconName()"
+                    [text]="true"
+                    [outlined]="true"
+                    [rounded]="true"
+                    size="small"
+                    severity="secondary"
+                    tooltipPosition="bottom"
+                    [style]="{ width: '2.25rem', height: '2.25rem', padding: '0' }"
+                ></p-button>
+                <p-button
+                    [icon]="'pi pi-envelope'"
+                    [text]="true"
+                    [outlined]="true"
+                    [rounded]="true"
+                    size="small"
+                    severity="secondary"
+                    tooltipPosition="bottom"
+                    [style]="{ width: '2.25rem', height: '2.25rem', padding: '0', fontSize: '5rem' }"
+                ></p-button>
 
                 <button
                     type="button"
@@ -87,6 +63,7 @@
                         [style]="{ width: '32px', height: '32px' }">
                     </p-avatar>
                 </button>
+                
             </div>
         </ng-template>
     </p-toolbar>
