@@ -45,16 +45,47 @@
                 </p-button> -->
 
                 <!-- Avatar que abre el menú popup -->
+                <div class="layout-topbar-menu-content">
+                    
+                    <button 
+                        type="button" 
+                        class="layout-topbar-action"
+                    >
+                        <i class="pi pi-calendar"></i>
+                        <span>Calendar</span>
+                    </button>
+
+                    <button 
+                        type="button" 
+                        class="layout-topbar-action"
+                    >
+                        <i class="pi pi-inbox"></i>
+                        <span>Messages</span>
+                    </button>
+
+                    <button 
+                        type="button" 
+                        class="layout-topbar-action"
+                    >
+                        <i class="pi pi-user"></i>
+                        <span>Profile</span>
+                    </button>
+                    
+                </div>
+
+
+
                 <button
-                type="button"
-                class="avatar-trigger"
-                (click)="profileMenu.toggle($event)"
-                aria-haspopup="true"
-                aria-controls="profile_menu">
-                <p-avatar
-                    image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png"
-                    [style]="{ width: '32px', height: '32px' }">
-                </p-avatar>
+                    type="button"
+                    class="avatar-trigger"
+                    (click)="profileMenu.toggle($event)"
+                    aria-haspopup="true"
+                    aria-controls="profile_menu"
+                >
+                    <p-avatar
+                        image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png"
+                        [style]="{ width: '32px', height: '32px' }">
+                    </p-avatar>
                 </button>
             </div>
         </ng-template>

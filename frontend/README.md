@@ -57,3 +57,33 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+
+
+--------------------------------------------------------------------------------------------------------------------
+
+Para integrar el tema oscuro de primeng y material angular, se tuvo que unir ambas en una misma funcion.
+
+1):
+    se compilo dos temas de material como bundles separados.
+    En la sección build.options.styles, agrega dos entradas con inject:false para que se generen archivos CSS aparte (p. ej. material-light.css y material-dark.css):
+    ..........................................................................
+    "styles": [
+    "src/styles.css",
+    {
+        "input": "node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
+        "bundleName": "material-light",
+        "inject": false
+    },
+    {
+        "input": "node_modules/@angular/material/prebuilt-themes/pink-bluegrey.css",
+        "bundleName": "material-dark",
+        "inject": false
+    }
+    ]
+
+    ..........................................................................
+    indigo-pink (claro) y pink-bluegrey (oscuro) son clásicos. Puedes cambiar por otros prebuilt si prefieres.
+2): se añadió un link con id fijo en : "<link id="mat-theme" rel="stylesheet" href="material-light.css">
+"
+3: se usó la funcion setMaterialTheme que contiene el mat-theme para alternan entre temas

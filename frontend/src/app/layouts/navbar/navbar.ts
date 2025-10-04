@@ -1,17 +1,17 @@
 import { Component, inject, input, output } from '@angular/core';
 import { Toolbar } from 'primeng/toolbar';
 import { AvatarModule } from 'primeng/avatar';
-import { SharedModule } from 'primeng/api';
+// import { SharedModule } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { IconField } from 'primeng/iconfield';
-import { InputIcon } from 'primeng/inputicon';
+// import { IconField } from 'primeng/iconfield';
+// import { InputIcon } from 'primeng/inputicon';
 import { MenuItem } from 'primeng/api';
 import { MenuModule } from 'primeng/menu';
 import { AuthService } from '../../services/AuthService/auth';
 import { finalize } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { updatePrimaryPalette, updateSurfacePalette } from '@primeuix/themes';
+// import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+// import { updatePrimaryPalette, updateSurfacePalette } from '@primeuix/themes';
 const DARK_CLASS = 'my-app-dark';
 const STORAGE_KEY = 'isDark';
 
@@ -23,7 +23,7 @@ const STORAGE_KEY = 'isDark';
     ButtonModule,
     ButtonModule,
     InputTextModule,
-    IconField,
+    // IconField,
     MenuModule
   ],
   templateUrl: './navbar.html',
@@ -33,34 +33,44 @@ export class Navbar {
   private auth = inject(AuthService);
   sentOpenValue = output<boolean>();
   isOpen = input<boolean>(false);
+  loading = false;
+  isAuthenticated$ = this.auth.isAuthenticated$;
+  errorMsg = '';
+  profileItems: MenuItem[] = [
+    { label: 'Mi perfil',     icon: 'pi pi-user',     command: () => this.onGoProfile()   },
+    { label: 'Ajustes',       icon: 'pi pi-cog',      command: () => this.onGoSettings()  },
+    { label: 'cambiar tema',  icon: 'pi pi-pencil',   command: () => this.toggleDark()    },
+    { separator: true },
+    { label: 'Cerrar sesión', icon: 'pi pi-sign-out', command: () => this.onLogout()      }
+  ];
+
   handleOpenSidebar(value: boolean){
     this.sentOpenValue.emit(true)
   }
-  isAuthenticated$ = this.auth.isAuthenticated$;
-  loading = false;
-  errorMsg = '';
-  profileItems: MenuItem[] = [
-    { label: 'Mi perfil', icon: 'pi pi-user',      command: () => this.onGoProfile() },
-    { label: 'Ajustes',   icon: 'pi pi-cog',       command: () => this.onGoSettings() },
-    { label: 'cambiar tema',   icon: 'pi pi-pencil',       command: () => this.toggleDark() },
-    { separator: true },
-    { label: 'Cerrar sesión', icon: 'pi pi-sign-out', command: () => this.onLogout() }
-  ];
+
   ngOnInit(){ 
     this.initFromStorage(); 
     this.setPrimaryTheme();
   }
-  // handleOpenSidebar(value: boolean) { this.sentOpenValue.emit(value); }
+
   initFromStorage() {
     const isDark = localStorage.getItem(STORAGE_KEY) === '1';
     document.documentElement.classList.toggle(DARK_CLASS, isDark);
+    // Función para alternar tema oscuro o claro para meterial angular
+    this.setMaterialTheme(isDark);
   }
-  // Conecta estas acciones a tu Router/servicios
-  onGoProfile() {}
-  onGoSettings() {}
-  onLogout() {
-    console.log("sesión cerrada");
-        if (this.loading) return;
+
+  onGoProfile(){
+
+  }
+
+  onGoSettings(){
+
+  }
+
+  onLogout(){
+    console.log("log out");
+    if (this.loading) return;
     this.loading = true;
     this.errorMsg = '';
 
@@ -78,12 +88,18 @@ export class Navbar {
         }
       });
   }
-  onAiClick() {}
-  toggleDark() {
+
+  onAiClick(){
+
+  }
+
+  toggleDark( ){
     const el = document.documentElement;
     const isDark = !el.classList.contains(DARK_CLASS);
     el.classList.toggle(DARK_CLASS, isDark);
     localStorage.setItem(STORAGE_KEY, isDark ? '1' : '0');
+    // Función para alternar tema oscuro o claro para meterial angular
+    this.setMaterialTheme(isDark);
   }
 
   setPrimaryTheme(){
@@ -101,4 +117,12 @@ export class Navbar {
     //   900: '{violet.900}', 950: '{violet.950}',
     // })
   }
+
+  // Función para alternar tema oscuro o claro para meterial angular
+  setMaterialTheme(isDark: boolean) {
+    const linkEl = document.getElementById('mat-theme') as HTMLLinkElement | null;
+    if (!linkEl) return;
+    linkEl.href = isDark ? 'material-dark.css' : 'material-light.css';
+  }
+
 }
