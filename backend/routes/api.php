@@ -32,6 +32,7 @@ use App\Http\Controllers\ObrasController;
 use App\Http\Controllers\SignaturesController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserObrasController;
+use App\Http\Controllers\OrdenCompraDetalladoController;
 use App\Models\SignatureFlow;
 use App\Models\SignatureStep;
 use App\Models\User;
@@ -163,6 +164,8 @@ Route::middleware(['auth:sanctum','resolve.obra', 'permission:almacen.access_kar
 // Route::middleware(['auth:sanctum','resolve.obra', 'role:almacen.residente'])->group(function () {
     Route::get('obras/{obra}/item-pecosas', [PecosaController::class, 'testPecosas']);
     Route::post('kardex-movements/{itemPecosa}', [MovementKardexController::class, 'store'])->middleware(['permission:almacen.create_new_movement']);
+    Route::get('ordenes-compra-detallado/{ordenCompra}/movements-kardex', [OrdenCompraDetalladoController::class, 'getOrdenesDeCompra']);
+    Route::get('ordenes-compra-detallado/{ordenCompra}/movements-kardex/pdf', [OrdenCompraDetalladoController::class, 'pdf'])->middleware(['permission:almacen.generate_report']);
     Route::get('item-pecosas/{itemPecosa}/movements-kardex', [PecosaController::class, 'getItemPecosas']);
     Route::get('item-pecosas/{itemPecosa}/movements-kardex/pdf', [MovementKardexController::class, 'pdf'])->middleware(['permission:almacen.generate_report']);
     Route::delete('reports/{report}', [MovementKardexController::class, 'destroy'])->middleware(['permission:almacen.delete_report']);
