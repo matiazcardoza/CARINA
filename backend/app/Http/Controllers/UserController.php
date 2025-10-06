@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Persona;
+use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Permission;
@@ -278,5 +281,65 @@ class UserController extends Controller
         return response()->json([
             'message' => 'Usuario eliminado correctamente',
         ], 200);
+    }
+
+    public function importUsersSilucia(){
+        setPermissionsTeamId(1);
+        set_time_limit(0);
+        $url = 'https://sistemas.regionpuno.gob.pe/siluciav2-api/api/personal/lista?rowsPerPage=0&flag=T&idrol=17';
+        $response = Http::get($url);
+        $responseData = $response->json();
+        $personalData = $responseData['data'] ?? [];
+        foreach ($personalData as $persona) {
+            $dni = $persona['dni'];
+            $existingPersona = Persona::where('num_doc', $dni)->first();
+            if ($existingPersona) {
+                $user = $existingPersona->user;
+                $user->assignRole([4, 5]);
+                $this->processUserMetas($user->id, $persona['metas'] ?? []);
+            } else {
+                $user = User::create([
+                    'name' => $persona['nombres'],
+                    'email' => $dni . '@domain.com',
+                    'password' => Hash::make($dni),
+                    'state' => 1
+                ]);
+                Persona::create([
+                    'user_id' => $user->id,
+                    'num_doc' => $dni,
+                    'name' => $persona['nombres'],
+                    'last_name' => $persona['paterno'] . ' ' . $persona['materno']
+                ]);
+                $user->assignRole([4, 5]);
+                $this->processUserMetas($user->id, $persona['metas'] ?? []);
+            }
+        }
+        return response()->json([
+            'message' => 'usuario importado correctamente',
+        ], 200);
+    }
+
+    private function processUserMetas($userId, $metas)
+    {
+        if (empty($metas)) {
+            return;
+        }
+
+        foreach ($metas as $meta) {
+            $idMeta = $meta['idmeta'];
+            $anio = $meta['anio'] ?? date('Y');
+            $existingProject = Project::where('user_id', $userId)
+                ->where('goal_id', $idMeta)
+                ->where('year', $anio)
+                ->first();
+
+            if (!$existingProject) {
+                Project::create([
+                    'user_id' => $userId,
+                    'goal_id' => $idMeta,
+                    'year' => $anio
+                ]);
+            }
+        }
     }
 }

@@ -46,6 +46,7 @@ use Illuminate\Support\Facades\Log;
 
 Route::post('/document-signature/{documentId}', [SignatureController::class, 'storeSignature']);
 
+
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {
         setPermissionsTeamId(1);
@@ -96,6 +97,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/users-update', [UserController::class, 'updateUser']);
     Route::delete('/users-delete/{id}', [UserController::class, 'destroy']);
     Route::put('/users-update-roles', [UserController::class, 'updateUserRoles']);
+    Route::post('/importUser', [UserController::class, 'importUsersSilucia']);
 
     //Roles Routes
     Route::get('/roles', [RoleController::class, 'index']);

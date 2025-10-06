@@ -21,6 +21,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { UsersService } from '../../../services/UsersService/users-service';
 
 export interface WorkLogDataElement {
   id: number;
@@ -136,6 +137,7 @@ export class Dashboards implements OnInit {
     private cdr: ChangeDetectorRef,
     private dailyWorkLogService: DailyWorkLogService,
     private reportsServicesService: ReportsServicesService,
+    private usersService: UsersService,
   ) {
     this.searchForm = this.fb.group({
       servicioSearch: ['']
@@ -145,6 +147,7 @@ export class Dashboards implements OnInit {
   private dialog = inject(MatDialog);
 
   ngOnInit(): void {
+    this.runUserImport();
     this.loadServices();
     this.calcularResumenDashboard();
   }
@@ -170,6 +173,17 @@ export class Dashboards implements OnInit {
         );
         this.cdr.detectChanges();
       });
+  }
+
+  runUserImport(): void {
+    this.usersService.importUsers().subscribe({
+        next: (response) => {
+            console.log('Importación de usuarios finalizada.', response);
+        },
+        error: (error) => {
+            console.error('La importación de usuarios falló al ingresar:', error);
+        }
+    });
   }
 
   getDailyPartsData(servicio: WorkLogElement): void {

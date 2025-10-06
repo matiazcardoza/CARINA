@@ -93,10 +93,20 @@ export class UsersService {
   }
 
   updateUserRoles(updateData: UpdateUserRolesData): Observable<UserElement> {
-  return this.http.put<SingleApiResponse>(`${this.apiUrl}/api/users-update-roles`, updateData, {
-    withCredentials: true
-  }).pipe(
-    map(response => response.data)
-  );
-}
+    return this.http.put<SingleApiResponse>(`${this.apiUrl}/api/users-update-roles`, updateData, {
+      withCredentials: true
+    }).pipe(
+      map(response => response.data)
+    );
+  }
+
+  importUsers(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/api/importUser`, {}, { 
+      withCredentials: true 
+    }).pipe(
+      map(response => {
+        return response;
+      }),
+    );
+  }
 }

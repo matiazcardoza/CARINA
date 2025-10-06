@@ -25,11 +25,15 @@ class DailyPartController extends Controller
     {
         $serviceId = $request->id;
         $date = $request->query('date', now()->format('Y-m-d'));
-        $dailyParts = DailyPart::select('daily_parts.*', 'item_pecosas.numero', 'item_pecosas.item')
+        $dailyParts = DailyPart::select('daily_parts.*')
+            ->whereDate('work_date', $date)
+            ->where('service_id', $serviceId)
+            ->get();
+        /*$dailyParts = DailyPart::select('daily_parts.*', 'item_pecosas.numero', 'item_pecosas.item')
             ->whereDate('work_date', $date)
             ->where('service_id', $serviceId)
             ->leftJoin('item_pecosas', 'item_pecosas.id', '=', 'daily_parts.itemPecosa_id')
-            ->get();
+            ->get();*/
 
         return response()->json([
             'message' => 'Daily work log retrieved successfully',
@@ -39,7 +43,6 @@ class DailyPartController extends Controller
 
     function store(Request $request)
     {
-        Log::info('este es el request: ', $request->all());
         $dailyPart = DailyPart::create([
             'service_id' => $request->service_id,
             'itemPecosa_id' => $request->product_id,

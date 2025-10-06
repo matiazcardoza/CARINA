@@ -5,22 +5,26 @@ namespace App\Http\Controllers;
 use App\Models\DailyPart;
 use App\Models\MechanicalEquipment;
 use App\Models\OrderSilucia;
+use App\Models\Project;
 use App\Models\Service;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class ServiceController extends Controller
 {
     function index(Request $request)
     {
+        $goalIds = Project::Where('user_id', Auth::id())->pluck('goal_id');
         $services = Service::select('services.*',
                                         'orders_silucia.supplier',
                                         'orders_silucia.machinery_equipment',
                                         'mechanical_equipment.machinery_equipment as mechanicalEquipment')
                                     ->leftJoin('orders_silucia', 'services.order_id', '=', 'orders_silucia.id')
                                     ->leftJoin('mechanical_equipment', 'services.mechanical_equipment_id', '=', 'mechanical_equipment.id')
+                                    ->whereIn('services.goal_id', $goalIds)
                                     ->get();
         return response()->json([
             'message' => 'Daily work log retrieved successfully',
