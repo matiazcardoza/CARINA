@@ -76,7 +76,7 @@ export class DailyWorkLogForm implements OnInit {
       start_time: ['', Validators.required],
       initial_fuel: [''],
       product_id: [''],
-      description: ['']
+      description: ['', Validators.required]
     });
   }
 
