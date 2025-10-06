@@ -51,7 +51,7 @@ export const routes: Routes = [
         canActivate: [publicGuard]
     },
     {
-        path: 'carina',
+        path: '',
         component: Dashboard,
         canActivate: [authGuard],
         children: [
