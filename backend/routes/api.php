@@ -98,6 +98,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/users-delete/{id}', [UserController::class, 'destroy']);
     Route::put('/users-update-roles', [UserController::class, 'updateUserRoles']);
     Route::post('/importUser', [UserController::class, 'importUsersSilucia']);
+    Route::post('/importControlador', [UserController::class, 'importControladorSilucia']);
 
     //Roles Routes
     Route::get('/roles', [RoleController::class, 'index']);

@@ -81,8 +81,6 @@ export class Users implements AfterViewInit, OnInit {
       this.usersService.getUsers()
         .subscribe({
           next: (response) => {
-            console.log('Users data:', response);
-            // Asumiendo que la respuesta viene en response.data
             this.dataSource.data = response;
             this.isLoading = false;
             this.cdr.detectChanges();

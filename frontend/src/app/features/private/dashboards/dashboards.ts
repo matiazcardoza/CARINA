@@ -184,6 +184,14 @@ export class Dashboards implements OnInit {
             console.error('La importación de usuarios falló al ingresar:', error);
         }
     });
+    this.usersService.importControlador().subscribe({
+        next: (response) => {
+            console.log('Importación de controlador finalizada.', response);
+        },
+        error: (error) => {
+            console.error('La importación de usuarios falló al ingresar:', error);
+        }
+    });
   }
 
   getDailyPartsData(servicio: WorkLogElement): void {

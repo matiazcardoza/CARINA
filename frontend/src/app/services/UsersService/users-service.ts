@@ -109,4 +109,13 @@ export class UsersService {
       }),
     );
   }
+  importControlador(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/api/importControlador`, {}, { 
+      withCredentials: true 
+    }).pipe(
+      map(response => {
+        return response;
+      }),
+    );
+  }
 }
