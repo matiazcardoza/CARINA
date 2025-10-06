@@ -10,7 +10,7 @@
         <input matInput
                [matDatepicker]="picker"
                formControlName="work_date"
-               readonly>
+               >
         <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-datepicker #picker></mat-datepicker>
         <mat-error>{{ workDateError }}</mat-error>
@@ -21,8 +21,8 @@
         <mat-label>Hora Inicial</mat-label>
         <input matInput
                formControlName="start_time"
-               readonly
-               placeholder="HH:MM">
+               
+               placeholder="HH:MM - ejemplo - 16:12 = 04:12pm">
         <mat-hint>La hora se asigna automáticamente</mat-hint>
         <mat-error>{{ startTimeError }}</mat-error>
       </mat-form-field>

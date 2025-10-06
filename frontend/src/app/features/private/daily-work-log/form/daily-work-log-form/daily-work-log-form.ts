@@ -141,8 +141,8 @@ export class DailyWorkLogForm implements OnInit {
       formValues.initial_fuel = this.data.workLog.initial_fuel;
 
       this.workLogForm.patchValue(formValues);
-      this.workLogForm.get('work_date')?.disable();
-      this.workLogForm.get('start_time')?.disable();
+      //this.workLogForm.get('work_date')?.disable();
+      //this.workLogForm.get('start_time')?.disable();
     } else {
       const now = new Date();
       this.workLogForm.patchValue({
@@ -150,8 +150,8 @@ export class DailyWorkLogForm implements OnInit {
       });
       this.setCurrentTime();
 
-      this.workLogForm.get('work_date')?.disable();
-      this.workLogForm.get('start_time')?.disable();
+      //this.workLogForm.get('work_date')?.disable();
+      //this.workLogForm.get('start_time')?.disable();
     }
   }
 

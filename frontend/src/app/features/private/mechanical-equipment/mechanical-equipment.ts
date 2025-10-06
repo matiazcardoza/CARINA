@@ -135,9 +135,8 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
     });
   }
   
-  viewEquipmentDetails(equipment: MechanicalEquipmentElement) {
+  reasignedWork(equipment: MechanicalEquipmentElement) {
     console.log('Ver detalles del equipo:', equipment);
-    // Aquí irá la lógica para ver los detalles
   }
   
   openWorkDialog(mechanicalEquipment: MechanicalEquipmentElement) {

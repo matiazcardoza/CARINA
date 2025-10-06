@@ -10,7 +10,7 @@ export const publicGuard: CanActivateFn = (route, state): Observable<boolean | U
 
   return authService.verifyAuthentication().pipe(
     map(() => {
-      return router.createUrlTree(['/carina']);
+      return router.createUrlTree(['/private']);
     }),
     catchError(() => {
       return of(true);
