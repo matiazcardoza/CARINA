@@ -108,6 +108,7 @@ return new class extends Migration
         if (Schema::hasTable('movements_kardex')) {
             Schema::drop('movements_kardex');
         }
+
         if (Schema::hasTable('ordenes_compra_detallado')) {
             Schema::drop('ordenes_compra_detallado');
         }

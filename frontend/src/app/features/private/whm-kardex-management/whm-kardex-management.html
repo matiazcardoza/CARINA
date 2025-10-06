@@ -1,7 +1,7 @@
 <div class="container">
-    <!-- <button (click)="verData()">
-      see data 
-    </button> -->
+        <!-- <button (click)="verData()">
+          see data 
+        </button> -->
     <!-- <section class="toolbar">
       <label for="obraSel" class="toolbar__label">Obra:</label>
 
@@ -416,6 +416,9 @@
       [closable]="true"
       [style]="{ width: '450px' }"
     >
+        <!-- <button (click)="verData()">
+          see data 
+        </button> -->
       <div class="p-fluid container_dialog">
         <!-- Tipo -->
         <div class="field dialog_item">
@@ -476,6 +479,22 @@
               [ngModel]="formx().amount"
               (ngModelChange)="setMovementType('cantidad', $event)" 
           ></p-inputNumber>
+        </div>
+
+        <!-- Fecha de movimiento -->
+        <div class="field dialog_item">
+          <label for="cantidad" style="display:block; font-weight:bold; margin-bottom:0.5rem;">Fecha movimiento</label>
+          <!-- [(ngModel)]="datetime24h" -->
+          <p-datepicker 
+              inputId="calendar-24h" 
+              [ngModel]="formx().movement_date"
+              (ngModelChange)="setMovementType('time', $event)"
+              [showTime]="true" 
+              [hourFormat]="'24'"
+              (onShow)="primeSetToday()"
+              appendTo="body" 
+          />
+
         </div>
 
         <!-- Observaciones -->

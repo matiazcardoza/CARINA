@@ -37,7 +37,8 @@ import { RadioButton } from "primeng/radiobutton";
     // SlicePipe,
     // PrimeNG
     TableModule, InputTextModule, DialogModule, InputNumberModule,
-    AutoComplete, Button,
+    // AutoComplete, 
+    Button,
     // Tag, 
     IconField, InputIcon, AddNewUserModal, ListboxModule, RadioButton],
   providers:[MessageService],
