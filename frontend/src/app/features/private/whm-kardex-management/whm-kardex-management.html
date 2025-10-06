@@ -1,9 +1,9 @@
 <div class="container">
 
 
-  <div class="p-4 rounded-border bg-primary! text-primary-contrast bg-red-400 dark:bg-yellow-700 ">
+  <!-- <div class="p-4 rounded-border bg-primary! text-primary-contrast bg-red-400 dark:bg-yellow-700 ">
     Hola Tailwind + PrimeNG
-  </div>
+  </div> -->
   <!-- src/app/features/whm/whm-kardex-management.html -->
   <section class="toolbar">
     <label for="obraSel" class="toolbar__label">Obra:</label>
@@ -26,30 +26,10 @@
   </section>
 
 
-  <!-- <div class="miEstiloPersonalizado" >
-    ------------
-    Ese es mi div personalizado
-    ------------
-  </div> -->
 
   <div class="miCajaToken">
     este es mi otro div para probar si las clases corrren correctamente
   </div>
-  <!-- <div class="mi-div-adaptable" >
-    ------------
-    Ese es mi div
-    ------------
-  </div>
-
-  <div class="surface-0 text-color border-1 surface-border border-round p-4 w-25rem h-25rem">
-    Ese es mi otro div
-  </div> -->
-
-  <!-- <p-card [style]="{ width: '25rem', height: '25rem' }">
-    <ng-template pTemplate="title">Mi panel</ng-template>
-    <ng-template pTemplate="content">Ese es mi contenido</ng-template>
-  </p-card> -->
-
 
   <div class="card">
     <div style="margin-bottom: 2rem;">
@@ -84,26 +64,19 @@
         }
     </div>
       
-      <!-- @for (item of items; track item.id) {
-        <div>{{ item.name }}</div>
-      } -->
-      <!-- [value]="tableRows()" -->
-      <!-- (onLazyLoad)="onProductsLazyLoad($event)" -->
-        <!-- stateStorage="session"
-      stateKey="whm-kardex-v1" -->
     <p-table
-        [loading]="pecosasx().loading"
+        [loading]="ordenCompraDetallado().loading"
         paginatorDropdownAppendTo="body"
 
-        [value]="pecosasx().value"
-        [rows]="pecosasx().rows"
+        [value]="ordenCompraDetallado().value"
+        [rows]="ordenCompraDetallado().rows"
         [paginator]="true"
 
-        [first]="pecosasx().first"
-        [totalRecords]="pecosasx().totalRecords"
+        [first]="ordenCompraDetallado().first"
+        [totalRecords]="ordenCompraDetallado().totalRecords"
 
         (onLazyLoad)="onLazyLoadPecosa($event)"
-        [rowsPerPageOptions]="pecosasx().rowsPerPageOptions"
+        [rowsPerPageOptions]="ordenCompraDetallado().rowsPerPageOptions"
         [lazy]="true"
 
         [lazyLoadOnInit]="false"
@@ -132,7 +105,7 @@
                 type="text" 
                 placeholder='Número "pecosa"' 
                 style="width: 100%"
-                [value]="pecosasx().filters.numero"
+                [value]="ordenCompraDetallado().filters.numero"
                 (input)="onAddFilters('numero', $event.target.value)"
                 />
                 <!-- [(ngModel)]="uiFilters.numero"  -->
@@ -145,7 +118,7 @@
                 type="number" 
                 placeholder="Año" 
                 style="width: 100%"
-                [value]="pecosasx().filters.anio"
+                [value]="ordenCompraDetallado().filters.anio"
                 (input)="onAddFilters('anio', $event.target.value)"
                 />
                 <!-- [(ngModel)]="uiFilters.anio"  -->
@@ -178,23 +151,23 @@
 
             <!-- Botones -->
             <div class="search_item">
-            <p-button
-                [style]="{width:'100%'}"
-                label="Buscar" 
-                icon="pi pi-search" 
-                (onClick)="search()"
-            ></p-button>
+              <p-button
+                  [style]="{width:'100%'}"
+                  label="Buscar" 
+                  icon="pi pi-search" 
+                  (onClick)="search()"
+              ></p-button>
             </div>
             <!-- <button (click)="verdatos()">ver datos</button> -->
                 <!-- (onClick)="onSearchClick()" -->
             <div class="search_item">
-            <p-button 
-                [style]="{width:'100%'}"
-                label="Limpiar" 
-                severity="secondary" 
-                outlined 
-                (onClick)="cleanFilters()"
-            ></p-button>
+              <p-button 
+                  [style]="{width:'100%'}"
+                  label="Limpiar" 
+                  severity="secondary" 
+                  outlined 
+                  (onClick)="cleanFilters()"
+              ></p-button>
             </div>
             
         </div>
@@ -300,6 +273,7 @@
 
               <p-button icon="pi pi-eye" severity="info"  (onClick)="openMovementDetailsModal(row)"></p-button>
               <p-button icon="pi pi-plus" severity="success" (onClick)="openMovementModal(row)"></p-button>
+              <p-button icon="pi pi-file-pdf" severity="danger" (onClick)="generatePdf(row)"></p-button>
             </div>
           </td>
         </tr>
@@ -334,10 +308,7 @@
                 <ng-template pTemplate="body" let-r>
                   <tr>
                     <td>{{ r.id }}</td>
-                    <!-- <td>{{ r.reportable_id || '—' }}</td> -->
-                    <td>
-                      {{getStatusLabel(r.status)}}
-                    </td>
+                    <td>{{getStatusLabel(r.status)}}</td>
                     <td>{{ getAuthorizedSignatoryLabel(r.current_step.role) || '—' }}</td>
 
                     @if(r.can_you_sign){
@@ -345,14 +316,6 @@
                     }@else {
                       <td >NO</td>
                     }
-                    <!-- <td>{{r.can_you_sign || '—' }}</td> -->
-                    <!-- <td>
-                      @if (r.user_step) {
-                        <span>#{{ r.user_step.order }} — {{ r.user_step.role }} ({{ r.user_step.status }})</span>
-                      } @else {
-                        <span>—</span>
-                      }
-                    </td> -->
 
                     <td style="text-align:end;">
                       <div class="flex gap-2 justify-center" style="display: flex; gap: 0.5rem; justify-content: center;">
@@ -364,7 +327,7 @@
                           tooltipPosition="top"
                           [style]="{ width: '2.5rem', height: '2.5rem', 'border-radius': '50%' }"
                           (onClick)="downloadReport(r.pdf_path)"
-                          ></p-button>
+                        ></p-button>
                           <!-- styleClass="rounded-full" -->
                           <!-- (onClick)="downloadReport(r.status)" -->
 
@@ -375,7 +338,7 @@
                           pTooltip="firmar digitalmente"
                           [style]="{ width: '2.5rem', height: '2.5rem', 'border-radius': '50%' }"
                           (onClick)="signReport(r)"
-                          ></p-button>
+                        ></p-button>
                           <!-- styleClass="rounded-full" -->
 
                         <p-button
@@ -552,119 +515,17 @@
   </p-dialog>
 
   <!-- ------------------ Modal: Detalles de movimientos -------------------- -->
-  <p-dialog header="Detalles de movimientos" [(visible)]="showMovementDetailsModal" [modal]="true" [closable]="false">
-    <div style="overflow:hidden;">
-      <p-table
-        [value]="movementsKardex()"
-        [paginator]="true"
-        [rows]="movementsPageSize"
-        [totalRecords]="movementsTotal()"
-        [lazy]="true"
-        (onLazyLoad)="onMovementsLazyLoad($event)"
-        [loading]="movementsLoading()"
-        dataKey="id"
-        [expandedRowKeys]="expandedRowsMovements()"
-        (onRowExpand)="onRowExpandMovement($event)"
-        (onRowCollapse)="onRowCollapseMovement($event)"
-      >
-        <!-- <ng-template pTemplate="caption">
-          <div style="display:flex; flex-wrap:wrap; align-items:center; gap:18px; padding:12px 14px; background:#fafafa; border:1px solid #e5e7eb; border-radius:10px; box-shadow:0 1px 2px rgba(0,0,0,0.04);">
-            <span style="display:flex; align-items:center; gap:8px; font-size:1.1rem; font-weight:600; color:#14532d;">
-              <i class="pi pi-sign-in" style="font-size:1.25rem;"></i>
-              <span>Total entradas: <span style="font-weight:700;">{{ totalEntradas }}</span></span>
-            </span>
-            <span style="display:flex; align-items:center; gap:8px; font-size:1.1rem; font-weight:600; color:#7f1d1d;">
-              <i class="pi pi-sign-out" style="font-size:1.25rem;"></i>
-              <span>Total salidas: <span style="font-weight:700;">{{ totalSalidas }}</span></span>
-            </span>
-            <span style="display:flex; align-items:center; gap:8px; font-size:1.1rem; font-weight:600; color:#0b4191;">
-              <i class="pi pi-box" style="font-size:1.25rem;"></i>
-              <span>Stock: <span style="font-weight:700;">{{ stockSaldo }}</span></span>
-            </span>
-          </div>
-        </ng-template> -->
 
-        <ng-template pTemplate="header">
-          <tr>
-            <th style="width:3rem;"></th>
-            <th pSortableColumn="id">ID <p-sortIcon field="id"/></th>
-            <th pSortableColumn="movement_type">Tipo <p-sortIcon field="movement_type"/></th>
-            <th pSortableColumn="amount">Cantidad <p-sortIcon field="amount"/></th>
-            <th pSortableColumn="observations" style="max-width:200px; width:200px;">Observaciones <p-sortIcon field="observations"/></th>
-            <th pSortableColumn="movement_date">Fecha <p-sortIcon field="movement_date"/></th>
-          </tr>
-        </ng-template>
 
-        <ng-template pTemplate="body" let-movement let-expanded="expanded">
-          <tr>
-            <td>
-              <p-button type="button" [pRowToggler]="movement" [disabled]="!movement?.users?.length" [text]="true" [rounded]="true" severity="secondary" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'">
-              </p-button>
-            </td>
-            <td>{{ movement.id }}</td>
-            <td>{{ movement.movement_type }}</td>
-            <td>{{ movement.amount }}</td>
-            <td style="max-width:300px; width:300px; padding:0;">
-              <div style="max-height:84px; overflow-y:auto; line-height:1.35; text-align:justify; padding:6px 8px; word-break:break-word;">
-                {{ movement.observations || 'ninguna' }}
-              </div>
-            </td>
-            <td>{{ movement.movement_date }}</td>
-          </tr>
-        </ng-template>
+  <app-see-movements-details-modal
+    [isOpen]="showMovementsDetails"
+    (isOpenChange)="showMovementsDetails = false"
+    [obraId]="selectedObraId"
+    [ordenCompraDetalladoId]="ordenCompraDetalladoId"
+  >
 
-        <ng-template pTemplate="expandedrow" let-movement>
-          <tr>
-            <td colspan="6">
-              <div style="padding:10px 8px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px;">
-                <h4 style="margin:0 0 8px 0; font-size:1rem;">Personas anexadas</h4>
-
-                <p-table [value]="movement.users || []">
-
-                  <ng-template pTemplate="header">
-                    <tr>
-                      <th style="width:8rem;">DNI</th>
-                      <th>Nombre completo</th>
-                      <th style="width:11rem;">Adjuntado</th>
-                    </tr>
-                  </ng-template>
-
-                  <ng-template pTemplate="body" let-person>
-                    <tr>
-                      <td>{{ person.persona?.num_doc || '—' }}</td>
-                      <td>
-                        {{
-                          person.persona?.name
-                            ? (person.persona?.name + (person.persona?.last_name ? ' ' + person.persona?.last_name : ''))
-                            : person.name
-                        }}
-                      </td>
-                      <td>{{ person.pivot?.attached_at | date:'yyyy-MM-dd HH:mm' }}</td>
-                    </tr>
-                  </ng-template>
-
-                  <ng-template pTemplate="emptymessage">
-                    <tr><td colspan="3">Sin personas anexadas.</td></tr>
-                  </ng-template>
-                </p-table>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-
-        <ng-template pTemplate="emptymessage">
-          <tr><td colspan="6">Sin movimientos.</td></tr>
-        </ng-template>
-      </p-table>
-    </div>
-
-    <ng-template pTemplate="footer">
-      <div style="display:flex; justify-content:flex-end; gap:0.5rem; width:100%;">
-        <p-button label="Cerrar" severity="secondary" outlined (onClick)="closeMovementDetailsModal()"></p-button>
-        <p-button label="Generar informe (pdf)" icon="pi pi-download" (onClick)="onSubmitMovementDetails()"></p-button>
-      </div>
-    </ng-template>
-  </p-dialog>
+  </app-see-movements-details-modal>
+  
 
   <!-- Modal para buscar y anexar persona por DNI -->
   <app-add-new-user-modal

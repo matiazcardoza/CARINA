@@ -1,8 +1,6 @@
 import { Component, OnInit, signal, effect, DestroyRef, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-/* PrimeNG (standalone) */
 import { TableModule } from 'primeng/table';
 import { Button } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -22,7 +20,6 @@ import { ApiResponseOperarios } from './interfaces/whm-kardex-management.interfa
 import { FiltersPecosas } from './interfaces/whm-kardex-management.interface';
 import { PecosaResponse } from './interfaces/whm-kardex-management.interface';
 import { Pecosa } from './interfaces/whm-kardex-management.interface';
-// import { finalize } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { FormMovementKardex } from './interfaces/whm-kardex-management.interface';
 import { OperarioOption } from './interfaces/whm-kardex-management.interface';
@@ -30,18 +27,30 @@ import { Chip } from "primeng/chip";
 import { Tooltip } from 'primeng/tooltip';
 import { Badge } from "primeng/badge";
 import { Card } from "primeng/card";
-
+import { OrdenCompraDetallado, OrdenCompraDetalladoRow, OrdenCompraDetalladoFilters   } from './interfaces/whm-kardex-management.interface';
+import { parseHttpError } from '../../../shared/utils/parseHttpError';
+import { SeeMovementsDetailsModal } from './components/see-movements-details-modal/see-movements-details-modal';
 
 @Component({
   selector: 'app-whm-kardex-management',
   imports: [
-    CommonModule, FormsModule,
-    TableModule, Button, InputTextModule, DialogModule, InputNumberModule,
-    IconField, InputIcon, ListboxModule, RadioButton, Toast,
+    CommonModule,
+    FormsModule,
+    TableModule,
+    Button,
+    InputTextModule,
+    DialogModule,
+    InputNumberModule,
+    IconField,
+    InputIcon,
+    ListboxModule,
+    RadioButton,
+    Toast,
     AddNewUserModal,
     Chip, Tooltip,
     Badge,
-    Card
+    Card,
+    SeeMovementsDetailsModal
 ],
   providers: [MessageService],
   templateUrl: './whm-kardex-management.html',
@@ -63,42 +72,67 @@ export class WhmKardexManagement implements OnInit {
     });
   }
 
-  window = window; // Hace que 'window' esté disponible en el template
+  window = window; 
   obras = signal<ObraLite[]>([]);
   selectedObraId: number | null = null;
-  pecosas = signal<Pecosa[]>([]);
   loadingPecosas = signal<boolean>(false);
-  productsTotal = signal<number>(0);
   pageSize = 20;
   selectedProduct: any | null = null;
-  // uiFilters: { numero?: string; anio?: number | undefined; item?: string; desmeta?: string } = {
-  //   numero: '',
-  //   anio: undefined,
-  //   item: '',
-  //   desmeta: '',
-  // };
+  working = false;
+  message = '';
+
   operarios = signal<OperarioOption[]>([]);
   selectedOperarioId = signal<number | null>(null);
   showMovementModal = false;
-  showMovementDetailsModal = false;
-  movementOptionsStr: Array<'entrada' | 'salida'> = ['entrada', 'salida'];
-  form = {
-    id_pecosa_silucia: null as string | null,      // numero PECOSA (Silucia)
-    id_item_pecosa_silucia: null as number | null, // idsalidadet (Silucia)
-    movement_type: null as 'entrada' | 'salida' | null,
-    amount: null as number | null,
-    observations: null as string | null,
-    people_dnis: [] as string[],
-    silucia_pecosa: null as any
-  };
+
+  savingMovementLoading = signal<boolean>(false);
+  listDniPeople = signal<any[]>([]);
+  showAddUserModal = false;
+  showMovementsDetails = false;
+  ordenCompraDetalladoId = 0;
+  selectedOrdenCompraDetalladoForMovements: any | null = null;
+  movementsKardex = signal<any[]>([]);
+  // movementsLoading = signal<boolean>(false);
+  // movementsTotal = signal<number>(0);
+  // expandedRowsMovements = signal<Record<number, boolean>>({});
+  
+  expanded = signal<boolean>(false)
+  expandedRowsPecosa = signal<any>([])
+  myCurrentRoles = signal([]);
+
 
   formx = signal<FormMovementKardex>({
-    id_pecosa: null,      // numero PECOSA (Silucia)
-    movement_type: null,
-    amount: null,
-    observations: null,
-    // people_dnis: [],
-    people_ids: [],
+      id_pecosa: null,      // numero PECOSA (Silucia)
+      movement_type: null,
+      amount: null,
+      observations: null,
+      people_ids: [],
+  })
+
+  pecosasx = signal({
+      value: <Pecosa[]>[],
+      rows: 10,
+      first: 0,
+      totalRecords: 0,
+      rowsPerPageOptions: [10,15,20],
+      loading: false,
+      filters: {
+        anio: '',
+        numero: ''
+      }
+  })
+
+  ordenCompraDetallado = signal<OrdenCompraDetallado>({
+      value: [],
+      rows: 10,
+      first: 0,
+      totalRecords: 0,
+      rowsPerPageOptions: [10,15,20],
+      loading: false,
+      filters: {
+        anio: '',
+        numero: ''
+      }
   })
 
   setMovementType(type:string, data: 'entrada'|'salida'|number|null|string){
@@ -155,37 +189,6 @@ export class WhmKardexManagement implements OnInit {
     console.log(this.formx())
   }
 
-  savingMovementLoading = signal<boolean>(false);
-  listDniPeople = signal<any[]>([]);
-  showAddUserModal = false;
-  selectedPecosaForMovements: any | null = null;
-  movementsKardex = signal<any[]>([]);
-  movementsLoading = signal<boolean>(false);
-  movementsTotal = signal<number>(0);
-  movementsPageSize = 50;
-  expandedRowsMovements = signal<Record<number, boolean>>({});
-  lastProductsPage = 1;
-  lastProductsRows = this.pageSize;
-  lastSelectedKey: number | null = null;
-  expanded = signal<boolean>(false)
-  expandedRowsPecosa = signal<any>([])
-  myCurrentRoles = signal([]);
-
-
-
-  pecosasx = signal({
-    value: <Pecosa[]>[],
-    rows: 10,
-    first: 0,
-    totalRecords: 0,
-    rowsPerPageOptions: [10,15,20],
-    loading: false,
-    filters: {
-      anio: '',
-      numero: ''
-    }
-  })
-
   ngOnInit(): void {
     this.api.getObras()
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -195,28 +198,19 @@ export class WhmKardexManagement implements OnInit {
           if (this.obras().length) {
             const first = this.obras()[0];
             if(first){
-              this.getItemsPecosas(first.id, 0, this.pecosasx().rows, this.pecosasx().filters);
+              // this.getItemsPecosas(first.id, 0, this.pecosasx().rows, this.pecosasx().filters);
+              this.getOrdenCompraDetallado(first.id, 0, this.ordenCompraDetallado().rows, this.ordenCompraDetallado().filters);
               this.getRolesByObra(first.id);
             }
           }
         }
       });
   }
+
   seeDebugerData(){
     console.log(this.myCurrentRoles())
   }
 
-  items = [
-    {
-      id: 1,
-      name: "juan"
-    },
-    {
-      id: 2,
-      name: "jose"
-    }
-  ]
-  // Mapa de metadatos por rol (opcional)
   roleMeta: Record<string, { label: string; icon?: string; styleClass?: object }> = {
     'almacen.superadmin':   { label: 'Superadmin',      icon: 'pi pi-crown',     styleClass: {'background-color': '#e0e7ff', 'color': '#3730a3'}},
     'almacen.almacenero':   { label: 'Almacenero',      icon: 'pi pi-box',       styleClass: {'background-color': '#d1fae5', 'color': '#065f46'}},
@@ -224,62 +218,51 @@ export class WhmKardexManagement implements OnInit {
     'almacen.residente': {label: 'Residente', icon: 'pi pi-user-edit', styleClass:           {'background-color': '#fefce8', 'color': '#854d0e'}},
     'almacen.supervisor': {label: 'Supervisor', icon: 'pi pi-eye', styleClass:               {'background-color': '#ffedd5', 'color': '#9a3412'  }},
     'almacen.operario': { label: 'Operario', icon: 'pi pi-cog', styleClass:                  {'background-color': '#e5e7eb', 'color': '#374151'  }},
-  
   };
 
-  // Para cubrir roles desconocidos o sin meta
   humanizeRole(r: string): string {
-    // "almacen.superadmin" -> "Superadmin"
     const last = r.split('.').pop() ?? r;
     return last.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
 
-  getItemsPecosas(obraId:number | null, first:number, rows: number, filters: FiltersPecosas){
+
+  getOrdenCompraDetallado(obraId:number | null, first:number, rows: number, filters: OrdenCompraDetalladoFilters){
     this.selectedObraId = obraId;
     const page = Math.floor(first / rows) + 1; // 1-based 
     const perPage = rows;
 
-    this.pecosasx.update(objects => ({ 
+    this.ordenCompraDetallado.update(objects => ({ 
       ...objects, 
       loading: true,
       rows: rows,
       first: first,
     }));
 
-    this.api.getItemPecosas(obraId, page, perPage, filters)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
+    this.api.getOrdenCompraDetallado(obraId, page, perPage, filters)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(()=>{
+          this.ordenCompraDetallado.update((data)=>{return {...data, loading: false}})
+          this.loadingPecosas.set(false);
+        })
+      ).subscribe({
           next: (response) => {
-
-              this.pecosasx.update((object)=>({
+              this.ordenCompraDetallado.update((object)=>({
                 ...object,
                 value: response.data ?? [],
                 totalRecords: response.total ?? response.data.length,
-                loading: false
               }))
-              // ---------------------------------------
-              // this.pecosas.set(response.data ?? []);
-              // this.productsTotal.set(response.total ?? response.data?.length ?? 0);
-              // this.pageSize = response.per_page ?? this.pageSize;
-              // this.loadingPecosas.set(false);
-
-              // if (this.lastSelectedKey != null) {
-              //     const match = (response.data ?? []).find((r: any) => String(r.idsalidadet_silucia) === String(this.lastSelectedKey));
-              //     this.selectedProduct = match || null;
-              // }
-              // -------------------------------
           },
-        error: () => {
-            this.loadingPecosas.set(false);
-            this.pecosasx.update(objects => ({...objects, loading: false})) 
+        error: async (error) => {
+            const p = await parseHttpError(error);
+            this.messageService.add({ severity:p.severity, summary:p.title, detail:p.detail });
         }
     });
   }
 
   onObraChange(obraId: number) {
-    // this.selectedObraId = obraId;
-    // this.loadFirstPage();
-    this.getItemsPecosas(obraId, 0, this.pecosasx().rows, this.pecosasx().filters);
+    // this.getItemsPecosas(obraId, 0, this.pecosasx().rows, this.pecosasx().filters);
+    this.getOrdenCompraDetallado(obraId, 0, this.ordenCompraDetallado().rows, this.ordenCompraDetallado().filters);
     this.getRolesByObra(obraId);
   }
 
@@ -296,16 +279,20 @@ export class WhmKardexManagement implements OnInit {
   }
 
   onLazyLoadPecosa(event:any){
-    this.getItemsPecosas(this.selectedObraId, event.first, event.rows, this.pecosasx().filters)
+    // this.getItemsPecosas(this.selectedObraId, event.first, event.rows, this.pecosasx().filters)
+    this.getOrdenCompraDetallado(this.selectedObraId, event.first, event.rows, this.ordenCompraDetallado().filters);
+
   }
 
   onAddFilters(type:string, filter: string){
     switch (type) {
       case 'anio':
-        this.pecosasx.update((object)=>({...object, filters: {...object.filters, anio: filter}}));
+        // this.pecosasx.update((object)=>({...object, filters: {...object.filters, anio: filter}}));
+        this.ordenCompraDetallado.update((object)=>({...object, filters: {...object.filters, anio: filter}}));
         break;
       case 'numero':
-        this.pecosasx.update((object)=>({...object, filters: {...object.filters, numero: filter}}));
+        // this.pecosasx.update((object)=>({...object, filters: {...object.filters, numero: filter}}));
+        this.ordenCompraDetallado.update((object)=>({...object, filters: {...object.filters, numero: filter}}));
         break;
       default:
         // console.log('No reconocido');
@@ -313,20 +300,20 @@ export class WhmKardexManagement implements OnInit {
   }
 
   search(){
-    this.getItemsPecosas(this.selectedObraId, this.pecosasx().first, this.pecosasx().rows, this.pecosasx().filters)
+    // this.getItemsPecosas(this.selectedObraId, this.pecosasx().first, this.pecosasx().rows, this.pecosasx().filters)
+    this.getOrdenCompraDetallado(this.selectedObraId, this.ordenCompraDetallado().first, this.ordenCompraDetallado().rows, this.ordenCompraDetallado().filters)
   }
   cleanFilters(){
-    this.pecosasx.update(object => ({...object, filters: {anio: '', numero: ''}}))
-    this.getItemsPecosas(this.selectedObraId,0, this.pecosasx().rows, this.pecosasx().filters);
+    // this.pecosasx.update(object => ({...object, filters: {anio: '', numero: ''}}))
+    this.ordenCompraDetallado.update(object => ({...object, filters: {anio: '', numero: ''}}))
+    // this.getItemsPecosas(this.selectedObraId,0, this.pecosasx().rows, this.pecosasx().filters);
+    this.getOrdenCompraDetallado(this.selectedObraId,0, this.ordenCompraDetallado().rows, this.ordenCompraDetallado().filters);
   }
   verdatos(){
-    console.log(this.pecosasx())
+    console.log(this.ordenCompraDetallado())
   }
 
   openMovementModal(row: Pecosa) {
-    // this.form.id_pecosa_silucia = row.numero;
-    // this.form.id_item_pecosa_silucia = Number(row.idsalidadet_silucia);
-    // this.form.silucia_pecosa = JSON.parse(JSON.stringify(row));
     this.formx.update((object)=>({
       ...object,
       id_pecosa: row.id
@@ -345,84 +332,44 @@ export class WhmKardexManagement implements OnInit {
       people_ids: [],
     })
     this.showMovementModal = false;
-    // this.form = {
-    //   silucia_pecosa: null,
-    //   movement_type: null,
-    //   amount: null,
-    //   id_pecosa_silucia: null,
-    //   id_item_pecosa_silucia: null,
-    //   observations: null,
-    //   people_dnis: [],
-    // };
-    // this.listDniPeople.set([]);
   }
 
   onSubmitMovement() {
-    console.log("cerramos modal");
-    // this.lastSelectedKey = this.selectedProduct?.idsalidadet_silucia ?? null;
-    // const page = this.lastProductsPage;
-    // const perPage = this.lastProductsRows;
-
+    if(this.savingMovementLoading()) return 
     this.savingMovementLoading.set(true);
     this.api.createKardexMovement(this.selectedObraId, this.formx()?.id_pecosa, this.formx(),  )
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (res: any) => {
-          if (res?.ok === false) {
-            this.toast('error', 'Ocurrió un error', 'Por favor vuelva a intentarlo');
-            return;
-          }
-          this.closeMovementModal();
-          this.toast('success', 'Operación exitosa', 'El registro se completó correctamente.');
-          this.getItemsPecosas(this.selectedObraId, this.pecosasx().first, this.pecosasx().rows, this.pecosasx().filters)
-        },
-        error: _ => this.toast('error', 'Error', 'Por favor vuelva a intentarlo'),
-        complete: () => this.savingMovementLoading.set(false)
+      .pipe(
+          takeUntilDestroyed(this.destroyRef),
+          finalize(()=>{this.savingMovementLoading.set(false)})
+      ).subscribe({
+          next: (res: any) => {
+              this.closeMovementModal();
+              this.toast('success', 'Operación exitosa', 'El registro se completó correctamente.');
+              this.getOrdenCompraDetallado(this.selectedObraId, this.ordenCompraDetallado().first, this.ordenCompraDetallado().rows, this.ordenCompraDetallado().filters);
+          },
+          error: async  (error) => {
+              const p = await parseHttpError(error);
+              this.toast(p.severity, p.title, p.detail);
+          },
       });
   }
 
   openMovementDetailsModal(row: Pecosa) {
-    this.selectedPecosaForMovements = row;
-    this.showMovementDetailsModal = true;
-    this.expandedRowsMovements.set({});
-    this.fetchMovements(1, this.movementsPageSize);
-  }
 
-  private fetchMovements(page: number, perPage: number) {
-    if (!this.selectedPecosaForMovements) return;
-    // const orderNum = this.selectedPecosaForMovements.numero;
-    const itemPecosaId = Number(this.selectedPecosaForMovements.id);
-    
-    this.movementsLoading.set(true);
-    this.api.getKardexMovement(this.selectedObraId, itemPecosaId, { page, per_page: perPage })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (res: MovementsPage) => {
-          this.movementsKardex.set(res.movements.data);
-          this.movementsTotal.set(res.movements.total);
-          this.movementsPageSize = res.movements.per_page;
-          this.movementsLoading.set(false);
-        },
-        error: _ => this.movementsLoading.set(false)
-      });
-  }
+    this.showMovementsDetails = true;
+    this.ordenCompraDetalladoId = row.id
 
-  onMovementsLazyLoad(e: any) {
-    const page = Math.floor((e.first ?? 0) / (e.rows ?? this.movementsPageSize)) + 1;
-    const perPage = e.rows ?? this.movementsPageSize;
-    this.expandedRowsMovements.set({});
-    this.fetchMovements(page, perPage);
   }
-
-  closeMovementDetailsModal(){ this.showMovementDetailsModal = false; this.movementsKardex.set([]); }
 
   onSubmitMovementDetails() {
-    if (!this.selectedPecosaForMovements) return;
-    const idItemPecosa = Number(this.selectedPecosaForMovements.id);
+    if (!this.selectedOrdenCompraDetalladoForMovements) return;
+    const idItemPecosa = Number(this.selectedOrdenCompraDetalladoForMovements.id);
     this.api.downloadPdf(this.selectedObraId, idItemPecosa)
     .pipe(
       finalize(()=>{
-        this.getItemsPecosas(this.selectedObraId, this.pecosasx().first, this.pecosasx().rows, this.pecosasx().filters)
+        // this.getItemsPecosas(this.selectedObraId, this.pecosasx().first, this.pecosasx().rows, this.pecosasx().filters)
+        this.getOrdenCompraDetallado(this.selectedObraId, this.ordenCompraDetallado().first, this.ordenCompraDetallado().rows, this.ordenCompraDetallado().filters);
+
       })
     )
     .subscribe(res => {
@@ -436,9 +383,13 @@ export class WhmKardexManagement implements OnInit {
 
   }
 
-  OpenModalAddPerson(){ this.showAddUserModal = true; }
+  OpenModalAddPerson(){
+    this.showAddUserModal = true; 
+  }
   
-  closeModalAddPerson(){ this.showAddUserModal = false; }
+  closeModalAddPerson(){
+     this.showAddUserModal = false; 
+  }
 
   handleListPeopleByDni(event: any){
     const nuevaPersona = event;
@@ -446,40 +397,30 @@ export class WhmKardexManagement implements OnInit {
       const yaExiste = lista.some(p => p.dni === nuevaPersona.dni);
       return yaExiste ? lista : [...lista, nuevaPersona];
     });
-    this.form.people_dnis = this.listDniPeople().map(p => p.dni);
-  }
-
-  onRowExpandMovement(e: any) {
-    const id = e.data?.id; if (id == null) return;
-    this.expandedRowsMovements.update(map => ({ ...map, [id]: true }));
-  }
-
-  onRowCollapseMovement(e: any) {
-    const id = e.data?.id; if (id == null) return;
-    this.expandedRowsMovements.update(map => {
-      const { [id]: _omit, ...rest } = map; return rest;
-    });
+    this.formx().people_ids = this.listDniPeople().map(p => p.dni);
+    // this.formx().people_ids = [12,3,4,5];
   }
 
   toast(severity: 'success'|'info'|'warn'|'error', summary: string, detail: string) {
     this.messageService.add({ severity, summary, detail });
   }
 
-  private toNum(v: any): number { const n = typeof v === 'number' ? v : parseFloat(String(v)); return Number.isFinite(n) ? n : 0; }
+  private toNum(v: any): number {
+     const n = typeof v === 'number' ? v : parseFloat(String(v)); return Number.isFinite(n) ? n : 0; 
+  }
   
-  get totalEntradas(): number { return (this.movementsKardex() ?? []).reduce((s, m) => s + (m?.movement_type === 'entrada' ? this.toNum(m?.amount) : 0), 0); }
+  get totalEntradas(): number {
+    return (this.movementsKardex() ?? []).reduce((s, m) => s + (m?.movement_type === 'entrada' ? this.toNum(m?.amount) : 0), 0); 
+  }
   
-  get totalSalidas(): number { return (this.movementsKardex() ?? []).reduce((s, m) => s + (m?.movement_type === 'salida' ? this.toNum(m?.amount) : 0), 0); }
+  get totalSalidas(): number {
+     return (this.movementsKardex() ?? []).reduce((s, m) => s + (m?.movement_type === 'salida' ? this.toNum(m?.amount) : 0), 0); 
+  }
   
-  get stockSaldo(): number { return this.totalEntradas - this.totalSalidas; }
+  get stockSaldo(): number {
+    return this.totalEntradas - this.totalSalidas; 
+  }
 
-  /**
-   * Funcionalidades para expandir y contraer filas
-   */
-  // onRowExpandPecosa(data:any){
-  // }
-  // onRowCollapsePecosa(data: any){
-  // }
   downloadReport(url: string | null) {
     console.log(url);
     if (url) {
@@ -487,8 +428,6 @@ export class WhmKardexManagement implements OnInit {
     }
   }
 
-  working = false;
-  message = '';
   signReport(url: Report | null) {
 
     console.log("datos de peticion r: ", url);
@@ -548,7 +487,9 @@ export class WhmKardexManagement implements OnInit {
         },
         complete: () => {
           this.working = false;
-          this.getItemsPecosas(this.selectedObraId, 0, this.pecosasx().rows, this.pecosasx().filters);
+          // this.getItemsPecosas(this.selectedObraId, 0, this.pecosasx().rows, this.pecosasx().filters);
+          this.getOrdenCompraDetallado(this.selectedObraId, 0, this.ordenCompraDetallado().rows, this.ordenCompraDetallado().filters);
+
         }
     });
   }
@@ -562,7 +503,9 @@ export class WhmKardexManagement implements OnInit {
         next: (response) => {
           console.log(response);
           this.toast('success', 'Eliminado', 'Reporte eliminado correctamente.');
-          this.getItemsPecosas(this.selectedObraId, 0, this.pecosasx().rows, this.pecosasx().filters);
+          // this.getItemsPecosas(this.selectedObraId, 0, this.pecosasx().rows, this.pecosasx().filters);
+          this.getOrdenCompraDetallado(this.selectedObraId, 0, this.ordenCompraDetallado().rows, this.ordenCompraDetallado().filters);
+
 
         },
         error: (err) => {
@@ -582,6 +525,7 @@ export class WhmKardexManagement implements OnInit {
       default: return 'indefinido';
     }
   }
+
   getAuthorizedSignatoryLabel(status: string): string {
     switch (status) {
       case 'almacen.almacenero': return 'Almacenero';
@@ -591,6 +535,7 @@ export class WhmKardexManagement implements OnInit {
       default: return 'indefinido';
     }
   }
+
   getReportSeverity(n: number): 'secondary' | 'info' | 'warn' | 'danger' {
     if (!n) return 'secondary';
     // if (n < 3) return 'info';
@@ -625,8 +570,25 @@ export class WhmKardexManagement implements OnInit {
     });
   }
 
-  /**
-   * funciones del modal para adicionar movimientos kardex
-   */
+  generatePdf(e: any){
+    if (!e.id) return;
+    // const idItemPecosa = Number(this.selectedOrdenCompraDetalladoForMovements.id);
+    this.api.downloadPdfOrdenCompra(this.selectedObraId, e.id)
+    .pipe(
+      finalize(()=>{
+        // this.getItemsPecosas(this.selectedObraId, this.pecosasx().first, this.pecosasx().rows, this.pecosasx().filters)
+        this.getOrdenCompraDetallado(this.selectedObraId, this.ordenCompraDetallado().first, this.ordenCompraDetallado().rows, this.ordenCompraDetallado().filters);
+
+      })
+    )
+    .subscribe(res => {
+      const blob = res.body!;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = '';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>{URL.revokeObjectURL(url)}, 1000);
+    });
+  }
 
 }

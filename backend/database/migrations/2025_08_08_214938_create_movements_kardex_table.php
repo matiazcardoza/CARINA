@@ -15,7 +15,8 @@ return new class extends Migration
             // $table->id('id');
             $table->id();
 
-            $table->foreignId('item_pecosa_id')->constrained('item_pecosas')->cascadeOnUpdate()->cascadeOnDelete();
+            // $table->foreignId('item_pecosa_id')->constrained('item_pecosas')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('ordenes_compra_detallado_id')->constrained('ordenes_compra_detallado')->cascadeOnUpdate()->cascadeOnDelete();
 
             // autor del movimiento
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete(); // si borran al usuario, se conserva el movimiento con created_by = null
@@ -26,7 +27,8 @@ return new class extends Migration
             $table->text('observations')->nullable();
             // $table->decimal('final_balance')->nullable();
             $table->index('movement_date', 'idx_mk_movement_date');
-            $table->index(['item_pecosa_id', 'movement_date'], 'idx_mk_item_date');
+            // $table->index(['item_pecosa_id', 'movement_date'], 'idx_mk_item_date');
+            $table->index(['ordenes_compra_detallado_id', 'movement_date'], 'idx_mk_item_date');
 
             $table->timestamps();
         });

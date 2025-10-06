@@ -142,20 +142,17 @@ export interface FormMovementKardex {
     movement_type: 'entrada' | 'salida' | null,
     amount: number | null,
     observations: string | null,
-    // people_dnis: string[],
     people_ids: number[],
 }
 
 /**
  * Interfaces para operarios:
  */
-export type OperarioOption = { id: number; label: string; num_doc: string };
-// export type OperarioDTO = {
-//   id: number;
-//   name: string;
-//   email: string;
-//   persona: { id: number; num_doc: string; name: string; last_name: string; state: number } | null;
-// };
+export type OperarioOption = { 
+  id: number; 
+  label: string; 
+  num_doc: string 
+};
 
 export interface Persona {
   id: number;
@@ -177,4 +174,130 @@ export interface ApiResponseOperarios {
   role: string; // Ej: 'almacen.operario'
   count: number;
   data: Usuario[];
+}
+
+/**
+ * Interfaces para ordenes de compra detallado:
+ */
+    export interface OrdenCompraDetalladoResponse<T> { data: T[]; total: number; per_page: number; }
+    export interface OrdenCompraDetalladoFilters{
+      anio: string,
+      numero: string,
+    }
+
+    export interface OrdenCompraDetalladoRow{
+        id: number;
+
+        // Relaciones
+        obra_id: number;
+        orden_id?: number; // opcional por nullOnDelete
+
+        // Identificadores externos
+        idcompradet: string;
+
+        // Búsqueda y metadatos
+        anio: string;
+        numero: string;
+        siaf?: string;
+        prod_proy?: string;
+
+        // Fechas
+        fecha?: string; // formato ISO: 'YYYY-MM-DD'
+        fecha_aceptacion?: string;
+
+        // Detalle del ítem
+        item?: string;
+        desmedida?: string;
+        cantidad?: number;
+        precio?: number;
+        saldo?: number;
+
+        // Totales y stock
+        total_internado?: number;
+        internado?: string;
+        idmeta?: string;
+
+        quantity_received: number;
+        quantity_issued: number;
+        quantity_on_hand: number;
+
+        // Sincronización externa
+        external_last_seen_at?: string; // formato ISO datetime
+        external_hash?: string;
+
+        // Timestamps
+        created_at?: string;
+        updated_at?: string;
+    }
+
+export interface OrdenCompraDetallado{
+    value: OrdenCompraDetalladoRow[],
+    rows: number,
+    first: number,
+    totalRecords: number,
+    rowsPerPageOptions: number[],
+    loading: boolean,
+    filters: OrdenCompraDetalladoFilters
+}
+
+/**
+ * Interfaces para movimientos del kardex:
+ */
+
+
+    export interface KardexMovementResponse<T> {
+      item_pecosa: any, 
+      movements: {
+        total: number,
+        per_page: number,
+        data: KardexMovementRow[]
+      }
+    }
+
+    export interface KardexMovementFilters{
+      anio: string,
+      numero: string,
+    }
+        export interface MovementKardexUser {
+          id: number;
+          name: string;
+          email: string;
+          pivot: {
+            movement_kardex_id: number;
+            user_id: number;
+            attached_at: string; // 'YYYY-MM-DD HH:mm:ss'
+          };
+          persona: {
+            user_id: number;
+            num_doc: string;
+            name: string;
+            last_name: string;
+          };
+        }
+
+    export interface KardexMovementRow{
+        id: number;
+        ordenes_compra_detallado_id: number;
+        created_by?: number;
+
+        movement_type: string;
+        movement_date?: string; // 'YYYY-MM-DD'
+        amount: number;
+        observations?: string;
+
+        created_at?: string;
+        updated_at?: string;
+
+        // Relaciones (opcionalmente tipadas)
+        users: MovementKardexUser[];
+    }
+
+export interface KardexMovementDetallado{
+    value: KardexMovementRow[],
+    rows: number,
+    first: number,
+    totalRecords: number,
+    rowsPerPageOptions: number[],
+    loading: boolean,
+    filters: KardexMovementFilters
 }

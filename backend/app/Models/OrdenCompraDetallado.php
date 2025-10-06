@@ -10,6 +10,7 @@ class OrdenCompraDetallado extends Model
     protected $table = 'ordenes_compra_detallado';
 
     protected $fillable = [
+        'id',
         'obra_id',
         'orden_id',
         'idcompradet',
@@ -59,4 +60,12 @@ class OrdenCompraDetallado extends Model
         return $this->belongsTo(OrdenCompra::class);
     }
 
+    public function reports() {
+        return $this->morphMany(Report::class, 'reportable');
+    }
+
+    public function movements()
+    {
+        return $this->hasMany(MovementKardex::class, 'ordenes_compra_detallado_id');
+    }
 }

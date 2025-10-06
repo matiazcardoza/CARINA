@@ -12,11 +12,8 @@ export interface MovementsPage { movements: { data: any[]; total: number; per_pa
 export type OC   = { id: number; ext_order_id: string; fecha: string; proveedor: string; monto_total: number };
 // import { OperarioDTO } from '../interfaces/whm-kardex-management.interface';
 import { ApiResponseOperarios } from '../interfaces/whm-kardex-management.interface';
-// export type OCx = OC & {
-//   pecosas?: Pecosa[];
-//   childLoading?: boolean;
-// };
-// export type Pecosa = { idcompradet: number; /* ...campos que ya tienes... */ };
+import { OrdenCompraDetalladoFilters, OrdenCompraDetalladoRow, OrdenCompraDetalladoResponse } from '../interfaces/whm-kardex-management.interface';
+import { KardexMovementFilters, KardexMovementDetallado, KardexMovementResponse, KardexMovementRow } from '../interfaces/whm-kardex-management.interface';
 
 export type Page<T> = {
   data: T[];
@@ -53,6 +50,26 @@ export class WhmKardexManagementService {
       }
 
       return this.http.get<PecosaResponse<Pecosa>>(`${this.apiUrl}/api/obras/${obraId}/item-pecosas`, 
+      {
+        ...this.options,
+        params: params, 
+        headers: {'X-Obra-Id': String(obraId) }
+      });
+  }
+  getOrdenCompraDetallado(obraId: number | null, page: number, perPage: number, filters: OrdenCompraDetalladoFilters) {
+      let params = new HttpParams()
+        .set('page',page)
+        .set('per_page', perPage);
+
+      if(filters.anio){
+        params = params.set('anio', filters.anio)
+      }
+
+      if(filters.numero){
+        params = params.set('numero', filters.numero)
+      }
+
+      return this.http.get<OrdenCompraDetalladoResponse<OrdenCompraDetalladoRow>>(`${this.apiUrl}/api/obras/${obraId}/ordenes-compra-detallado`, 
       {
         ...this.options,
         params: params, 
@@ -102,6 +119,28 @@ export class WhmKardexManagementService {
     });
   }
 
+  getKardexMovementDetails(obraId: number | null, ordenCopraDetalladoId: number,  page: number, perPage: number, filters: KardexMovementFilters) {
+      let params = new HttpParams()
+        .set('page',page)
+        .set('per_page', perPage);
+
+      if(filters.anio){
+        params = params.set('anio', filters.anio)
+      }
+
+      if(filters.numero){
+        params = params.set('numero', filters.numero)
+      }
+      // kardex-movements/{ordenCompraDetallado}
+          // Route::get('ordenes-compra-detallado/{ordenCompra}/movements-kardex', [OrdenCompraDetalladoController::class, 'getOrdenesDeCompra']);
+      return this.http.get<KardexMovementResponse<KardexMovementRow>>(`${this.apiUrl}/api/ordenes-compra-detallado/${ordenCopraDetalladoId}/movements-kardex`, 
+      {
+        ...this.options,
+        params: params, 
+        headers: {'X-Obra-Id': String(obraId) }
+      });
+  }
+
   downloadPdf(obraId: number | null, idItemPecosa: number) {
       let headers = new HttpHeaders({ Accept: 'application/pdf' });
       if (obraId !== null) {
@@ -109,6 +148,23 @@ export class WhmKardexManagementService {
       }
       return this.http.get(
         `${this.apiUrl}/api/item-pecosas/${idItemPecosa}/movements-kardex/pdf`,
+        {
+          observe: 'response',
+          reportProgress: true,
+          responseType: 'blob',
+          withCredentials: true,
+          headers
+        }
+      ) as Observable<HttpResponse<Blob>>;
+  }
+  downloadPdfOrdenCompra(obraId: number | null, idOrdenCompraDetallado: number) {
+      let headers = new HttpHeaders({ Accept: 'application/pdf' });
+      if (obraId !== null) {
+        headers = headers.set('X-Obra-Id', String(obraId));
+      }
+      return this.http.get(
+            // Route::get('ordenes-compra-detallado/{ordenCompraDetallado}/movements-kardex/pdf'
+        `${this.apiUrl}/api/ordenes-compra-detallado/${idOrdenCompraDetallado}/movements-kardex/pdf`,
         {
           observe: 'response',
           reportProgress: true,

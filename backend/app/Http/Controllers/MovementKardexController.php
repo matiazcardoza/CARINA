@@ -9,6 +9,7 @@ use App\Models\ItemPecosa;
 // use App\Http\Requests\StoreMovementPecosaRequest;
 use App\Models\KardexReport;
 use App\Models\MovementKardex;
+use App\Models\OrdenCompraDetallado;
 use App\Models\Person;
 use App\Models\Product;
 use App\Models\Report;
@@ -584,58 +585,83 @@ class MovementKardexController extends Controller
             ], 201);
         });
     }
-
-
-    // public function indexBySiluciaIds(Request $request, $id_order_silucia, $id_product_silucia)
-    public function indexBySiluciaIds(Request $request, $pecosaId, $itemId)
+    public function storeKardexMovement(StoreMovementPecosaRequest $request, OrdenCompraDetallado $ordenCompraDetallado)
     {
+        $data = $request->validated();
+        return DB::transaction(function () use ($data, $ordenCompraDetallado) {
 
-        // return "hola mundo";
-        // return $pecosaId;
-        // 1) Buscar el “gancho” Product por la pareja de SILUCIA
-        // $product = Product::where('id_order_silucia', $id_order_silucia)
-        // $product = ItemPecosa::where('id_order_silucia', $id_order_silucia)->where('id_product_silucia', $id_product_silucia)->firstOrFail(); // 404 si no existe
-        $itemPecosa = ItemPecosa::where('id_pecosa_silucia', $pecosaId)->where('id_item_pecosa_silucia', $itemId)->firstOrFail(); // 404 si no existe
-        // return $itemPecosa;
-        // $itemPecosa = ItemPecosa::where('id_pecosa_silucia', 1)->where('id_item_pecosa_silucia', 42336)->firstOrFail(); // 404 si no existe
-        // return $itemPecosa;
-        // 2) Traer movimientos (puedes paginar si quieres)
-        //    Si quieres TODO: ->get();
-        //    Si prefieres paginar: ?per_page=20
-        $perPage = (int) $request->query('per_page', 50);
+            $amount = (float) $data['amount'];
+            $isEntrada = $data['movement_type'] === 'entrada';
 
-        $query = $itemPecosa->movements()
-            ->with([
-                    'people' => function ($q) {
-                        // IMPORTANTE: incluye la PK 'dni' del related para hidratar bien el modelo
-                        $q->select([
-                            'people.dni',
-                            'people.full_name',
-                            'people.names',
-                            'people.first_lastname',
-                            'people.second_lastname',
-                        ]);
-                    }
-                ])
-            ->orderByDesc('movement_date') // fecha más reciente primero
-            ->orderByDesc('id');           // y a igualdad de fecha, el último creado
+            $deltaIn  = $isEntrada ? $amount : 0;
+            $deltaOut = $isEntrada ? 0       : $amount;
 
-        if ($request->boolean('paginate', true)) {
-            $movements = $query->paginate($perPage);
-        } else {
-            $movements = $query->get();
-        }
+            // $currentIn   = (float) ($item_pecosa->quantity_received ?? 0);
+            // $currentOut  = (float) ($item_pecosa->quantity_issued   ?? 0);
+            $currentIn   = (float) ($ordenCompraDetallado->quantity_received ?? 0);
+            $currentOut  = (float) ($ordenCompraDetallado->quantity_issued   ?? 0);
 
-        return response()->json([
-            'item_pecosa'   => [
-                'id'                  => $itemPecosa->id,
-                'id_order_silucia'    => $itemPecosa->id_order_silucia,
-                'id_product_silucia'  => $itemPecosa->id_product_silucia,
-                'name'                => $itemPecosa->name,
-            ],
-            'movements' => $movements,
-        ]);
+            $newIn    = $currentIn  + $deltaIn;
+            $newOut   = $currentOut + $deltaOut;
+            $newStock = $newIn - $newOut;
+
+            // 4) Crear movimiento
+
+            $movement = MovementKardex::create([
+                'ordenes_compra_detallado_id'   => $ordenCompraDetallado->id,
+                'created_by'    => Auth::user()->id,
+                'movement_date' => now(),
+                'movement_type' => $data['movement_type'],   // 'entrada' | 'salida'
+                'amount'        => $amount,
+                'observations'  => $data['observations'] ?? null,
+            ]);
+
+            // 5) Actualizar contadores en products
+            $ordenCompraDetallado->update([
+                'quantity_received' => $newIn,
+                'quantity_issued'   => $newOut,
+                'quantity_on_hand'  => $newStock,
+                'last_movement_at'  => now(),
+            ]);
+
+
+            // 6) Adjuntar personas (tu bloque actual tal cual)
+            $attached = [];
+            $missing  = [];
+            // if (!empty($data['people_dnis']) && is_array($data['people_dnis'])) {
+
+            if (!empty($data['people_ids']) && is_array($data['people_ids'])) {
+                $usersIds = collect($data['people_ids'])
+                    ->filter()
+                    // ->map(fn ($dni) => str_pad(preg_replace('/\D/','', $dni), 8, '0', STR_PAD_LEFT))
+                    ->unique()
+                    ->values();
+
+                if ($usersIds->isNotEmpty()) {
+                    $found = User::whereIn('id', $usersIds)->pluck('id');
+                    $movement->users()->syncWithoutDetaching(
+                        $found->mapWithKeys(fn ($id) => [$id => ['attached_at' => now()]])->all()
+                    );
+                    // $movement->users()->syncWithoutDetaching([$found->id => ['attached_at' => now()]]);
+
+                    $attached = $found->values()->all();
+                    $missing  = $usersIds->diff($found)->values()->all();
+                }
+            }
+
+            return response()->json([
+                'ok'       => true,
+                'item_pecosa'  => $ordenCompraDetallado->only(['id','id_pecosa_silucia','id_item_pecosa_silucia','quantity_received','quantity_issued','quantity_on_hand']),
+                'movement' => $movement,
+                'people'   => [
+                    'attached_ids' => $attached,
+                    'missing_ids'  => $missing,
+                ],
+            ], 201);
+        });
     }
+
+
 
     public function pdf(Request $request, ItemPecosa $itemPecosa)
     {

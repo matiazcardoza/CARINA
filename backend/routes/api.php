@@ -162,12 +162,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 Route::middleware(['auth:sanctum','resolve.obra', 'permission:almacen.access_kardex_management'])->group(function () {
 // Route::middleware(['auth:sanctum','resolve.obra', 'role:almacen.residente'])->group(function () {
-    Route::get('obras/{obra}/item-pecosas', [PecosaController::class, 'testPecosas']);
-    Route::post('kardex-movements/{itemPecosa}', [MovementKardexController::class, 'store'])->middleware(['permission:almacen.create_new_movement']);
-    Route::get('ordenes-compra-detallado/{ordenCompra}/movements-kardex', [OrdenCompraDetalladoController::class, 'getOrdenesDeCompra']);
-    Route::get('ordenes-compra-detallado/{ordenCompra}/movements-kardex/pdf', [OrdenCompraDetalladoController::class, 'pdf'])->middleware(['permission:almacen.generate_report']);
+    // Route::get('obras/{obra}/item-pecosas', [PecosaController::class, 'testPecosas']);
+    Route::get('obras/{obra}/ordenes-compra-detallado', [OrdenCompraDetalladoController::class, 'getOrdenesDeCompraDetallado']);
+    // Route::post('kardex-movements/{itemPecosa}', [MovementKardexController::class, 'store'])->middleware(['permission:almacen.create_new_movement']);
+    Route::post('kardex-movements/{ordenCompraDetallado}', [MovementKardexController::class, 'storeKardexMovement'])->middleware(['permission:almacen.create_new_movement']);
+
+    Route::get('ordenes-compra-detallado/{ordenCompraDetallado}/movements-kardex', [OrdenCompraDetalladoController::class, 'getMovementKardex']);
+    Route::get('ordenes-compra-detallado/{ordenCompraDetallado}/movements-kardex/pdf', [OrdenCompraDetalladoController::class, 'pdf'])->middleware(['permission:almacen.generate_report']);
     Route::get('item-pecosas/{itemPecosa}/movements-kardex', [PecosaController::class, 'getItemPecosas']);
     Route::get('item-pecosas/{itemPecosa}/movements-kardex/pdf', [MovementKardexController::class, 'pdf'])->middleware(['permission:almacen.generate_report']);
+
     Route::delete('reports/{report}', [MovementKardexController::class, 'destroy'])->middleware(['permission:almacen.delete_report']);
     Route::get('people/{dni}', [PeopleController::class, 'show'])->middleware(['permission:almacen.create_operator']); 
     Route::get('people-save/{dni}', [PeopleController::class, 'save'])->middleware(['permission:almacen.create_operator']); 

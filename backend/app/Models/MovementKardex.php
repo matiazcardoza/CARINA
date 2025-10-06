@@ -15,7 +15,8 @@ class MovementKardex extends Model
     protected $primaryKey = 'id';
 
     protected $fillable = [
-        'item_pecosa_id',
+        // 'item_pecosa_id',
+        'ordenes_compra_detallado_id',
         'created_by',
         'product_id',
         'movement_type',
