@@ -51,7 +51,7 @@ export const routes: Routes = [
         canActivate: [publicGuard]
     },
     {
-        path: '',
+        path: 'carina',
         component: Dashboard,
         canActivate: [authGuard],
         children: [
@@ -66,7 +66,7 @@ export const routes: Routes = [
                 canActivate: [PermissionGuard],
                 data: { 
                     permissions: ['access_dashboard'],
-                    redirectTo: '/no-permissions'
+                    redirectTo: '/carina/no-permissions'
                 }
             },
             {
@@ -74,7 +74,7 @@ export const routes: Routes = [
                 canActivate: [PermissionGuard],
                 data: { 
                     permissions: ['access_work_log'],
-                    redirectTo: '/no-permissions'
+                    redirectTo: '/carina/no-permissions'
                 },
                 children: [
                     {
@@ -88,7 +88,7 @@ export const routes: Routes = [
                         data: { 
                             permissions: ['access_work_log_id', 'edit_work_log_id'],
                             checkType: 'any',
-                            redirectTo: '/daily-work-log'
+                            redirectTo: '/carina/daily-work-log'
                         }
                     }
                 ]
@@ -100,7 +100,7 @@ export const routes: Routes = [
                 canActivate: [PermissionGuard],
                 data: { 
                     permissions: ['access_equipo_mecanico'],
-                    redirectTo: '/no-permissions'
+                    redirectTo: '/carina/no-permissions'
                 }
             },
             {
@@ -109,7 +109,7 @@ export const routes: Routes = [
                 canActivate: [PermissionGuard],
                 data: { 
                     roles: ['SuperAdministrador_pd'],
-                    redirectTo: '/no-permissions'
+                    redirectTo: '/carina/no-permissions'
                 }
             },
             {
@@ -118,7 +118,7 @@ export const routes: Routes = [
                 canActivate: [PermissionGuard],
                 data: { 
                     roles: ['SuperAdministrador_pd'],
-                    redirectTo: '/no-permissions'
+                    redirectTo: '/carina/no-permissions'
                 }
             },
             {
@@ -127,7 +127,7 @@ export const routes: Routes = [
                 canActivate: [PermissionGuard],
                 data: { 
                     permissions: ['access_reportes'],
-                    redirectTo: '/no-permissions'
+                    redirectTo: '/carina/no-permissions'
                 }
             },
             {
@@ -140,7 +140,7 @@ export const routes: Routes = [
                 canActivate: [PermissionGuard],
                 data: { 
                     permissions: ['access_tray_signature'],
-                    redirectTo: '/no-permissions'
+                    redirectTo: '/carina/no-permissions'
                 }
             },
             // Kardex Management - Sección de almacén (agregar permisos cuando estén definidos)
