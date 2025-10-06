@@ -29,7 +29,7 @@ class MovementKardex extends Model
     ];
 
     protected $casts = [
-        'movement_date' => 'date',
+        'movement_date' => 'datetime',
         'amount'        => 'decimal:2',
     ];
 
