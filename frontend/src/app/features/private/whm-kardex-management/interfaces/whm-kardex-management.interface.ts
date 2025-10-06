@@ -143,6 +143,7 @@ export interface FormMovementKardex {
     amount: number | null,
     observations: string | null,
     people_ids: number[],
+    movement_date: Date | null;
 }
 
 /**

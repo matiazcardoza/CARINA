@@ -32,6 +32,7 @@ import { parseHttpError } from '../../../shared/utils/parseHttpError';
 import { SeeMovementsDetailsModal } from './components/see-movements-details-modal/see-movements-details-modal';
 
 import { SelectModule } from 'primeng/select';
+import { DatePicker } from "primeng/datepicker";
 
 @Component({
   selector: 'app-whm-kardex-management',
@@ -53,7 +54,8 @@ import { SelectModule } from 'primeng/select';
     Badge,
     Card,
     SeeMovementsDetailsModal,
-    SelectModule
+    SelectModule,
+    DatePicker
 ],
   providers: [MessageService],
   templateUrl: './whm-kardex-management.html',
@@ -110,6 +112,7 @@ export class WhmKardexManagement implements OnInit {
       amount: null,
       observations: null,
       people_ids: [],
+      movement_date: null,
   })
 
   pecosasx = signal({
@@ -137,14 +140,15 @@ export class WhmKardexManagement implements OnInit {
         numero: ''
       }
   })
-
+  datetime24h = null;
 
 // =====================================================================
   countries: any[] | undefined;
 
   selectedCountry: string | undefined;
   verData(){
-    console.log(this.obras());
+    // console.log(this.datetime24h);
+    console.log(this.formx());
   }
 
 // =====================================================================
@@ -165,24 +169,21 @@ export class WhmKardexManagement implements OnInit {
         }
       });
 
-
-
-
-      this.countries = [
-          { name: 'polivalente monomotor desarrollado por la compañía estadounidense General Dynamics en los años 1970 para la Fuerza Aérea de los Estados Unidos', code: 'AU' },
-          { name: 'Brazil', code: 'BR' },
-          { name: 'China', code: 'CN' },
-          { name: 'Egypt', code: 'EG' },
-          { name: 'France', code: 'FR' },
-          { name: 'Germany', code: 'DE' },
-          { name: 'India', code: 'IN' },
-          { name: 'Japan', code: 'JP' },
-          { name: 'Spain', code: 'ES' },
-          { name: 'United States', code: 'US' }
-      ];
+      // this.countries = [
+      //     { name: 'polivalente monomotor desarrollado por la compañía estadounidense General Dynamics en los años 1970 para la Fuerza Aérea de los Estados Unidos', code: 'AU' },
+      //     { name: 'Brazil', code: 'BR' },
+      //     { name: 'China', code: 'CN' },
+      //     { name: 'Egypt', code: 'EG' },
+      //     { name: 'France', code: 'FR' },
+      //     { name: 'Germany', code: 'DE' },
+      //     { name: 'India', code: 'IN' },
+      //     { name: 'Japan', code: 'JP' },
+      //     { name: 'Spain', code: 'ES' },
+      //     { name: 'United States', code: 'US' }
+      // ];
   }
 
-  setMovementType(type:string, data: 'entrada'|'salida'|number|null|string){
+  setMovementType(type:string, data: 'entrada'|'salida'|number|null|string|Date){
     switch (type) {
       case 'entrada':
         this.formx.update((object)=>({...object, movement_type: data as 'entrada'|'salida'}));
@@ -195,6 +196,9 @@ export class WhmKardexManagement implements OnInit {
         break;
       case 'cantidad':
         this.formx.update((object)=>({...object, amount: (data as number) ?? null}));
+        break;
+      case 'time':
+        this.formx.update((object)=>({...object, movement_date: (data as Date) ?? null }));
         break;
       default:
         // console.log('No reconocido');
@@ -361,6 +365,7 @@ export class WhmKardexManagement implements OnInit {
       observations: null,
       // people_dnis: [],
       people_ids: [],
+      movement_date: null
     })
     this.showMovementModal = false;
   }
@@ -390,6 +395,22 @@ export class WhmKardexManagement implements OnInit {
     this.showMovementsDetails = true;
     this.ordenCompraDetalladoId = row.id
 
+  }
+
+  primeSetToday(){
+    if(this.formx().movement_date) return;
+    console.log("fecha mostrandose");
+  //     formx = signal<FormMovementKardex>({
+  //     id_pecosa: null,      // numero PECOSA (Silucia)
+  //     movement_type: null,
+  //     amount: null,
+  //     observations: null,
+  //     people_ids: [],
+  //     movement_date: null,
+  // })
+
+  this.formx.update((data)=>{ return {...data, movement_date: new Date()}})
+    
   }
 
   onSubmitMovementDetails() {
