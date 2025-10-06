@@ -59,7 +59,7 @@ export class DailyWorkLogUpload implements OnInit {
     this.setCurrentTime();
     
     // Deshabilitar el campo después de establecer el valor, igual que en el componente principal
-    this.uploadForm.get('end_time')?.disable();
+    //this.uploadForm.get('end_time')?.disable();
   }
 
   private setCurrentTime() {
