@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\ItemPecosa;
+use App\Models\OrdenCompraDetallado;
 use App\Models\Obra;
 use App\Models\User;
 use App\Services\PecosaClient;
+// use App\Services\SiluciaClient;
+use App\Services\OrdenCompraDetalladoClient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -15,7 +18,10 @@ use Carbon\Carbon;
 
 class UserObrasController extends Controller
 {
-    public function __construct(private PecosaClient $pecosas) {}
+    public function __construct(
+        private PecosaClient $pecosas,
+        private OrdenCompraDetalladoClient $ordenesDetallado,
+    ) {}
     // GET /admin/users/{user}/obras
     public function index(User $user)
     {
@@ -343,50 +349,57 @@ class UserObrasController extends Controller
                 'nombre'  => $m['nombre_corto'] ?? $m['desmeta'] ?? ('Meta '.$m['codmeta']),
                 'desmeta' => $m['desmeta'] ?? null,
                 'external_last_seen_at' => now(),
-                'raw_snapshot' => json_encode($m, JSON_UNESCAPED_UNICODE|JSON_PRESERVE_ZERO_FRACTION),
+                // 'raw_snapshot' => json_encode($m, JSON_UNESCAPED_UNICODE|JSON_PRESERVE_ZERO_FRACTION),
                 'external_hash' => hash('sha1', json_encode($m, JSON_UNESCAPED_UNICODE|JSON_PRESERVE_ZERO_FRACTION)),
             ]
         );
 
         // 2) Traer TODAS las PECOSAs de esa obra en UNA sola llamada (idmeta + per_page=1000)
-        $batch = $this->pecosas->index([
+        // $batch = $this->pecosas->index([
+        $batch = $this->ordenesDetallado->index([
             'idmeta'   => $m['idmeta'],
-            'per_page' => 1000, // no hay más de 1000, según tu regla de negocio
+            'per_page' => 10000, // no hay más de 1000, según tu regla de negocio
         ]);
 
         $rows = $batch['data'] ?? [];
 
-        Log::info(['info de pecosas' => $rows]);
+        // Log::info(['info de pecosas' => $rows]);
         $imported = 0;
 
         foreach ($rows as $r) {
-            ItemPecosa::updateOrCreate(
-                ['idsalidadet_silucia' => $r['idsalidadet']],
+            // ItemPecosa::updateOrCreate(
+            OrdenCompraDetallado::updateOrCreate(
+                // ['idsalidadet_silucia' => $r['idsalidadet']],
+                ['idcompradet' => $r['idcompradet']],
                 [
                     'obra_id'               => $obra->id,
-                    'idcompradet_silucia'   => $r['idcompradet'] ?? null,
 
                     // Búsquedas típicas
                     'anio'      => $r['anio'] ?? null,
                     'numero'    => $r['numero'] ?? null,
+                    'siaf'      => $r['siaf'] ?? null,
 
-                    // Otros campos
-                    'fecha'           => $r['fecha'] ?? null,
                     'prod_proy'       => $r['prod_proy'] ?? null,
-                    'cod_meta'        => $r['cod_meta'] ?? null,
-                    'desmeta'         => $r['desmeta'] ?? null,
-                    'desuoper'        => $r['desuoper'] ?? null,
-                    'destipodestino'  => $r['destipodestino'] ?? null,
+                    'fecha'           => $r['fecha'] ?? null,
+                    'fecha_aceptacion'=> $r['fecha_aceptacion'] ?? null,
                     'item'            => $r['item'] ?? null,
-                    'desmedida'       => $r['desmedida'] ?? null,
+                    'desmeta'         => $r['desmeta'] ?? null,
                     'cantidad'        => $r['cantidad'] ?? null,
                     'precio'          => $r['precio'] ?? null,
                     'saldo'           => $r['saldo'] ?? null,
+                    'total_internado' => $r['total_internado'] ?? null,
+                    'internado' => $r['internado'] ?? null,
+                    'desuoper'        => $r['desuoper'] ?? null,
+                    'idmeta'        => $r['idmeta'] ?? null,
+
+                    // Otros campos
+                    'destipodestino'  => $r['destipodestino'] ?? null,
+                    'desmedida'       => $r['desmedida'] ?? null,
                     'total'           => $r['total'] ?? null,
                     'numero_origen'   => $r['numero_origen'] ?? null,
 
                     // Metadatos de sincronización
-                    'raw_snapshot'         => json_encode($r, JSON_UNESCAPED_UNICODE|JSON_PRESERVE_ZERO_FRACTION),
+                    // 'raw_snapshot'         => json_encode($r, JSON_UNESCAPED_UNICODE|JSON_PRESERVE_ZERO_FRACTION),
                     'external_hash'        => hash('sha1', json_encode($r, JSON_UNESCAPED_UNICODE|JSON_PRESERVE_ZERO_FRACTION)),
                     'external_last_seen_at'=> now(),
                 ]
@@ -452,7 +465,8 @@ class UserObrasController extends Controller
             // 2) Traer TODOS los itempecosas en UNA llamada (sin iterar)
             //    Usa el tope que garantice "todo de golpe" según tu API (1000 o 10000).
             $perPage = 10000; // o 1000 si ese es el límite real garantizado por la API
-            $batch = $this->pecosas->index([
+            // $batch = $this->pecosas->index([
+            $batch = $this->ordenesDetallado->index([
                 'idmeta'   => $m['idmeta'],
                 'per_page' => $perPage,
             ]);
@@ -472,30 +486,58 @@ class UserObrasController extends Controller
             foreach ($rows as $r) {
                 $incomingHash = sha1(json_encode($r, JSON_UNESCAPED_UNICODE|JSON_PRESERVE_ZERO_FRACTION));
 
-                $model = ItemPecosa::firstOrNew([
-                    'idsalidadet_silucia' => $r['idsalidadet'],
+                $model = OrdenCompraDetallado::firstOrNew([
+                    'idcompradet' => $r['idcompradet'],
                 ]);
 
                 // Mapea/convierte tipos (fecha a date; numéricos a float/decimal si aplica)
                 $payload = [
-                    'obra_id'               => $obra->id,
-                    'idcompradet_silucia'   => $r['idcompradet'] ?? null,
-                    'anio'                  => isset($r['anio']) ? (string)$r['anio'] : null,
-                    'numero'                => isset($r['numero']) ? (string)$r['numero'] : null,
-                    'fecha'                 => isset($r['fecha']) ? Carbon::parse($r['fecha'])->toDateString() : null,
-                    'prod_proy'             => $r['prod_proy'] ?? null,
-                    'cod_meta'              => $r['cod_meta'] ?? null,
-                    'desmeta'               => $r['desmeta'] ?? null,
-                    'desuoper'              => $r['desuoper'] ?? null,
-                    'destipodestino'        => $r['destipodestino'] ?? null,
-                    'item'                  => $r['item'] ?? null,
-                    'desmedida'             => $r['desmedida'] ?? null,
-                    'cantidad'              => isset($r['cantidad']) ? (float)$r['cantidad'] : null,
-                    'precio'                => isset($r['precio']) ? (float)$r['precio'] : null,
-                    'saldo'                 => isset($r['saldo']) ? (float)$r['saldo'] : null,
-                    'total'                 => isset($r['total']) ? (float)$r['total'] : null,
-                    'numero_origen'         => $r['numero_origen'] ?? null,
-                    'external_last_seen_at' => now(),
+                    // 'obra_id'               => $obra->id,
+                    // 'idcompradet_silucia'   => $r['idcompradet'] ?? null,
+                    // 'anio'                  => isset($r['anio']) ? (string)$r['anio'] : null,
+                    // 'numero'                => isset($r['numero']) ? (string)$r['numero'] : null,
+                    // 'fecha'                 => isset($r['fecha']) ? Carbon::parse($r['fecha'])->toDateString() : null,
+                    // 'prod_proy'             => $r['prod_proy'] ?? null,
+                    // 'cod_meta'              => $r['cod_meta'] ?? null,
+                    // 'desmeta'               => $r['desmeta'] ?? null,
+                    // 'desuoper'              => $r['desuoper'] ?? null,
+                    // 'destipodestino'        => $r['destipodestino'] ?? null,
+                    // 'item'                  => $r['item'] ?? null,
+                    // 'desmedida'             => $r['desmedida'] ?? null,
+                    // 'cantidad'              => isset($r['cantidad']) ? (float)$r['cantidad'] : null,
+                    // 'precio'                => isset($r['precio']) ? (float)$r['precio'] : null,
+                    // 'saldo'                 => isset($r['saldo']) ? (float)$r['saldo'] : null,
+                    // 'total'                 => isset($r['total']) ? (float)$r['total'] : null,
+                    // 'numero_origen'         => $r['numero_origen'] ?? null,
+                    // 'external_last_seen_at' => now(),
+                    'obra_id'         => $obra->id,
+                    // Búsquedas típicas
+                    'anio'            => $r['anio'] ?? null,
+                    'numero'          => $r['numero'] ?? null,
+                    'siaf'            => $r['siaf'] ?? null,
+
+                    'prod_proy'       => $r['prod_proy'] ?? null,
+                    'fecha'           => $r['fecha'] ?? null,
+                    'fecha_aceptacion'=> $r['fecha_aceptacion'] ?? null,
+                    'item'            => $r['item'] ?? null,
+                    'desmeta'         => $r['desmeta'] ?? null,
+                    'cantidad'        => $r['cantidad'] ?? null,
+                    'precio'          => $r['precio'] ?? null,
+                    'saldo'           => $r['saldo'] ?? null,
+                    'total_internado' => $r['total_internado'] ?? null,
+                    'internado'       => $r['internado'] ?? null,
+                    'desuoper'        => $r['desuoper'] ?? null,
+                    'idmeta'          => $r['idmeta'] ?? null,
+
+                    // Otros campos
+                    'destipodestino'  => $r['destipodestino'] ?? null,
+                    'desmedida'       => $r['desmedida'] ?? null,
+                    'total'           => $r['total'] ?? null,
+                    'numero_origen'   => $r['numero_origen'] ?? null,
+
+                    // Metadatos de sincronización
+                    // 'raw_snapshot'         => json_encode($r, JSON_UNESCAPED_UNICODE|JSON_PRESERVE_ZERO_FRACTION),
+                    'external_last_seen_at'=> now(),
                 ];
 
                 if ($model->exists) {

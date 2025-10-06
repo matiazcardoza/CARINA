@@ -31,6 +31,8 @@ import { OrdenCompraDetallado, OrdenCompraDetalladoRow, OrdenCompraDetalladoFilt
 import { parseHttpError } from '../../../shared/utils/parseHttpError';
 import { SeeMovementsDetailsModal } from './components/see-movements-details-modal/see-movements-details-modal';
 
+import { SelectModule } from 'primeng/select';
+
 @Component({
   selector: 'app-whm-kardex-management',
   imports: [
@@ -50,7 +52,8 @@ import { SeeMovementsDetailsModal } from './components/see-movements-details-mod
     Chip, Tooltip,
     Badge,
     Card,
-    SeeMovementsDetailsModal
+    SeeMovementsDetailsModal,
+    SelectModule
 ],
   providers: [MessageService],
   templateUrl: './whm-kardex-management.html',
@@ -135,6 +138,50 @@ export class WhmKardexManagement implements OnInit {
       }
   })
 
+
+// =====================================================================
+  countries: any[] | undefined;
+
+  selectedCountry: string | undefined;
+  verData(){
+    console.log(this.obras());
+  }
+
+// =====================================================================
+  ngOnInit(): void {
+    this.api.getObras()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (list) => {
+          this.obras.set(list ?? []);
+          if (this.obras().length) {
+            const first = this.obras()[0];
+            if(first){
+              // this.getItemsPecosas(first.id, 0, this.pecosasx().rows, this.pecosasx().filters);
+              this.getOrdenCompraDetallado(first.id, 0, this.ordenCompraDetallado().rows, this.ordenCompraDetallado().filters);
+              this.getRolesByObra(first.id);
+            }
+          }
+        }
+      });
+
+
+
+
+      this.countries = [
+          { name: 'polivalente monomotor desarrollado por la compañía estadounidense General Dynamics en los años 1970 para la Fuerza Aérea de los Estados Unidos', code: 'AU' },
+          { name: 'Brazil', code: 'BR' },
+          { name: 'China', code: 'CN' },
+          { name: 'Egypt', code: 'EG' },
+          { name: 'France', code: 'FR' },
+          { name: 'Germany', code: 'DE' },
+          { name: 'India', code: 'IN' },
+          { name: 'Japan', code: 'JP' },
+          { name: 'Spain', code: 'ES' },
+          { name: 'United States', code: 'US' }
+      ];
+  }
+
   setMovementType(type:string, data: 'entrada'|'salida'|number|null|string){
     switch (type) {
       case 'entrada':
@@ -189,23 +236,7 @@ export class WhmKardexManagement implements OnInit {
     console.log(this.formx())
   }
 
-  ngOnInit(): void {
-    this.api.getObras()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (list) => {
-          this.obras.set(list ?? []);
-          if (this.obras().length) {
-            const first = this.obras()[0];
-            if(first){
-              // this.getItemsPecosas(first.id, 0, this.pecosasx().rows, this.pecosasx().filters);
-              this.getOrdenCompraDetallado(first.id, 0, this.ordenCompraDetallado().rows, this.ordenCompraDetallado().filters);
-              this.getRolesByObra(first.id);
-            }
-          }
-        }
-      });
-  }
+
 
   seeDebugerData(){
     console.log(this.myCurrentRoles())
@@ -590,5 +621,7 @@ export class WhmKardexManagement implements OnInit {
       setTimeout(()=>{URL.revokeObjectURL(url)}, 1000);
     });
   }
+
+
 
 }

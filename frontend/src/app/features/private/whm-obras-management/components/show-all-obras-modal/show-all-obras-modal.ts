@@ -11,14 +11,20 @@ import { Button } from 'primeng/button';
 import { InputIcon } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { TooltipModule } from 'primeng/tooltip'; 
+import { finalize } from 'rxjs';
+import { Toast } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+import { parseHttpError } from '../../../../../shared/utils/parseHttpError';
+
 // import { ButtonDirective } from "../../../../../../../node_modules/primeng/button/index";
 
 
 @Component({
     selector: 'app-show-all-obras-modal',
-    imports: [DialogModule, TableModule, Button, InputIcon, InputTextModule, TooltipModule],
+    imports: [DialogModule, TableModule, Button, InputIcon, InputTextModule, TooltipModule, Toast],
     templateUrl: './show-all-obras-modal.html',
-    styleUrl: './show-all-obras-modal.css'
+    styleUrl: './show-all-obras-modal.css',
+    providers: [MessageService]
 })
 
 export class ShowAllObrasModal {
@@ -26,7 +32,7 @@ export class ShowAllObrasModal {
     isOpen = input<boolean>(false)
     isOpenChange = output<boolean>() 
     private destroyRef = inject(DestroyRef);
-
+    private readonly messageService = inject(MessageService);
   tableData = signal({
       value: <Obra[]> [],   // registros (array de objetos)
       rows: 10,              // cantidad de filas que hay en cada pagina
@@ -45,12 +51,13 @@ export class ShowAllObrasModal {
           if(this.isOpen()){
               const rows = untracked(() => this.tableData().rows);
               const filters = untracked(() => this.tableData().filters);
-              this.loadPage(0, rows, filters)
+              untracked(()=>this.loadPage(0, rows, filters))
           }
       })
   }
 
   private loadPage(first: number, rows: number, filters: Filters){
+    if(this.tableData().loading) return;
     console.log("peticion para tabla");
 
     /**
@@ -76,19 +83,23 @@ export class ShowAllObrasModal {
     }));
 
     this.service.getObrasSilucia(page, perPage, filters)
-    .pipe(takeUntilDestroyed(this.destroyRef))
-    .subscribe({
+    .pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(()=>{
+        this.tableData.update(objects => ({...objects, loading: false}))
+      })
+    ).subscribe({
         next: (response) => {
           this.tableData.update((object)=>({
             ...object, 
             value: response.data ?? [],
             totalRecords: response.total ?? response.data.length,
-            loading: false
           })) 
         },
 
-        error: () => {
-          this.tableData.update(objects => ({...objects, loading: false}))
+        error: async (error) => {
+            const p = await parseHttpError(error);
+            this.messageService.add({ severity:p.severity, summary:p.title, detail:p.detail });
         }
     })
 
@@ -126,14 +137,22 @@ export class ShowAllObrasModal {
 
   importObra(obra:any){
     if (!obra.idmeta) return; // AHORA: Leemos el valor de la señal con ()
+    if(this.tableData().loading) return;
+
     this.tableData.update(object => ({...object, loading: true}))
-    this.service.importAndAttach(obra).subscribe({
+    this.service.importAndAttach(obra).pipe(
+      takeUntilDestroyed(this.destroyRef),
+      finalize(()=>{
+        this.tableData.update(objects => ({...objects, loading: false}))
+      })
+    ).subscribe({
       next: () => { 
       },
-      complete: () => {
-        // this.isOpenChange.emit(false)
-        this.tableData.update(object => ({...object, loading: false}))
+      error: async (error) => {
+          const p = await parseHttpError(error);
+          this.messageService.add({ severity:p.severity, summary:p.title, detail:p.detail });
       }
+
     });
     
   }
