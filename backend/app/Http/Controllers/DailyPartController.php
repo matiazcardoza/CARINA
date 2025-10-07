@@ -43,11 +43,6 @@ class DailyPartController extends Controller
 
     function store(Request $request)
     {
-        if($request->work_date != now()->format('Y-m-d')){
-            return response()->json([
-                'message' => 'La fecha no es válida. Solo se permite la fecha actual.'
-            ], 403);
-        }
         $dailyPart = DailyPart::create([
             'service_id' => $request->service_id,
             'itemPecosa_id' => $request->product_id,
