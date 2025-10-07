@@ -363,4 +363,30 @@ class ServiceController extends Controller
             'data' => $service
         ]);
     }
+
+    public function getIdmeta($mechanicalId)
+    {
+        $service = Service::where('mechanical_equipment_id', $mechanicalId)->get();
+        return response()->json([
+            'message' => 'Service retrieved successfully',
+            'data' => $service
+        ]);
+    }
+
+    public function updateIdmeta(Request $request)
+    {
+        $servicio = Service::find($request->id);
+        $servicio->update([
+            'goal_id' => $request->goal_id,
+            'operator' => $request->operator,
+            'goal_project' => $request->goal_project,
+            'goal_detail' => $request->goal_detail,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date
+        ]);
+        return response()->json([
+            'message' => 'Service updated successfully',
+            'data' => $servicio
+        ]);
+    }
 }

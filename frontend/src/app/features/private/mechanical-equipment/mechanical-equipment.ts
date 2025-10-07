@@ -141,7 +141,8 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
     const dialogRef = this.dialog.open(MechanicalEquipmentWork, {
       width: '900px',
       data: {
-        mechanicalEquipment: mechanicalEquipment
+        mechanicalEquipment: mechanicalEquipment,
+        isReassigned: true
       }
     });
       

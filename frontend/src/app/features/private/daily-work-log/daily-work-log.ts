@@ -19,6 +19,8 @@ export interface WorkLogElement {
   description: string;
   goal_project: string;
   goal_detail: string;
+  start_date: string;
+  end_date: string;
   operator: string;
   state: number;
 }

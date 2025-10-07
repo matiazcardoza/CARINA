@@ -15,6 +15,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MechanicalEquipmentService } from '../../../../../services/MechanicalEquipmentService/mechanical-equipment-service';
 import { DailyWorkLogService } from '../../../../../services/DailyWorkLogService/daily-work-log-service';
+import { WorkLogElement } from '../../../daily-work-log/daily-work-log';
 
 // Interfaz para los datos de Meta que necesitas
 interface MetaData {
@@ -35,6 +36,7 @@ interface MetaApiResponse {
 
 export interface DialogData {
   mechanicalEquipment: any;
+  isReassigned?: boolean;
 }
 
 // Validador personalizado para fechas
@@ -83,6 +85,7 @@ export class MechanicalEquipmentWork implements OnInit {
   isLoadingMeta = false;
   metaErrorMessage = '';
   isLoading = false;
+  dataMeta: WorkLogElement[] = [];
   
   // ❌ ELIMINADO: Fechas mínimas y máximas
   // minDate = new Date(); // Fecha actual como mínimo
@@ -115,7 +118,57 @@ export class MechanicalEquipmentWork implements OnInit {
     this.operatorForm.get('start_date')?.valueChanges.subscribe(() => {
       this.operatorForm.get('end_date')?.updateValueAndValidity();
     });
+
+    if (this.data.isReassigned) {
+      this.loadExistingData();
+    }
   }
+
+  private loadExistingData() {
+    this.isLoading = true;
+    this.dailyWorkLogService.getIdmeta(this.data.mechanicalEquipment.id).subscribe({
+      next: (data) => {
+        console.log('Productos cargados:', data);
+        this.dataMeta = data;
+        if (data && data.length > 0) {
+          this.preloadFormData(data[0]);
+        }
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error al cargar meta:', error);
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private preloadFormData(workLog: WorkLogElement): void {
+    // Prellenar formulario del operador
+    this.operatorForm.patchValue({
+      operatorName: workLog.operator || '',
+      start_date: workLog.start_date ? new Date(workLog.start_date) : null,
+      end_date: workLog.end_date ? new Date(workLog.end_date) : null
+    });
+
+    // Prellenar información de Meta si existe
+    if (workLog.goal_id) {
+      this.selectedMeta = {
+        idmeta: workLog.goal_id.toString(),
+        codmeta: workLog.goal_project || '',
+        desmeta: workLog.goal_detail || ''
+      };
+      
+      // Prellenar el código de meta en el formulario de búsqueda
+      this.metaSearchForm.patchValue({
+        metaCode: workLog.goal_project || ''
+      });
+    }
+
+    this.cdr.detectChanges();
+  }
+
 
   // Función para buscar Meta
   buscarMeta(): void {
@@ -178,40 +231,73 @@ export class MechanicalEquipmentWork implements OnInit {
     }
 
     this.isLoading = true;
-    const formData = new FormData();
-        
-    formData.append('maquinaria_id', this.data.mechanicalEquipment.id.toString());
-    formData.append('maquinaria_equipo', this.data.mechanicalEquipment.machinery_equipment || '');
-    formData.append('maquinaria_marca', this.data.mechanicalEquipment.brand || '');
-    formData.append('maquinaria_modelo', this.data.mechanicalEquipment.model || '');
-    formData.append('maquinaria_placa', this.data.mechanicalEquipment.plate || '');
-    formData.append('maquinaria_serie', this.data.mechanicalEquipment.serial_number || '');
-    formData.append('operador', this.operatorForm.value.operatorName || '');
-    
-    const startDate = new Date(this.operatorForm.value.start_date);
-    formData.append('start_date', this.formatDate(startDate));
-    
-    const endDate = new Date(this.operatorForm.value.end_date);
-    formData.append('end_date', this.formatDate(endDate));
-        
-    if (this.selectedMeta) {
-      formData.append('meta_id', this.selectedMeta.idmeta || '');
-      formData.append('meta_codigo', this.selectedMeta.codmeta || '');
-      formData.append('meta_descripcion', this.selectedMeta.desmeta || '');
-    }
-    this.dailyWorkLogService.importOrder(formData).subscribe({
-      next: (response) => {
-        this.isLoading = false;
-        this.cdr.detectChanges();
-        console.log(response.message);
-        this.dialogRef.close(response);
-      },
-      error: (error) => {
-        console.error('Error al importar:', error);
-        this.isLoading = false;
-        this.cdr.detectChanges();
+
+    // ✅ MODO EDICIÓN: Si es reasignación y hay datos existentes
+    if (this.data.isReassigned && this.dataMeta.length > 0) {
+      const workLogData: WorkLogElement = {
+        ...this.dataMeta[0], // Mantener datos originales
+        operator: this.operatorForm.value.operatorName || '',
+        start_date: this.formatDate(new Date(this.operatorForm.value.start_date)),
+        end_date: this.formatDate(new Date(this.operatorForm.value.end_date)),
+        // Actualizar meta si existe
+        goal_id: this.selectedMeta ? parseInt(this.selectedMeta.idmeta) : this.dataMeta[0].goal_id,
+        goal_project: this.selectedMeta?.codmeta || this.dataMeta[0].goal_project,
+        goal_detail: this.selectedMeta?.desmeta || this.dataMeta[0].goal_detail
+      };
+
+      // Llamar al servicio de actualización
+      this.dailyWorkLogService.updateIdmeta(workLogData).subscribe({
+        next: (response) => {
+          this.isLoading = false;
+          this.cdr.detectChanges();
+          console.log('Actualización exitosa:', response);
+          this.dialogRef.close(response);
+        },
+        error: (error) => {
+          console.error('Error al actualizar:', error);
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
+      
+    } else {
+      // ✅ MODO CREACIÓN: Crear nuevo registro con FormData
+      const formData = new FormData();
+      
+      formData.append('maquinaria_id', this.data.mechanicalEquipment.id.toString());
+      formData.append('maquinaria_equipo', this.data.mechanicalEquipment.machinery_equipment || '');
+      formData.append('maquinaria_marca', this.data.mechanicalEquipment.brand || '');
+      formData.append('maquinaria_modelo', this.data.mechanicalEquipment.model || '');
+      formData.append('maquinaria_placa', this.data.mechanicalEquipment.plate || '');
+      formData.append('maquinaria_serie', this.data.mechanicalEquipment.serial_number || '');
+      formData.append('operador', this.operatorForm.value.operatorName || '');
+      
+      const startDate = new Date(this.operatorForm.value.start_date);
+      formData.append('start_date', this.formatDate(startDate));
+      
+      const endDate = new Date(this.operatorForm.value.end_date);
+      formData.append('end_date', this.formatDate(endDate));
+      
+      if (this.selectedMeta) {
+        formData.append('meta_id', this.selectedMeta.idmeta || '');
+        formData.append('meta_codigo', this.selectedMeta.codmeta || '');
+        formData.append('meta_descripcion', this.selectedMeta.desmeta || '');
       }
-    });
+
+      this.dailyWorkLogService.importOrder(formData).subscribe({
+        next: (response) => {
+          this.isLoading = false;
+          this.cdr.detectChanges();
+          console.log('Creación exitosa:', response);
+          this.dialogRef.close(response);
+        },
+        error: (error) => {
+          console.error('Error al importar:', error);
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
+    }
   }
 
   // Función para formatear fecha a string

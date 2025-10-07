@@ -119,6 +119,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/services/{id}/generate-request', [ServiceController::class, 'generateRequest']);
     Route::post('/services/{id}/generate-auth', [ServiceController::class, 'generateAuth']);
     Route::post('/services/{id}/generate-liquidation', [ServiceController::class, 'generateLiquidation']);
+    Route::get('/services/idmeta/{mechanicalId}', [ServiceController::class, 'getIdmeta']);
+    Route::put('/services/idmeta/', [ServiceController::class, 'updateIdmeta']);
 
     //daily work log routes
     Route::get('/daily-work-log/{id}', [DailyPartController::class, 'index']);

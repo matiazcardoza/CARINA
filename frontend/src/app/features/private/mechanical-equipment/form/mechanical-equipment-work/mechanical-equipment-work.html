@@ -136,13 +136,13 @@
                             color="primary"
                             (click)="procesarMeta()"
                             [disabled]="!canProcess || isLoading">
-                            <mat-icon *ngIf="!isLoading">build</mat-icon>
+                            <mat-icon *ngIf="!isLoading">{{ data.isReassigned ? 'edit' : 'add' }}</mat-icon>
                             <mat-progress-spinner 
                                 *ngIf="isLoading" 
                                 mode="indeterminate" 
                                 diameter="16">
                             </mat-progress-spinner>
-                            {{ isLoading ? 'Procesando...' : 'Procesar Meta' }}
+                            {{ isLoading ? 'Procesando...' : (data.isReassigned ? 'Actualizar Asignación' : 'Crear Asignación') }}
                         </button>
                         <button 
                             mat-button

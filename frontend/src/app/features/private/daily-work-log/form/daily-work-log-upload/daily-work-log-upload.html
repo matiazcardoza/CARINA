@@ -117,7 +117,7 @@
     mat-raised-button
     color="primary"
     (click)="onSubmit()"
-    [disabled]="!uploadForm.valid || selectedFiles.length === 0 || isLoading">
+    [disabled]="!uploadForm.valid || isLoading">
 
     <span *ngIf="!isLoading">Completar Registro</span>
     <span *ngIf="isLoading">

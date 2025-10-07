@@ -132,10 +132,10 @@ export class DailyWorkLogUpload implements OnInit {
 
   onSubmit() {
     if (this.uploadForm.valid && !this.isLoading) {
-      if (this.selectedFiles.length === 0) {
+      /*if (this.selectedFiles.length === 0) {
         alert('Debes seleccionar al menos una imagen para completar el registro.');
         return;
-      }
+      }*/
 
       this.isLoading = true;
 
