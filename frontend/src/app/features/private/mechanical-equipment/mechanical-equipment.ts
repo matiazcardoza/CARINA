@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatDialog } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { MechanicalEquipmentForm } from './form/mechanical-equipment-form/mechanical-equipment-form';
 import { MechanicalEquipmentWork } from './form/mechanical-equipment-work/mechanical-equipment-work';
@@ -32,7 +33,8 @@ export interface MechanicalEquipmentElement {
     MatButtonModule,
     MatIconModule,
     MatTableModule,
-    MatPaginatorModule
+    MatPaginatorModule,
+    MatTooltipModule
   ],
   templateUrl: './mechanical-equipment.html',
   styleUrl: './mechanical-equipment.css'
@@ -135,8 +137,19 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
     });
   }
   
-  reasignedWork(equipment: MechanicalEquipmentElement) {
-    console.log('Ver detalles del equipo:', equipment);
+  reasignedWork(mechanicalEquipment: MechanicalEquipmentElement) {
+    const dialogRef = this.dialog.open(MechanicalEquipmentWork, {
+      width: '900px',
+      data: {
+        mechanicalEquipment: mechanicalEquipment
+      }
+    });
+      
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.reloadData();
+      }
+    });
   }
   
   openWorkDialog(mechanicalEquipment: MechanicalEquipmentElement) {
