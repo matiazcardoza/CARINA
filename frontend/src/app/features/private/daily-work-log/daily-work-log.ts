@@ -43,7 +43,7 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
 
   constructor(private cdr: ChangeDetectorRef) {}
 
-  displayedColumns: string[] = ['id', 'description', 'state', 'actions'];
+  displayedColumns: string[] = ['id', 'description', 'goal_detail', 'state', 'actions'];
   dataSource = new MatTableDataSource<WorkLogElement>([]);
 
   private dailyWorkLogService = inject(DailyWorkLogService);
