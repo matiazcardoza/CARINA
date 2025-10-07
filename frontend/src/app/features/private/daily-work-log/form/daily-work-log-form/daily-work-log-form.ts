@@ -22,6 +22,7 @@ export interface DialogData {
   workLog: any;
   serviceId?: string | number;
   serviceState?: string | number;
+  selectedDateFromFilter?: Date;
 }
 
 @Component({
@@ -144,9 +145,10 @@ export class DailyWorkLogForm implements OnInit {
       //this.workLogForm.get('work_date')?.disable();
       //this.workLogForm.get('start_time')?.disable();
     } else {
-      const now = new Date();
+      const initialDate = this.data.selectedDateFromFilter;
+      console.log(initialDate);
       this.workLogForm.patchValue({
-        work_date: now
+        work_date: initialDate
       });
       this.setCurrentTime();
 

@@ -173,7 +173,8 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
         isEdit: false,
         workLog: null,
         serviceId: this.serviceId,
-        serviceState: this.serviceState
+        serviceState: this.serviceState,
+        selectedDateFromFilter: this.dateControl.value
       }
     });
 

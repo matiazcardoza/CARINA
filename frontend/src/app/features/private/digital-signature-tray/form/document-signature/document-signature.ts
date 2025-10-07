@@ -312,7 +312,7 @@ export class DocumentSignature {
     const formSend = {
       userId: selectedUser.id,
       documentId: this.documentId
-    };
+    }
 
     this.dailyWorkLogService.sendDocument(formSend)
       .subscribe({
