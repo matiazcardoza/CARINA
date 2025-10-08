@@ -39,7 +39,7 @@
         </button>
       </ng-container>
       
-      <ng-container *ngIf="showPdfButton">
+      <ng-container >
         <button *appHasPermission="'generate_pdf_work_log_id'"
                 mat-icon-button
                 (click)="generatePdf(convertWorkLogId(serviceId))"

@@ -189,12 +189,19 @@ class DailyPartController extends Controller
     public function generatePdf(Request $request, $serviceId)
     {
         $service = Service::findOrFail($serviceId);
-        $orderSilucia = OrderSilucia::findOrFail($service->order_id);
+        
+        $orderSilucia = null;
+        $mechanicalEquipment = null;
+
+        if($service->order_id){
+            $orderSilucia = OrderSilucia::findOrFail($service->order_id);
+        }else{
+            $mechanicalEquipment = MechanicalEquipment::find($service->mechanical_equipment_id);
+        }
+
         $dailyPart = DailyPart::where('work_date', $request->date)
             ->where('service_id', $serviceId)
             ->get();
-        $mechanicalEquipment = MechanicalEquipment::find($service->mechanical_equipment_id);
-
         $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
         $logoWorkPath = storage_path('app/public/image_pdf_template/logo_work.png');
         $qr_code = base64_encode("data_qr_example");
