@@ -26,7 +26,7 @@ export interface WorkLogIdElement {
   start_time: string;
   initial_fuel: string;
   end_time: string;
-  ocurrences: string;
+  occurrences: string;
   state: number;
 }
 

@@ -273,7 +273,7 @@ export class DailyWorkLogForm implements OnInit {
         formData.append('initial_fuel', formValue.initial_fuel);
         formData.append('service_id', this.data.serviceId ? this.data.serviceId.toString() : '');
         formData.append('end_time', formValue.end_time);
-        formData.append('occurrence', formValue.occurrence || '');
+        formData.append('occurrences', formValue.occurrences || '');
 
         // Agregar IDs de imágenes existentes que se mantienen
         this.existingImages.forEach((img, index) => {
@@ -300,7 +300,7 @@ export class DailyWorkLogForm implements OnInit {
         // ← AGREGAR CAMPOS SI ES ESTADO 2
         if (this.isStateTwo) {
           workLogData.end_time = formValue.end_time;
-          workLogData.occurrence = formValue.occurrence || '';
+          workLogData.occurrences = formValue.occurrences || '';
         }
 
         this.submitWorkLogData(workLogData);

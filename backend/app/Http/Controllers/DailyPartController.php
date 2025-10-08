@@ -87,6 +87,7 @@ class DailyPartController extends Controller
 
     public function update(Request $request)
     {
+        Log::info('este es el request:  ', $request->all());
         $dailyPart = DailyPart::findOrFail($request->id);
 
         if ($request->initial_fuel) {
@@ -113,6 +114,8 @@ class DailyPartController extends Controller
 
             $dailyPart->update([
                 'start_time' =>$request->start_time,
+                'end_time' => $request->end_time,
+                'occurrences' => $request->occurrences,
                 'work_date' => $request->work_date,
                 'itemPecosa_id' => $request->product_id,
                 'initial_fuel' => $request->initial_fuel,
