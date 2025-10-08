@@ -22,6 +22,8 @@ export interface MechanicalEquipmentElement {
   year: string;
   serial_number: string;
   state: number;
+  goal_detail?: string;
+  operator?: string;
   state_service?: number;
 }
 
@@ -40,47 +42,47 @@ export interface MechanicalEquipmentElement {
   styleUrl: './mechanical-equipment.css'
 })
 export class MechanicalEquipment implements AfterViewInit, OnInit {
-  
+
   displayedColumns: string[] = ['id', 'machinery_equipment', 'ability', 'brand', 'model', 'plate', 'state', 'actions'];
   dataSource = new MatTableDataSource<MechanicalEquipmentElement>([]);
 
   private mechanicalEquipmentService = inject(MechanicalEquipmentService);
   private dialog = inject(MatDialog);
-  
+
   // Estado de carga inicial
-  isLoading = false; 
+  isLoading = false;
   error: string | null = null;
-  
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
-  
+
   constructor(private cdr: ChangeDetectorRef) {
     this.dataSource.filterPredicate = (data: MechanicalEquipmentElement, filter: string) => {
       const dataStr = (data.machinery_equipment + data.ability + data.brand + data.model + data.plate + data.serial_number + data.year).toLowerCase();
       return dataStr.indexOf(filter) !== -1;
     };
   }
-  
+
   ngOnInit() {
     this.isLoading = false;
     this.error = null;
     this.cdr.detectChanges();
-    
+
     Promise.resolve().then(() => {
       this.loadMechanicalEquipmentData();
     });
   }
-  
+
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
     this.cdr.detectChanges();
   }
-  
+
   loadMechanicalEquipmentData(): void {
     Promise.resolve().then(() => {
       this.isLoading = true;
       this.error = null;
       this.cdr.detectChanges();
-      
+
       this.mechanicalEquipmentService.getMechanicalEquipment()
         .subscribe({
           next: (data) => {
@@ -104,39 +106,39 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
   reloadData() {
     Promise.resolve().then(() => this.loadMechanicalEquipmentData());
   }
-  
+
   openCreateDialog() {
     const dialogRef = this.dialog.open(MechanicalEquipmentForm, {
       width: '700px',
-      data: { 
+      data: {
         isEdit: false,
         mechanicalEquipment: null
       }
     });
-      
+
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.reloadData();
       }
     });
   }
-  
+
   openEditDialog(mechanicalEquipment: MechanicalEquipmentElement) {
     const dialogRef = this.dialog.open(MechanicalEquipmentForm, {
       width: '700px',
-      data: { 
+      data: {
         isEdit: true,
         mechanicalEquipment: mechanicalEquipment
       }
     });
-      
+
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.reloadData();
       }
     });
   }
-  
+
   reasignedWork(mechanicalEquipment: MechanicalEquipmentElement) {
     const dialogRef = this.dialog.open(MechanicalEquipmentWork, {
       width: '900px',
@@ -145,14 +147,14 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
         isReassigned: true
       }
     });
-      
+
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.reloadData();
       }
     });
   }
-  
+
   openWorkDialog(mechanicalEquipment: MechanicalEquipmentElement) {
     const dialogRef = this.dialog.open(MechanicalEquipmentWork, {
       width: '900px',
@@ -160,20 +162,20 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
         mechanicalEquipment: mechanicalEquipment
       }
     });
-      
+
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.reloadData();
       }
     });
   }
-  
+
   deleteMechanicalEquipment(id: number) {
     if (confirm('¿Estás seguro de que deseas eliminar este registro?')) {
       Promise.resolve().then(() => {
         this.isLoading = true;
         this.cdr.detectChanges();
-        
+
         this.mechanicalEquipmentService.deleteMechanicalEquipment(id)
           .subscribe({
             next: () => {
@@ -190,12 +192,12 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
       });
     }
   }
-  
+
   generateEquipmentReport() {
     console.log('Generar reporte de equipos');
     // Aquí irá la lógica para generar reportes
   }
-  
+
   getStateClass(state: string | number): string {
     const stateNum = Number(state);
     switch (stateNum) {

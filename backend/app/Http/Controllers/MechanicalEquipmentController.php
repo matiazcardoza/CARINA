@@ -9,7 +9,11 @@ use Illuminate\Support\Facades\Log;
 class MechanicalEquipmentController extends Controller
 {
     function index(){
-        $mechanicalEquipment = MechanicalEquipment::select('mechanical_equipment.*', 'services.state as state_service')
+        $mechanicalEquipment = MechanicalEquipment::select(
+            'mechanical_equipment.*',
+            'services.state as state_service',
+            'services.goal_detail',
+            'services.operator')
                             ->leftJoin('services', 'mechanical_equipment.id', '=', 'services.mechanical_equipment_id')
                             ->get();
         return response()->json([
