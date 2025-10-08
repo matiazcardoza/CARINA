@@ -26,20 +26,20 @@
             <mat-icon>chevron_right</mat-icon>
           </button>
         </div>
-        
+
       </div>
       <ng-container *ngIf="showCreateButton">
         <button *appHasPermission="'create_work_log_id'"
-                mat-raised-button 
-                color="primary" 
-                (click)="openCreateDialog()" 
+                mat-raised-button
+                color="primary"
+                (click)="openCreateDialog()"
                 class="action-button">
           <mat-icon>add</mat-icon>
           Nuevo Registro
         </button>
       </ng-container>
-      
-      <ng-container *ngIf="showPdfButton">
+
+      <ng-container>
         <button *appHasPermission="'generate_pdf_work_log_id'"
                 mat-icon-button
                 (click)="generatePdf(convertWorkLogId(serviceId))"
@@ -48,7 +48,7 @@
           <mat-icon>picture_as_pdf</mat-icon>
         </button>
       </ng-container>
-      
+
       <ng-container *ngIf="showSignatureButton">
         <button *appHasPermission="'signature_work_log_id'"
                 mat-icon-button
@@ -224,11 +224,11 @@
                 </button>
 
                 <ng-container *ngIf="element.state == 1">
-                  <button mat-icon-button 
+                  <button mat-icon-button
                         *appHasPermission="'completed_work_log_id'"
                         (click)="openCompleteModal(element.id)"
                         matTooltip="Completar registro"
-                        class="action-btn complete-btn">  
+                        class="action-btn complete-btn">
                   <mat-icon>check_circle</mat-icon>
                 </button></ng-container>
 
