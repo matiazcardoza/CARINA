@@ -57,9 +57,9 @@ class DailyPartController extends Controller
             $servicio->update([
                 'fuel_consumed' => $servicio->fuel_consumed + $request->initial_fuel
             ]);
-        
+
             /*$product = ItemPecosa::find($request->product_id);
-        
+
             $product->update([
                 'quantity_issued' => $request->initial_fuel,
                 'quantity_on_hand' => $product->stock_qty - $request->initial_fuel,
@@ -78,7 +78,7 @@ class DailyPartController extends Controller
                 'movement_kardex_id' => $MovementKardex->id
             ]);*/
         }
-        
+
         return response()->json([
             'message' => 'Daily work log created successfully',
             'data' => $dailyPart
@@ -109,15 +109,17 @@ class DailyPartController extends Controller
             $servicio = Service::find($dailyPart->service_id);
             $servicio->update([
                 'fuel_consumed' => $servicio->fuel_consumed + $diferentFuelService
-            ]);
+            ]);*/
 
             $dailyPart->update([
+                'start_time' =>$request->start_time,
+                'work_date' => $request->work_date,
                 'itemPecosa_id' => $request->product_id,
                 'initial_fuel' => $request->initial_fuel,
                 'description' => $request->description
             ]);
 
-            $MovementKardex = MovementKardex::find($dailyPart->movement_kardex_id);
+            /*$MovementKardex = MovementKardex::find($dailyPart->movement_kardex_id);
             $MovementKardex->update([
                 'item_pecosa_id' => $request->product_id,
                 'amount' => $request->initial_fuel
@@ -189,7 +191,7 @@ class DailyPartController extends Controller
     public function generatePdf(Request $request, $serviceId)
     {
         $service = Service::findOrFail($serviceId);
-        
+
         $orderSilucia = null;
         $mechanicalEquipment = null;
 

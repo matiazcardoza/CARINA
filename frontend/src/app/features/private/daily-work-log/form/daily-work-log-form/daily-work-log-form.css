@@ -33,3 +33,142 @@
   color: rgba(0, 0, 0, 0.54);
   pointer-events: none;
 }
+
+/* Agregar estos estilos al archivo CSS existente */
+
+.section-divider {
+  margin: 24px 0 16px 0;
+  padding-top: 16px;
+  border-top: 2px solid #e0e0e0;
+}
+
+.section-divider h3 {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1976d2;
+  margin: 0 0 8px 0;
+}
+
+.existing-images-section {
+  margin: 16px 0;
+}
+
+.existing-images-section h4 {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 12px;
+  color: #424242;
+}
+
+.upload-section {
+  margin: 16px 0;
+}
+
+.upload-section h4 {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #424242;
+}
+
+.upload-instructions {
+  font-size: 13px;
+  color: #757575;
+  margin-bottom: 12px;
+}
+
+.file-input-container {
+  margin-bottom: 16px;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-input-container button {
+  width: 100%;
+}
+
+.file-input-container button mat-icon {
+  margin-right: 8px;
+}
+
+.file-preview-container {
+  margin-top: 16px;
+}
+
+.file-preview-container h4 {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 12px;
+  color: #424242;
+}
+
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.preview-item {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fafafa;
+}
+
+.image-container {
+  position: relative;
+  width: 100%;
+  padding-top: 100%; /* Aspect ratio 1:1 */
+  background: #f5f5f5;
+}
+
+.image-container img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-button {
+  position: absolute !important;
+  top: 4px;
+  right: 4px;
+  background: rgba(255, 255, 255, 0.9) !important;
+  width: 28px !important;
+  height: 28px !important;
+  line-height: 28px !important;
+}
+
+.remove-button mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+}
+
+.file-info {
+  padding: 8px;
+}
+
+.file-name {
+  font-size: 12px;
+  font-weight: 500;
+  margin: 0 0 4px 0;
+  color: #424242;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-size {
+  font-size: 11px;
+  color: #757575;
+  margin: 0;
+}

@@ -16,6 +16,7 @@ import { startWith, map } from 'rxjs/operators';
 import { FormControl } from '@angular/forms';
 
 import { ProductsService, ProductsElement } from '../../../../../services/productsService/products-service';
+import { MatIconModule } from '@angular/material/icon';
 
 export interface DialogData {
   isEdit: boolean;
@@ -39,7 +40,8 @@ export interface DialogData {
     MatDatepickerModule,
     MatNativeDateModule,
     MatSelectModule,
-    MatAutocompleteModule
+    MatAutocompleteModule,
+    MatIconModule
   ],
   standalone: true,
   providers: [
@@ -56,8 +58,14 @@ export class DailyWorkLogForm implements OnInit {
 
   filteredProducts: ProductsElement[] = [];
   private productsControl = new FormControl();
-
   isLoadingProducts = false;
+
+  selectedFiles: File[] = [];
+  previewUrls: string[] = [];
+  existingImages: any[] = [];
+  maxFiles = 5;
+  maxFileSize = 5 * 1024 * 1024;
+  allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
   private fb = inject(FormBuilder);
   private dailyWorkLogService = inject(DailyWorkLogService);
@@ -72,13 +80,24 @@ export class DailyWorkLogForm implements OnInit {
     const productValidators = this.shouldRequireProductFields ? [Validators.required] : [];
     const fuelValidators = this.shouldRequireProductFields ? [Validators.required, Validators.min(0)] : [];
 
-    this.workLogForm = this.fb.group({
+    const formConfig: any = {
       work_date: ['', Validators.required],
       start_time: ['', Validators.required],
       initial_fuel: [''],
       product_id: [''],
       description: ['', Validators.required]
-    });
+    };
+
+    if (this.isStateTwo) {
+      formConfig.end_time = ['', Validators.required];
+      formConfig.occurrences = [''];
+    }
+
+    this.workLogForm = this.fb.group(formConfig);
+  }
+
+  get isStateTwo(): boolean {
+    return this.data.workLog?.state === 2 || this.data.workLog?.state === '2';
   }
 
   // Getter para determinar si los campos de producto son requeridos
@@ -102,7 +121,6 @@ export class DailyWorkLogForm implements OnInit {
       this.workLogForm.get('initial_fuel')?.disable();
     }*/
     this.workLogForm.get('initial_fuel')?.enable();
-
     this.setupFormValues();
   }
 
@@ -126,10 +144,17 @@ export class DailyWorkLogForm implements OnInit {
 
   private setupFormValues() {
     if (this.data.isEdit && this.data.workLog) {
+      let adjustedWorkDate: Date | null = null;
+      if (this.data.workLog.work_date) {
+        const dateString = this.data.workLog.work_date;
+        const parts = dateString.split('-');
+        adjustedWorkDate = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      }
       const formValues: any = {
-        work_date: this.data.workLog.work_date ? new Date(this.data.workLog.work_date) : null,
+        work_date: adjustedWorkDate,
         start_time: this.data.workLog.start_time,
-        description: this.data.workLog.description || ''
+        description: this.data.workLog.description || '',
+        initial_fuel: this.data.workLog.initial_fuel
       };
 
       // Solo agregar campos de producto si son requeridos
@@ -139,7 +164,15 @@ export class DailyWorkLogForm implements OnInit {
         formValues.initial_fuel = this.data.workLog.initial_fuel;
         this.workLogForm.get('initial_fuel')?.enable();
       }*/
-      formValues.initial_fuel = this.data.workLog.initial_fuel;
+     if (this.isStateTwo) {
+        formValues.end_time = this.data.workLog.end_time || '';
+        formValues.occurrences = this.data.workLog.occurrences || '';
+
+        // Cargar imágenes existentes si las hay
+        if (this.data.workLog.images && Array.isArray(this.data.workLog.images)) {
+          this.existingImages = this.data.workLog.images;
+        }
+      }
 
       this.workLogForm.patchValue(formValues);
       //this.workLogForm.get('work_date')?.disable();
@@ -228,62 +261,90 @@ export class DailyWorkLogForm implements OnInit {
       this.isLoading = true;
 
       const formValue = this.workLogForm.getRawValue();
-      
-      const workLogData: any = {
-        id: this.data.workLog?.id,
-        work_date: this.formatDate(formValue.work_date),
-        start_time: formValue.start_time,
-        description: formValue.description,
-        service_id: this.data.serviceId ? Number(this.data.serviceId) : null,
 
+      // ← CAMBIAR A FormData SI ES ESTADO 2 Y HAY IMÁGENES
+      if (this.isStateTwo && (this.selectedFiles.length > 0 || this.existingImages.length > 0)) {
+        const formData = new FormData();
 
-        initial_fuel: parseFloat(formValue.initial_fuel)
-      };
+        formData.append('id', this.data.workLog?.id.toString());
+        formData.append('work_date', this.formatDate(formValue.work_date));
+        formData.append('start_time', formValue.start_time);
+        formData.append('description', formValue.description);
+        formData.append('initial_fuel', formValue.initial_fuel);
+        formData.append('service_id', this.data.serviceId ? this.data.serviceId.toString() : '');
+        formData.append('end_time', formValue.end_time);
+        formData.append('occurrence', formValue.occurrence || '');
 
-      // Solo agregar campos de producto si son requeridos
-      /*if (this.shouldRequireProductFields) {
-        const productObject = formValue.product_id;
-        workLogData.initial_fuel = parseFloat(formValue.initial_fuel);
-        workLogData.product_id = productObject.id;
-      }*/
+        // Agregar IDs de imágenes existentes que se mantienen
+        this.existingImages.forEach((img, index) => {
+          formData.append(`existing_images[${index}]`, img.id.toString());
+        });
 
-      if (this.data.isEdit && this.data.workLog?.id) {
-        setTimeout(() => {
-          this.dailyWorkLogService.updateWorkLog(workLogData)
-            .subscribe({
-              next: (updatedWorkLog) => {
-                this.isLoading = false;
-                this.cdr.detectChanges();
-                setTimeout(() => {
-                  this.dialogRef.close(updatedWorkLog);
-                }, 100);
-              },
-              error: (error) => {
-                this.isLoading = false;
-                this.cdr.detectChanges();
-                console.error('Error al actualizar:', error);
-              }
-          });
-        }, 0);
+        // Agregar nuevas imágenes
+        this.selectedFiles.forEach((file) => {
+          formData.append('images[]', file);
+        });
+
+        this.submitWorkLogData(formData);
       } else {
-        setTimeout(() => {
-          this.dailyWorkLogService.createWorkLog(workLogData)
-            .subscribe({
-              next: (newWorkLog) => {
-                this.isLoading = false;
-                this.cdr.detectChanges();
-                setTimeout(() => {
-                  this.dialogRef.close(newWorkLog);
-                }, 100);
-              },
-              error: (error) => {
-                this.isLoading = false;
-                this.cdr.detectChanges();
-                console.error('Error al crear:', error);
-              }
-            });
-        }, 0);
+        // Lógica original para estado 1
+        const workLogData: any = {
+          id: this.data.workLog?.id,
+          work_date: this.formatDate(formValue.work_date),
+          start_time: formValue.start_time,
+          description: formValue.description,
+          service_id: this.data.serviceId ? Number(this.data.serviceId) : null,
+          initial_fuel: parseFloat(formValue.initial_fuel)
+        };
+
+        // ← AGREGAR CAMPOS SI ES ESTADO 2
+        if (this.isStateTwo) {
+          workLogData.end_time = formValue.end_time;
+          workLogData.occurrence = formValue.occurrence || '';
+        }
+
+        this.submitWorkLogData(workLogData);
       }
+    }
+  }
+
+  private submitWorkLogData(workLogData: any) {
+    if (this.data.isEdit && this.data.workLog?.id) {
+      setTimeout(() => {
+        this.dailyWorkLogService.updateWorkLog(workLogData)
+          .subscribe({
+            next: (updatedWorkLog) => {
+              this.isLoading = false;
+              this.cdr.detectChanges();
+              setTimeout(() => {
+                this.dialogRef.close(updatedWorkLog);
+              }, 100);
+            },
+            error: (error) => {
+              this.isLoading = false;
+              this.cdr.detectChanges();
+              console.error('Error al actualizar:', error);
+            }
+          });
+      }, 0);
+    } else {
+      setTimeout(() => {
+        this.dailyWorkLogService.createWorkLog(workLogData)
+          .subscribe({
+            next: (newWorkLog) => {
+              this.isLoading = false;
+              this.cdr.detectChanges();
+              setTimeout(() => {
+                this.dialogRef.close(newWorkLog);
+              }, 100);
+            },
+            error: (error) => {
+              this.isLoading = false;
+              this.cdr.detectChanges();
+              console.error('Error al crear:', error);
+            }
+          });
+      }, 0);
     }
   }
 
@@ -344,5 +405,78 @@ export class DailyWorkLogForm implements OnInit {
   get descriptionError() {
     const control = this.workLogForm.get('description');
     return '';
+  }
+
+  get endTimeError() {
+    if (!this.isStateTwo) return '';
+    const control = this.workLogForm.get('end_time');
+    if (control?.hasError('required') && control?.touched) {
+      return 'La hora de finalización es requerida';
+    }
+    return '';
+  }
+
+  get occurrenceError() {
+    if (!this.isStateTwo) return '';
+    return '';
+  }
+
+  onFileSelect(event: any) {
+    const files = Array.from(event.target.files) as File[];
+
+    if (this.selectedFiles.length + files.length > this.maxFiles) {
+      alert(`Solo puedes subir un máximo de ${this.maxFiles} imágenes`);
+      return;
+    }
+
+    for (const file of files) {
+      if (!this.validateFile(file)) {
+        continue;
+      }
+
+      this.selectedFiles.push(file);
+
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.previewUrls.push(e.target.result);
+        this.cdr.detectChanges();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    event.target.value = '';
+  }
+
+  private validateFile(file: File): boolean {
+    if (!this.allowedTypes.includes(file.type)) {
+      alert(`Tipo de archivo no permitido: ${file.name}. Solo se permiten imágenes JPG, PNG y WebP.`);
+      return false;
+    }
+
+    if (file.size > this.maxFileSize) {
+      alert(`El archivo ${file.name} es muy grande. El tamaño máximo es 5MB.`);
+      return false;
+    }
+
+    return true;
+  }
+
+  removeFile(index: number) {
+    this.selectedFiles.splice(index, 1);
+    this.previewUrls.splice(index, 1);
+    this.cdr.detectChanges();
+  }
+
+  removeExistingImage(index: number) {
+    this.existingImages.splice(index, 1);
+    this.cdr.detectChanges();
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 }

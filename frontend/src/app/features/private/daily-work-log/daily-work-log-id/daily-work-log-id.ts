@@ -26,6 +26,7 @@ export interface WorkLogIdElement {
   start_time: string;
   initial_fuel: string;
   end_time: string;
+  ocurrences: string;
   state: number;
 }
 
@@ -76,7 +77,7 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
   this.dateControl.valueChanges
     .pipe(
       // startWith() emite el valor inicial del FormControl al iniciar la suscripción
-      startWith(this.dateControl.value) 
+      startWith(this.dateControl.value)
     )
     .subscribe(date => {
       if (date) {
@@ -91,12 +92,12 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
   }
 
   get allRecordsState2(): boolean {
-    return this.dataSource.data.length > 0 && 
+    return this.dataSource.data.length > 0 &&
            this.dataSource.data.every(record => record.state === 2);
   }
 
   get allRecordsState3(): boolean {
-    return this.dataSource.data.length > 0 && 
+    return this.dataSource.data.length > 0 &&
            this.dataSource.data.every(record => record.state === 3);
   }
 
@@ -238,20 +239,20 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
         date: this.selectedDate
       }
     });
-  
+
     setTimeout(() => {
       const body = document.body;
       const html = document.documentElement;
       body.style.overflow = 'hidden';
       html.style.overflow = 'hidden';
     }, 0);
-  
+
     dialogRef.afterClosed().subscribe(result => {
       const body = document.body;
       const html = document.documentElement;
       body.style.overflow = '';
       html.style.overflow = '';
-        
+
       if (result) {
         this.reloadData();
       }

@@ -21,7 +21,7 @@
         <mat-label>Hora Inicial</mat-label>
         <input matInput
                formControlName="start_time"
-               
+
                placeholder="HH:MM - ejemplo - 16:12 = 04:12pm">
         <mat-hint>La hora se asigna automáticamente</mat-hint>
         <mat-error>{{ startTimeError }}</mat-error>
@@ -36,7 +36,7 @@
               matInput
               formControlName="product_id"
               [matAutocomplete]="auto">
-        <mat-autocomplete #auto="matAutocomplete" 
+        <mat-autocomplete #auto="matAutocomplete"
                           [displayWith]="displayProduct"
                           (optionSelected)="onProductSelected($event.option.value)">
           <mat-option *ngIf="isLoadingProducts" class="is-loading">
@@ -51,7 +51,7 @@
         <mat-error *ngIf="productError">{{ productError }}</mat-error>
       </mat-form-field>
 
-      <!-- Campo de Combustible Inicial - Solo se muestra si shouldShowProductFields es true 
+      <!-- Campo de Combustible Inicial - Solo se muestra si shouldShowProductFields es true
       <mat-form-field appearance="outline" class="full-width" *ngIf="shouldShowProductFields">
         <mat-label>Combustible Inicial (Galones)</mat-label>
         <input matInput
@@ -93,6 +93,114 @@
         <mat-hint>Máximo 500 caracteres</mat-hint>
         <mat-error>{{ descriptionError }}</mat-error>
       </mat-form-field>
+
+      <ng-container *ngIf="isStateTwo">
+        <!-- Separador visual -->
+        <div class="section-divider">
+          <h3>Información de Completado</h3>
+        </div>
+
+        <!-- Campo de Hora Final -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Hora de Finalización</mat-label>
+          <input matInput
+                 formControlName="end_time"
+                 placeholder="HH:MM">
+          <mat-hint>Hora en que se completó el trabajo</mat-hint>
+          <mat-error>{{ endTimeError }}</mat-error>
+        </mat-form-field>
+
+        <!-- Campo de Ocurrencias -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Ocurrencias</mat-label>
+          <textarea matInput
+                    formControlName="occurrence"
+                    rows="3"
+                    placeholder="Escribe cualquier observación adicional..."
+                    maxlength="500"></textarea>
+          <mat-hint>Máximo 500 caracteres</mat-hint>
+          <mat-error>{{ occurrenceError }}</mat-error>
+        </mat-form-field>
+
+        <!-- Sección de imágenes existentes -->
+        <div class="existing-images-section" *ngIf="existingImages.length > 0">
+          <h4>Imágenes Actuales</h4>
+          <div class="preview-grid">
+            <div class="preview-item" *ngFor="let image of existingImages; let i = index">
+              <div class="image-container">
+                <img [src]="image.url" [alt]="'Imagen ' + (i + 1)">
+                <button
+                  type="button"
+                  mat-icon-button
+                  class="remove-button"
+                  (click)="removeExistingImage(i)"
+                  color="warn">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección de carga de imágenes nuevas -->
+        <div class="upload-section">
+          <h4>Agregar/Actualizar Imágenes</h4>
+          <p class="upload-instructions">
+            Selecciona hasta {{maxFiles}} imágenes (JPG, PNG, WebP - máx. 5MB cada una)
+          </p>
+
+          <!-- Botón de selección de archivos -->
+          <div class="file-input-container">
+            <input
+              #fileInput
+              type="file"
+              multiple
+              accept="image/jpeg,image/jpg,image/png,image/webp"
+              (change)="onFileSelect($event)"
+              class="file-input">
+
+            <button
+              type="button"
+              mat-raised-button
+              color="primary"
+              (click)="fileInput.click()"
+              [disabled]="selectedFiles.length >= maxFiles">
+              <mat-icon>add_photo_alternate</mat-icon>
+              Seleccionar Imágenes
+            </button>
+          </div>
+
+          <!-- Vista previa de archivos seleccionados -->
+          <div class="file-preview-container" *ngIf="selectedFiles.length > 0">
+            <h4>Nuevas Imágenes ({{selectedFiles.length}}/{{maxFiles}})</h4>
+
+            <div class="preview-grid">
+              <div
+                class="preview-item"
+                *ngFor="let previewUrl of previewUrls; let i = index">
+
+                <div class="image-container">
+                  <img [src]="previewUrl" [alt]="selectedFiles[i].name">
+
+                  <button
+                    type="button"
+                    mat-icon-button
+                    class="remove-button"
+                    (click)="removeFile(i)"
+                    color="warn">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+
+                <div class="file-info">
+                  <p class="file-name">{{selectedFiles[i].name}}</p>
+                  <p class="file-size">{{formatFileSize(selectedFiles[i].size)}}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
     </form>
 
   </mat-dialog-content>

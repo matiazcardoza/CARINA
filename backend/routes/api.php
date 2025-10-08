@@ -65,7 +65,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
             ->pluck('permissions.name')
             ->unique()
             ->values();
-        
+
         return response()->json([
             'id' => $user->id,
             'name' => $user->name,
@@ -98,7 +98,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/users-delete/{id}', [UserController::class, 'destroy']);
     Route::put('/users-update-roles', [UserController::class, 'updateUserRoles']);
     //Route::post('/importUser', [UserController::class, 'importUsersSilucia']);
-    //Route::post('/importControlador', [UserController::class, 'importControladorSilucia']);
+    Route::post('/importControlador', [UserController::class, 'importControladorSilucia']);
 
     //Roles Routes
     Route::get('/roles', [RoleController::class, 'index']);
@@ -161,7 +161,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 
 // RUTAS DE SEGUNDA VERSION DEL MOVIMIENTOS DE ALMACEN - TENANT
-Route::middleware(['auth:sanctum'])->group(function () {            
+Route::middleware(['auth:sanctum'])->group(function () {
    Route::get('me/obras', [ObrasController::class,'mine']);
 });
 
@@ -178,8 +178,8 @@ Route::middleware(['auth:sanctum','resolve.obra', 'permission:almacen.access_kar
     Route::get('item-pecosas/{itemPecosa}/movements-kardex/pdf', [MovementKardexController::class, 'pdf'])->middleware(['permission:almacen.generate_report']);
 
     Route::delete('reports/{report}', [MovementKardexController::class, 'destroy'])->middleware(['permission:almacen.delete_report']);
-    Route::get('people/{dni}', [PeopleController::class, 'show'])->middleware(['permission:almacen.create_operator']); 
-    Route::get('people-save/{dni}', [PeopleController::class, 'save'])->middleware(['permission:almacen.create_operator']); 
+    Route::get('people/{dni}', [PeopleController::class, 'show'])->middleware(['permission:almacen.create_operator']);
+    Route::get('people-save/{dni}', [PeopleController::class, 'save'])->middleware(['permission:almacen.create_operator']);
     Route::get('users-operarios', [UserController::class, 'operarios']);
     Route::get('roles-by-obra', [UserObrasController::class, 'userRolesByObra']);
 });
@@ -187,8 +187,8 @@ Route::middleware(['auth:sanctum','resolve.obra', 'permission:almacen.access_kar
 Route::middleware(['auth:sanctum','resolve.default.obra'])->prefix('admin')->group(function () {
     Route::get('accounts', [UserController::class, 'index'])->middleware(['role:almacen.superadmin']);
     Route::get('users/{user}/obras', [UserObrasController::class, 'index'])->middleware(['role:almacen.superadmin']);
-    Route::get('obras', [AdminCatalogController::class, 'obras'])->middleware(['role:almacen.superadmin']);   
-    Route::get('roles', [AdminCatalogController::class, 'roles'])->middleware(['role:almacen.superadmin']);   
+    Route::get('obras', [AdminCatalogController::class, 'obras'])->middleware(['role:almacen.superadmin']);
+    Route::get('roles', [AdminCatalogController::class, 'roles'])->middleware(['role:almacen.superadmin']);
     Route::delete('users/{user}/obras/{obra}', [UserObrasController::class, 'destroy'])->middleware(['role:almacen.superadmin']);
     Route::put('users/{user}/obras/{obra}/roles', [UserObrasController::class, 'syncRoles'])->middleware(['role:almacen.superadmin']);
     Route::post('users/{user}/obras/import', [UserObrasController::class, 'importAttachFromExternal'])->middleware(['role:almacen.superadmin']);
