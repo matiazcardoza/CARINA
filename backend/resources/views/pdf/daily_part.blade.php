@@ -222,8 +222,8 @@
         }
 
         .work-table .hours-col { width: 8%; }
-        .work-table .work-col { 
-            width: 68%; 
+        .work-table .work-col {
+            width: 68%;
             text-align: left;
             padding-left: 8px;
         }
@@ -409,7 +409,7 @@
             vertical-align: middle;
             font-weight: bold;
         }
-        
+
         .hours-main {
             background-color: #E7E6E6;
             font-weight: bold;
@@ -429,7 +429,7 @@
             9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
         ];
         @endphp
-        
+
         <!-- Header -->
         <div class="header">
             <table class="header-table">
@@ -556,7 +556,7 @@
                     $totalHours = 0;
                     $totalMinutes = 0;
                 @endphp
-                
+
                 @foreach($dailyPart as $index => $part)
                     <tr class="work-row">
                         <td>{{ $part->start_time ? \Carbon\Carbon::parse($part->start_time)->format('H:i') : '' }}</td>
@@ -580,7 +580,7 @@
                         </td>
                     </tr>
                 @endforeach
-                
+
                 {{-- Rellenar filas vacías hasta completar 7 filas --}}
                 @for($i = count($dailyPart); $i < 7; $i++)
                     <tr class="work-row">
@@ -640,7 +640,7 @@
                 </tr>
                 <tr>
                     <th style="width: 20%;">PETRÓLEO</th>
-                    <td>Gls. </td>
+                    <td>{{ $service->fuel_consumed }} - Gls. </td>
                     <th style="width: 20%;">GRASA</th>
                     <td>Gls. </td>
                 </tr>
