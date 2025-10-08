@@ -640,7 +640,7 @@
                 </tr>
                 <tr>
                     <th style="width: 20%;">PETRÓLEO</th>
-                    <td>{{ $service->fuel_consumed }} - Gls. </td>
+                    <td>{{ $service->fuel_consumed }} Gls. </td>
                     <th style="width: 20%;">GRASA</th>
                     <td>Gls. </td>
                 </tr>
