@@ -295,6 +295,7 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
         this.error = 'Error al generar el PDF. Por favor, intenta nuevamente.';
       }
     });*/
+    console.log(this.selectedDate);
 
     this.dailyWorkLogService.generatePdf(id, this.selectedDate)
       .subscribe({

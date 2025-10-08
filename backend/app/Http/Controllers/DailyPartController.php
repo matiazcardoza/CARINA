@@ -188,14 +188,17 @@ class DailyPartController extends Controller
 
     public function generatePdf(Request $request, $serviceId)
     {
-        $service = Service::find($serviceId);
-        $orderSilucia = OrderSilucia::find($service->order_id);
+        $service = Service::findOrFail($serviceId);
+        $orderSilucia = OrderSilucia::findOrFail($service->order_id);
         $dailyPart = DailyPart::where('work_date', $request->date)
-                ->where('service_id', $serviceId)->get();
+            ->where('service_id', $serviceId)
+            ->get();
         $mechanicalEquipment = MechanicalEquipment::find($service->mechanical_equipment_id);
+
         $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
         $logoWorkPath = storage_path('app/public/image_pdf_template/logo_work.png');
         $qr_code = base64_encode("data_qr_example");
+
         $data = [
             'logoPath' => $logoPath,
             'logoWorkPath' => $logoWorkPath,
@@ -214,25 +217,34 @@ class DailyPartController extends Controller
         $fileName = "daily_part_{$request->date}.pdf";
         $filePath = "{$directory}/{$fileName}";
 
+        if (Storage::disk('public')->exists($filePath)) {
+            Storage::disk('public')->delete($filePath);
+        }
+
         Storage::disk('public')->put($filePath, $pdf->output());
 
-        $document = DocumentDailyPart::firstOrCreate(
-            ['user_id' => Auth::id()],
-            ['file_path' => $filePath],
-            ['state' => 0]
+        $document = DocumentDailyPart::updateOrCreate(
+            [
+                'user_id' => Auth::id(),
+                'file_path' => $filePath,
+            ],
+            [
+                'state' => 0
+            ]
         );
-
-        $dailypart = DailyPart::where('work_date', $request->date);
-        $dailypart->update([
-            'document_id' => $document->id,
-            'state' => 3
-        ]);
+        DailyPart::where('work_date', $request->date)
+            ->where('service_id', $serviceId)
+            ->update([
+                'document_id' => $document->id,
+                'state' => 3
+            ]);
 
         return response()->json([
-            'message' => 'Save pdf completed successfully',
+            'message' => 'PDF generado y reemplazado correctamente',
             'data' => $dailyPart
         ], 201);
     }
+
 
     public function getDocumentWokLog($serviceId, $date){
         $dailyPart = DailyPart::where('service_id', $serviceId)->where('work_date', $date)->first();
