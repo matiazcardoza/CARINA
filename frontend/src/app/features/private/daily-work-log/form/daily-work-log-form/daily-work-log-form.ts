@@ -97,7 +97,7 @@ export class DailyWorkLogForm implements OnInit {
   }
 
   get isStateTwo(): boolean {
-    return this.data.workLog?.state === 2 || this.data.workLog?.state === 4;
+    return this.data.workLog?.state === 2 || this.data.workLog?.state === 4 || this.data.workLog?.state === 3;
   }
 
   // Getter para determinar si los campos de producto son requeridos
