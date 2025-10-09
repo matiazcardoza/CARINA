@@ -50,8 +50,12 @@ export class Users implements AfterViewInit, OnInit {
   // Estado de carga inicial
   isLoading = false; 
   error: string | null = null;
-  
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+    
+  @ViewChild(MatPaginator) set paginator(mp: MatPaginator) {
+    if (mp) {
+      this.dataSource.paginator = mp;
+    }
+  }
   
   constructor(
     private usersService: UsersService,
@@ -67,9 +71,9 @@ export class Users implements AfterViewInit, OnInit {
       this.loadUsersData();
     });
   }
-  
+
   ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
+    // No es estrictamente necesario con el setter, pero es una buena práctica por si acaso.
   }
   
   loadUsersData(): void {

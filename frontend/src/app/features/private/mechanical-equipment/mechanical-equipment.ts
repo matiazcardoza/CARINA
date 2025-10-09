@@ -53,7 +53,11 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
   isLoading = false;
   error: string | null = null;
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatPaginator) set paginator(mp: MatPaginator) {
+    if (mp) {
+      this.dataSource.paginator = mp;
+    }
+  }
 
   constructor(private cdr: ChangeDetectorRef) {
     this.dataSource.filterPredicate = (data: MechanicalEquipmentElement, filter: string) => {
@@ -67,14 +71,11 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
     this.error = null;
     this.cdr.detectChanges();
 
-    Promise.resolve().then(() => {
-      this.loadMechanicalEquipmentData();
-    });
+    this.loadMechanicalEquipmentData();
   }
 
   ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
-    this.cdr.detectChanges();
+    // El setter de 'paginator' ya se encarga de la asignación.
   }
 
   loadMechanicalEquipmentData(): void {
@@ -87,10 +88,6 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
         .subscribe({
           next: (data) => {
             this.dataSource.data = data;
-            if (this.paginator) {
-              this.dataSource.paginator = this.paginator;
-              this.paginator.length = data.length;
-            }
             this.isLoading = false;
             this.cdr.detectChanges();
           },
@@ -104,7 +101,7 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
   }
 
   reloadData() {
-    Promise.resolve().then(() => this.loadMechanicalEquipmentData());
+    this.loadMechanicalEquipmentData();
   }
 
   openCreateDialog() {
