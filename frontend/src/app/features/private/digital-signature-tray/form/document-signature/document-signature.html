@@ -2,13 +2,13 @@
   <mat-toolbar color="primary" class="signature-toolbar">
     <span>Documento de parte diaria - Reporte de Fecha</span>
     <span class="toolbar-spacer"></span>
-    
+
     <!-- Indicador de estado de firma -->
     <div *ngIf="isSigned" class="signature-status">
       <mat-icon class="signed-icon">check_circle</mat-icon>
       <span class="signed-text">Firmado</span>
     </div>
-    
+
     <button mat-icon-button
             (click)="onCancel()"
             matTooltip="Cancelar">
@@ -34,7 +34,7 @@
     </div>
 
     <!-- PDF Viewer -->
-    <iframe 
+    <iframe
       *ngIf="pdfUrl && !isLoading && !error"
       [src]="pdfUrl"
       class="pdf-viewer"
@@ -53,7 +53,7 @@
       </span>
     </div>
     <button *ngIf="documentState !== 3"
-            mat-raised-button 
+            mat-raised-button
             [color]="isSigned ? 'accent' : 'warn'"
             [disabled]="isLoading"
             (click)="onSign()"
@@ -62,7 +62,7 @@
       {{ isSigned ? 'Firmar nuevamente' : 'Firmar documento' }}
     </button>
     <button *ngIf="hasResidentRole() && documentState !== 2"
-            mat-raised-button 
+            mat-raised-button
             color="primary"
             [disabled]="isLoading"
             (click)="toggleReturnSection()"
@@ -88,9 +88,8 @@
   <mat-toolbar class="signature-actions">
     <form [formGroup]="userForm" class="user-selector-form">
       <mat-form-field appearance="outline" class="user-selector-field dense-form-field">
-        <mat-label>Enviar documento: </mat-label>
         <input type="text"
-              placeholder="Buscar usuario..."
+              placeholder="NOMBRE - DNI - CORREO"
               aria-label="Usuarios"
               matInput
               formControlName="userId"
@@ -99,13 +98,13 @@
                           [displayWith]="displayUser"
                           (optionSelected)="onUserSelected($event.option.value)">
           <mat-option *ngFor="let user of filteredUsers" [value]="user">
-            {{ user.name }} - {{ user.email }}
+            {{ user.persona_name }} {{ user.last_name }} {{ user.num_doc }} - {{ user.email }}
           </mat-option>
         </mat-autocomplete>
         <mat-error *ngIf="userForm.get('userId')?.hasError('required')">El usuario es requerido</mat-error>
       </mat-form-field>
     </form>
-    
+
     <button mat-raised-button
             color="warn"
             [disabled]="!userForm.valid"

@@ -127,13 +127,15 @@ export class DocumentSignature {
   }
 
   displayUser(user: UserElement | null): string {
-    return user ? `${user.name} - ${user.email}` : '';
+    return user ? `${user.persona_name} ${user.last_name} ${user.num_doc} - ${user.email}` : '';
   }
 
   private _filterUsers(value: string): UserElement[] {
     const filterValue = value.toLowerCase();
     return this.users.filter(user =>
-      user.name.toLowerCase().includes(filterValue) ||
+      user.persona_name.toLowerCase().includes(filterValue) ||
+      user.last_name.toLowerCase().includes(filterValue) ||
+      user.num_doc.toLowerCase().includes(filterValue) ||
       user.email.toLowerCase().includes(filterValue)
     );
   }
@@ -194,20 +196,20 @@ export class DocumentSignature {
 
   private roleIdToName = new Map<number, string>([
     [3, 'CONTROLADOR'],
-    [4, 'RESIDENTE'], 
+    [4, 'RESIDENTE'],
     [5, 'SUPERVISOR']
   ]);
 
   private getRoleToSignByDocumentState(): { roleId: number | null, statusPosition: string } {
     const userRoleIds = this.role.map(r => r.id);
-    
+
     switch (this.documentState) {
       case 0:
         if (userRoleIds.includes(3)) {
           return { roleId: 3, statusPosition: '1' };
         }
         break;
-        
+
       case 1:
         if (userRoleIds.includes(4)) {
           return { roleId: 4, statusPosition: '2' };
@@ -216,13 +218,13 @@ export class DocumentSignature {
           return { roleId: 5, statusPosition: '2' };
         }
         break;
-        
+
       case 2:
         if (userRoleIds.includes(5)) {
           return { roleId: 5, statusPosition: '3' };
         }
         break;
-        
+
       default:
         console.warn('Estado de documento no reconocido:', this.documentState);
         break;
@@ -237,15 +239,15 @@ export class DocumentSignature {
 
   private getRoleNameByDocumentState(): string {
     const result = this.getRoleToSignByDocumentState();
-    
+
     if (result.roleId === null) {
       return 'ADMIN';
     }
-    
+
     if (result.roleId === 5 && this.documentState === 1) {
       return 'RESIDENTE';
     }
-    
+
     return this.roleIdToName.get(result.roleId) || 'ADMIN';
   }
 
@@ -326,7 +328,7 @@ export class DocumentSignature {
 
   /*onReturnToController(): void {
     const observation = this.userForm.get('observation')?.value;
-    
+
     if (!observation || observation.trim() === '') {
       alert('Debe ingresar una observación para devolver el documento');
       return;

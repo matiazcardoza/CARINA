@@ -104,13 +104,15 @@ export class DailyWorkSignature {
   }
 
   displayUser(user: UserElement | null): string {
-    return user ? `${user.name} - ${user.email}` : '';
+    return user ? `${user.persona_name} ${user.last_name} ${user.num_doc} - ${user.email}` : '';
   }
 
   private _filterUsers(value: string): UserElement[] {
     const filterValue = value.toLowerCase();
     return this.users.filter(user =>
-      user.name.toLowerCase().includes(filterValue) ||
+      user.persona_name.toLowerCase().includes(filterValue) ||
+      user.last_name.toLowerCase().includes(filterValue) ||
+      user.num_doc.toLowerCase().includes(filterValue) ||
       user.email.toLowerCase().includes(filterValue)
     );
   }
