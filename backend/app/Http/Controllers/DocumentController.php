@@ -7,18 +7,38 @@ use App\Models\DocumentDailyPart;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Smalot\PdfParser\Parser;
 
 class DocumentController extends Controller
 {
     public function getPendingDocuments(){
-        $documents = DocumentDailyPart::select('documents_daily_parts.*', 'services.description', 'services.goal_detail')
-            ->leftJoin('daily_parts', 'documents_daily_parts.id', '=', 'daily_parts.document_id')
-            ->leftJoin('services', 'daily_parts.service_id', '=', 'services.id')
-            ->where('user_id', Auth::id())
-            ->where('documents_daily_parts.state', '!=', 3)
-            ->get();
+        $documents = DocumentDailyPart::select(
+            'documents_daily_parts.id',
+            'documents_daily_parts.user_id',
+            'documents_daily_parts.state',
+            'documents_daily_parts.created_at',
+            'documents_daily_parts.updated_at',
+            'services.description',
+            'services.goal_detail',
+            DB::raw('COUNT(daily_parts.id) as daily_parts_count')
+        )
+        ->leftJoin('daily_parts', 'documents_daily_parts.id', '=', 'daily_parts.document_id')
+        ->leftJoin('services', 'daily_parts.service_id', '=', 'services.id')
+        ->where('user_id', Auth::id())
+        ->where('documents_daily_parts.state', '!=', 3)
+        ->groupBy(
+            'documents_daily_parts.id',
+            'documents_daily_parts.user_id',
+            'documents_daily_parts.state',
+            'documents_daily_parts.created_at',
+            'documents_daily_parts.updated_at',
+            'services.description',
+            'services.goal_detail'
+        )
+        ->get();
+
         return response()->json([
             'message' => 'Documents retrieved successfully',
             'data' => $documents
