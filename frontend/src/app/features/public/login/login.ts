@@ -60,7 +60,7 @@ export class Login implements OnInit {
         })
       ).subscribe({
         next: () => {
-          this.router.navigate(['/carina']);
+          this.router.navigate(['/dashboard']);
         },
         error: async (err: HttpErrorResponse) => {
             const p = await parseHttpError(err);

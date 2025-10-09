@@ -177,6 +177,6 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
   }
 
   navigateToWorkLogId(id: number, state: number) {
-    this.router.navigate(['/carina/daily-work-log/daily-work-log-id', id, state]);
+    this.router.navigate(['/daily-work-log/daily-work-log-id', id, state]);
   }
 }

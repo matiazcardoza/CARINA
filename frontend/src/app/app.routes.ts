@@ -25,24 +25,24 @@ import { PermissionGuard } from './services/AuthService/permission.guard';
 
 export const routes: Routes = [
     {
+        // Rutas públicas que no usan el layout principal
         path: '',
-        redirectTo: 'login',
-        pathMatch: 'full'
+        canActivate: [publicGuard],
+        children: [
+            { path: '', redirectTo: 'login', pathMatch: 'full' },
+            { path: 'login', component: Login }
+        ]
     },
     {
-        path: 'login',
-        component: Login,
-        canActivate: [publicGuard]
-    },
-    {
-        path: 'carina',
+        // Rutas privadas que usan el layout Dashboard
+        path: '',
         component: Dashboard,
         canActivate: [authGuard],
         children: [
             {
                 path: '',
                 redirectTo: 'dashboard',
-                pathMatch: 'full'
+                pathMatch: 'full',
             },
             {
                 path: 'dashboard',
@@ -50,7 +50,7 @@ export const routes: Routes = [
                 canActivate: [PermissionGuard],
                 data: {
                     permissions: ['access_dashboard'],
-                    redirectTo: '/carina/no-permissions'
+                    redirectTo: '/no-permissions'
                 }
             },
             {
@@ -58,7 +58,7 @@ export const routes: Routes = [
                 canActivate: [PermissionGuard],
                 data: {
                     permissions: ['access_work_log'],
-                    redirectTo: '/carina/no-permissions'
+                    redirectTo: '/no-permissions'
                 },
                 children: [
                     {
@@ -72,7 +72,7 @@ export const routes: Routes = [
                         data: {
                             permissions: ['access_work_log_id', 'edit_work_log_id'],
                             checkType: 'any',
-                            redirectTo: '/carina/daily-work-log'
+                            redirectTo: '/daily-work-log'
                         }
                     }
                 ]
@@ -84,7 +84,7 @@ export const routes: Routes = [
                 canActivate: [PermissionGuard],
                 data: {
                     permissions: ['access_equipo_mecanico'],
-                    redirectTo: '/carina/no-permissions'
+                    redirectTo: '/no-permissions'
                 }
             },
             {
@@ -93,7 +93,7 @@ export const routes: Routes = [
                 canActivate: [PermissionGuard],
                 data: {
                     roles: ['SuperAdministrador_pd'],
-                    redirectTo: '/carina/no-permissions'
+                    redirectTo: '/no-permissions'
                 }
             },
             {
@@ -102,7 +102,7 @@ export const routes: Routes = [
                 canActivate: [PermissionGuard],
                 data: {
                     roles: ['SuperAdministrador_pd'],
-                    redirectTo: '/carina/no-permissions'
+                    redirectTo: '/no-permissions'
                 }
             },
             {
@@ -111,7 +111,7 @@ export const routes: Routes = [
                 canActivate: [PermissionGuard],
                 data: {
                     permissions: ['access_reportes'],
-                    redirectTo: '/carina/no-permissions'
+                    redirectTo: '/no-permissions'
                 }
             },
             {
@@ -124,7 +124,7 @@ export const routes: Routes = [
                 canActivate: [PermissionGuard],
                 data: {
                     permissions: ['access_tray_signature'],
-                    redirectTo: '/carina/no-permissions'
+                    redirectTo: '/no-permissions'
                 }
             },
         ]
