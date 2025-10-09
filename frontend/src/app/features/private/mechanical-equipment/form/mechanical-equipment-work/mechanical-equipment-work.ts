@@ -144,14 +144,18 @@ export class MechanicalEquipmentWork implements OnInit {
     });
   }
 
+  private parseDateAsLocal(dateString: string): Date {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }
+
   private preloadFormData(workLog: WorkLogElement): void {
     // Prellenar formulario del operador
     this.operatorForm.patchValue({
       operatorName: workLog.operator || '',
-      start_date: workLog.start_date ? new Date(workLog.start_date) : null,
-      end_date: workLog.end_date ? new Date(workLog.end_date) : null
+      start_date: workLog.start_date ? this.parseDateAsLocal(workLog.start_date) : null,
+      end_date: workLog.end_date ? this.parseDateAsLocal(workLog.end_date) : null
     });
-
     // Prellenar información de Meta si existe
     if (workLog.goal_id) {
       this.selectedMeta = {

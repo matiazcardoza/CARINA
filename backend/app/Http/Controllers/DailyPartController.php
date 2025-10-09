@@ -47,7 +47,7 @@ class DailyPartController extends Controller
             'service_id' => $request->service_id,
             //'itemPecosa_id' => $request->product_id,
             'work_date' => $request->work_date,
-            'start_time' => $request->start_time,
+            'start_time' => date("H:i", strtotime($request->start_time)),
             'initial_fuel' => $request->initial_fuel,
             'description' => $request->description
         ]);
@@ -87,7 +87,6 @@ class DailyPartController extends Controller
 
     public function update(Request $request)
     {
-        Log::info('este es el request:  ', $request->all());
         $dailyPart = DailyPart::findOrFail($request->id);
 
         if ($request->initial_fuel) {
@@ -113,8 +112,8 @@ class DailyPartController extends Controller
             ]);*/
 
             $dailyPart->update([
-                'start_time' =>$request->start_time,
-                'end_time' => $request->end_time,
+                'start_time' =>date("H:i", strtotime($request->start_time)),
+                'end_time' => date("H:i", strtotime($request->end_time)),
                 'occurrences' => $request->occurrences,
                 'work_date' => $request->work_date,
                 //'itemPecosa_id' => $request->product_id,
@@ -165,7 +164,7 @@ class DailyPartController extends Controller
         $workedTime = gmdate('H:i:s', $diffInSeconds);
 
         $dailyPart->update([
-            'end_time'    => $request->end_time,
+            'end_time'    => date("H:i", strtotime($request->end_time)),
             'occurrences' => $request->occurrence,
             'time_worked' => $workedTime,
             'state'       => 2

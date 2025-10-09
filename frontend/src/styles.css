@@ -54,3 +54,14 @@ input, select{
 /* @import 'primeflex/primeflex.css'; */
 /* @import "tailwindcss"; */
 /* @plugin "tailwindcss-primeui"; */
+.timepicker-overlay {
+  z-index: 9999 !important;
+}
+
+.timepicker-backdrop-overlay {
+  z-index: 9998 !important;
+}
+
+ngx-material-timepicker-container {
+  z-index: 9999 !important;
+}

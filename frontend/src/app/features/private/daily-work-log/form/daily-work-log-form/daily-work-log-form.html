@@ -16,16 +16,19 @@
         <mat-error>{{ workDateError }}</mat-error>
       </mat-form-field>
 
-      <!-- Campo de Hora Inicial (Solo lectura - Hora automática) -->
+      <!-- Campo de Hora Inicial -->
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Hora Inicial</mat-label>
         <input matInput
-               formControlName="start_time"
-
-               placeholder="HH:MM - ejemplo - 16:12 = 04:12pm">
-        <mat-hint>La hora se asigna automáticamente</mat-hint>
+              formControlName="start_time"
+              [ngxTimepicker]="startTimePicker"
+              placeholder="HH:MM"
+              readonly>
+        <mat-icon matSuffix (click)="startTimePicker.open()">access_time</mat-icon>
+        <mat-hint>Selecciona la hora de inicio</mat-hint>
         <mat-error>{{ startTimeError }}</mat-error>
       </mat-form-field>
+      <ngx-material-timepicker #startTimePicker [defaultTime]="workLogForm.get('start_time')?.value"></ngx-material-timepicker>
 
       <!-- Campo de Producto - Solo se muestra si shouldShowProductFields es true -->
       <mat-form-field appearance="outline" class="full-width" *ngIf="shouldShowProductFields">
@@ -104,8 +107,10 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Hora de Finalización</mat-label>
           <input matInput
-                 formControlName="end_time"
-                 placeholder="HH:MM">
+                type="time"
+                formControlName="end_time"
+                placeholder="HH:MM">
+          <mat-icon matSuffix>access_time</mat-icon>
           <mat-hint>Hora en que se completó el trabajo</mat-hint>
           <mat-error>{{ endTimeError }}</mat-error>
         </mat-form-field>
