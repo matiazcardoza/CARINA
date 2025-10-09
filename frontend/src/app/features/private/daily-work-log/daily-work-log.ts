@@ -53,7 +53,11 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
   isLoading = false;  // Cambiar el estado inicial
   error: string | null = null;
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatPaginator) set paginator(mp: MatPaginator) {
+    if (mp) {
+      this.dataSource.paginator = mp;
+    }
+  }
 
   ngOnInit() {
     this.isLoading = false;
@@ -66,7 +70,7 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
   }
 
   ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
+    // El setter del paginador se encarga de la asignación.
   }
 
   loadWorkLogData() {
