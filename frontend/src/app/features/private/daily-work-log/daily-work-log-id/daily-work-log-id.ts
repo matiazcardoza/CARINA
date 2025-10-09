@@ -18,7 +18,7 @@ import { DailyWorkLogUpload } from '../form/daily-work-log-upload/daily-work-log
 import { DailyWorkSignature } from './form/daily-work-signature/daily-work-signature';
 import { startWith } from 'rxjs/operators';
 
-import { HasPermissionDirective } from '../../../../shared/directives/permission.directive';
+import { HasPermissionDirective, HasRoleDirective } from '../../../../shared/directives/permission.directive';
 
 export interface WorkLogIdElement {
   id: number;
@@ -44,7 +44,8 @@ export interface WorkLogIdElement {
     MatFormFieldModule,
     MatNativeDateModule,
     ReactiveFormsModule,
-    HasPermissionDirective
+    HasPermissionDirective,
+    HasRoleDirective
 ],
   templateUrl: './daily-work-log-id.html',
   styleUrl: './daily-work-log-id.css'
@@ -211,7 +212,8 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
       maxHeight: '90vh',
       data: {
         isEdit: true,
-        workLog: { id } as WorkLogIdElement
+        workLog: { id } as WorkLogIdElement,
+        serviceId: this.serviceId
       }
     });
 

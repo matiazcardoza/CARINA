@@ -45,7 +45,7 @@ class DailyPartController extends Controller
     {
         $dailyPart = DailyPart::create([
             'service_id' => $request->service_id,
-            'itemPecosa_id' => $request->product_id,
+            //'itemPecosa_id' => $request->product_id,
             'work_date' => $request->work_date,
             'start_time' => $request->start_time,
             'initial_fuel' => $request->initial_fuel,
@@ -117,7 +117,7 @@ class DailyPartController extends Controller
                 'end_time' => $request->end_time,
                 'occurrences' => $request->occurrences,
                 'work_date' => $request->work_date,
-                'itemPecosa_id' => $request->product_id,
+                //'itemPecosa_id' => $request->product_id,
                 'initial_fuel' => $request->initial_fuel,
                 'description' => $request->description
             ]);
@@ -172,12 +172,14 @@ class DailyPartController extends Controller
         ]);
 
         if ($request->hasFile('images')) {
+            $serviceId = $request->serviceId;
+            $directory = "work_evidences/{$serviceId}";
             foreach ($request->file('images') as $index => $image) {
                 $timestamp = now()->format('YmdHis');
                 $extension = $image->getClientOriginalExtension();
                 $fileName = "{$dailyPart->id}_evidence_{$index}_{$timestamp}.{$extension}";
 
-                $path = $image->storeAs('work_evidences', $fileName, 'public');
+                $path = $image->storeAs($directory, $fileName, 'public');
 
                 WorkEvidence::create([
                     'daily_part_id' => $dailyPart->id,

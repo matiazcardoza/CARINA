@@ -24,7 +24,9 @@ class ServiceController extends Controller
                                         'mechanical_equipment.machinery_equipment as mechanicalEquipment')
                                     ->leftJoin('orders_silucia', 'services.order_id', '=', 'orders_silucia.id')
                                     ->leftJoin('mechanical_equipment', 'services.mechanical_equipment_id', '=', 'mechanical_equipment.id')
-                                    ->whereIn('services.goal_id', $goalIds)
+                                    ->when(Auth::id() != 1, function ($query) use ($goalIds) {
+                                        $query->whereIn('services.goal_id', $goalIds);
+                                    })
                                     ->get();
         return response()->json([
             'message' => 'Daily work log retrieved successfully',
@@ -117,64 +119,64 @@ class ServiceController extends Controller
         $dateRange = DailyPart::where('service_id', $serviceId)
             ->selectRaw('MIN(work_date) as min_date, MAX(work_date) as max_date')
             ->first();
-        
+
         $minDate = $dateRange->min_date;
         $maxDate = $dateRange->max_date;
-        
+
         Carbon::setLocale('es');
         $minDateFormatted = Carbon::parse($minDate)->locale('es')->isoFormat('D/M/YYYY');
         $maxDateFormatted = Carbon::parse($maxDate)->locale('es')->isoFormat('D/M/YYYY');
-        
+
         $mechanicalEquipment = MechanicalEquipment::find($service->mechanical_equipment_id);
         $orderSilucia = OrderSilucia::find($service->order_id);
 
         $dailyParts = DailyPart::where('service_id', $serviceId)->get();
-        
+
         if ($dailyParts->isEmpty()) {
             return response()->json(['error' => 'No se encontraron datos para este servicio'], 404);
         }
-        
+
         $startDate = Carbon::parse($minDate);
         $endDate = Carbon::parse($maxDate);
         $dateRange = [];
-        
+
         while ($startDate->lte($endDate)) {
             $dateRange[] = $startDate->format('Y-m-d');
             $startDate->addDay();
         }
-        
+
         $processedData = [];
         $totalHoursWorked = 0;
         $totalEquivalentHours = 0;
         $totalFuelConsumption = 0;
         $totalDaysWorked = 0;
         $totalAmount = 0;
-        
+
         foreach ($dateRange as $date) {
             $dayParts = $dailyParts->where('work_date', $date);
-            
+
             if ($dayParts->count() > 0) {
                 $totalSecondsWorked = 0;
                 $totalFuelDay = 0;
-                
+
                 foreach ($dayParts as $part) {
                     $timeParts = explode(':', $part->time_worked);
                     $hours = (int)$timeParts[0];
                     $minutes = (int)$timeParts[1];
                     $seconds = isset($timeParts[2]) ? (int)$timeParts[2] : 0;
-                    
+
                     $totalSecondsWorked += ($hours * 3600) + ($minutes * 60) + $seconds;
                     $totalFuelDay += $part->initial_fuel ?? 0;
                 }
-                
+
                 $hoursWorked = floor($totalSecondsWorked / 3600);
                 $minutesWorked = floor(($totalSecondsWorked % 3600) / 60);
                 $timeWorkedFormatted = sprintf('%02d:%02d', $hoursWorked, $minutesWorked);
-                
+
                 $equivalentHours = $hoursWorked + ($minutesWorked / 60);
                 $costPerHour = $mechanicalEquipment->cost_hour ?? $orderSilucia->cost_hour;
                 $dailyAmount = $equivalentHours * $costPerHour;
-                
+
                 $processedData[] = [
                     'date' => Carbon::parse($date)->format('d/m/Y'),
                     'time_worked' => $timeWorkedFormatted,
@@ -190,7 +192,7 @@ class ServiceController extends Controller
                 $totalFuelConsumption += $totalFuelDay;
                 $totalDaysWorked++;
                 $totalAmount += $dailyAmount;
-                
+
             } else {
                 $costPerHour = $mechanicalEquipment->cost_hour ?? $orderSilucia->cost_hour;
                 $processedData[] = [
@@ -205,12 +207,12 @@ class ServiceController extends Controller
                 ];
             }
         }
-        
+
         // Convertir total de horas trabajadas a formato HH:MM
         $totalHours = floor($totalHoursWorked / 3600);
         $totalMinutes = floor(($totalHoursWorked % 3600) / 60);
         $totalTimeFormatted = sprintf('%02d:%02d', $totalHours, $totalMinutes);
-        
+
         // Preparar datos de totales sin redondear internamente
         $totals = [
             'time_worked' => $totalTimeFormatted,
@@ -220,10 +222,10 @@ class ServiceController extends Controller
             'cost_per_hour' => $mechanicalEquipment->cost_hour ?? $orderSilucia->cost_hour ?? 285.00,
             'total_amount' => $totalAmount
         ];
-        
+
         $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
         $qr_code = base64_encode("data_qr_example");
-        
+
         $data = [
             'logoPath' => $logoPath,
             'mechanicalEquipment' => $mechanicalEquipment,
@@ -249,63 +251,63 @@ class ServiceController extends Controller
         $dateRange = DailyPart::where('service_id', $serviceId)
             ->selectRaw('MIN(work_date) as min_date, MAX(work_date) as max_date')
             ->first();
-        
+
         $minDate = $dateRange->min_date;
         $maxDate = $dateRange->max_date;
-        
+
         Carbon::setLocale('es');
         $minDateFormatted = Carbon::parse($minDate)->locale('es')->isoFormat('DD/MM/YYYY');
         $maxDateFormatted = Carbon::parse($maxDate)->locale('es')->isoFormat('DD/MM/YYYY');
-        
+
         $mechanicalEquipment = MechanicalEquipment::find($service->mechanical_equipment_id);
         $orderSilucia = OrderSilucia::find($service->order_id);
-        
+
         $dailyParts = DailyPart::where('service_id', $serviceId)->get();
-        
+
         if ($dailyParts->isEmpty()) {
             return response()->json(['error' => 'No se encontraron datos para este servicio'], 404);
         }
-        
+
         $totalHoursWorked = 0;
         $totalEquivalentHours = 0;
         $totalFuelConsumption = 0;
         $totalDaysWorked = 0;
         $totalAmount = 0;
-        
+
         $startDate = Carbon::parse($minDate);
         $endDate = Carbon::parse($maxDate);
         $dateRange = [];
-        
+
         while ($startDate->lte($endDate)) {
             $dateRange[] = $startDate->format('Y-m-d');
             $startDate->addDay();
         }
-        
+
         // Procesar cada día
         foreach ($dateRange as $date) {
             $dayParts = $dailyParts->where('work_date', $date);
-            
+
             if ($dayParts->count() > 0) {
                 $totalSecondsWorked = 0;
                 $totalFuelDay = 0;
-                
+
                 foreach ($dayParts as $part) {
                     $timeParts = explode(':', $part->time_worked);
                     $hours = (int)$timeParts[0];
                     $minutes = (int)$timeParts[1];
                     $seconds = isset($timeParts[2]) ? (int)$timeParts[2] : 0;
-                    
+
                     $totalSecondsWorked += ($hours * 3600) + ($minutes * 60) + $seconds;
                     $totalFuelDay += $part->initial_fuel ?? 0;
                 }
-                
+
                 if ($totalSecondsWorked > 0) {
                     $totalHoursWorked += $totalSecondsWorked;
                     $equivalentHours = $totalSecondsWorked / 3600;
                     $totalEquivalentHours += $equivalentHours;
                     $totalFuelConsumption += $totalFuelDay;
                     $totalDaysWorked++;
-                    
+
                     // Calcular costo del día
                     $costPerHour = $mechanicalEquipment->cost_hour ?? $orderSilucia->cost_hour ?? 285.00;
                     $dailyAmount = $equivalentHours * $costPerHour;
@@ -313,24 +315,24 @@ class ServiceController extends Controller
                 }
             }
         }
-        
+
         // Convertir total de horas trabajadas a formato legible
         $totalHours = floor($totalHoursWorked / 3600);
         $totalMinutes = floor(($totalHoursWorked % 3600) / 60);
         $totalTimeFormatted = sprintf('%02d:%02d', $totalHours, $totalMinutes);
-        
+
         $costPerHour = $mechanicalEquipment->cost_hour ?? $orderSilucia->cost_hour ?? 285.00;
         $costPerDay = $totalDaysWorked > 0 ? $totalAmount / $totalDaysWorked : 0;
-        
+
         $formatter = new \NumberFormatter('es', \NumberFormatter::SPELLOUT);
         $totalInWords = strtoupper($formatter->format(floor($totalAmount)));
         $cents = round(($totalAmount - floor($totalAmount)) * 100);
         $totalInWordsComplete = $totalInWords . ' CON ' . sprintf('%02d', $cents) . '/100 SOLES';
-        
+
         $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
         $logoWorkPath = storage_path('app/public/image_pdf_template/logo_work.png');
         $qr_code = base64_encode("data_qr_example");
-        
+
         $data = [
             'logoPath' => $logoPath,
             'logoWorkPath' => $logoWorkPath,

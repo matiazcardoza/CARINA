@@ -12,6 +12,7 @@ import { DailyWorkLogService } from '../../../../../services/DailyWorkLogService
 export interface UploadDialogData {
   isEdit: boolean;
   workLog: any;
+  serviceId: string | number;
 }
 
 @Component({
@@ -57,7 +58,7 @@ export class DailyWorkLogUpload implements OnInit {
   ngOnInit() {
     // APLICAR LA MISMA LÓGICA: Establecer la hora actual y luego deshabilitar
     this.setCurrentTime();
-    
+
     // Deshabilitar el campo después de establecer el valor, igual que en el componente principal
     //this.uploadForm.get('end_time')?.disable();
   }
@@ -141,10 +142,11 @@ export class DailyWorkLogUpload implements OnInit {
 
       const formValue = this.uploadForm.getRawValue();
       const formData = new FormData();
-      
+
       formData.append('workLogId', this.data.workLog.id.toString());
       formData.append('end_time', formValue.end_time);
       formData.append('occurrence', formValue.occurrence || '');
+      formData.append('serviceId', this.data.serviceId.toString());
 
       this.selectedFiles.forEach((file, index) => {
         formData.append(`images[]`, file);

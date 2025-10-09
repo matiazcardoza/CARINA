@@ -39,8 +39,18 @@
         </button>
       </ng-container>
 
-      <ng-container>
+      <ng-container *ngIf="showPdfButton">
         <button *appHasPermission="'generate_pdf_work_log_id'"
+                mat-icon-button
+                (click)="generatePdf(convertWorkLogId(serviceId))"
+                matTooltip="Generar PDF"
+                class="action-btn pdf-btn">
+          <mat-icon>picture_as_pdf</mat-icon>
+        </button>
+      </ng-container>
+
+      <ng-container>
+        <button *appHasRole="'SuperAdministrador_pd'"
                 mat-icon-button
                 (click)="generatePdf(convertWorkLogId(serviceId))"
                 matTooltip="Generar PDF"
