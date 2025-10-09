@@ -144,6 +144,16 @@ export class DailyWorkLogForm implements OnInit {
     });
   }
 
+  private convertTo12HourFormat(time24: string): string {
+    if (!time24) return '';
+    
+    const [hours, minutes] = time24.split(':').map(Number);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const hours12 = hours % 12 || 12;
+    
+    return `${hours12.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${period}`;
+  }
+
   private setupFormValues() {
     if (this.data.isEdit && this.data.workLog) {
       let adjustedWorkDate: Date | null = null;
@@ -154,7 +164,7 @@ export class DailyWorkLogForm implements OnInit {
       }
       const formValues: any = {
         work_date: adjustedWorkDate,
-        start_time: this.data.workLog.start_time,
+        start_time: this.convertTo12HourFormat(this.data.workLog.start_time),
         description: this.data.workLog.description || '',
         initial_fuel: this.data.workLog.initial_fuel
       };
@@ -167,7 +177,7 @@ export class DailyWorkLogForm implements OnInit {
         this.workLogForm.get('initial_fuel')?.enable();
       }*/
      if (this.isStateTwo) {
-        formValues.end_time = this.data.workLog.end_time || '';
+        formValues.end_time = this.convertTo12HourFormat(this.data.workLog.end_time || '');
         formValues.occurrences = this.data.workLog.occurrences || '';
 
         // Cargar imágenes existentes si las hay
@@ -185,7 +195,6 @@ export class DailyWorkLogForm implements OnInit {
       this.workLogForm.patchValue({
         work_date: initialDate
       });
-      this.setCurrentTime();
 
       //this.workLogForm.get('work_date')?.disable();
       //this.workLogForm.get('start_time')?.disable();
@@ -232,18 +241,6 @@ export class DailyWorkLogForm implements OnInit {
         this.cdr.detectChanges();
       }
     });
-  }
-
-  private setCurrentTime() {
-    const now = new Date();
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const currentTime = `${hours}:${minutes}`;
-
-    this.workLogForm.patchValue({
-      start_time: currentTime
-    });
-    this.cdr.detectChanges();
   }
 
   get title(): string {

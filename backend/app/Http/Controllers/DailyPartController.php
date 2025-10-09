@@ -152,9 +152,10 @@ class DailyPartController extends Controller
     public function completeWork(Request $request)
     {
         $dailyPart = DailyPart::find($request->workLogId);
+        $endTime = date("H:i", strtotime($request->end_time));
 
         $start = Carbon::createFromFormat('H:i:s', $dailyPart->start_time);
-        $end = Carbon::createFromFormat('H:i', $request->end_time);
+        $end = Carbon::createFromFormat('H:i', $endTime);
 
         if ($end->lessThan($start)) {
             $end->addDay();
@@ -164,7 +165,7 @@ class DailyPartController extends Controller
         $workedTime = gmdate('H:i:s', $diffInSeconds);
 
         $dailyPart->update([
-            'end_time'    => date("H:i", strtotime($request->end_time)),
+            'end_time'    => $endTime,
             'occurrences' => $request->occurrence,
             'time_worked' => $workedTime,
             'state'       => 2

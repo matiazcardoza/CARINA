@@ -8,6 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
 import { DailyWorkLogService } from '../../../../../services/DailyWorkLogService/daily-work-log-service';
+import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 
 export interface UploadDialogData {
   isEdit: boolean;
@@ -27,7 +28,8 @@ export interface UploadDialogData {
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatIconModule
+    MatIconModule,
+    NgxMaterialTimepickerModule
   ]
 })
 export class DailyWorkLogUpload implements OnInit {
