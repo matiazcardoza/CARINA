@@ -55,7 +55,7 @@
 
     <button mat-raised-button
             [color]="isSigned ? 'accent' : 'warn'"
-            [disabled]="isLoading"
+            [disabled]="isLoading || !canControllerSign()"
             (click)="onSign()"
             class="sign-button">
       <mat-icon>{{ isSigned ? 'refresh' : 'create' }}</mat-icon>

@@ -59,6 +59,7 @@ export class DailyWorkSignature {
   isSigned = false;
   signatureData: any = null;
   isSigningInProgress = false;
+  documentState: number = 0;
 
   userForm: FormGroup;
   users: UserElement[] = [];
@@ -140,6 +141,7 @@ export class DailyWorkSignature {
             const pdfPath = data.file_path;
             const document_id = data.id;
             this.documentId = document_id;
+            this.documentState = data.state || 0;
 
             const fullPdfUrl = `${environment.BACKEND_URL_STORAGE}${pdfPath}`;
             this.pdfUrlString = fullPdfUrl;
@@ -158,6 +160,10 @@ export class DailyWorkSignature {
           this.cdr.detectChanges();
         }
       });
+  }
+
+  canControllerSign(): boolean {
+    return this.documentState === 0;
   }
 
   onSign(): void {

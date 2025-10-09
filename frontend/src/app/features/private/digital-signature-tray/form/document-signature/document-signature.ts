@@ -144,6 +144,10 @@ export class DocumentSignature {
     return this.role.some(r => r.id === 4);
   }
 
+  isController(): boolean {
+    return this.role.some(r => r.id === 3);
+  }
+
   toggleReturnSection(): void {
     this.showReturnSection = !this.showReturnSection;
     if (!this.showReturnSection) {
@@ -359,5 +363,16 @@ export class DocumentSignature {
 
   onRetry(): void {
     this.loadPdfDocument();
+  }
+
+  isControllerAndCanSign(): boolean {
+    const isController = this.role.some(r => r.id === 3);
+    const isStateZero = this.documentState === 0;
+
+    // Además, verifica si el rol que DEBE firmar en este estado corresponde al Controlador
+    const roleToSign = this.getRoleToSignByDocumentState().roleId;
+    const isControllerTurn = roleToSign === 3;
+
+    return isController && isStateZero && isControllerTurn;
   }
 }
