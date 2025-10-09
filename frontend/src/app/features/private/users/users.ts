@@ -10,6 +10,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { UsersService } from '../../../services/UsersService/users-service';
 import { UsersForm } from './form/users-form/users-form';
 import { UserRolesForm } from './form/user-roles-form/user-roles-form';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 export interface UserElement {
   id: number;
@@ -35,7 +37,9 @@ export interface UserElement {
     MatTableModule,
     MatPaginatorModule,
     MatTooltipModule,
-    MatChipsModule // Para mostrar roles como chips
+    MatChipsModule,
+    MatInputModule,
+    MatFormFieldModule
   ],
   templateUrl: './users.html',
   styleUrl: './users.css'
@@ -60,7 +64,27 @@ export class Users implements AfterViewInit, OnInit {
   constructor(
     private usersService: UsersService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    this.dataSource.filterPredicate = (data: UserElement, filter: string) => {
+      const dataStr = (
+        data.persona_name + 
+        data.last_name + 
+        data.num_doc + 
+        data.name + 
+        data.email
+      ).toLowerCase();
+      return dataStr.indexOf(filter) !== -1;
+    };
+  }
+
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
+  }
   
   ngOnInit() {
     this.isLoading = false;
