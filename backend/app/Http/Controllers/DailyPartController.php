@@ -236,16 +236,33 @@ class DailyPartController extends Controller
         }
 
         Storage::disk('public')->put($filePath, $pdf->output());
+        $existingDocument = DocumentDailyPart::where('file_path', $filePath)->first();
+        if (Auth::id() == 1) {
+            if ($existingDocument) {
+                $existingDocument->update([
+                    'state' => 0
+                ]);
+                $document = $existingDocument;
+            } else {
+                $document = DocumentDailyPart::create([
+                    'user_id' => Auth::id(),
+                    'file_path' => $filePath,
+                    'state' => 0
+                ]);
+            }
+        } else {
+            $document = DocumentDailyPart::updateOrCreate(
+                [
+                    'user_id' => Auth::id(),
+                    'file_path' => $filePath,
+                ],
+                [
+                    'state' => 0
+                ]
+            );
+        }
 
-        $document = DocumentDailyPart::updateOrCreate(
-            [
-                'user_id' => Auth::id(),
-                'file_path' => $filePath,
-            ],
-            [
-                'state' => 0
-            ]
-        );
+        
         DailyPart::where('work_date', $request->date)
             ->where('service_id', $serviceId)
             ->update([
