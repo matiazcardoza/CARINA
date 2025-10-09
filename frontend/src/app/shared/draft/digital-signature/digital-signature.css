@@ -1,4 +1,0 @@
-    .title { font: 600 18px/1.2 system-ui; margin-bottom: 12px; }
-    button { padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; cursor: pointer; }
-    button[disabled] { opacity: .6; cursor: not-allowed; }
-    p { margin-top: 10px; }

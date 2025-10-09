@@ -91,13 +91,13 @@ class DailyPartController extends Controller
         $dailyPart = DailyPart::findOrFail($request->id);
 
         if ($request->initial_fuel) {
-            if ($dailyPart->itemPecosa_id != $request->product_id) {
+            /*if ($dailyPart->itemPecosa_id != $request->product_id) {
                 $prevProduct = ItemPecosa::find($dailyPart->itemPecosa_id);
                 $prevProduct->update([
                     'quantity_received' => $dailyPart->initial_fuel,
                     'quantity_on_hand' => $prevProduct->stock_qty + $dailyPart->initial_fuel
                 ]);
-            }
+            }*/
 
             /*$product = ItemPecosa::find($request->product_id);
             $diferentFuel = $request->initial_fuel - $dailyPart->initial_fuel;

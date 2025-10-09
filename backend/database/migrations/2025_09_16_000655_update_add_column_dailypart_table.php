@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('daily_parts', function (Blueprint $table) {
-            $table->unsignedBigInteger('document_id')->after('itemPecosa_id')->nullable();
+            $table->unsignedBigInteger('document_id')->after('service_id')->nullable();
             $table->foreign('document_id')->references('id')->on('documents_daily_parts')->onDelete('cascade')->onUpdate('cascade');
         });
     }

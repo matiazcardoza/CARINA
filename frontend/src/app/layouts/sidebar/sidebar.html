@@ -1,12 +1,10 @@
-<!-- HEADLESS (sin Tailwind + animación nativa) -->
 <p-drawer
-  #drawerRef 
+  #drawerRef
   [visible]="isOpen()"
   [modal]="false"
   [style]="{ 'background': 'red' }">
   <ng-template #headless>
     <div class="drawer">
-      <!-- Título -->
       <div class="drawer__header">
         <span class="brand">
           <strong>
@@ -14,21 +12,18 @@
           </strong>
         </span>
         <span>
-          <p-button 
-            type="button" 
+          <p-button
+            type="button"
             (onClick)="handleOpenSidebar()"
-            icon="pi pi-times" 
-            rounded="true" 
-            outlined="true" 
+            icon="pi pi-times"
+            rounded="true"
+            outlined="true"
             styleClass="icon-24">
           </p-button>
         </span>
       </div>
 
-      <!-- Scroll -->
       <div class="drawer__scroll">
-
-        <!-- PARTES DIARIOS DIGITALES - Solo mostrar si tiene alguno de estos permisos -->
         <ul class="menu" *appHasPermission="['access_dashboard', 'access_work_log', 'access_equipo_mecanico', 'access_reportes']">
           <li>
             <button class="menu__toggle" (click)="toggle('fav')">
@@ -38,106 +33,46 @@
 
             @if (favOpen()) {
               <ul class="menu__list" animate.enter="slide-down" animate.leave="slide-up">
-                
-                <!-- Dashboard - Solo si tiene permiso access_dashboard -->
+
                 <li *appHasPermission="'access_dashboard'" routerLink="dashboard">
                   <a class="menu__link">
                     <i class="pi pi-chart-line"></i>
                     <span>Dashboard</span>
                   </a>
                 </li>
-                
-                <!-- Registro de trabajo diario - Solo si tiene permiso access_work_log -->
+
                 <li *appHasPermission="'access_work_log'" routerLink="daily-work-log">
                   <a class="menu__link">
                     <i class="pi pi-pen-to-square"></i>
                     <span>Registro de trabajo diario</span>
                   </a>
                 </li>
-                
-                <!-- Equipo Mecánico - Solo si tiene permiso access_equipo_mecanico -->
+
                 <li *appHasPermission="'access_equipo_mecanico'" routerLink="mechanical_equipment">
                   <a class="menu__link">
                     <i class="pi pi-cog"></i>
                     <span>Equipo Mecanico</span>
                   </a>
                 </li>
-                
-                <!-- Reportes - Solo si tiene permiso access_reportes -->
+
                 <li *appHasPermission="'access_reportes'" routerLink="reports">
                   <a class="menu__link">
                     <i class="pi pi-table"></i>
                     <span>Reportes</span>
                   </a>
                 </li>
-                
-                <!-- Bandeja firmas - Visible por defecto (agregar permiso específico si es necesario) -->
+
                 <li routerLink="digital-signature-tray">
                   <a class="menu__link">
                     <i class="pi pi-pencil"></i>
                     <span>Bandeja firmas - Partes Diarias</span>
                   </a>
                 </li>
-                
+
               </ul>
             }
           </li>
         </ul>
-
-        <!-- ALMACÉN DIGITAL - Visible por defecto (agregar permisos cuando estén definidos) -->
-        <!-- <ul class="menu">
-          <li>
-            <button class="menu__toggle" (click)="toggle('app')">
-              <span class="menu__section">ALMACÉN DIGITAL</span>
-              <i class="pi" [class.pi-chevron-down]="!appOpen()" [class.pi-chevron-up]="appOpen()"></i>
-            </button>
-
-            @if (appOpen()) {
-              <ul class="menu__list" animate.enter="slide-down" animate.leave="slide-up">
-                <li routerLink="kardex-management">
-                  <a class="menu__link">
-                    <i class="pi pi-folder"></i>
-                    <span>Gestión del kardex</span>
-                  </a>
-                </li>
-                <li routerLink="digital-signatures">
-                  <a class="menu__link">
-                    <i class="pi pi-chart-bar"></i>
-                    <span>Firmas de reportes</span>
-                  </a>
-                </li>
-                <li routerLink="test-requests">
-                  <a class="menu__link">
-                    <i class="pi pi-cog"></i>
-                    <span>Settings</span>
-                  </a>
-                </li>
-              </ul>
-            }
-          </li>
-        </ul> -->
-        <ul class="menu" *appHasPermission="['almacen.access_kardex_management', 'access_user_management', 'access_obras_management']">
-          <li>
-            <!-- APPLICATION -->
-            <button class="menu__toggle" (click)="toggle('app')">
-              <span class="menu__section">ALMACÉN DIGITAL</span>
-              <i class="pi" [class.pi-chevron-down]="!appOpen()" [class.pi-chevron-up]="appOpen()"></i>
-            </button>
-
-            @if (appOpen()) {
-              <ul class="menu__list" animate.enter="slide-down" animate.leave="slide-up">
-                <!-- <li routerLink="kardex-management"><a class="menu__link"><i class="pi pi-folder" ></i><span>Gestión del kardex</span></a></li> -->
-                <!-- <li routerLink="digital-signatures"><a class="menu__link"><i class="pi pi-chart-bar"></i><span>Firmas de reportes</span></a></li> -->
-                <!-- <li routerLink="test-requests"><a class="menu__link"><i class="pi pi-cog"></i><span>Settings</span></a></li> -->
-                <li *appHasPermission="['almacen.access_kardex_management']" routerLink="whm-kardex-management"><a class="menu__link"><i class="pi pi-warehouse" ></i><span>kardex</span></a></li>
-                <li *appHasPermission="['almacen.access_user_management']" routerLink="whm-user-management"><a class="menu__link"><i class="pi pi-android"></i><span>Gestión de usuarios</span></a></li>
-                <li *appHasPermission="['almacen.access_obras_management']" routerLink="whm-obras-management"><a class="menu__link"><i class="pi pi-building"></i><span>Gestión de Obras</span></a></li>
-              </ul>
-            }
-          </li>
-        </ul>
-
-        <!-- USUARIOS - Solo SuperAdministrador -->
         <ul class="menu" *appHasRole="'SuperAdministrador_pd'">
           <li>
             <button class="menu__toggle" (click)="toggle('fav')">
@@ -163,35 +98,11 @@
             }
           </li>
         </ul>
-
-        <!-- VALES DE TRANSPORTE - Visible por defecto (agregar permisos cuando estén definidos) -->
-        <!-- <ul class="menu">
-          <li>
-            <button class="menu__toggle" (click)="toggle('transportVouchers')">
-              <span class="menu__section">VALES DE TRANSPORTE</span>
-              <i class="pi" [class.pi-chevron-down]="!transportVouchersOpen()" [class.pi-chevron-up]="transportVouchersOpen()"></i>
-            </button>
-
-            @if (transportVouchersOpen()) {
-              <ul class="menu__list" animate.enter="slide-down" animate.leave="slide-up">
-                <li routerLink="fuel-vaucher">
-                  <a class="menu__link">
-                    <i class="pi pi-folder"></i>
-                    <span>First item</span>
-                  </a>
-                </li>
-              </ul>
-            }
-          </li>
-        </ul> -->
-        
       </div>
 
-      <!-- Footer -->
       <div class="drawer__footer">
         <hr class="hr" />
         <a class="profile flex justify-content-center">
-          <!-- <p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png" shape="circle"></p-avatar> -->
           <span class="profile__name flex justify-content-center ">Versión 1.0.0</span>
         </a>
       </div>

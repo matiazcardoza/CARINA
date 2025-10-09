@@ -94,7 +94,8 @@ return [
          */
 
         // 'team_foreign_key' => 'team_id',
-        'team_foreign_key' => 'obra_id',
+        //'teams' => false,
+        // 'team_foreign_key' => 'team_id',
     ],
 
     /*
@@ -133,7 +134,7 @@ return [
      */
 
     // 'teams' => false,
-    'teams' => true,
+    //'teams' => true,
 
     /*
      * The class to use to resolve the permissions team id

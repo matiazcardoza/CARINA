@@ -1,9 +1,0 @@
-<div>
-    Parent component: {{valueOfFather()}}
-    <button class="button_style" (click)="addValue()">Add value</button>
-</div>
-
-<app-child-component
-    (valueTosendToParent)="addSpecificValue($event)"
-    [valueOfFatherx]="valueOfFather()"
-/>

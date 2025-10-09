@@ -1,7 +1,0 @@
-/* show-user-details-modal.css */
-.search-bar { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; margin-bottom:.5rem; }
-.results-wrapper { border:1px solid #e5e7eb; border-radius:.5rem; padding:.5rem; margin:.5rem 0; }
-.results-wrapper table.mini { width:100%; border-collapse:collapse; }
-.results-wrapper table.mini th, .results-wrapper table.mini td { border-bottom:1px solid #eee; padding:.45rem .35rem; }
-.pick-bar { margin-top:.5rem; display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
-.muted { color:#6b7280; }

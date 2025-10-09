@@ -241,7 +241,7 @@ class UserController extends Controller
         if ($request->has('roles')) {
             $user->roles()->sync($request->roles);
         }
-        
+
         return response()->json([
             'message' => 'Usuario y roles actualizados correctamente',
             'data' => $user->load('roles')
@@ -250,7 +250,6 @@ class UserController extends Controller
 
     function updateUserRoles(Request $request)
     {
-        setPermissionsTeamId(1);
         $user = User::find($request->userId);
         $user->roles()->sync($request->roles);
 
@@ -284,7 +283,6 @@ class UserController extends Controller
     }
 
     public function importUsersSilucia(){
-        setPermissionsTeamId(1);
         set_time_limit(0);
         $url = 'https://sistemas.regionpuno.gob.pe/siluciav2-api/api/personal/lista?rowsPerPage=0&flag=T&idrol=17';
         $response = Http::get($url);
@@ -320,7 +318,6 @@ class UserController extends Controller
     }
 
     public function importControladorSilucia(){
-        setPermissionsTeamId(1);
         set_time_limit(0);
         $url = 'https://sistemas.regionpuno.gob.pe/siluciav2-api/api/personal/lista?rowsPerPage=0&flag=T&idrol=34';
         $response = Http::get($url);

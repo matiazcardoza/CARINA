@@ -1,55 +1,22 @@
 <?php
 
-use App\Http\Controllers\AdminCatalogController;
-use App\Http\Controllers\ObraIndexController;
-// use App\Http\Controllers\Admin\UserIndexController;
-use App\Http\Controllers\UserIndexController;
 use App\Http\Controllers\DailyPartController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\MechanicalEquipmentController;
-use App\Http\Controllers\MovementKardexController;
 use App\Http\Controllers\OrderSiluciaController;
-use App\Http\Controllers\OrderProductsController;
-use App\Http\Controllers\PeopleController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\ProductMovementKardexController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SignatureController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PurchaseOrdersController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\OCController;
-use App\Models\Service;
-
-use App\Http\Controllers\PecosaController;
-use App\Http\Controllers\FuelOrderController;
-use App\Http\Controllers\MembersController;
-use App\Http\Controllers\MovementController;
-use App\Http\Controllers\ObraImportUsersController;
-use App\Http\Controllers\ObrasController;
-use App\Http\Controllers\SignaturesController;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\UserObrasController;
-use App\Http\Controllers\OrdenCompraDetalladoController;
-use App\Models\SignatureFlow;
-use App\Models\SignatureStep;
-use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-
-// use App\Http\Controllers\PdfControllerKardex;
-// use Illuminate\Support\Facades\Auth;
-// use App\Http\Controllers\OrderProductoController;
-// use Illuminate\Support\Facades\Storage;
 
 Route::post('/document-signature/{documentId}', [SignatureController::class, 'storeSignature']);
-
-
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {
-        setPermissionsTeamId(1);
         $user = $request->user();
         // Obtener todos los roles del usuario sin filtrar por team_id
        $roles = DB::table('model_has_roles')
@@ -79,7 +46,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Nueva ruta para obtener permisos del usuario
     Route::get('/user/permissions', function (Request $request) {
-        setPermissionsTeamId(1);
         $user = $request->user();
         $permission = $user->getAllPermissions()->pluck('name');
         $roles = $user->getRoleNames();
@@ -148,77 +114,4 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //evendence
     Route::get('/daily-work-evendece/{serviceId}', [EvidenceController::class, 'getEvidence']);
-
-    // recurso anidado se obtiene productos pertenecientes a una orden sillucia
-    Route::apiResource('orders-silucia.products', OrderProductsController::class)
-        ->parameters([
-            'orders-silucia' => 'order_silucia'
-        ])
-        ->only(['index','store'])
-        ->shallow();
-
 });
-
-
-// RUTAS DE SEGUNDA VERSION DEL MOVIMIENTOS DE ALMACEN - TENANT
-Route::middleware(['auth:sanctum'])->group(function () {
-   Route::get('me/obras', [ObrasController::class,'mine']);
-});
-
-Route::middleware(['auth:sanctum','resolve.obra', 'permission:almacen.access_kardex_management'])->group(function () {
-// Route::middleware(['auth:sanctum','resolve.obra', 'role:almacen.residente'])->group(function () {
-    // Route::get('obras/{obra}/item-pecosas', [PecosaController::class, 'testPecosas']);
-    Route::get('obras/{obra}/ordenes-compra-detallado', [OrdenCompraDetalladoController::class, 'getOrdenesDeCompraDetallado']);
-    // Route::post('kardex-movements/{itemPecosa}', [MovementKardexController::class, 'store'])->middleware(['permission:almacen.create_new_movement']);
-    Route::post('kardex-movements/{ordenCompraDetallado}', [MovementKardexController::class, 'storeKardexMovement'])->middleware(['permission:almacen.create_new_movement']);
-
-    Route::get('ordenes-compra-detallado/{ordenCompraDetallado}/movements-kardex', [OrdenCompraDetalladoController::class, 'getMovementKardex']);
-    Route::get('ordenes-compra-detallado/{ordenCompraDetallado}/movements-kardex/pdf', [OrdenCompraDetalladoController::class, 'pdf'])->middleware(['permission:almacen.generate_report']);
-    Route::get('item-pecosas/{itemPecosa}/movements-kardex', [PecosaController::class, 'getItemPecosas']);
-    Route::get('item-pecosas/{itemPecosa}/movements-kardex/pdf', [MovementKardexController::class, 'pdf'])->middleware(['permission:almacen.generate_report']);
-
-    Route::delete('reports/{report}', [MovementKardexController::class, 'destroy'])->middleware(['permission:almacen.delete_report']);
-    Route::get('people/{dni}', [PeopleController::class, 'show'])->middleware(['permission:almacen.create_operator']);
-    Route::get('people-save/{dni}', [PeopleController::class, 'save'])->middleware(['permission:almacen.create_operator']);
-    Route::get('users-operarios', [UserController::class, 'operarios']);
-    Route::get('roles-by-obra', [UserObrasController::class, 'userRolesByObra']);
-});
-
-Route::middleware(['auth:sanctum','resolve.default.obra'])->prefix('admin')->group(function () {
-    Route::get('accounts', [UserController::class, 'index'])->middleware(['role:almacen.superadmin']);
-    Route::get('users/{user}/obras', [UserObrasController::class, 'index'])->middleware(['role:almacen.superadmin']);
-    Route::get('obras', [AdminCatalogController::class, 'obras'])->middleware(['role:almacen.superadmin']);
-    Route::get('roles', [AdminCatalogController::class, 'roles'])->middleware(['role:almacen.superadmin']);
-    Route::delete('users/{user}/obras/{obra}', [UserObrasController::class, 'destroy'])->middleware(['role:almacen.superadmin']);
-    Route::put('users/{user}/obras/{obra}/roles', [UserObrasController::class, 'syncRoles'])->middleware(['role:almacen.superadmin']);
-    Route::post('users/{user}/obras/import', [UserObrasController::class, 'importAttachFromExternal'])->middleware(['role:almacen.superadmin']);
-    Route::post('obras/import', [UserObrasController::class, 'importWork'])->middleware(['role:almacen.superadmin']);
-    Route::post('obras/{obra}/import-users', [ObraImportUsersController::class, 'getSiluciaUsers'])->middleware(['role:almacen.superadmin']);
-    Route::get('get-all-obras', [AdminCatalogController::class, 'allObras'])->middleware(['role:almacen.superadmin']);
-});
-
-
-Route::post('signatures/callback', [SignatureController::class, 'store']);
-Route::get('files-download', [SignatureController::class, 'filesDownload']);
-
-Route::get('get-roles-by-scope', function(){
-    // Fijar el team/obra actual
-    setPermissionsTeamId(3);
-
-    // Obtener el usuario
-    $user = User::findOrFail(1);
-    // return $user;
-    // Limpiar relaciones cacheadas para que se recarguen con el nuevo team
-    $user->unsetRelation('roles')->unsetRelation('permissions');
-
-    // Obtener roles del usuario en este team/obra
-    return $user->roles;
-});
-
-// RUTAS PARA SISTEMA DE VALES DE TRANSPORTE
-Route::middleware('auth:sanctum')->group(function () {
-    Route::apiResource('fuel-orders', FuelOrderController::class);
-    Route::patch('fuel-orders/{fuelOrder}/decision', [FuelOrderController::class, 'decision']);
-});
-
-

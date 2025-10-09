@@ -12,15 +12,13 @@ use Smalot\PdfParser\Parser;
 
 class DocumentController extends Controller
 {
-    public function getPendingDocuments(Request $request){
-        Log::info('user id:  ', ['id' => Auth::id()]);
+    public function getPendingDocuments(){
         $documents = DocumentDailyPart::select('documents_daily_parts.*', 'services.description', 'services.goal_detail')
             ->leftJoin('daily_parts', 'documents_daily_parts.id', '=', 'daily_parts.document_id')
             ->leftJoin('services', 'daily_parts.service_id', '=', 'services.id')
             ->where('user_id', Auth::id())
             ->where('documents_daily_parts.state', '!=', 3)
             ->get();
-        Log::info('documents:  ', $documents->toArray());
         return response()->json([
             'message' => 'Documents retrieved successfully',
             'data' => $documents
@@ -44,7 +42,6 @@ class DocumentController extends Controller
     }
 
     public function getRoles(){
-        setPermissionsTeamId(1);
         $user = User::find(Auth::id());
         $role = $user->roles;
 
