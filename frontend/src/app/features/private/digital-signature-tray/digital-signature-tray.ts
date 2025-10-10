@@ -16,6 +16,7 @@ export interface DocumentSignatureUserElement {
   id: number;
   description: string;
   goal_detail: string;
+  last_work_date: string;
   file_path: string;
   state: string;
 }
@@ -38,7 +39,7 @@ export interface DocumentSignatureUserElement {
 })
 export class DigitalSignatureTray implements AfterViewInit, OnInit {
 
-  displayedColumns: string[] = ['id', 'description', 'actions'];
+  displayedColumns: string[] = ['id', 'description', 'last_work_date', 'actions'];
   dataSource = new MatTableDataSource<DocumentSignatureUserElement>([]);
 
   private documentSignatureService = inject(DocumentSignatureService);

@@ -22,7 +22,8 @@ class DocumentController extends Controller
             'documents_daily_parts.updated_at',
             'services.description',
             'services.goal_detail',
-            DB::raw('COUNT(daily_parts.id) as daily_parts_count')
+            DB::raw('COUNT(daily_parts.id) as daily_parts_count'),
+            DB::raw('MAX(daily_parts.work_date) as last_work_date')
         )
         ->leftJoin('daily_parts', 'documents_daily_parts.id', '=', 'daily_parts.document_id')
         ->leftJoin('services', 'daily_parts.service_id', '=', 'services.id')

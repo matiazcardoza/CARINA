@@ -237,7 +237,7 @@ class DailyPartController extends Controller
 
         Storage::disk('public')->put($filePath, $pdf->output());
         $existingDocument = DocumentDailyPart::where('file_path', $filePath)->first();
-        if (Auth::id() == 1) {
+        if (Auth::id() === 1) {
             if ($existingDocument) {
                 $existingDocument->update([
                     'state' => 0
