@@ -5,13 +5,7 @@
   [style]="{ 'background': 'red' }">
   <ng-template #headless>
     <div class="drawer">
-      <div class="drawer__header">
-        <span class="brand">
-          <strong>
-            <span class="brand__text" style="color: rgb(63, 75, 179); font-family: 'Italianno', cursive; font-size: 70px;">Carina</span>
-          </strong>
-        </span>
-        <span>
+        <span style="position: absolute; top: 10px; right: 10px; z-index: 10;">
           <p-button
             type="button"
             (onClick)="handleOpenSidebar()"
@@ -21,6 +15,21 @@
             styleClass="icon-24">
           </p-button>
         </span>
+      <div class="drawer__header">
+        <div class="logo-icon">
+          <img src="assets/images/carina.gif" alt="Logo CARINA" class="logo-image">
+        </div>
+        <div>
+          <span class="brand">
+            <strong>
+              <span class="brand__text" style="color: rgb(63, 75, 179); font-family: 'Italianno', cursive; font-size: 40px;"> Hola!!</span>
+            </strong>
+          </span>
+        </div>
+        <div>
+          
+        </div>
+        
       </div>
 
       <div class="drawer__scroll">
