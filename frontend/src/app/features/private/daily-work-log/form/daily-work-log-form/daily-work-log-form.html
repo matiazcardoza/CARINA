@@ -116,7 +116,7 @@
           <mat-hint>Hora en que se completó el trabajo</mat-hint>
           <mat-error>{{ endTimeError }}</mat-error>
         </mat-form-field>
-        <ngx-material-timepicker #endTimePicker></ngx-material-timepicker>
+        <ngx-material-timepicker #endTimePicker [enableKeyboardInput]="true"></ngx-material-timepicker>
 
         <!-- Campo de Ocurrencias -->
         <mat-form-field appearance="outline" class="full-width">

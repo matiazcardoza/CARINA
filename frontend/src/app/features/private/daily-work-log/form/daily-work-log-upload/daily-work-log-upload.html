@@ -21,7 +21,7 @@
         <mat-hint>Selecciona la hora de finalización</mat-hint>
         <mat-error>{{ endTimeError }}</mat-error>
       </mat-form-field>
-      <ngx-material-timepicker #endTimePicker></ngx-material-timepicker>
+      <ngx-material-timepicker #endTimePicker [enableKeyboardInput]="true"></ngx-material-timepicker>
     </div>
 
     <div class="form-row">
