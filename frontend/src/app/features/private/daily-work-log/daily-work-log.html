@@ -26,6 +26,15 @@
   <!-- Tarjeta principal con contenido -->
   <div class="content-card mat-elevation-z4">
 
+    <div class="filter-section" *ngIf="!isLoading && !error && dataSource.data.length > 0">
+      <input matInput 
+            (keyup)="applyFilter($event)" 
+            placeholder="Buscar por descripción, obra, operador o ID..." 
+            #input 
+            class="filter-input">
+      <mat-icon class="filter-icon">search</mat-icon>
+    </div>
+
     <!-- Estados de carga y error -->
     <div *ngIf="isLoading" class="state-container loading-state">
       <div class="state-content">

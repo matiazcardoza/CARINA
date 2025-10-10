@@ -12,6 +12,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { HasPermissionDirective } from '../../../shared/directives/permission.directive';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 export interface WorkLogElement {
   id: number;
@@ -35,13 +37,26 @@ export interface WorkLogElement {
     CommonModule,
     MatIconModule,
     MatButtonModule,
-    HasPermissionDirective
+    HasPermissionDirective,
+    MatInputModule,
+    MatFormFieldModule
   ],
   standalone: true,
 })
 export class DailyWorkLog implements AfterViewInit, OnInit {
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  constructor(private cdr: ChangeDetectorRef) {
+    this.dataSource.filterPredicate = (data: WorkLogElement, filter: string) => {
+      const dataStr = (
+        data.description + 
+        data.goal_project + 
+        data.goal_detail + 
+        data.operator +
+        data.id
+      ).toLowerCase();
+      return dataStr.indexOf(filter) !== -1;
+    };
+  }
 
   displayedColumns: string[] = ['id', 'description', 'goal_detail', 'state', 'actions'];
   dataSource = new MatTableDataSource<WorkLogElement>([]);
@@ -56,6 +71,15 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
   @ViewChild(MatPaginator) set paginator(mp: MatPaginator) {
     if (mp) {
       this.dataSource.paginator = mp;
+    }
+  }
+
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
+
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
     }
   }
 

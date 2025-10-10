@@ -384,3 +384,61 @@
     width: 3rem;
   }
 }
+
+/* Sección de filtro de búsqueda */
+.filter-section {
+  position: relative;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  background-color: #fafafa;
+}
+
+.filter-input {
+  width: 100%;
+  padding: 12px 12px 12px 40px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background-color: white;
+}
+
+.filter-input:focus {
+  border-color: #1976d2;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+.filter-input::placeholder {
+  color: #999;
+}
+
+.filter-icon {
+  position: absolute;
+  left: 32px;
+  color: #666;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+/* Responsive para el filtro */
+@media (max-width: 768px) {
+  .filter-section {
+    padding: 12px 16px;
+  }
+  
+  .filter-input {
+    font-size: 13px;
+    padding: 10px 10px 10px 36px;
+  }
+  
+  .filter-icon {
+    left: 24px;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
