@@ -29,7 +29,7 @@
         <mat-error>{{ startTimeError }}</mat-error>
       </mat-form-field>
       <!-- ELIMINAR el binding [defaultTime] -->
-      <ngx-material-timepicker #startTimePicker></ngx-material-timepicker>
+      <ngx-material-timepicker #startTimePicker [enableKeyboardInput]="true"></ngx-material-timepicker>
 
       <!-- Campo de Producto - Solo se muestra si shouldShowProductFields es true -->
       <mat-form-field appearance="outline" class="full-width" *ngIf="shouldShowProductFields">
