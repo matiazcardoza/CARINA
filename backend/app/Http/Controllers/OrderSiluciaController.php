@@ -5,13 +5,25 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Models\OrderSilucia;
+use App\Models\Project;
 use App\Models\Service;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class OrderSiluciaController extends Controller
 {
     public function importOrder(Request $request)
     {
+        $exists = Project::where('user_id', Auth::id())
+                ->where('goal_id', $request->meta_id)
+                ->exists();
+        if(!$exists){
+            return response()->json([
+                'success' => false,
+                'message' => 'La meta seleccionada no pertenece al proyecto del usuario autenticado.'
+            ], 400);
+
+        }
         if($request->maquinaria_id){
             $newService = Service::create([
                 'mechanical_equipment_id' => $request->maquinaria_id,
