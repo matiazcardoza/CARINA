@@ -12,12 +12,14 @@ import { DocumentSignatureService } from '../../../services/DocumentSignatureSer
 import { DocumentSignature } from './form/document-signature/document-signature';
 
 import { HasPermissionDirective } from '../../../shared/directives/permission.directive';
+import { HasRoleDirective } from '../../../shared/directives/permission.directive';
 export interface DocumentSignatureUserElement {
   id: number;
   description: string;
   goal_detail: string;
   last_work_date: string;
   file_path: string;
+  observation: string;
   state: string;
 }
 
@@ -32,7 +34,8 @@ export interface DocumentSignatureUserElement {
     MatPaginatorModule,
     MatDialogModule,
     MatTooltipModule,
-    HasPermissionDirective
+    HasPermissionDirective,
+    HasRoleDirective
   ],
   templateUrl: './digital-signature-tray.html',
   styleUrl: './digital-signature-tray.css'

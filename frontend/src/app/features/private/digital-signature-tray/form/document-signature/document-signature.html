@@ -73,19 +73,32 @@
   </div>
 
   <div *ngIf="showReturnSection && hasResidentRole()" class="return-section">
-    <mat-form-field appearance="outline" class="observation-field">
-      <mat-label>Observación de devolución</mat-label>
-      <textarea matInput
-          formControlName="observation"
-          placeholder="Ingrese el motivo de la devolución..."
-          rows="3"></textarea>
-      <mat-error *ngIf="userForm.get('observation')?.hasError('required')">
-        La observación es requerida
-      </mat-error>
-    </mat-form-field>
+    <form [formGroup]="userForm">
+      <mat-form-field appearance="outline" class="observation-field">
+        <mat-label>Observación de devolución</mat-label>
+        <textarea matInput
+            formControlName="observation"
+            placeholder="Ingrese el motivo de la devolución..."
+            rows="3"
+            required></textarea>
+        <mat-error *ngIf="userForm.get('observation')?.hasError('required')">
+          La observación es requerida
+        </mat-error>
+      </mat-form-field>
+      
+      <div class="return-actions">
+        <button mat-raised-button
+                color="warn"
+                [disabled]="!userForm.get('observation')?.value?.trim()"
+                (click)="onReturnToController()">
+          <mat-icon>undo</mat-icon>
+          Confirmar devolución
+        </button>
+      </div>
+    </form>
   </div>
 
-  <mat-toolbar class="signature-actions">
+  <mat-toolbar class="signature-actions" *ngIf="!showReturnSection">
     <form [formGroup]="userForm" class="user-selector-form">
       <mat-form-field appearance="outline" class="user-selector-field dense-form-field">
         <input type="text"

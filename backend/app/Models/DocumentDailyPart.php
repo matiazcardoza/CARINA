@@ -14,7 +14,9 @@ class DocumentDailyPart extends Model
 
     protected $fillable = [
         'user_id',
+        'user_id_send',
         'file_path',
+        'observation',
         'state'
     ];
 }

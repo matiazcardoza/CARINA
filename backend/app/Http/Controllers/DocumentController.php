@@ -17,6 +17,8 @@ class DocumentController extends Controller
         $documents = DocumentDailyPart::select(
             'documents_daily_parts.id',
             'documents_daily_parts.user_id',
+            'documents_daily_parts.user_id_send',
+            'documents_daily_parts.observation',
             'documents_daily_parts.state',
             'documents_daily_parts.created_at',
             'documents_daily_parts.updated_at',
@@ -32,6 +34,8 @@ class DocumentController extends Controller
         ->groupBy(
             'documents_daily_parts.id',
             'documents_daily_parts.user_id',
+            'documents_daily_parts.user_id_send',
+            'documents_daily_parts.observation',
             'documents_daily_parts.state',
             'documents_daily_parts.created_at',
             'documents_daily_parts.updated_at',

@@ -375,4 +375,30 @@ export class DocumentSignature {
 
     return isController && isStateZero && isControllerTurn;
   }
+
+  onReturnToController(): void {
+    const observation = this.userForm.get('observation')?.value;
+
+    if (!observation || observation.trim() === '') {
+      alert('Debe ingresar una observación para devolver el documento');
+      return;
+    }
+
+    const formReturn = {
+      documentId: this.documentId,
+      observation: observation.trim()
+    };
+
+    /*this.dailyWorkLogService.returnDocumentToController(formReturn)
+      .subscribe({
+        next: (response) => {
+          console.log('Documento devuelto exitosamente:', response);
+          this.dialogRef.close({ action: 'returned', data: response });
+        },
+        error: (error) => {
+          console.error('Error al devolver documento:', error);
+          alert('Error al devolver el documento: ' + (error.message || 'Error desconocido'));
+        }
+    });*/
+  }
 }
