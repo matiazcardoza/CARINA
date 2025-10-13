@@ -42,16 +42,16 @@
       </div>
 
       <mat-accordion class="daily-parts-accordion">
-        <mat-expansion-panel 
+        <mat-expansion-panel
           *ngFor="let dailyPart of dailyParts; trackBy: trackByDailyPartId"
           class="daily-part-panel"
           [expanded]="dailyPart.evidences.length > 0">
-          
+
           <mat-expansion-panel-header>
             <mat-panel-title class="panel-title">
               <div class="title-content">
-                <span class="description">{{dailyPart.description}}</span>
-                <span class="evidence-count" 
+                <span class="description">{{dailyPart.work_date}} - {{dailyPart.description}}</span>
+                <span class="evidence-count"
                       [class.no-evidence]="dailyPart.evidences.length === 0">
                   {{dailyPart.evidences.length}} evidencia(s)
                 </span>
@@ -73,7 +73,7 @@
                 *ngFor="let evidence of dailyPart.evidences; trackBy: trackByEvidenceId"
                 class="evidence-card"
                 (click)="openImageModal(evidence.evidence_path)">
-                
+
                 <div class="image-container">
                   <img
                     [src]="getFullImageUrl(evidence.evidence_path)"
@@ -85,7 +85,7 @@
                     <mat-icon>zoom_in</mat-icon>
                   </div>
                 </div>
-                
+
                 <mat-card-content class="card-content">
                   <p class="evidence-info">ID: {{evidence.id}}</p>
                   <p class="evidence-info" *ngIf="evidence.created_at">

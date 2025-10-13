@@ -12,7 +12,8 @@ class EvidenceController extends Controller
     function getEvidence($serviceId)
     {
         $dailyParts = DailyPart::where('service_id', $serviceId)
-            ->select('id', 'description')
+            ->select('daily_parts.*', 'documents_daily_parts.state as document_state')
+            ->leftJoin('documents_daily_parts', 'daily_parts.document_id', '=', 'documents_daily_parts.id')
             ->get();
         $dailyPartsWithEvidence = $dailyParts->map(function ($dailyPart) {
             $evidences = WorkEvidence::where('daily_part_id', $dailyPart->id)
@@ -21,7 +22,7 @@ class EvidenceController extends Controller
             $dailyPart->evidences = $evidences->toArray();
             return $dailyPart;
         });
-        
+
         return response()->json([
             'message' => 'Evidence fetched successfully',
             'data' => $dailyPartsWithEvidence

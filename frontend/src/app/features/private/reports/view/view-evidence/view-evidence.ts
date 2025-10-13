@@ -13,6 +13,7 @@ import { DailyWorkLogService } from '../../../../../services/DailyWorkLogService
 export interface EvidenceDataElement {
   id: number;
   daily_part_id: number;
+  state: number;
   evidence_path: string;
   created_at?: string;
 }
@@ -20,6 +21,7 @@ export interface EvidenceDataElement {
 export interface DailyPartWithEvidence {
   id: number;
   description: string;
+  work_date: string;
   evidences: EvidenceDataElement[];
 }
 
