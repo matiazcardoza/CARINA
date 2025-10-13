@@ -30,73 +30,111 @@
     </div>
 
     <!-- No evidences found -->
-    <div *ngIf="!loading && !error && (!dailyParts.length || !hasAnyEvidence())" class="no-evidence-container">
+    <div *ngIf="!loading && !error && (!groupedDailyParts.length || !hasAnyEvidence())" class="no-evidence-container">
       <mat-icon class="no-evidence-icon">image_not_supported</mat-icon>
       <p>No se encontraron evidencias para este servicio</p>
     </div>
 
-    <!-- Daily Parts with Evidences -->
-    <div *ngIf="!loading && !error && dailyParts.length > 0" class="daily-parts-container">
+    <!-- Grouped Daily Parts with Evidences -->
+    <div *ngIf="!loading && !error && groupedDailyParts.length > 0" class="daily-parts-container">
       <div class="summary-info">
-        <p>Total de actividades: {{dailyParts.length}} | Total de evidencias: {{getTotalEvidencesCount()}}</p>
+        <p>Total de actividades: {{getTotalActivitiesCount()}} | Total de evidencias: {{getTotalEvidencesCount()}}</p>
       </div>
 
-      <mat-accordion class="daily-parts-accordion">
-        <mat-expansion-panel
-          *ngFor="let dailyPart of dailyParts; trackBy: trackByDailyPartId"
-          class="daily-part-panel"
-          [expanded]="dailyPart.evidences.length > 0">
-
-          <mat-expansion-panel-header>
-            <mat-panel-title class="panel-title">
-              <div class="title-content">
-                <span class="description">{{dailyPart.work_date}} - {{dailyPart.description}}</span>
-                <span class="evidence-count"
-                      [class.no-evidence]="dailyPart.evidences.length === 0">
-                  {{dailyPart.evidences.length}} evidencia(s)
-                </span>
-              </div>
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-
-          <!-- Contenido del panel -->
-          <div class="panel-content">
-            <!-- Sin evidencias -->
-            <div *ngIf="dailyPart.evidences.length === 0" class="no-evidence-message">
-              <mat-icon class="info-icon">info</mat-icon>
-              <p>No hay evidencias registradas para esta actividad</p>
-            </div>
-
-            <!-- Con evidencias -->
-            <div *ngIf="dailyPart.evidences.length > 0" class="evidence-grid">
-              <mat-card
-                *ngFor="let evidence of dailyPart.evidences; trackBy: trackByEvidenceId"
-                class="evidence-card"
-                (click)="openImageModal(evidence.evidence_path)">
-
-                <div class="image-container">
-                  <img
-                    [src]="getFullImageUrl(evidence.evidence_path)"
-                    [alt]="'Evidencia ' + evidence.id + ' - ' + dailyPart.description"
-                    class="evidence-image"
-                    loading="lazy"
-                    (error)="$event.target.src='assets/images/no-image.png'">
-                  <div class="image-overlay">
-                    <mat-icon>zoom_in</mat-icon>
-                  </div>
-                </div>
-
-                <mat-card-content class="card-content">
-                  <p class="evidence-info">ID: {{evidence.id}}</p>
-                  <p class="evidence-info" *ngIf="evidence.created_at">
-                    {{evidence.created_at | date:'dd/MM/yyyy HH:mm'}}
-                  </p>
-                </mat-card-content>
-              </mat-card>
+      <!-- Iterar por grupos de fechas -->
+      <div *ngFor="let dateGroup of groupedDailyParts; trackBy: trackByDate" class="date-group">
+        
+        <!-- Encabezado de fecha con estado de firmas -->
+        <div class="date-header">
+          <div class="date-info">
+            <mat-icon>calendar_today</mat-icon>
+            <h3>{{dateGroup.date}}</h3>
+          </div>
+          
+          <!-- Estado de firmas para esta fecha -->
+          <div class="signatures-section">
+            <mat-chip-set>
+              <mat-chip [color]="obtenerColorEstadoFirmas(dateGroup.estadoFirmas)" selected>
+                {{ obtenerEstadoFirmas(dateGroup.estadoFirmas) }}
+              </mat-chip>
+            </mat-chip-set>
+            <div class="signatures-detail">
+              <mat-icon [class.signed]="dateGroup.estadoFirmas.controlador">
+                {{ dateGroup.estadoFirmas.controlador ? 'check_circle' : 'radio_button_unchecked' }}
+              </mat-icon>
+              <span class="signature-label">C</span>
+              <mat-icon [class.signed]="dateGroup.estadoFirmas.residente">
+                {{ dateGroup.estadoFirmas.residente ? 'check_circle' : 'radio_button_unchecked' }}
+              </mat-icon>
+              <span class="signature-label">R</span>
+              <mat-icon [class.signed]="dateGroup.estadoFirmas.supervisor">
+                {{ dateGroup.estadoFirmas.supervisor ? 'check_circle' : 'radio_button_unchecked' }}
+              </mat-icon>
+              <span class="signature-label">S</span>
             </div>
           </div>
-        </mat-expansion-panel>
-      </mat-accordion>
+          
+          <span class="date-evidence-count">{{dateGroup.totalEvidences}} evidencia(s)</span>
+        </div>
+
+        <!-- Accordion para las actividades de esta fecha -->
+        <mat-accordion class="daily-parts-accordion">
+          <mat-expansion-panel
+            *ngFor="let dailyPart of dateGroup.parts; trackBy: trackByDailyPartId"
+            class="daily-part-panel">
+
+            <mat-expansion-panel-header>
+              <mat-panel-title class="panel-title">
+                <div class="title-content">
+                  <span class="description">{{dailyPart.description}}</span>
+                  <span class="description">Horas de trabajo: {{ dailyPart.time_worked?.substring(0, 5) }} hs.</span>
+                  <span class="evidence-count"
+                        [class.no-evidence]="dailyPart.evidences.length === 0">
+                    {{dailyPart.evidences.length}} evidencia(s)
+                  </span>
+                </div>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+
+            <!-- Contenido del panel -->
+            <div class="panel-content">
+              <!-- Sin evidencias -->
+              <div *ngIf="dailyPart.evidences.length === 0" class="no-evidence-message">
+                <mat-icon class="info-icon">info</mat-icon>
+                <p>No hay evidencias registradas para esta actividad</p>
+              </div>
+
+              <!-- Con evidencias -->
+              <div *ngIf="dailyPart.evidences.length > 0" class="evidence-grid">
+                <mat-card
+                  *ngFor="let evidence of dailyPart.evidences; trackBy: trackByEvidenceId"
+                  class="evidence-card"
+                  (click)="openImageModal(evidence.evidence_path)">
+
+                  <div class="image-container">
+                    <img
+                      [src]="getFullImageUrl(evidence.evidence_path)"
+                      [alt]="'Evidencia ' + evidence.id + ' - ' + dailyPart.description"
+                      class="evidence-image"
+                      loading="lazy"
+                      (error)="$event.target.src='assets/images/no-image.png'">
+                    <div class="image-overlay">
+                      <mat-icon>zoom_in</mat-icon>
+                    </div>
+                  </div>
+
+                  <mat-card-content class="card-content">
+                    <p class="evidence-info">ID: {{evidence.id}}</p>
+                    <p class="evidence-info" *ngIf="evidence.created_at">
+                      {{evidence.created_at | date:'dd/MM/yyyy HH:mm'}}
+                    </p>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </div>
     </div>
   </div>
 

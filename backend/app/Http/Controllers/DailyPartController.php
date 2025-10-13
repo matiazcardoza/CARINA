@@ -154,14 +154,16 @@ class DailyPartController extends Controller
         $dailyPart = DailyPart::find($request->workLogId);
         $endTime = date("H:i", strtotime($request->end_time));
 
-        $start = Carbon::createFromFormat('H:i:s', $dailyPart->start_time);
-        $end = Carbon::createFromFormat('H:i', $endTime);
+        $workDate = $dailyPart->work_date;
+        $startTimeOnly = date("H:i:s", strtotime($dailyPart->start_time));
+        $startDateTime = Carbon::parse($workDate . ' ' . $startTimeOnly);
+        $endDateTime = Carbon::parse($workDate . ' ' . $endTime);
 
-        if ($end->lessThan($start)) {
-            $end->addDay();
+        if ($endDateTime->lessThan($startDateTime)) {
+            $endDateTime->addDay();
         }
 
-        $diffInSeconds = $end->diffInSeconds($start);
+        $diffInSeconds = $endDateTime->diffInSeconds($startDateTime, true);
         $workedTime = gmdate('H:i:s', $diffInSeconds);
 
         $dailyPart->update([

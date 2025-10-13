@@ -15,7 +15,7 @@ class OrderSiluciaController extends Controller
     public function importOrder(Request $request)
     {
         $exists = Project::where('user_id', Auth::id())
-                ->where('goal_id', $request->meta_id)
+                ->where('goal_id', $request->idmeta)
                 ->exists();
         if(!$exists){
             return response()->json([
