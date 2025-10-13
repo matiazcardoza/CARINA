@@ -16,7 +16,7 @@
         <mat-error>{{ workDateError }}</mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
+      <mat-form-field appearance="outline" class="full-width" *ngIf="shouldRequireProductFields">
         <mat-label>Combustible Inicial (Galones)</mat-label>
         <input matInput
               type="number"

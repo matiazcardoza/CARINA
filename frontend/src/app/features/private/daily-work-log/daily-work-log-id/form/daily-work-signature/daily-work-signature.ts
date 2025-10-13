@@ -143,7 +143,7 @@ export class DailyWorkSignature {
             this.documentId = document_id;
             this.documentState = data.state || 0;
 
-            const fullPdfUrl = `${environment.BACKEND_URL_STORAGE}${pdfPath}`;
+            const fullPdfUrl = `${environment.BACKEND_URL_STORAGE}${pdfPath}?timestamp=${new Date().getTime()}`;
             this.pdfUrlString = fullPdfUrl;
             this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fullPdfUrl);
             this.isLoading = false;

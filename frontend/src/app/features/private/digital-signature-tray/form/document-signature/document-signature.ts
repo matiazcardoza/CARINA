@@ -179,7 +179,7 @@ export class DocumentSignature {
 
             this.numberOfPages = data.pages || 0;
 
-            const fullPdfUrl = `${environment.BACKEND_URL_STORAGE}${pdfPath}`;
+            const fullPdfUrl = `${environment.BACKEND_URL_STORAGE}${pdfPath}?timestamp=${new Date().getTime()}`;
             this.pdfUrlString = fullPdfUrl;
             this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fullPdfUrl);
             this.isLoading = false;

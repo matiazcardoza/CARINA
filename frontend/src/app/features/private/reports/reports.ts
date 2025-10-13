@@ -97,38 +97,12 @@ export class Reports implements OnInit {
   // Datos reales de la API
   partesDiariosReales: WorkLogDataElement[] = [];
 
-  // Datos falsos para firmas y evidencias (temporal)
-  datosFalsos: ParteDiarioFalso[] = [
-    {
-      id: 1,
-      estadoFirmas: { controlador: true, residente: true, supervisor: false },
-    },
-    {
-      id: 2,
-      estadoFirmas: { controlador: true, residente: true, supervisor: true },
-    },
-    {
-      id: 3,
-      estadoFirmas: { controlador: true, residente: false, supervisor: false },
-    }
-  ];
-
-  // Datos falsos para el dashboard
-  resumenDashboard: ResumenDashboard = {
-    totalHorasTrabajadas: 245.5,
-    totalCombustibleConsumido: 1250.75,
-    partesCompletados: 18,
-    partesPendientes: 5,
-    porcentajeEficiencia: 78.2
-  };
-
   // Columnas actualizadas para la tabla
   displayedColumns: string[] = [
     'estado',
     'servicio', 
     'horasTrabajadas', 
     'combustibleConsumido', 
-    'estadoFirmas', 
     'evidencias',
     'acciones'
   ];
@@ -196,7 +170,6 @@ export class Reports implements OnInit {
     .subscribe((data: WorkLogDataElement[]) => {
       console.log('Estos son los datos que llegan:', data);
       this.partesDiariosReales = data;
-      this.calcularResumenDashboardReal();
       this.isLoading = false;
       this.cdr.detectChanges();
     });
@@ -244,42 +217,10 @@ export class Reports implements OnInit {
     return horas + (minutos / 60) + (segundos / 3600);
   }
 
-  // Calcular resumen basado en datos reales
-  calcularResumenDashboardReal(): void {
-    if (this.partesDiariosReales.length === 0) {
-      return;
-    }
-
-    this.resumenDashboard.totalHorasTrabajadas = this.partesDiariosReales
-      .reduce((total, parte) => {
-        return total + this.convertirTiempoAHoras(parte.total_time_worked);
-      }, 0);
-    
-    this.resumenDashboard.totalCombustibleConsumido = this.partesDiariosReales
-      .reduce((total, parte) => {
-        return total + parseFloat(parte.fuel_consumed || '0');
-      }, 0);
-    
-    // Para los completados usamos datos falsos por ahora
-    this.resumenDashboard.partesCompletados = Math.floor(this.partesDiariosReales.length * 0.7);
-    this.resumenDashboard.partesPendientes = this.partesDiariosReales.length - this.resumenDashboard.partesCompletados;
-    
-    this.resumenDashboard.porcentajeEficiencia = 
-      this.partesDiariosReales.length > 0 
-        ? (this.resumenDashboard.partesCompletados / this.partesDiariosReales.length) * 100
-        : 0;
-  }
-
   // Mantener método original para datos falsos del dashboard inicial
   calcularResumenDashboard(): void {
     // Este método se mantiene para el dashboard inicial con datos falsos
     // Se puede eliminar cuando tengas datos reales para el dashboard
-  }
-
-  // Métodos para datos falsos de firmas (temporal)
-  obtenerDatosFalsos(id: number): ParteDiarioFalso {
-    const datosFalso = this.datosFalsos.find(d => d.id === (id % 3) + 1);
-    return datosFalso || this.datosFalsos[0];
   }
 
   todasLasFirmasCompletas(estadoFirmas: any): boolean {
@@ -356,13 +297,6 @@ export class Reports implements OnInit {
     this.searchForm.get('servicioSearch')?.setValue('');
     this.selectedServicio = null;
     this.partesDiariosReales = [];
-    this.resumenDashboard = {
-      totalHorasTrabajadas: 245.5,
-      totalCombustibleConsumido: 1250.75,
-      partesCompletados: 18,
-      partesPendientes: 5,
-      porcentajeEficiencia: 78.2
-    };
     this.cdr.detectChanges();
   }
 
@@ -385,19 +319,6 @@ export class Reports implements OnInit {
       servicio.goal_project?.toLowerCase().includes(filterValue) ||
       servicio.goal_detail?.toLowerCase().includes(filterValue)
     );
-  }
-
-  obtenerColorBotonFirmas(parteId: any): string {
-    const estadoFirmas = this.obtenerDatosFalsos(parteId).estadoFirmas;
-    const todasFirmadas = estadoFirmas.controlador && estadoFirmas.residente && estadoFirmas.supervisor;
-    
-    if (todasFirmadas) {
-      return 'primary';
-    } else if (estadoFirmas.controlador || estadoFirmas.residente || estadoFirmas.supervisor) {
-      return 'accent';
-    } else {
-      return 'warn';
-    }
   }
 
   generateRequest(id: number) {

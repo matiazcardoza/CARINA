@@ -559,25 +559,36 @@
 
                 @foreach($dailyPart as $index => $part)
                     <tr class="work-row">
-                        <td>{{ $part->start_time ? \Carbon\Carbon::parse($part->start_time)->format('H:i') : '' }}</td>
-                        <td>{{ $part->end_time ? \Carbon\Carbon::parse($part->end_time)->format('H:i') : '' }}</td>
+                        @if($service->state !== 3){
+                            <td>-</td>
+                            <td>-</td>
+                        }@else{
+                            <td>{{ $part->start_time ? \Carbon\Carbon::parse($part->start_time)->format('H:i') : '' }}</td>
+                            <td>{{ $part->end_time ? \Carbon\Carbon::parse($part->end_time)->format('H:i') : '' }}</td>
+                        }@endif
+                        
                         <td style="text-align: left; padding-left: 8px;">{{ $part->description ?? '' }}</td>
-                        <td>
-                            @if($part->start_time && $part->end_time)
-                                @php
-                                    $start = \Carbon\Carbon::parse($part->start_time);
-                                    $end = \Carbon\Carbon::parse($part->end_time);
-                                    $diff = $start->diff($end);
-                                    $hours = $diff->h + ($diff->days * 24);
-                                    $minutes = $diff->i;
-                                    $totalHours += $hours;
-                                    $totalMinutes += $minutes;
-                                @endphp
-                                {{ sprintf('%02d:%02d', $hours, $minutes) }}
-                            @else
-                                {{ $part->time_worked ? \Carbon\Carbon::parse($part->time_worked)->format('H:i') : '' }}
-                            @endif
-                        </td>
+                        @if($service->state !== 3){
+                            <td>1 dia</td>
+                        }@else{
+                            <td>
+                                @if($part->start_time && $part->end_time)
+                                    @php
+                                        $start = \Carbon\Carbon::parse($part->start_time);
+                                        $end = \Carbon\Carbon::parse($part->end_time);
+                                        $diff = $start->diff($end);
+                                        $hours = $diff->h + ($diff->days * 24);
+                                        $minutes = $diff->i;
+                                        $totalHours += $hours;
+                                        $totalMinutes += $minutes;
+                                    @endphp
+                                    {{ sprintf('%02d:%02d', $hours, $minutes) }}
+                                @else
+                                    {{ $part->time_worked ? \Carbon\Carbon::parse($part->time_worked)->format('H:i') : '' }}
+                                @endif
+                            </td>
+                        }@endif
+                        
                     </tr>
                 @endforeach
 
@@ -593,14 +604,18 @@
 
                 <tr class="total-row">
                     <td colspan="3" style="text-align: center; font-weight: bold; background-color: #E7E6E6;">TOTAL</td>
-                    <td style="background-color: #E7E6E6;">
-                        @php
-                            // Convertir minutos extras a horas
-                            $totalHours += intval($totalMinutes / 60);
-                            $totalMinutes = $totalMinutes % 60;
-                        @endphp
-                        {{ sprintf('%02d:%02d', $totalHours, $totalMinutes) }}
-                    </td>
+                    @if($service->state !== 3){
+                        <td>1 dia</td>
+                    }@else{
+                        <td style="background-color: #E7E6E6;">
+                            @php
+                                $totalHours += intval($totalMinutes / 60);
+                                $totalMinutes = $totalMinutes % 60;
+                            @endphp
+                            {{ sprintf('%02d:%02d', $totalHours, $totalMinutes) }}
+                        </td>
+                    }@endif
+                    
                 </tr>
             </tbody>
         </table>
