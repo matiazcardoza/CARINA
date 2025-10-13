@@ -39,7 +39,7 @@ export interface DocumentSignatureUserElement {
 })
 export class DigitalSignatureTray implements AfterViewInit, OnInit {
 
-  displayedColumns: string[] = ['id', 'description', 'last_work_date', 'actions'];
+  displayedColumns: string[] = ['id', 'description','state', 'last_work_date', 'actions'];
   dataSource = new MatTableDataSource<DocumentSignatureUserElement>([]);
 
   private documentSignatureService = inject(DocumentSignatureService);
@@ -65,6 +65,7 @@ export class DigitalSignatureTray implements AfterViewInit, OnInit {
     this.documentSignatureService.getPendingDocuments()
       .subscribe({
         next: (data) => {
+          console.log('Documentos pendientes cargados:', data);
           this.dataSource.data = data;
           this.isLoading = false;
           this.cdr.detectChanges();

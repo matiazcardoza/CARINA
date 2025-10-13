@@ -29,12 +29,6 @@
       </button>
     </div>
 
-    <!-- No evidences found -->
-    <div *ngIf="!loading && !error && (!groupedDailyParts.length || !hasAnyEvidence())" class="no-evidence-container">
-      <mat-icon class="no-evidence-icon">image_not_supported</mat-icon>
-      <p>No se encontraron evidencias para este servicio</p>
-    </div>
-
     <!-- Grouped Daily Parts with Evidences -->
     <div *ngIf="!loading && !error && groupedDailyParts.length > 0" class="daily-parts-container">
       <div class="summary-info">

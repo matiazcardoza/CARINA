@@ -73,10 +73,33 @@
             </td>
           </ng-container>
 
-          <ng-container matColumnDef="last_work_date">
+          <ng-container matColumnDef="state">
             <th mat-header-cell *matHeaderCellDef class="description-column">
               <div class="header-content">
                 <mat-icon>description</mat-icon>
+                <span>Estado de Documento</span>
+              </div>
+            </th>
+            <td mat-cell *matCellDef="let element" class="description-cell">
+              <div class="document-info">
+                @if(element.state === 1){
+                  <span class="document-name" style="color: rgb(29, 173, 29); font-size: 12px;">FIRMADO POR EL CONTROLADOR</span>
+                }@else if(element.state === 2){
+                  <span class="document-name" style="color: rgb(29, 173, 29); font-size: 12px;">FIRMADO POR EL RESIDENTE</span>
+                }@else if(element.state === 3){
+                  <span class="document-name" style="color: rgb(29, 173, 29); font-size: 12px;">FIRMADO POR EL SUPERVISOR</span>
+                }@else{
+                  <span class="document-name" style="color: red; font-size: 12px;">PENDIENTE DE FIRMA</span>
+                }
+                
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="last_work_date">
+            <th mat-header-cell *matHeaderCellDef class="description-column">
+              <div class="header-content">
+                <mat-icon>calendar_today</mat-icon>
                 <span>Fecha de Trabajo</span>
               </div>
             </th>
