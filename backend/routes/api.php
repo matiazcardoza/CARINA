@@ -101,7 +101,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/daily-work-document/send', [DocumentController::class, 'sendDocument']);
     Route::get('/document-signature/{documentId}', [DocumentController::class, 'getDocumentSignature']);
     Route::get('/documents-signature/pending', [DocumentController::class, 'getPendingDocuments']);
-    Route::post('/document-signature/return-to-controller', [DocumentController::class, 'returnDocumentToController']);
+    Route::post('/document-return/resend-to-controller', [DocumentController::class, 'resendDocument']);
     Route::get('/document-userRole', [DocumentController::class, 'getRoles']);
 
     //mechanical equipment

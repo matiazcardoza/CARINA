@@ -26,7 +26,7 @@ interface UserRoleApiResponse {
   data: UserRoleElement[];
 }
 
-interface ReturnDocumentData {
+interface ResendDocumentData {
   documentId: number | null;
   observation: string;
 }
@@ -67,8 +67,8 @@ export class DocumentSignatureService {
     );
   }
 
-  returnDocumentToController(ReturnData: ReturnDocumentData): Observable<any> {
-    return this.http.post(`${this.apiUrl}/api/document-signature/return-to-controller`, ReturnData, {
+  resendDocumentToController(ReturnData: ResendDocumentData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/api/document-return/resend-to-controller`, ReturnData, {
       withCredentials: true
     });
   }

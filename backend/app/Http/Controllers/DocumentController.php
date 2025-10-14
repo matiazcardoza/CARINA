@@ -91,9 +91,7 @@ class DocumentController extends Controller
         ], 201);
     }
 
-    public function returnDocumentToController(Request $request){
-        Log::info('Request to return document to controller: ', $request->all());
-        /*
+    public function resendDocument(Request $request){
         $dailyPart = DailyPart::where('document_id', $request->documentId);
         $dailyPart->update([
             'state' => 3
@@ -108,6 +106,6 @@ class DocumentController extends Controller
         return response()->json([
             'message' => 'Document returned to controller successfully',
             'data' => $document
-        ], 201);*/
+        ], 201);
     }
 }

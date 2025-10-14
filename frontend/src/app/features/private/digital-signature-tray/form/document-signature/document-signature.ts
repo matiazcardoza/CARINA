@@ -330,32 +330,24 @@ export class DocumentSignature {
     });
   }
 
-  /*onReturnToController(): void {
+  onReturnToController(): void {
     const observation = this.userForm.get('observation')?.value;
-
-    if (!observation || observation.trim() === '') {
-      alert('Debe ingresar una observación para devolver el documento');
-      return;
-    }
-
     const formReturn = {
       documentId: this.documentId,
-      observation: observation
+      observation: observation.trim()
     };
+    
+    console.log('datos de devolución:', formReturn);
 
-    // Aquí debes crear el método en tu servicio
-    this.dailyWorkLogService.returnDocumentToController(formReturn)
+    this.documentSignatureService.resendDocumentToController(formReturn)
       .subscribe({
         next: (response) => {
-          console.log('Documento devuelto exitosamente:', response);
           this.dialogRef.close(true);
         },
         error: (error) => {
-          console.error('Error al devolver documento:', error);
-          alert('Error al devolver el documento');
         }
     });
-  }*/
+  }
 
   onNoClick(): void {
     this.dialogRef.close(false);
@@ -374,31 +366,5 @@ export class DocumentSignature {
     const isControllerTurn = roleToSign === 3;
 
     return isController && isStateZero && isControllerTurn;
-  }
-
-  onReturnToController(): void {
-    const observation = this.userForm.get('observation')?.value;
-
-    if (!observation || observation.trim() === '') {
-      alert('Debe ingresar una observación para devolver el documento');
-      return;
-    }
-
-    const formReturn = {
-      documentId: this.documentId,
-      observation: observation.trim()
-    };
-
-    this.documentSignatureService.returnDocumentToController(formReturn)
-      .subscribe({
-        next: (response) => {
-          console.log('Documento devuelto exitosamente:', response);
-          this.dialogRef.close({ action: 'returned', data: response });
-        },
-        error: (error) => {
-          console.error('Error al devolver documento:', error);
-          alert('Error al devolver el documento: ' + (error.message || 'Error desconocido'));
-        }
-    });
   }
 }
