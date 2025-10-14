@@ -84,15 +84,15 @@ export class DailyWorkLogReceive implements OnInit {
     });
 
     this.importForm = this.fb.group({
-      operador: [''],
+      operador: ['', Validators.required],
       tipoMaquinaria: ['', Validators.required],
-      maquinaria: [''],
-      marca: [''],
-      modelo: [''],
-      capacidad: [''],
-      year: [''],
-      serie: [''],
-      placa: [''],
+      maquinaria: ['', Validators.required],
+      marca: ['', Validators.required],
+      modelo: ['', Validators.required],
+      capacidad: ['', Validators.required],
+      year: ['', Validators.required],
+      serie: ['', Validators.required],
+      placa: ['', Validators.required],
     });
   }
 
