@@ -84,14 +84,14 @@ export class DailyWorkLogForm implements OnInit {
 
     const formConfig: any = {
       work_date: ['', Validators.required],
-      start_time: ['', Validators.required],
+      start_time: [''],
       initial_fuel: [''],
       product_id: [''],
       description: ['', Validators.required]
     };
 
     if (this.isStateTwo) {
-      formConfig.end_time = ['', Validators.required];
+      formConfig.end_time = [''];
       formConfig.occurrences = [''];
     }
 

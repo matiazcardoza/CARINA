@@ -389,7 +389,7 @@ export class DocumentSignature {
       observation: observation.trim()
     };
 
-    /*this.dailyWorkLogService.returnDocumentToController(formReturn)
+    this.documentSignatureService.returnDocumentToController(formReturn)
       .subscribe({
         next: (response) => {
           console.log('Documento devuelto exitosamente:', response);
@@ -399,6 +399,6 @@ export class DocumentSignature {
           console.error('Error al devolver documento:', error);
           alert('Error al devolver el documento: ' + (error.message || 'Error desconocido'));
         }
-    });*/
+    });
   }
 }

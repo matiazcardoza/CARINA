@@ -26,6 +26,12 @@ interface UserRoleApiResponse {
   data: UserRoleElement[];
 }
 
+interface ReturnDocumentData {
+  documentId: number | null;
+  observation: string;
+}
+
+
 @Injectable({
   providedIn: 'root'
 })
@@ -59,5 +65,11 @@ export class DocumentSignatureService {
         pages: response.pages
       }))
     );
+  }
+
+  returnDocumentToController(ReturnData: ReturnDocumentData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/api/document-signature/return-to-controller`, ReturnData, {
+      withCredentials: true
+    });
   }
 }

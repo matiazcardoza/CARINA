@@ -90,4 +90,24 @@ class DocumentController extends Controller
             'pages' => $numPages
         ], 201);
     }
+
+    public function returnDocumentToController(Request $request){
+        Log::info('Request to return document to controller: ', $request->all());
+        /*
+        $dailyPart = DailyPart::where('document_id', $request->documentId);
+        $dailyPart->update([
+            'state' => 3
+        ]);
+
+        $document = DocumentDailyPart::find($request->documentId);
+        $document->update([
+            'user_id' => $document->user_id_send,
+            'user_id_send' => Auth::id(),
+            'observation' => $request->observation
+        ]);
+        return response()->json([
+            'message' => 'Document returned to controller successfully',
+            'data' => $document
+        ], 201);*/
+    }
 }
