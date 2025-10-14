@@ -25,6 +25,7 @@ export interface MechanicalEquipmentElement {
   goal_detail?: string;
   operator?: string;
   state_service?: number;
+  updated_at?: string;
 }
 
 @Component({
