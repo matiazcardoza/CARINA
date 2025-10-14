@@ -336,8 +336,6 @@ export class DocumentSignature {
       documentId: this.documentId,
       observation: observation.trim()
     };
-    
-    console.log('datos de devolución:', formReturn);
 
     this.documentSignatureService.resendDocumentToController(formReturn)
       .subscribe({
@@ -361,7 +359,6 @@ export class DocumentSignature {
     const isController = this.role.some(r => r.id === 3);
     const isStateZero = this.documentState === 0;
 
-    // Además, verifica si el rol que DEBE firmar en este estado corresponde al Controlador
     const roleToSign = this.getRoleToSignByDocumentState().roleId;
     const isControllerTurn = roleToSign === 3;
 

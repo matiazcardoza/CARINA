@@ -99,7 +99,13 @@ export class DailyWorkLogService {
   }
 
   deleteWorkLog(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/api/daily-work-log/${id}`, {
+    return this.http.delete<void>(`${this.apiUrl}/api/daily-work-log-delete/${id}`, {
+      withCredentials: true
+    });
+  }
+
+  deleteService(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/api/daily-service-delete/${id}`, {
       withCredentials: true
     });
   }

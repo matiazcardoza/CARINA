@@ -149,6 +149,16 @@ class DailyPartController extends Controller
         ], 204);
     }
 
+    public function destroyService($id)
+    {
+        $service = Service::findOrFail($id);
+        $service->delete();
+
+        return response()->json([
+            'message' => 'Daily work log deleted successfully'
+        ], 204);
+    }
+
     public function completeWork(Request $request)
     {
         $dailyPart = DailyPart::find($request->workLogId);

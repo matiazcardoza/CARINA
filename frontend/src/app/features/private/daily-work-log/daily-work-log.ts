@@ -131,7 +131,7 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
         this.isLoading = true;
         this.cdr.detectChanges();
 
-        this.dailyWorkLogService.deleteWorkLog(id)
+        this.dailyWorkLogService.deleteService(id)
           .subscribe({
             next: () => {
               this.isLoading = false;
