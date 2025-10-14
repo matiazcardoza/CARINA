@@ -13,6 +13,8 @@ class MechanicalEquipmentController extends Controller
             'mechanical_equipment.*',
             'services.state as state_service',
             'services.goal_detail',
+            'services.start_date',
+            'services.end_date',
             'services.operator')
                             ->leftJoin('services', 'mechanical_equipment.id', '=', 'services.mechanical_equipment_id')
                             ->get();

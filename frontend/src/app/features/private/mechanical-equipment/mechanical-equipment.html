@@ -97,7 +97,9 @@
                 <span class="equipment-serial">S/N: {{element.serial_number}}</span>
                 @if(element.state_service !== null){
                   <span class="equipment-serial">Obra: {{element.goal_detail}}</span>
-                  <span class="equipment-serial" style="color: rgb(174, 0, 255);">Fecha de Asignación: {{element.updated_at}}</span>
+                  <span class="equipment-serial" style="color: rgb(174, 0, 255);">
+                    Fecha de Asignación: {{ element.start_date ? ( element.start_date + ' a ' + element.end_date ) : '' }}
+                  </span>
                   <span class="equipment-serial">Operador: {{element.operator}}</span>
                 }
               </div>
