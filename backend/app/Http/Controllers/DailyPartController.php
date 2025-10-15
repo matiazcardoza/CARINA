@@ -27,6 +27,7 @@ class DailyPartController extends Controller
         $date = $request->query('date', now()->format('Y-m-d'));
         $dailyParts = DailyPart::select('daily_parts.*')
             ->whereDate('work_date', $date)
+            ->where('shift_id', $request->shift_id)
             ->where('service_id', $serviceId)
             ->get();
         /*$dailyParts = DailyPart::select('daily_parts.*', 'item_pecosas.numero', 'item_pecosas.item')
@@ -260,6 +261,7 @@ class DailyPartController extends Controller
             } else {
                 $document = DocumentDailyPart::create([
                     'user_id' => Auth::id(),
+                    'user_id_send' => Auth::id(),
                     'file_path' => $filePath,
                     'state' => 0
                 ]);
