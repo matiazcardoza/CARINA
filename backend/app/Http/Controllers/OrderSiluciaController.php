@@ -14,15 +14,16 @@ class OrderSiluciaController extends Controller
 {
     public function importOrder(Request $request)
     {
+        /** @var \App\Models\User $usuario */
+        $usuario = Auth::user();
         $exists = Project::where('user_id', Auth::id())
                 ->where('goal_id', $request->idmeta ?? $request->meta_id)
                 ->exists();
-        if(!$exists){
+        if (!$exists && !$usuario->hasRole(['SuperAdministrador_pd', 'Admin_equipoMecanico_pd'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'La meta seleccionada no pertenece al proyecto del usuario autenticado.'
-            ], 400);
-
+            ], 403);
         }
         if($request->maquinaria_id){
             $newService = Service::create([
