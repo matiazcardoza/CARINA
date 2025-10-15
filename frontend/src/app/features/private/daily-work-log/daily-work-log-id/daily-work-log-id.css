@@ -587,3 +587,73 @@
 .date-picker-field.small-date-field .mat-form-field-label-wrapper {
   padding-top: 8px;
 }
+
+/* Selector de turnos */
+.shift-selector {
+  margin-left: 16px;
+  border-left: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: none !important;
+}
+
+.shift-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 500;
+  min-height: 40px;
+}
+
+.shift-toggle mat-icon {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+  margin-right: 4px;
+}
+
+/* Estilos para el toggle seleccionado */
+::ng-deep .shift-selector .mat-button-toggle-checked {
+  background-color: #67b642 !important;
+  color: white;
+}
+
+::ng-deep .shift-selector .mat-button-toggle-checked .mat-button-toggle-button {
+  color: white;
+}
+
+::ng-deep .shift-selector .mat-button-toggle:hover:not(.mat-button-toggle-checked) {
+  background-color: rgba(25, 118, 210, 0.08);
+}
+
+/* Responsive */
+@media (max-width: 968px) {
+  .date-controls.compact {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .shift-selector {
+    margin-left: 0;
+    padding-left: 0;
+    padding-top: 12px;
+    border-left: none;
+    border-top: 1px solid rgba(0, 0, 0, 0.12);
+    width: 100%;
+  }
+  
+  .shift-toggle {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 600px) {
+  ::ng-deep .shift-selector {
+    flex-direction: column !important;
+  }
+  
+  .shift-toggle {
+    width: 100%;
+  }
+}

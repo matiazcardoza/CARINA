@@ -17,6 +17,8 @@ class DailyPart extends Model
         'itemPecosa_id',
         'document_id',
         'movement_kardex_id',
+        'shift_id',
+        'operator_id',
         'description',
         'occurrences',
         'work_date',

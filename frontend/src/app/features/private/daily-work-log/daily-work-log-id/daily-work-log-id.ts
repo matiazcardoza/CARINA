@@ -17,6 +17,8 @@ import { DailyWorkLogForm } from '../form/daily-work-log-form/daily-work-log-for
 import { DailyWorkLogUpload } from '../form/daily-work-log-upload/daily-work-log-upload';
 import { DailyWorkSignature } from './form/daily-work-signature/daily-work-signature';
 import { startWith } from 'rxjs/operators';
+import { ShiftsService } from '../../../../services/ShiftsService/shifts-service';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 import { HasPermissionDirective, HasRoleDirective } from '../../../../shared/directives/permission.directive';
 
@@ -45,7 +47,8 @@ export interface WorkLogIdElement {
     MatNativeDateModule,
     ReactiveFormsModule,
     HasPermissionDirective,
-    HasRoleDirective
+    HasRoleDirective,
+    MatButtonToggleModule
 ],
   templateUrl: './daily-work-log-id.html',
   styleUrl: './daily-work-log-id.css'
@@ -57,12 +60,16 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
 
   dateControl = new FormControl(new Date());
   selectedDate: string = this.formatDate(new Date());
+  selectedShift: number | 'all' = 'all';
+
+  shiftsData: any[] = [];
 
   constructor(private route: ActivatedRoute, private cdr: ChangeDetectorRef) {}
 
   displayedColumns: string[] = ['id', 'description', 'work_date', 'start_time', 'initial_fuel', 'end_time', 'actions'];
   dataSource = new MatTableDataSource<WorkLogIdElement>([]);
   private dailyWorkLogService = inject(DailyWorkLogService);
+  private shiftsService = inject(ShiftsService);
   private dialog = inject(MatDialog);
 
   // Estado de carga inicial
@@ -84,12 +91,18 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
       if (date) {
         this.selectedDate = this.formatDate(date);
         this.loadWorkLogData();
+        this.loadShifts();
       }
     });
   }
 
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
+  }
+
+  setShift(shiftId: number | 'all') {
+    this.selectedShift = shiftId;
+    this.loadWorkLogData();
   }
 
   get allRecordsState2(): boolean {
@@ -114,6 +127,20 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
     return this.allRecordsState3;
   }
 
+  private loadShifts() {
+    this.shiftsService.getShifts().subscribe({
+      next: (data) => {
+        console.log('turnos cargados:', data);
+        this.shiftsData = data;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error al cargar turnos:', error);
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
   loadWorkLogData(): void {
     this.isLoading = true;
     this.error = null;
@@ -121,7 +148,7 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
 
     const serviceIdNumber = Number(this.serviceId);
 
-    this.dailyWorkLogService.getWorkLogData(serviceIdNumber, this.selectedDate)
+    this.dailyWorkLogService.getWorkLogData(serviceIdNumber, this.selectedDate, this.selectedShift)
       .subscribe({
         next: (data) => {
           console.log(data);
@@ -176,7 +203,8 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
         workLog: null,
         serviceId: this.serviceId,
         serviceState: this.serviceState,
-        selectedDateFromFilter: this.dateControl.value
+        selectedDateFromFilter: this.dateControl.value,
+        selectedShift: this.selectedShift
       }
     });
 

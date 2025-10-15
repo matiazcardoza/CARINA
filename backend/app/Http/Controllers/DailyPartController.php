@@ -24,6 +24,7 @@ class DailyPartController extends Controller
     function index(Request $request)
     {
         $serviceId = $request->id;
+        Log::info('Request Data: ' , $request->all());
         $date = $request->query('date', now()->format('Y-m-d'));
         $dailyParts = DailyPart::select('daily_parts.*')
             ->whereDate('work_date', $date)

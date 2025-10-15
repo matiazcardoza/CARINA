@@ -16,6 +16,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleDailyPartsSeeder::class,
             UserAdminSeeder::class,
+            add_permission::class,
+            addTurnos::class,
         ]);
     }
 }

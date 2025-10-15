@@ -73,10 +73,14 @@ export class DailyWorkLogService {
     });
   }
 
-  getWorkLogData(id: number, date?: string): Observable<WorkLogIdElement[]> {
+  getWorkLogData(id: number, date?: string, shift: number | string = 'all'): Observable<WorkLogIdElement[]> {
+    const params: any = {
+      ...(date && { date }),
+      ...(shift !== 'all' && { shift_id: shift })
+    };
     return this.http.get<WorkLogIdApiResponse>(`${this.apiUrl}/api/daily-work-log/${id}`, {
       withCredentials: true,
-      params: date ? { date } : {}
+      params: params
     }).pipe(
       map(response => response.data)
     );

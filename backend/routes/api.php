@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\ShiftsController;
 use Illuminate\Support\Facades\DB;
 
 Route::post('/document-signature/{documentId}', [SignatureController::class, 'storeSignature']);
@@ -113,6 +114,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //products
     Route::get('/products-select', [ProductController::class, 'consultaProductSelect']);
+
+    //shifts
+    Route::get('/shifts-select', [ShiftsController::class, 'consultaShifts']);
 
     //evendence
     Route::get('/daily-work-evendece/{serviceId}', [EvidenceController::class, 'getEvidence']);
