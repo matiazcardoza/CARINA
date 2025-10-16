@@ -25,6 +25,7 @@ export interface DialogData {
   serviceId?: string | number;
   serviceState?: string | number;
   selectedDateFromFilter?: Date;
+  selectedShift?: string | number;
 }
 
 @Component({
@@ -271,8 +272,13 @@ export class DailyWorkLogForm implements OnInit {
         formData.append('description', formValue.description);
         formData.append('initial_fuel', formValue.initial_fuel);
         formData.append('service_id', this.data.serviceId ? this.data.serviceId.toString() : '');
+
         formData.append('end_time', formValue.end_time);
         formData.append('occurrences', formValue.occurrences || '');
+
+        if (this.data.selectedShift) {
+          formData.append('shift_id', this.data.selectedShift.toString());
+        }
 
         // Agregar IDs de imágenes existentes que se mantienen
         this.existingImages.forEach((img, index) => {
@@ -295,6 +301,10 @@ export class DailyWorkLogForm implements OnInit {
           service_id: this.data.serviceId ? Number(this.data.serviceId) : null,
           initial_fuel: parseFloat(formValue.initial_fuel)
         };
+
+        if (this.data.selectedShift) {
+          workLogData.shift_id = this.data.selectedShift;
+        }
 
         // ← AGREGAR CAMPOS SI ES ESTADO 2
         if (this.isStateTwo) {

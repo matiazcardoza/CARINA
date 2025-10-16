@@ -46,6 +46,7 @@ class DailyPartController extends Controller
     {
         $dailyPart = DailyPart::create([
             'service_id' => $request->service_id,
+            'shift_id' => ($request->shift_id === 'all') ? null : $request->shift_id,
             //'itemPecosa_id' => $request->product_id,
             'work_date' => $request->work_date,
             'start_time' => date("H:i", strtotime($request->start_time)),
@@ -223,6 +224,7 @@ class DailyPartController extends Controller
 
         $dailyPart = DailyPart::where('work_date', $request->date)
             ->where('service_id', $serviceId)
+            ->where('shift_id', $request->shift_id)
             ->get();
         $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
         $logoWorkPath = storage_path('app/public/image_pdf_template/logo_work.png');
@@ -243,7 +245,7 @@ class DailyPartController extends Controller
         $pdf->setPaper('A4', 'portrait');
 
         $directory = "daily_parts/{$serviceId}";
-        $fileName = "daily_part_{$request->date}.pdf";
+        $fileName = "daily_part{$request->shift_id}_{$request->date}.pdf";
         $filePath = "{$directory}/{$fileName}";
 
         if (Storage::disk('public')->exists($filePath)) {
@@ -293,8 +295,10 @@ class DailyPartController extends Controller
     }
 
 
-    public function getDocumentWokLog($serviceId, $date){
-        $dailyPart = DailyPart::where('service_id', $serviceId)->where('work_date', $date)->first();
+    public function getDocumentWokLog($serviceId, $date, $shift){
+        Log::info("serviceId: $serviceId, date: $date, shift: $shift");
+        $dailyPart = DailyPart::where('service_id', $serviceId)->where('work_date', $date)->where('shift_id', $shift)->first();
+        Log::info('esta es la  salida de parte diaria: ' . $dailyPart);
         $document = DocumentDailyPart::find($dailyPart->document_id);
 
         $parser = new Parser();

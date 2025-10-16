@@ -266,7 +266,8 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
       restoreFocus: false,
       data: {
         serviceId: serviceId,
-        date: this.selectedDate
+        date: this.selectedDate,
+        shift: this.selectedShift
       }
     });
 
@@ -328,7 +329,7 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
     });*/
     console.log(this.selectedDate);
 
-    this.dailyWorkLogService.generatePdf(id, this.selectedDate)
+    this.dailyWorkLogService.generatePdf(id, this.selectedDate, this.selectedShift)
       .subscribe({
         next: (responde) => {
           console.log(responde);

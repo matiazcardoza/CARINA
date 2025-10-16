@@ -9,7 +9,7 @@
     <div class="header-actions">
       <div class="date-controls compact">
         <div class="date-nav-group">
-          <!--<mat-button-toggle-group 
+          <mat-button-toggle-group 
             class="shift-selector"
             [value]="selectedShift"
             (change)="setShift($event.value)"
@@ -17,7 +17,7 @@
             
             <mat-button-toggle value="all" class="shift-toggle">
               <mat-icon>calendar_view_day</mat-icon>
-              <span>Todos</span>
+              <span>Día Completo</span>
             </mat-button-toggle>
             
             <mat-button-toggle 
@@ -26,7 +26,7 @@
               class="shift-toggle">
               <span>{{ shift.name }}</span>
             </mat-button-toggle>
-          </mat-button-toggle-group>-->
+          </mat-button-toggle-group>
           <button mat-raised-button (click)="goToToday()" class="today-button">
             <mat-icon>today</mat-icon>
             Hoy

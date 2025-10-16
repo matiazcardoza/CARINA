@@ -122,10 +122,14 @@ export class DailyWorkLogService {
     );
   }
 
-  generatePdf(id: number, date?: string): Observable<WorkLogElement> {
+  generatePdf(id: number, date?: string, shift: number | string = 'all'): Observable<WorkLogElement> {
+    const params: any = {
+      ...(date && { date }),
+      ...(shift !== 'all' && { shift_id: shift })
+    };
     return this.http.post<SingleApiResponse>(`${this.apiUrl}/api/daily-work-log/${id}/generate-pdf`, {}, {
       withCredentials: true,
-      params: date ? { date } : {}
+      params: params
     }).pipe(
       map(response => response.data)
     );
@@ -168,8 +172,8 @@ export class DailyWorkLogService {
     );
   }
 
-  getWorkLogDocument(serviceId: number, date?: string): Observable<DocumentDailyPartElement> {
-    return this.http.get<DocumentDailyPartApiResponse>(`${this.apiUrl}/api/daily-work-document/${serviceId}/${date}`, {
+  getWorkLogDocument(serviceId: number, date?: string, shift: number | string = 'all'): Observable<DocumentDailyPartElement> {
+    return this.http.get<DocumentDailyPartApiResponse>(`${this.apiUrl}/api/daily-work-document/${serviceId}/${date}/${shift}`, {
       withCredentials: true,
     }).pipe(
       map(response => ({

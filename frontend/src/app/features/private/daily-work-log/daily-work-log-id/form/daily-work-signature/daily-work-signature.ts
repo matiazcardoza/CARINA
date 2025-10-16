@@ -30,6 +30,7 @@ export interface DocumentDailyPartElement {
 interface DialogData {
   serviceId: number;
   date: string;
+  shift: number | string;
 }
 
 @Component({
@@ -130,10 +131,9 @@ export class DailyWorkSignature {
 
     const serviceId = this.data.serviceId;
     const dateWork = this.data.date;
-    console.log('serviceId:', serviceId);
-    console.log('dateWork:', dateWork);
+    const shift = this.data.shift;
 
-    this.dailyWorkLogService.getWorkLogDocument(serviceId, dateWork)
+    this.dailyWorkLogService.getWorkLogDocument(serviceId, dateWork, shift)
       .subscribe({
         next: (data: DocumentDailyPartElement) => {
           console.log('PDF document response:', data);

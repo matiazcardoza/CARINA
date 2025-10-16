@@ -91,7 +91,7 @@
                   <span class="document-name" style="color: rgb(29, 173, 29); font-size: 12px;">FIRMADO POR EL SUPERVISOR</span>
                 }@else{
                   <span class="document-name" style="color: rgb(156, 144, 144); font-size: 12px;">PENDIENTE DE FIRMA</span>
-                  <span *appHasRole="['Controlador_pd', 'SuperAdministrador_pd']" class="document-name" style="color: rgb(132, 67, 185); font-size: 11px;">{{element.observation ?? ''}}</span>
+                  <span *appHasRole="['Controlador_pd', 'SuperAdministrador_pd']" class="document-name" style="color: red; font-size: 11px;">{{element.observation ?? ''}}</span>
                 }
               </div>
             </td>
