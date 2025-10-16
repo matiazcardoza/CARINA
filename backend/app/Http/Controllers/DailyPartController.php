@@ -283,6 +283,7 @@ class DailyPartController extends Controller
         
         DailyPart::where('work_date', $request->date)
             ->where('service_id', $serviceId)
+            ->where('shift_id', $request->shift_id)
             ->update([
                 'document_id' => $document->id,
                 'state' => 3
@@ -297,7 +298,7 @@ class DailyPartController extends Controller
 
     public function getDocumentWokLog($serviceId, $date, $shift){
         Log::info("serviceId: $serviceId, date: $date, shift: $shift");
-        $dailyPart = DailyPart::where('service_id', $serviceId)->where('work_date', $date)->where('shift_id', $shift)->first();
+        $dailyPart = DailyPart::where('service_id', $serviceId)->where('work_date', $date)->where('shift_id', ($shift === 'all') ? null : $shift)->first();
         Log::info('esta es la  salida de parte diaria: ' . $dailyPart);
         $document = DocumentDailyPart::find($dailyPart->document_id);
 
