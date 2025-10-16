@@ -93,7 +93,7 @@ class DailyPartController extends Controller
 
         $service = Service::find($request->service_id);
 
-        if ($request->initial_fuel || $service->state === 3) {
+        if ($request->initial_fuel || $service->state === 3 || $service->state === 1 || $service->state === 2) {
             /*if ($dailyPart->itemPecosa_id != $request->product_id) {
                 $prevProduct = ItemPecosa::find($dailyPart->itemPecosa_id);
                 $prevProduct->update([

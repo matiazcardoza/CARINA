@@ -303,7 +303,7 @@
                 </td>
                 <td class="info-label" style="width: 75px;">PLACA/MODELO:</td>
                 <td style="width: 100px;">
-                    <span class="info-line">{{ $mechanicalEquipment->plate . ' ' . $mechanicalEquipment->model ?? $orderSilucia->plate . ' ' . $orderSilucia->model }}</span>
+                    <span class="info-line">{{ 'lkh-458' . ' ' . 'fsf-458' . ' ' . $orderSilucia->model }}</span>
                 </td>
             </tr>
         </table>
