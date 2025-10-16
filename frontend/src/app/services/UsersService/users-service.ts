@@ -46,8 +46,18 @@ export class UsersService {
   private http = inject(HttpClient);
   private apiUrl = environment.BACKEND_URL;
 
+  
+
   getUsers(): Observable<UserElement[]> {
     return this.http.get<UserApiResponse>(`${this.apiUrl}/api/users`, {
+      withCredentials: true
+    }).pipe(
+      map(response => response.data)
+    );
+  }
+
+  getUserIncidencia(): Observable<UserElement[]> {
+    return this.http.get<UserApiResponse>(`${this.apiUrl}/api/users-incidencia`, {
       withCredentials: true
     }).pipe(
       map(response => response.data)

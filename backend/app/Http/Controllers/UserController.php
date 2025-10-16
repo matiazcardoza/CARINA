@@ -6,6 +6,7 @@ use App\Models\Persona;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
@@ -65,6 +66,24 @@ class UserController extends Controller
         return response()->json([
             'message' => 'Users retrieved successfully',
             'data' => $finalUsers
+        ], 200);
+    }
+
+    public function incidencia()
+    {
+        $users = User::select(
+            'users.*',
+            'personas.num_doc',
+            'personas.name as persona_name',
+            'personas.last_name'
+        )
+        ->leftJoin('personas', 'users.id', '=', 'personas.user_id')
+        ->where('users.id', Auth::id())
+        ->get();
+
+        return response()->json([
+            'message' => 'Users retrieved successfully',
+            'data' => $users
         ], 200);
     }
 

@@ -30,6 +30,22 @@
 
             <div class="right-wrap">
                 <p-button
+                    (onClick)="onReportIncident()"
+                    icon="pi pi-exclamation-circle"
+                    label="Ayuda"
+                    severity="help"
+                    [raised]="true"
+                    size="small"
+                    pTooltip="Reportar incidencia"
+                    tooltipPosition="bottom"
+                    [style]="{ 
+                        'margin-right': '0.5rem',
+                        'animation': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'background': 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
+                        'border': 'none'
+                    }"
+                ></p-button>
+                <p-button
                     (onClick)="toggleTheme()"
                     [icon]="iconName()"
                     [text]="true"

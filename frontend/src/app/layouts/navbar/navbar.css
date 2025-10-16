@@ -84,3 +84,32 @@
   .p-menu .p-menuitem-link { padding: .55rem .75rem; }
 
   
+  @keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.05);
+  }
+}
+
+/* Efecto hover para el botón de ayuda púrpura */
+.p-button-help:hover,
+.p-button[style*="8b5cf6"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.5) !important;
+  filter: brightness(1.1);
+  transition: all 0.3s ease;
+}
+
+/* Asegurar que el botón mantenga el color púrpura */
+.p-button-help {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+  border: none !important;
+}
+
+.p-button-help:not(:disabled):active {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%) !important;
+}

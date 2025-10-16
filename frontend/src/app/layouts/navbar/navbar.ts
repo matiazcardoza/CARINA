@@ -15,6 +15,8 @@ import { finalize } from 'rxjs';
 const DARK_CLASS = 'my-app-dark';
 const STORAGE_KEY = 'isDark';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
+import { TooltipModule } from 'primeng/tooltip';
+import { UsersService } from '../../services/UsersService/users-service';
 
 @Component({
   selector: 'app-navbar',
@@ -26,13 +28,15 @@ import { OverlayBadgeModule } from 'primeng/overlaybadge';
     InputTextModule,
     // IconField,
     MenuModule,
-    OverlayBadgeModule
+    OverlayBadgeModule,
+    TooltipModule
   ],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
 })
 export class Navbar {
   private auth = inject(AuthService);
+  private usersService = inject(UsersService);
   sentOpenValue = output<boolean>();
   isOpen = input<boolean>(false);
   loading = false;
@@ -130,6 +134,22 @@ export class Navbar {
     const linkEl = document.getElementById('mat-theme') as HTMLLinkElement | null;
     if (!linkEl) return;
     linkEl.href = isDark ? 'material-dark.css' : 'material-light.css';
+  }
+
+  onReportIncident(){
+    this.usersService.getUserIncidencia().subscribe({
+      next: (response) => {
+        const user = response[0];
+        const dni = encodeURIComponent(user.num_doc);
+        const nombre = encodeURIComponent(`${user.persona_name} ${user.last_name}`);
+        const sistemaId = 20;
+        const url = `https://sistemas.regionpuno.gob.pe/incidencias/ticketcreate/?dni=${dni}&nombre=${nombre}&sistema_id=${sistemaId}`;
+      window.open(url, '_blank');
+        },
+      error: (error) => {
+        console.error('Error al obtener datos del usuario:', error);
+      }
+    });
   }
 
 }

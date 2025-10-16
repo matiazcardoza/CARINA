@@ -58,6 +58,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //Users Routes
     Route::get('/users', [UserController::class, 'index']);
+    Route::get('/users-incidencia', [UserController::class, 'incidencia']);
     Route::get('/users-consult/{dni}', [UserController::class, 'consultUsers']);
     Route::get('/users-roles', [UserController::class, 'getRoles']);
     Route::post('/users-create', [UserController::class, 'createUser']);
