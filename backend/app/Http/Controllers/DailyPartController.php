@@ -156,7 +156,11 @@ class DailyPartController extends Controller
     public function destroyService($id)
     {
         $service = Service::findOrFail($id);
+        $orderSilucia = OrderSilucia::find($service->order_id);
         $service->delete();
+        if($orderSilucia){
+            $orderSilucia->delete();
+        }
 
         return response()->json([
             'message' => 'Daily work log deleted successfully'

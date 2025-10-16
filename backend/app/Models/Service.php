@@ -16,6 +16,7 @@ class Service extends Model
         'order_id',
         'mechanical_equipment_id',
         'goal_id',
+        'medida_id',
         'operator',
         'description',
         'goal_project',

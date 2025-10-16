@@ -25,6 +25,7 @@ class OrderSiluciaController extends Controller
                 'message' => 'La meta seleccionada no pertenece al proyecto del usuario autenticado.'
             ], 403);
         }
+        Log::info('Datos recibidos para importar orden:', $request->all());
         if($request->maquinaria_id){
             $newService = Service::create([
                 'mechanical_equipment_id' => $request->maquinaria_id,
@@ -63,6 +64,7 @@ class OrderSiluciaController extends Controller
             $newService = Service::create([
                 'order_id' => $newOrderSilucia->id,
                 'goal_id' => $request->idmeta,
+                'medida_id' => $request->medida_id,
                 'operator' => $request->operador,
                 'description' => $request->description . ' ' . $request->placa,
                 'goal_project' => $request->cod_meta,

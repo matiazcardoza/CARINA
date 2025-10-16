@@ -89,13 +89,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/services/{id}/generate-liquidation', [ServiceController::class, 'generateLiquidation']);
     Route::get('/services/idmeta/{mechanicalId}', [ServiceController::class, 'getIdmeta']);
     Route::put('/services/idmeta/', [ServiceController::class, 'updateIdmeta']);
+    Route::delete('/daily-service-delete/{id}', [DailyPartController::class, 'destroyService']);
 
     //daily work log routes
     Route::get('/daily-work-log/{id}', [DailyPartController::class, 'index']);
     Route::post('/daily-work-log', [DailyPartController::class, 'store']);
     Route::put('/daily-work-log', [DailyPartController::class, 'update']);
     Route::delete('/daily-work-log-delete/{id}', [DailyPartController::class, 'destroy']);
-    Route::delete('/daily-service-delete/{id}', [DailyPartController::class, 'destroyService']);
     Route::post('/daily-work-log/complete', [DailyPartController::class, 'completeWork']);
     Route::post('/daily-work-log/{id}/generate-pdf', [DailyPartController::class, 'generatePdf']);
     Route::get('/daily-work-document/{WorkLogId}/{date?}/{shift?}', [DailyPartController::class, 'getDocumentWokLog']);

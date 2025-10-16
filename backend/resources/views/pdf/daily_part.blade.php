@@ -559,7 +559,7 @@
 
                 @foreach($dailyPart as $index => $part)
                     <tr class="work-row">
-                        @if($service->state !== 3){
+                        @if($service->medida_id === 27){
                             <td>-</td>
                             <td>-</td>
                         }@else{
@@ -568,7 +568,7 @@
                         }@endif
                         
                         <td style="text-align: left; padding-left: 8px;">{{ $part->description ?? '' }}</td>
-                        @if($service->state !== 3){
+                        @if($service->medida_id === 27){
                             <td>1 dia</td>
                         }@else{
                             <td>
@@ -604,7 +604,7 @@
 
                 <tr class="total-row">
                     <td colspan="3" style="text-align: center; font-weight: bold; background-color: #E7E6E6;">TOTAL</td>
-                    @if($service->state !== 3){
+                    @if($service->medida_id === 27){
                         <td>1 dia</td>
                     }@else{
                         <td style="background-color: #E7E6E6;">

@@ -28,27 +28,4 @@ class OrderSilucia extends Model
         'deadline_day',
         'state',
     ];
-    // ----------------
-    protected $casts = [
-        'issue_date' => 'date',
-        'state'      => 'integer',
-        // 'api_date' => 'datetime', // tu migración la define como string; si cambias a datetime, activa este cast
-    ];
-
-    /** Relaciones */
-    public function products(): HasMany
-    {
-        return $this->hasMany(Product::class, 'order_id');
-    }
-
-    public function services(): HasMany
-    {
-        return $this->hasMany(Service::class, 'order_id');
-    }
-
-    /** Scopes útiles */
-    // public function scopeActive($query)
-    // {
-    //     return $query->where('state', 1);
-    // }
 }

@@ -28,6 +28,7 @@ interface OrderDetail {
   desmeta: string;
   item: string;
   idmeta: number;
+  idmedida: number;
 }
 
 interface OrderResponse {
@@ -215,6 +216,7 @@ export class DailyWorkLogReceive implements OnInit {
     
     if (this.orderData) {
       formData.append('idmeta', this.orderData.idmeta.toString());
+      formData.append('medida_id', this.orderData.idmedida.toString());
       formData.append('ruc', this.orderData.ruc);
       formData.append('rsocial', this.orderData.rsocial);
       formData.append('cod_meta', this.orderData.cod_meta);
