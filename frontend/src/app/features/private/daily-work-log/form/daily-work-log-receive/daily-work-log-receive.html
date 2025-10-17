@@ -16,25 +16,38 @@
       </div>
       
       <form [formGroup]="orderForm" class="order-form">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Número de Orden</mat-label>
-          <input 
-            matInput 
-            formControlName="numeroOrden"
-            placeholder="Ej: 00401"
-            maxlength="5"
-          >
-          <mat-icon matSuffix>tag</mat-icon>
-          <mat-hint>Ingrese el número de orden de 5 dígitos</mat-hint>
-          
-          <mat-error *ngIf="hasFieldError('numeroOrden')">
-            {{ getFieldError('numeroOrden') }}
-          </mat-error>
-          
-          <mat-error *ngIf="numeroOrdenErrors">
-            {{ numeroOrdenErrors }}
-          </mat-error>
-        </mat-form-field>
+        <div class="search-fields-row">
+          <mat-form-field appearance="outline" class="field-numero-orden">
+            <mat-label>Número de Orden</mat-label>
+            <input 
+              matInput 
+              formControlName="numeroOrden"
+              placeholder="Ej: 00401"
+              maxlength="5"
+            >
+            <mat-icon matSuffix>tag</mat-icon>
+            <mat-hint>Ingrese el número de orden de 5 dígitos</mat-hint>
+            
+            <mat-error *ngIf="hasFieldError('numeroOrden')">
+              {{ getFieldError('numeroOrden') }}
+            </mat-error>
+            
+            <mat-error *ngIf="numeroOrdenErrors">
+              {{ numeroOrdenErrors }}
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="field-anio">
+            <mat-label>Año</mat-label>
+            <mat-select formControlName="anio">
+              <mat-option *ngFor="let year of anioOptions" [value]="year">
+                {{ year }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix>calendar_today</mat-icon>
+            <mat-hint>Seleccione el año</mat-hint>
+          </mat-form-field>
+        </div>
         
         <div class="form-actions">
           <button 
@@ -59,7 +72,7 @@
           </button>
         </div>
       </form>
-  
+
       <div *ngIf="isLoading" class="loading-container">
         <mat-spinner diameter="50"></mat-spinner>
         <p>Buscando orden en SILUCIA...</p>

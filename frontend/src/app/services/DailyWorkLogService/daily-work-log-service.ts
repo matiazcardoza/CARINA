@@ -135,8 +135,8 @@ export class DailyWorkLogService {
     );
   }
 
-  getOrderByNumber(orderNumber: string): Observable<any> {
-    const apiUrl = `https://sistemas.regionpuno.gob.pe/siluciav2-api/api/ordenserviciodetallado?numero=${orderNumber}`;
+  getOrderByNumber(orderNumber: string, anio: string): Observable<any> {
+    const apiUrl = `https://sistemas.regionpuno.gob.pe/siluciav2-api/api/ordenserviciodetallado?anio=${anio}&numero=${orderNumber}`;
     return this.http.get<any>(apiUrl);
   }
 

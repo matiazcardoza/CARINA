@@ -65,6 +65,7 @@ export class DailyWorkLogReceive implements OnInit {
   isLoading = false;
   orderData: OrderDetail | null = null;
   showResults = false;
+  anioOptions: number[] = [];
 
   tipoMaquinariaOptions = [
     { value: 1, label: 'Máquina Seca' },
@@ -80,8 +81,15 @@ export class DailyWorkLogReceive implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Generar opciones de años (últimos 5 años + año actual)
+    const currentYear = new Date().getFullYear();
+    for (let i = 0; i <= 5; i++) {
+      this.anioOptions.push(currentYear - i);
+    }
+
     this.orderForm = this.fb.group({
-      numeroOrden: ['', [Validators.required, Validators.pattern(/^\d{5}$/)]]
+      numeroOrden: ['', [Validators.required, Validators.pattern(/^\d{5}$/)]],
+      anio: [currentYear, Validators.required]
     });
 
     this.importForm = this.fb.group({
@@ -112,11 +120,12 @@ export class DailyWorkLogReceive implements OnInit {
     }
 
     const numeroOrden = this.orderForm.get('numeroOrden')?.value;
+    const anio = this.orderForm.get('anio')?.value;
     this.isLoading = true;
     this.showResults = false;
     this.orderData = null;
 
-    this.dailyWorkLogService.getOrderByNumber(numeroOrden).subscribe({
+    this.dailyWorkLogService.getOrderByNumber(numeroOrden, anio).subscribe({
       next: (response: OrderResponse) => {
         if (response.data && response.data.length > 0) {
           this.orderData = response.data[0];
@@ -155,6 +164,10 @@ export class DailyWorkLogReceive implements OnInit {
 
   clearData(): void {
     this.orderForm.reset();
+    // Resetear el año al año actual
+    const currentYear = new Date().getFullYear();
+    this.orderForm.patchValue({ anio: currentYear });
+    
     this.importForm.reset();
     this.numeroOrdenErrors = null;
     this.orderData = null;
@@ -317,10 +330,9 @@ export class DailyWorkLogReceive implements OnInit {
     return match ? match[1].trim() : '';
   }
 
- getDescripcion() {
+  getDescripcion() {
     if (!this.orderData?.item) return '';
     const texto = this.orderData.item.toUpperCase();
-
     return texto.split(',')[0].trim();
   }
 }

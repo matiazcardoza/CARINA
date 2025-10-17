@@ -402,3 +402,31 @@
     flex: 1 1 100%;
   }
 }
+
+.search-fields-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.field-numero-orden {
+  flex: 2;
+}
+
+.field-anio {
+  flex: 1;
+  min-width: 150px;
+}
+
+/* Para mantener responsive en pantallas pequeñas */
+@media (max-width: 600px) {
+  .search-fields-row {
+    flex-direction: column;
+  }
+  
+  .field-numero-orden,
+  .field-anio {
+    width: 100%;
+  }
+}
