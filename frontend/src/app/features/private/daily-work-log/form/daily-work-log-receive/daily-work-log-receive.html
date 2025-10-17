@@ -83,14 +83,47 @@
           <mat-icon>assignment</mat-icon>
           <h3>Detalles de la orden para importar</h3>
         </div>
+
+        <!-- Selector de Items mediante Cards Numeradas Compactas -->
+        <div *ngIf="orderData.length >= 1" class="items-navigation">
+          <div class="navigation-header">
+            <mat-icon>inventory_2</mat-icon>
+            <span>Items de la orden: {{ orderData.length }}</span>
+          </div>
+          
+          <div class="item-cards-container">
+            <div 
+              *ngFor="let item of orderData; let i = index"
+              class="item-card"
+              [class.active]="selectedItem === item"
+              [class.new-item]="item.isNew"
+              (click)="selectItem(item)"
+              [matTooltip]="getTooltipContent(item)"
+              matTooltipPosition="above">
+              <div class="card-number">{{ i + 1 }}</div>
+              <mat-icon class="check-icon" *ngIf="selectedItem === item">check_circle</mat-icon>
+              <mat-icon class="new-badge" *ngIf="item.isNew">fiber_new</mat-icon>
+            </div>
+            
+            <!-- Botón para agregar nuevo item -->
+            <button 
+              class="item-card add-item-card"
+              (click)="addNewItem()"
+              [disabled]="isLoading"
+              matTooltip="Agregar nuevo item"
+              matTooltipPosition="above">
+              <mat-icon>add</mat-icon>
+            </button>
+          </div>
+        </div>
   
         <mat-card class="order-card">
           <mat-card-header>
             <div mat-card-avatar class="order-avatar">
               <mat-icon>description</mat-icon>
             </div>
-            <mat-card-title>Orden N° {{ orderData.numero }}/{{ orderData.anio }}</mat-card-title>
-            <mat-card-subtitle>SIAF: {{ orderData.siaf }}</mat-card-subtitle>
+            <mat-card-title>Orden N° {{ selectedItem?.numero }}/{{ selectedItem?.anio }}</mat-card-title>
+            <mat-card-subtitle>SIAF: {{ selectedItem?.siaf }}</mat-card-subtitle>
           </mat-card-header>
   
           <mat-card-content>
@@ -105,11 +138,11 @@
                   <div class="detail-row">
                     <div class="detail-item">
                       <strong>Fecha de Prestación:</strong>
-                      <span>{{ formatDate(orderData.fecha_prestacion) }}</span>
+                      <span>{{ formatDate(selectedItem?.fecha_prestacion ?? '') }}</span>
                     </div>
                     <div class="detail-item">
                       <strong>Plazo de Prestación:</strong>
-                      <span>{{ orderData.plazo_prestacion }} días</span>
+                      <span>{{ selectedItem?.plazo_prestacion }} días</span>
                     </div>
                   </div>
                 </div>
@@ -122,11 +155,11 @@
 
                     <div class="detail-item">
                       <strong>Ruc Proveedor:</strong>
-                      <span>{{ orderData.ruc }}</span>
+                      <span>{{ selectedItem?.ruc }}</span>
                     </div>
                     <div class="detail-item">
                       <strong>Razon Social:</strong>
-                      <span>{{ orderData.rsocial }}</span>
+                      <span>{{ selectedItem?.rsocial }}</span>
                     </div>
                   </div>
                 </div>
@@ -139,12 +172,12 @@
                   <div class="detail-row">
                     <div class="detail-item">
                       <strong>Código de Meta:</strong>
-                      <span>{{ orderData.cod_meta }}</span>
+                      <span>{{ selectedItem?.cod_meta }}</span>
                     </div>
                     
                     <div class="detail-item">
                       <strong>Descripción de Meta:</strong>
-                      <span>{{ orderData.desmeta }}</span>
+                      <span>{{ selectedItem?.desmeta }}</span>
                     </div>
                   </div>
                 </div>
@@ -239,7 +272,7 @@
               mat-raised-button 
               color="primary"
               (click)="importOrder()"
-              [disabled]="isLoading || importForm.invalid">
+              [disabled]="isLoading || !areAllItemsValid()">
               <mat-icon>download</mat-icon>
               Importar Orden
             </button>

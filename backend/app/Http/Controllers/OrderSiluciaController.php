@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EquipmentOrder;
 use Illuminate\Http\Request;
 
 use App\Models\OrderSilucia;
@@ -25,7 +26,6 @@ class OrderSiluciaController extends Controller
                 'message' => 'La meta seleccionada no pertenece al proyecto del usuario autenticado.'
             ], 403);
         }
-        Log::info('Datos recibidos para importar orden:', $request->all());
         if($request->maquinaria_id){
             $newService = Service::create([
                 'mechanical_equipment_id' => $request->maquinaria_id,
@@ -44,41 +44,60 @@ class OrderSiluciaController extends Controller
                 'message' => 'registro importado correctamente.',
                 'servicio' => $newService
             ], 201);
-        } else{
+        } else {
+            $exists = OrderSilucia::where('silucia_id', $request->order['idservicio'])->exists();
+
+            if ($exists) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ya existe un registro con este silucia_id: ' . $request->order['idservicio']
+                ], 409);
+            }
+
             $newOrderSilucia = OrderSilucia::create([
-                'silucia_id' => $request->idservicio,
-                'order_type' => 'Servicio',
-                'supplier' => $request->rsocial,
-                'ruc_supplier' => $request->ruc,
-                'machinery_equipment' => $request->maquinaria,
-                'ability' => $request->capacidad,
-                'brand' => $request->marca,
-                'model' => $request->modelo,
-                'serial_number' => $request->serie,
-                'year' => $request->year,
-                'plate' => $request->placa,
-                'delivery_date' => $request->fechaPrestacion,
-                'deadline_day' => $request->plazoPrestacion
+                'silucia_id' => $request->order['idservicio'],
+                'order_code' => 'SERVICIO',
+                'supplier' => $request->order['rsocial'],
+                'ruc_supplier' => $request->order['ruc'],
+                'delivery_date' => $request->order['fechaPrestacion'],
+                'deadline_day' => $request->order['plazoPrestacion'],
             ]);
 
-            $newService = Service::create([
-                'order_id' => $newOrderSilucia->id,
-                'goal_id' => $request->idmeta,
-                'medida_id' => $request->medida_id,
-                'operator' => $request->operador,
-                'description' => $request->description . ' ' . $request->placa,
-                'goal_project' => $request->cod_meta,
-                'goal_detail' => $request->desmeta,
-                'start_date' => $request->fechaPrestacion,
-                'end_date' => $request->fechaFinal,
-                'state' => $request->tipoMaquinaria
-            ]);
+            $services = [];
+
+            foreach ($request->items as $equipment) {
+                $newEquipment = EquipmentOrder::create([
+                    'order_silucia_id' => $newOrderSilucia->id,
+                    'machinery_equipment' => $equipment['machinery_equipment'],
+                    'ability' => $equipment['ability'],
+                    'brand' => $equipment['brand'],
+                    'model' => $equipment['model'],
+                    'serial_number' => $equipment['serial_number'],
+                    'year' => $equipment['year'],
+                    'plate' => $equipment['plate'],
+                ]);
+
+                $newService = Service::create([
+                    'order_id' => $newOrderSilucia->id,
+                    'goal_id' => $request->order['idmeta'],
+                    'medida_id' => $equipment['medida_id'],
+                    'operator' => $equipment['operador'],
+                    'description' => $equipment['machinery_equipment'] . ' ' . $equipment['brand'] . ' ' . $equipment['model'] . ' ' . $equipment['plate'],
+                    'goal_project' => $request->order['cod_meta'],
+                    'goal_detail' => $request->order['desmeta'],
+                    'start_date' => $request->order['fechaPrestacion'],
+                    'end_date' => $request->order['fechaFinal'],
+                    'state' => $equipment['tipoMaquinaria']
+                ]);
+
+                $services[] = $newService;
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => 'registro importado correctamente.',
+                'message' => 'Registro importado correctamente.',
                 'order_silucia' => $newOrderSilucia,
-                'servicio' => $newService
+                'servicios' => $services
             ], 201);
         }
     }

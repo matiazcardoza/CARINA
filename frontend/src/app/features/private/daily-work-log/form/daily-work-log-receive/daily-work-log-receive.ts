@@ -14,6 +14,7 @@ import { DailyWorkLogService } from '../../../../../services/DailyWorkLogService
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 interface OrderDetail {
   idservicio: number;
@@ -29,6 +30,9 @@ interface OrderDetail {
   item: string;
   idmeta: number;
   idmedida: number;
+  name_catalog: string;
+  idserviciodet: number;
+  isNew?: boolean;
 }
 
 interface OrderResponse {
@@ -55,7 +59,8 @@ interface OrderResponse {
     MatProgressSpinnerModule,
     TextFieldModule,
     MatSelectModule,
-    MatOptionModule
+    MatOptionModule,
+    MatTooltipModule
   ]
 })
 export class DailyWorkLogReceive implements OnInit {
@@ -63,9 +68,12 @@ export class DailyWorkLogReceive implements OnInit {
   importForm!: FormGroup;
   numeroOrdenErrors: string | null = null;
   isLoading = false;
-  orderData: OrderDetail | null = null;
+  orderData: OrderDetail[] = [];
+  selectedItem: OrderDetail | null = null;
   showResults = false;
   anioOptions: number[] = [];
+
+  itemFormData: Map<number, any> = new Map();
 
   tipoMaquinariaOptions = [
     { value: 1, label: 'Máquina Seca' },
@@ -103,6 +111,10 @@ export class DailyWorkLogReceive implements OnInit {
       serie: ['', Validators.required],
       placa: ['', Validators.required],
     });
+
+    this.importForm.valueChanges.subscribe(() => {
+      this.saveCurrentItemData();
+    });
   }
 
   searchOrder(): void {
@@ -123,29 +135,20 @@ export class DailyWorkLogReceive implements OnInit {
     const anio = this.orderForm.get('anio')?.value;
     this.isLoading = true;
     this.showResults = false;
-    this.orderData = null;
+    this.orderData = [];
 
     this.dailyWorkLogService.getOrderByNumber(numeroOrden, anio).subscribe({
       next: (response: OrderResponse) => {
         if (response.data && response.data.length > 0) {
-          this.orderData = response.data[0];
+          this.orderData = response.data;
+          this.selectedItem = response.data[0];
           this.showResults = true;
           this.numeroOrdenErrors = null;
-          
-          this.importForm.patchValue({
-            operador: this.getOperator(),
-            tipoMaquinaria: this.getTipoMaquinaria(),
-            maquinaria: this.getMachineryEquipment(),
-            marca: this.getBrand(),
-            modelo: this.getModel(),
-            capacidad: this.getAbility(),
-            year: this.getYear(),
-            serie: this.getNumberSerial(),
-            placa: this.getPlate(),
-          });
+          this.loadItemData(this.selectedItem);
         } else {
           this.numeroOrdenErrors = 'No se encontraron datos para esta orden.';
-          this.orderData = null;
+          this.orderData = [];
+          this.selectedItem = null;
           this.showResults = false;
         }
         this.isLoading = false;
@@ -154,7 +157,8 @@ export class DailyWorkLogReceive implements OnInit {
       error: (err) => {
         console.error('Error al buscar la orden:', err);
         this.numeroOrdenErrors = 'Ocurrió un error al buscar la orden. Intente de nuevo.';
-        this.orderData = null;
+        this.orderData = [];
+        this.selectedItem = null
         this.showResults = false;
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -162,16 +166,93 @@ export class DailyWorkLogReceive implements OnInit {
     });
   }
 
+  loadItemData(item: OrderDetail): void {
+    const savedData = this.itemFormData.get(item.idserviciodet);
+    if (savedData) {
+      this.importForm.patchValue(savedData);
+    } else {
+      const parsedData = {
+        operador: this.getOperator(item),
+        tipoMaquinaria: this.getTipoMaquinaria(item),
+        maquinaria: this.getMachineryEquipment(item),
+        marca: this.getBrand(item),
+        modelo: this.getModel(item),
+        capacidad: this.getAbility(item),
+        year: this.getYear(item),
+        serie: this.getNumberSerial(item),
+        placa: this.getPlate(item),
+      };
+      this.importForm.patchValue(parsedData);
+      // Guardar los datos parseados
+      this.itemFormData.set(item.idserviciodet, parsedData);
+    }
+  }
+
+  addNewItem(): void {
+    this.saveCurrentItemData();
+    
+    // Crear un nuevo item basado en el primer item existente
+    const firstItem = this.orderData[0];
+    const newItem: OrderDetail = {
+      idservicio: firstItem.idservicio,
+      ruc: firstItem.ruc,
+      rsocial: firstItem.rsocial,
+      anio: firstItem.anio,
+      numero: firstItem.numero,
+      siaf: firstItem.siaf,
+      fecha_prestacion: firstItem.fecha_prestacion,
+      plazo_prestacion: firstItem.plazo_prestacion,
+      cod_meta: firstItem.cod_meta,
+      desmeta: firstItem.desmeta,
+      item: '',
+      idmeta: firstItem.idmeta,
+      idmedida: firstItem.idmedida,
+      name_catalog: 'Nuevo Item',
+      idserviciodet: Date.now(), // ID temporal único
+      isNew: true
+    };
+    
+    this.orderData.push(newItem);
+    this.selectedItem = newItem;
+    
+    // Inicializar formulario vacío para el nuevo item
+    this.importForm.reset();
+    this.itemFormData.set(newItem.idserviciodet, {
+      operador: '',
+      tipoMaquinaria: '',
+      maquinaria: '',
+      marca: '',
+      modelo: '',
+      capacidad: '',
+      year: '',
+      serie: '',
+      placa: ''
+    });
+  }
+
+  saveCurrentItemData(): void {
+    if (this.selectedItem) {
+      this.itemFormData.set(this.selectedItem.idserviciodet, this.importForm.value);
+    }
+  }
+
+  selectItem(item: OrderDetail): void {
+    this.saveCurrentItemData();
+    this.selectedItem = item;
+    this.loadItemData(item);
+  }
+
   clearData(): void {
     this.orderForm.reset();
-    // Resetear el año al año actual
     const currentYear = new Date().getFullYear();
     this.orderForm.patchValue({ anio: currentYear });
     
     this.importForm.reset();
     this.numeroOrdenErrors = null;
-    this.orderData = null;
+    this.orderData = [];
+    this.selectedItem = null;
     this.showResults = false;
+    this.itemFormData.clear();
   }
 
   hasFieldError(fieldName: string): boolean {
@@ -210,43 +291,97 @@ export class DailyWorkLogReceive implements OnInit {
     }).format(date);
   }
 
+  areAllItemsValid(): boolean {
+    if (this.orderData.length === 0) {
+      return false;
+    }
+
+    // Guardar datos del item actual antes de validar
+    this.saveCurrentItemData();
+
+    // Validar que todos los items tengan datos guardados
+    for (const item of this.orderData) {
+      const itemData = this.itemFormData.get(item.idserviciodet);
+      
+      if (!itemData) {
+        return false;
+      }
+
+      // Validar que todos los campos requeridos estén completos
+      if (!itemData.operador || !itemData.tipoMaquinaria || !itemData.maquinaria || 
+          !itemData.marca || !itemData.modelo || !itemData.capacidad || 
+          !itemData.year || !itemData.serie || !itemData.placa) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   importOrder(): void {
     this.importForm.markAllAsTouched();
-    if (!this.orderData || this.importForm.invalid) {
+    if (!this.areAllItemsValid()) {
       return;
     }
-    
+    if (this.orderData.length === 0 || this.importForm.invalid) {
+      return;
+    }
+
     this.isLoading = true;
     
-    const formData = new FormData();
-    const formValue = this.importForm.value;
+    const commonFormValues = this.importForm.value;
+    const firstItem = this.orderData[0];
+
+    // Calcular fecha final basada en el primer item
+    const fechaInicio = new Date(firstItem.fecha_prestacion);
+    const fechaFinal = new Date(fechaInicio);
+    fechaFinal.setDate(fechaInicio.getDate() + firstItem.plazo_prestacion);
+
+    // Datos comunes de la orden (se toman del primer item ya que son iguales para todos)
+    const orderData = {
+      idservicio: firstItem.idservicio,
+      idmeta: firstItem.idmeta,
+      ruc: firstItem.ruc,
+      rsocial: firstItem.rsocial,
+      cod_meta: firstItem.cod_meta,
+      desmeta: firstItem.desmeta,
+      fechaPrestacion: firstItem.fecha_prestacion,
+      plazoPrestacion: firstItem.plazo_prestacion,
+      numero_orden: firstItem.numero,
+      anio_orden: firstItem.anio,
+      fechaFinal: fechaFinal.toISOString().split('T')[0]
+    };
+
+    console.log('importando datos de la orden:', orderData);
     
-    for (const key in formValue) {
-        if (formValue.hasOwnProperty(key) && formValue[key] !== null) {
-            formData.append(key, formValue[key]);
-        }
-    }
-    
-    if (this.orderData) {
-      formData.append('idmeta', this.orderData.idmeta.toString());
-      formData.append('medida_id', this.orderData.idmedida.toString());
-      formData.append('ruc', this.orderData.ruc);
-      formData.append('rsocial', this.orderData.rsocial);
-      formData.append('cod_meta', this.orderData.cod_meta);
-      formData.append('desmeta', this.orderData.desmeta);
-      formData.append('idservicio', this.orderData.idservicio.toString());
-      formData.append('fechaPrestacion', this.orderData.fecha_prestacion);
-      formData.append('plazoPrestacion', this.orderData.plazo_prestacion.toString());
-      formData.append('description', formValue.maquinaria || '');
+    // Items individuales con sus datos específicos
+    const items = this.orderData.map(item => {
+      // Obtener los datos guardados del formulario para este item
+      const itemData = this.itemFormData.get(item.idserviciodet) || this.importForm.value;
+      
+      return {
+        idserviciodet: item.idserviciodet,
+        medida_id: item.idmedida,
+        machinery_equipment: itemData.maquinaria,
+        ability: itemData.capacidad,
+        brand: itemData.marca,
+        model: itemData.modelo,
+        serial_number: itemData.serie,
+        year: itemData.year,
+        plate: itemData.placa,
+        operador: itemData.operador,
+        tipoMaquinaria: itemData.tipoMaquinaria,
+        description: item.item || ''
+      };
+    });
 
-      const fechaInicio = new Date(this.orderData.fecha_prestacion);
-      const fechaFinal = new Date(fechaInicio);
-      fechaFinal.setDate(fechaInicio.getDate() + this.orderData.plazo_prestacion);
+    // Payload final: 1 orden con múltiples items
+    const payload = {
+      order: orderData,
+      items: items
+    };
 
-      formData.append('fechaFinal', fechaFinal.toISOString().split('T')[0]);
-    }
-
-    this.dailyWorkLogService.importOrder(formData).subscribe({
+    this.dailyWorkLogService.importOrder(payload).subscribe({
       next: (response) => {
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -266,73 +401,85 @@ export class DailyWorkLogReceive implements OnInit {
     this.dialogRef.close(false);
   }
 
-  getOperator(): string {
-    if (!this.orderData?.item) return '';
-    const texto = this.orderData.item.toUpperCase();
+  getOperator(item: OrderDetail): string {
+    if (!item?.item) return '';
+    const texto = item.item.toUpperCase();
     const match = texto.match(/OPERADOR\s*\d*:\s*([^\n-]+)/);
     return match ? match[1].trim() : '';
   }
   
-  getMachineryEquipment(): string {
-    if (!this.orderData?.item) return '';
-    const texto = this.orderData.item.toUpperCase();
+  getMachineryEquipment(item: OrderDetail): string {
+    if (!item?.item) return '';
+    const texto = item.item.toUpperCase();
     const match = texto.match(/(?:ALQUILER|SERVICIO)\s+DE\s+([^,]+)/);
     return match ? match[1].trim() : '';
   }
 
-  getTipoMaquinaria(): number | null{
-    if (!this.orderData?.item) return null;
-    const texto = this.orderData.item.toUpperCase();
+  getTipoMaquinaria(item: OrderDetail): number | null {
+    if (!item?.item) return null;
+    const texto = item.item.toUpperCase();
     if (texto.includes('MAQUINA SECA')) return 1;
     if (texto.includes('MAQUINA SERVIDA')) return 2;
     return null;
   }
 
-  getAbility(): string {
-    if (!this.orderData?.item) return '';
-    const texto = this.orderData.item.toUpperCase();
+  getAbility(item: OrderDetail): string {
+    if (!item?.item) return '';
+    const texto = item.item.toUpperCase();
     const match = texto.match(/MOTOR:\s*([^\n-]+).*POTENCIA:\s*([^\n-]+)/s);
     return match ? `${match[1].trim()} - ${match[2].trim()}` : '';
   }
 
-  getBrand(): string {
-    if (!this.orderData?.item) return '';
-    const texto = this.orderData.item.toUpperCase();
+  getBrand(item: OrderDetail): string {
+    if (!item?.item) return '';
+    const texto = item.item.toUpperCase();
     const match = texto.match(/MARCA:\s*([^\n-]+)/);
     return match ? match[1].trim() : '';
   }
 
-  getModel(): string {
-    if (!this.orderData?.item) return '';
-    const texto = this.orderData.item.toUpperCase();
+  getModel(item: OrderDetail): string {
+    if (!item?.item) return '';
+    const texto = item.item.toUpperCase();
     const match = texto.match(/MODELO:\s*([^\n-]+)/);
     return match ? match[1].trim() : '';
   }
 
-  getNumberSerial(): string {
-    if (!this.orderData?.item) return '';
-    const texto = this.orderData.item.toUpperCase();
+  getNumberSerial(item: OrderDetail): string {
+    if (!item?.item) return '';
+    const texto = item.item.toUpperCase();
     const match = texto.match(/SERIE:\s*([^\n-]+)/);
     return match ? match[1].trim() : '';
   }
 
-  getYear(): string {
-    if (!this.orderData?.item) return '';
-    const texto = this.orderData.item.toUpperCase();
+  getYear(item: OrderDetail): string {
+    if (!item?.item) return '';
+    const texto = item.item.toUpperCase();
     const match = texto.match(/AÑO:\s*([^\n-]+)/);
     return match ? match[1].trim() : '';
   }
 
-  getPlate(): string {
-    if (!this.orderData?.item) return '';
-    const texto = this.orderData.item.toUpperCase();
+  getPlate(item: OrderDetail): string {
+    if (!item?.item) return '';
+    const texto = item.item.toUpperCase();
     const match = texto.match(/PLACA\s*(?:N[°º]\s*)?:\s*([A-Z0-9-]+)/);
     return match ? match[1].trim() : '';
   }
 
-  getDescripcion() {
-    if (!this.orderData?.item) return '';
-    const texto = this.orderData.item.toUpperCase();
+  getDescripcion(item: OrderDetail): string {
+    if (!item?.item) return '';
+    const texto = item.item.toUpperCase();
     return texto.split(',')[0].trim();
+  }
+
+  getTooltipContent(item: OrderDetail): string {
+    const placa = this.getPlate(item) || 'Sin placa';
+    const descripcion = this.getShortDescription(item);
+    return `${descripcion}\nPlaca: ${placa}`;
+  }
+
+  getShortDescription(item: OrderDetail): string {
+    if (!item?.name_catalog) return 'Item';
+    const description = item.name_catalog;
+    return description.length > 30 ? description.substring(0, 30) + '...' : description;
   }
 }

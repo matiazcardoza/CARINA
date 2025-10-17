@@ -67,8 +67,8 @@ export class DailyWorkLogService {
     );
   }
 
-  importOrder(orderData: any): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/api/orders-silucia/import-order`, orderData, {
+  importOrder(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/api/orders-silucia/import-order`, payload, {
       withCredentials: true
     });
   }
