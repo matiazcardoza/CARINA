@@ -56,7 +56,7 @@ class OrderSiluciaController extends Controller
 
             $newOrderSilucia = OrderSilucia::create([
                 'silucia_id' => $request->order['idservicio'],
-                'order_code' => 'SERVICIO',
+                'order_type' => 'SERVICIO',
                 'supplier' => $request->order['rsocial'],
                 'ruc_supplier' => $request->order['ruc'],
                 'delivery_date' => $request->order['fechaPrestacion'],

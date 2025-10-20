@@ -48,15 +48,7 @@ export class DocumentSignatureService {
     );
   }
 
-  getRole(): Observable<UserRoleElement[]> {
-    return this.http.get<UserRoleApiResponse>(`${this.apiUrl}/api/document-userRole`, {
-      withCredentials: true
-    }).pipe(
-      map(response => response.data)
-    );
-  }
-
-  getWorkLogDocument(documentId: number): Observable<DocumentDailyPartElement> {
+  getWorkLogDocumentSignature(documentId: number): Observable<DocumentDailyPartElement> {
     return this.http.get<DocumentDailyPartApiResponse>(`${this.apiUrl}/api/document-signature/${documentId}`, {
       withCredentials: true,
     }).pipe(

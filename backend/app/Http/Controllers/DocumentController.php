@@ -66,16 +66,6 @@ class DocumentController extends Controller
         ], 201);
     }
 
-    public function getRoles(){
-        $user = User::find(Auth::id());
-        $role = $user->roles;
-
-        return response()->json([
-            'message' => 'roles get successfully',
-            'data' => $role
-        ], 201);
-    }
-
     function getDocumentSignature($documentId)
     {
         $document = DocumentDailyPart::find($documentId);

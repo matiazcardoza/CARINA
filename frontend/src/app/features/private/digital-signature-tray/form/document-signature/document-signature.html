@@ -52,15 +52,6 @@
         {{ isSigned ? 'Documento firmado digitalmente' : 'Documento pendiente de firma' }}
       </span>
     </div>
-    <button *ngIf="(isControllerAndCanSign() || !isController()) && documentState !== 3"
-            mat-raised-button
-            [color]="isSigned ? 'accent' : 'warn'"
-            [disabled]="isLoading"
-            (click)="onSign()"
-            class="sign-button">
-      <mat-icon>{{ isSigned ? 'refresh' : 'create' }}</mat-icon>
-      {{ isSigned ? 'Firmar nuevamente' : 'Firmar documento' }}
-    </button>
     <button *ngIf="hasResidentRole() && documentState !== 2"
             mat-raised-button
             color="primary"
@@ -69,6 +60,15 @@
             class="return-button">
       <mat-icon>keyboard_return</mat-icon>
       {{ showReturnSection ? 'Cancelar devolución' : 'Devolver a controlador' }}
+    </button>
+    <button *ngIf="(isControllerAndCanSign() || !isController()) && documentState !== 3"
+            mat-raised-button
+            [color]="isSigned ? 'accent' : 'warn'"
+            [disabled]="isLoading"
+            (click)="onSign()"
+            class="sign-button">
+      <mat-icon>{{ isSigned ? 'refresh' : 'create' }}</mat-icon>
+      {{ isSigned ? 'Firmar nuevamente' : 'Firmar documento' }}
     </button>
   </div>
 

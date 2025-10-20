@@ -221,7 +221,24 @@ class DailyPartController extends Controller
         $mechanicalEquipment = null;
 
         if($service->order_id){
-            $orderSilucia = OrderSilucia::findOrFail($service->order_id);
+            $orderSilucia = OrderSilucia::where('orders_silucia.id', $service->order_id)
+                            ->leftJoin('equipment_order', 'orders_silucia.id', '=', 'equipment_order.order_silucia_id')
+                            ->select('orders_silucia.silucia_id',
+                                    'orders_silucia.order_type',
+                                    'orders_silucia.supplier',
+                                    'orders_silucia.ruc_supplier',
+                                    'orders_silucia.delivery_date',
+                                    'orders_silucia.deadline_day',
+                                    'equipment_order.order_silucia_id',
+                                    'equipment_order.machinery_equipment',
+                                    'equipment_order.ability',
+                                    'equipment_order.brand',
+                                    'equipment_order.model',
+                                    'equipment_order.serial_number',
+                                    'equipment_order.year',
+                                    'equipment_order.plate',
+                                    'orders_silucia.state'
+                                    )->first();
         }else{
             $mechanicalEquipment = MechanicalEquipment::find($service->mechanical_equipment_id);
         }

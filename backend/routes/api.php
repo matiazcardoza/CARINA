@@ -15,18 +15,16 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ShiftsController;
 use Illuminate\Support\Facades\DB;
 
-Route::post('/document-signature/{documentId}', [SignatureController::class, 'storeSignature']);
+Route::post('/signature-document/{documentId}/{roleId}', [SignatureController::class, 'storeSignature']);
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {
         $user = $request->user();
-        // Obtener todos los roles del usuario sin filtrar por team_id
        $roles = DB::table('model_has_roles')
             ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
             ->where('model_has_roles.model_id', $user->id)
             ->where('model_has_roles.model_type', get_class($user))
             ->pluck('roles.id', 'roles.name');
 
-        // Obtener los permisos asociados a esos roles
         $permissions = DB::table('role_has_permissions')
             ->join('permissions', 'role_has_permissions.permission_id', '=', 'permissions.id')
             ->whereIn('role_has_permissions.role_id', $roles->values())
@@ -38,9 +36,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
-            // 'roles' => $user->getRoleNames(),
-            'roles' => $roles->keys()->values(),       // nombres de roles
-            // 'permissions' => $user->getAllPermissions()->pluck('name')
+            'roles' => $roles->keys()->values(),
             'permissions' => $permissions
         ]);
     });
@@ -105,7 +101,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/document-signature/{documentId}', [DocumentController::class, 'getDocumentSignature']);
     Route::get('/documents-signature/pending', [DocumentController::class, 'getPendingDocuments']);
     Route::post('/document-return/resend-to-controller', [DocumentController::class, 'resendDocument']);
-    Route::get('/document-userRole', [DocumentController::class, 'getRoles']);
 
     //mechanical equipment
     Route::get('/mechanical-equipment', [MechanicalEquipmentController::class, 'index']);

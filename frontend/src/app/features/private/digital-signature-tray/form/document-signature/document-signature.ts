@@ -20,6 +20,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
 import { UserElement } from '../../../users/users';
+import { PermissionService } from '../../../../../services/AuthService/permission';
 
 export interface DocumentDailyPartElement {
   id: number;
@@ -65,11 +66,17 @@ export class DocumentSignature {
   users: UserElement[] = [];
   filteredUsers: UserElement[] = [];
 
-  role: UserRoleElement[] = [];
+  userRoles: string[] = [];
   documentState: number = 0;
 
   showReturnSection: boolean = false;
   returnObservation: string = '';
+
+  private readonly ROLE_MAPPING = {
+    'Controlador_pd': { id: 3, name: 'CONTROLADOR', statusPosition: '1' },
+    'Residente_pd': { id: 4, name: 'RESIDENTE', statusPosition: '2' },
+    'Supervisor_pd': { id: 5, name: 'SUPERVISOR', statusPosition: '3' }
+  };
 
   constructor(
     public dialogRef: MatDialogRef<DocumentSignature>,
@@ -80,7 +87,8 @@ export class DocumentSignature {
     private sanitizer: DomSanitizer,
     private fb: FormBuilder,
     private usersService: UsersService,
-    private documentSignatureService: DocumentSignatureService
+    private documentSignatureService: DocumentSignatureService,
+    private permissionService: PermissionService
   ) {
     this.userForm = this.fb.group({
       userId: ['', Validators.required],
@@ -90,19 +98,19 @@ export class DocumentSignature {
 
   ngOnInit(): void {
     this.loadUsers();
-    this.loadRole();
+    this.loadUserRoles();
     this.loadPdfDocument();
   }
 
-  private loadRole(){
-    this.documentSignatureService.getRole().subscribe({
-      next: (role) => {
-        console.log('estos son los roles del usuario: ', role);
-        this.role = role;
+  private loadUserRoles(): void {
+    this.permissionService.roles$.subscribe({
+      next: (roles) => {
+        this.userRoles = roles;
+        console.log('Roles del usuario cargados:', this.userRoles);
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('Error al cargar usuarios:', error);
+        console.error('Error al cargar roles del usuario:', error);
       }
     });
   }
@@ -141,11 +149,15 @@ export class DocumentSignature {
   }
 
   hasResidentRole(): boolean {
-    return this.role.some(r => r.id === 4);
+    return this.permissionService.hasRole('Residente_pd');
   }
 
   isController(): boolean {
-    return this.role.some(r => r.id === 3);
+    return this.permissionService.hasRole('Controlador_pd');
+  }
+
+  isSupervisor(): boolean {
+    return this.permissionService.hasRole('Supervisor_pd');
   }
 
   toggleReturnSection(): void {
@@ -167,7 +179,7 @@ export class DocumentSignature {
 
     const documentId = this.data.documentId;
 
-    this.documentSignatureService.getWorkLogDocument(documentId)
+    this.documentSignatureService.getWorkLogDocumentSignature(documentId)
       .subscribe({
         next: (data: DocumentDailyPartElement) => {
           try {
@@ -198,34 +210,51 @@ export class DocumentSignature {
       });
   }
 
-  private roleIdToName = new Map<number, string>([
-    [3, 'CONTROLADOR'],
-    [4, 'RESIDENTE'],
-    [5, 'SUPERVISOR']
-  ]);
+  private getUserRelevantRoles(): string[] {
+    const relevantRoles = ['Controlador_pd', 'Residente_pd', 'Supervisor_pd'];
+    return relevantRoles.filter(role => this.permissionService.hasRole(role));
+  }
 
-  private getRoleToSignByDocumentState(): { roleId: number | null, statusPosition: string } {
-    const userRoleIds = this.role.map(r => r.id);
+  private getRoleToSignByDocumentState(): { roleId: number; roleName: string; statusPosition: string } | null {
+    const userRelevantRoles = this.getUserRelevantRoles();
+    
+    console.log('Estado del documento:', this.documentState);
+    console.log('Roles relevantes del usuario:', userRelevantRoles);
 
     switch (this.documentState) {
       case 0:
-        if (userRoleIds.includes(3)) {
-          return { roleId: 3, statusPosition: '1' };
+        if (userRelevantRoles.includes('Controlador_pd')) {
+          return {
+            roleId: this.ROLE_MAPPING['Controlador_pd'].id,
+            roleName: this.ROLE_MAPPING['Controlador_pd'].name,
+            statusPosition: this.ROLE_MAPPING['Controlador_pd'].statusPosition
+          };
         }
         break;
 
       case 1:
-        if (userRoleIds.includes(4)) {
-          return { roleId: 4, statusPosition: '2' };
-        }
-        if (userRoleIds.includes(5) && !userRoleIds.includes(4)) {
-          return { roleId: 5, statusPosition: '2' };
+        if (userRelevantRoles.includes('Residente_pd')) {
+          return {
+            roleId: this.ROLE_MAPPING['Residente_pd'].id,
+            roleName: this.ROLE_MAPPING['Residente_pd'].name,
+            statusPosition: this.ROLE_MAPPING['Residente_pd'].statusPosition
+          };
+        } else if (userRelevantRoles.includes('Supervisor_pd')) {
+          return {
+            roleId: this.ROLE_MAPPING['Supervisor_pd'].id,
+            roleName: this.ROLE_MAPPING['Supervisor_pd'].name,
+            statusPosition: this.ROLE_MAPPING['Supervisor_pd'].statusPosition
+          };
         }
         break;
 
       case 2:
-        if (userRoleIds.includes(5)) {
-          return { roleId: 5, statusPosition: '3' };
+        if (userRelevantRoles.includes('Supervisor_pd')) {
+          return {
+            roleId: this.ROLE_MAPPING['Supervisor_pd'].id,
+            roleName: this.ROLE_MAPPING['Supervisor_pd'].name,
+            statusPosition: this.ROLE_MAPPING['Supervisor_pd'].statusPosition
+          };
         }
         break;
 
@@ -233,26 +262,20 @@ export class DocumentSignature {
         console.warn('Estado de documento no reconocido:', this.documentState);
         break;
     }
-    return { roleId: null, statusPosition: '1' };
+
+    return null;
   }
 
-  private getStatusPositionByDocumentState(): string {
-    const result = this.getRoleToSignByDocumentState();
-    return result.statusPosition;
-  }
-
-  private getRoleNameByDocumentState(): string {
-    const result = this.getRoleToSignByDocumentState();
-
-    if (result.roleId === null) {
-      return 'ADMIN';
+  canUserSign(): boolean {
+    const roleToSign = this.getRoleToSignByDocumentState();
+    
+    if (!roleToSign) {
+      console.log('El usuario no puede firmar en este estado');
+      return false;
     }
 
-    if (result.roleId === 5 && this.documentState === 1) {
-      return 'RESIDENTE';
-    }
-
-    return this.roleIdToName.get(result.roleId) || 'ADMIN';
+    console.log('El usuario puede firmar con:', roleToSign);
+    return true;
   }
 
   onSign(): void {
@@ -261,21 +284,25 @@ export class DocumentSignature {
       return;
     }
 
+    const roleToSign = this.getRoleToSignByDocumentState();
+
+    if (!roleToSign) {
+      alert('No tienes permiso para firmar en este estado del documento');
+      return;
+    }
+
     this.isSigningInProgress = true;
     this.error = null;
     this.cdr.detectChanges();
 
-    const statusPosition = this.getStatusPositionByDocumentState();
-    const cargo = this.getRoleNameByDocumentState();
-
     const firmaParams: FirmaDigitalParams = {
       location_url_pdf: this.pdfUrlString,
       location_logo: `${environment.BACKEND_URL_STORAGE}image_pdf_template/logo_firma_digital.png`,
-      post_location_upload: `${environment.BACKEND_URL}/api/document-signature/${this.documentId}`,
+      post_location_upload: `${environment.BACKEND_URL}/api/signature-document/${this.documentId}/${roleToSign.roleId}`,
       asunto: `Firma de Parte Diario`,
-      rol: cargo,
+      rol: roleToSign.roleName,
       tipo: 'daily_parts',
-      status_position: statusPosition,
+      status_position: roleToSign.statusPosition,
       visible_position: false,
       bacht_operation: false,
       npaginas: this.numberOfPages,
@@ -356,12 +383,6 @@ export class DocumentSignature {
   }
 
   isControllerAndCanSign(): boolean {
-    const isController = this.role.some(r => r.id === 3);
-    const isStateZero = this.documentState === 0;
-
-    const roleToSign = this.getRoleToSignByDocumentState().roleId;
-    const isControllerTurn = roleToSign === 3;
-
-    return isController && isStateZero && isControllerTurn;
+    return this.documentState === 0 && this.permissionService.hasRole('Controlador_pd');
   }
 }
