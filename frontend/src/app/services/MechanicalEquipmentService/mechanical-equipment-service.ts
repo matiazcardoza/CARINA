@@ -66,7 +66,7 @@ export class MechanicalEquipmentService {
   }
 
   getMetaByCode(codmeta: string): Observable<any> {
-    const apiUrl = `https://sistemas.regionpuno.gob.pe/siluciav2-api/api/metasdetallado?codmeta=${codmeta}`;
+    const apiUrl = `https://sistemas2.regionpuno.gob.pe/siluciav2-api/api/metasdetallado?codmeta=${codmeta}`;
     return this.http.get<any>(apiUrl);
   }
 }

@@ -303,7 +303,7 @@ class UserController extends Controller
 
     public function importUsersSilucia(){
         set_time_limit(0);
-        $url = 'https://sistemas.regionpuno.gob.pe/siluciav2-api/api/personal/lista?rowsPerPage=0&flag=T&idrol=17';
+        $url = 'https://sistemas2.regionpuno.gob.pe/siluciav2-api/api/personal/lista?rowsPerPage=0&flag=T&idrol=17';
         $response = Http::get($url);
         $responseData = $response->json();
         $personalData = $responseData['data'] ?? [];
@@ -338,7 +338,7 @@ class UserController extends Controller
 
     public function importControladorSilucia(){
         set_time_limit(0);
-        $url = 'https://sistemas.regionpuno.gob.pe/siluciav2-api/api/personal/lista?rowsPerPage=0&flag=T&idrol=34';
+        $url = 'https://sistemas2.regionpuno.gob.pe/siluciav2-api/api/personal/lista?rowsPerPage=0&flag=T&idrol=34';
         $response = Http::get($url);
         $responseData = $response->json();
         $personalData = $responseData['data'] ?? [];
