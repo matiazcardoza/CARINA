@@ -18,7 +18,7 @@ class OrderSiluciaController extends Controller
         /** @var \App\Models\User $usuario */
         $usuario = Auth::user();
         $exists = Project::where('user_id', Auth::id())
-                ->where('goal_id', $request->idmeta ?? $request->meta_id)
+                ->where('goal_id', $request->order['idmeta'] ?? $request->meta_id)
                 ->exists();
         if (!$exists && !$usuario->hasRole(['SuperAdministrador_pd', 'Admin_equipoMecanico_pd'])) {
             return response()->json([
