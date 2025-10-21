@@ -91,7 +91,7 @@ class DocumentController extends Controller
         $document->update([
             'user_id' => $document->user_id_send,
             'user_id_send' => Auth::id(),
-            'observation' => $request->observation
+            'observation' => 'Observación: ' . $request->observation
         ]);
         return response()->json([
             'message' => 'Document returned to controller successfully',
