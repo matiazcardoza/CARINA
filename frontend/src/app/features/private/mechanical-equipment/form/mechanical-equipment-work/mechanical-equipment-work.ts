@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Inject } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors, FormArray } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -17,14 +17,12 @@ import { MechanicalEquipmentService } from '../../../../../services/MechanicalEq
 import { DailyWorkLogService } from '../../../../../services/DailyWorkLogService/daily-work-log-service';
 import { WorkLogElement } from '../../../daily-work-log/daily-work-log';
 
-// Interfaz para los datos de Meta que necesitas
 interface MetaData {
   idmeta: string;
   codmeta: string;
   desmeta: string;
 }
 
-// Interfaz para la respuesta completa de la API
 interface MetaApiResponse {
   current_page: number;
   data: any[];
@@ -39,7 +37,6 @@ export interface DialogData {
   isReassigned?: boolean;
 }
 
-// Validador personalizado para fechas
 export function dateRangeValidator(control: AbstractControl): ValidationErrors | null {
   const startDate = control.get('start_date')?.value;
   const endDate = control.get('end_date')?.value;
@@ -48,7 +45,6 @@ export function dateRangeValidator(control: AbstractControl): ValidationErrors |
     const start = new Date(startDate);
     const end = new Date(endDate);
     
-    // Resetear las horas para comparar solo las fechas
     start.setHours(0, 0, 0, 0);
     end.setHours(0, 0, 0, 0);
     
@@ -81,6 +77,7 @@ export function dateRangeValidator(control: AbstractControl): ValidationErrors |
 export class MechanicalEquipmentWork implements OnInit {
   metaSearchForm: FormGroup;
   operatorForm: FormGroup;
+  operators: FormArray;
   selectedMeta: MetaData | null = null;
   isLoadingMeta = false;
   metaErrorMessage = '';
@@ -104,31 +101,66 @@ export class MechanicalEquipmentWork implements OnInit {
     });
 
     this.operatorForm = this.fb.group({
-      operatorName: ['', Validators.required],
       start_date: [''],
-      end_date: ['']
+      end_date: [''],
+      operators: this.fb.array([])
     }, { validators: dateRangeValidator });
+    this.operators = this.operatorForm.get('operators') as FormArray;
   }
 
   ngOnInit(): void {
     // ❌ ELIMINADO: Configuración de fecha mínima
     // this.minDate = new Date();
     
-    // Escuchar cambios en las fechas para revalidar
-    this.operatorForm.get('start_date')?.valueChanges.subscribe(() => {
-      this.operatorForm.get('end_date')?.updateValueAndValidity();
-    });
+    if (this.operators.length === 0) {
+      this.addOperator();
+    }
 
     if (this.data.isReassigned) {
+      console.log('es reasignado');
       this.loadExistingData();
     }
   }
 
+  private createOperatorGroup(operator?: { id?: number, name?: string }): FormGroup {
+    return this.fb.group({
+      operatorId: [operator?.id || null],
+      operatorName: [operator?.name || '', Validators.required]
+    });
+  }
+
+  addOperator(): void {
+    this.operators.push(this.createOperatorGroup());
+    this.cdr.detectChanges();
+  }
+
+  removeOperator(index: number): void {
+    if (this.operators.length > 1) {
+      this.operators.removeAt(index);
+      this.cdr.detectChanges();
+    }
+  }
+
+  get operatorsControls() {
+    return (this.operatorForm.get('operators') as FormArray).controls;
+  }
+
   private loadExistingData() {
+    console.log('loadExistingData');
     this.isLoading = true;
+    
+    if (this.data.mechanicalEquipment.operators && 
+        Array.isArray(this.data.mechanicalEquipment.operators) && 
+        this.data.mechanicalEquipment.operators.length > 0) {
+      
+      this.preloadFromMechanicalEquipment(this.data.mechanicalEquipment);
+      this.isLoading = false;
+      return;
+    }
+    
     this.dailyWorkLogService.getIdmeta(this.data.mechanicalEquipment.id).subscribe({
       next: (data) => {
-        console.log('Productos cargados:', data);
+        console.log('meta cargados:', data);
         this.dataMeta = data;
         if (data && data.length > 0) {
           this.preloadFormData(data[0]);
@@ -144,19 +176,62 @@ export class MechanicalEquipmentWork implements OnInit {
     });
   }
 
+  private preloadFromMechanicalEquipment(equipment: any): void {
+    console.log('preloadFromMechanicalEquipment', equipment);
+    this.operators.clear();
+    
+    this.operatorForm.patchValue({
+      start_date: equipment.start_date ? this.parseDateAsLocal(equipment.start_date) : null,
+      end_date: equipment.end_date ? this.parseDateAsLocal(equipment.end_date) : null
+    });
+    
+    if (equipment.operators && Array.isArray(equipment.operators) && equipment.operators.length > 0) {
+      equipment.operators.forEach((op: any) => {
+        this.operators.push(this.createOperatorGroup({
+          id: op.id,
+          name: op.name
+        }));
+      });
+    } else {
+      this.addOperator();
+    }
+    
+    if (equipment.goal_detail) {
+      this.selectedMeta = {
+        idmeta: equipment.goal_id.toString(),
+        codmeta: equipment.goal_project,
+        desmeta: equipment.goal_detail
+      };
+
+      this.metaSearchForm.patchValue({
+        metaCode: equipment.goal_project || ''
+      });
+
+      this.dataMeta = [equipment];
+    }
+    
+    this.cdr.detectChanges();
+  }
+
   private parseDateAsLocal(dateString: string): Date {
     const [year, month, day] = dateString.split('-').map(Number);
     return new Date(year, month - 1, day);
   }
 
   private preloadFormData(workLog: WorkLogElement): void {
-    // Prellenar formulario del operador
+    console.log('preloadFormData', workLog);
+    this.operators.clear();
     this.operatorForm.patchValue({
-      operatorName: workLog.operator || '',
       start_date: workLog.start_date ? this.parseDateAsLocal(workLog.start_date) : null,
       end_date: workLog.end_date ? this.parseDateAsLocal(workLog.end_date) : null
     });
-    // Prellenar información de Meta si existe
+    if (workLog.operators && Array.isArray(workLog.operators) && workLog.operators.length > 0) {
+      workLog.operators.forEach(operatorName => {
+        this.operators.push(this.createOperatorGroup(operatorName));
+      });
+    } else {
+      this.addOperator();
+    }
     if (workLog.goal_id) {
       this.selectedMeta = {
         idmeta: workLog.goal_id.toString(),
@@ -164,7 +239,6 @@ export class MechanicalEquipmentWork implements OnInit {
         desmeta: workLog.goal_detail || ''
       };
       
-      // Prellenar el código de meta en el formulario de búsqueda
       this.metaSearchForm.patchValue({
         metaCode: workLog.goal_project || ''
       });
@@ -174,7 +248,6 @@ export class MechanicalEquipmentWork implements OnInit {
   }
 
 
-  // Función para buscar Meta
   buscarMeta(): void {
     if (this.metaSearchForm.valid) {
       const metaCode = this.metaSearchForm.get('metaCode')?.value?.trim();
@@ -188,7 +261,6 @@ export class MechanicalEquipmentWork implements OnInit {
       this.metaErrorMessage = '';
       this.selectedMeta = null;
 
-      // Llamada al servicio de Meta
       this.mechanicalEquipmentService.getMetaByCode(metaCode)
         .pipe(
           catchError(error => {
@@ -219,16 +291,13 @@ export class MechanicalEquipmentWork implements OnInit {
     }
   }
 
-  // Función para limpiar la búsqueda de Meta
   limpiarBusquedaMeta(): void {
     this.metaSearchForm.reset();
     this.selectedMeta = null;
     this.metaErrorMessage = '';
   }
 
-  // Función para procesar la meta seleccionada
   procesarMeta(): void {
-    // Validar que el formulario del operador sea válido
     if (!this.operatorForm.valid) {
       this.operatorForm.markAllAsTouched();
       return;
@@ -236,20 +305,31 @@ export class MechanicalEquipmentWork implements OnInit {
 
     this.isLoading = true;
 
-    // ✅ MODO EDICIÓN: Si es reasignación y hay datos existentes
+    const startDateValue = this.operatorForm.get('start_date')?.value;
+    const endDateValue = this.operatorForm.get('end_date')?.value;
+    
+    const startDate = startDateValue ? this.formatDate(new Date(startDateValue)) : '';
+    const endDate = endDateValue ? this.formatDate(new Date(endDateValue)) : '';
+    
+    const operatorData = this.operators.controls.map((control) => {
+      const operatorGroup = control as FormGroup;
+      return {
+        id: operatorGroup.value.operatorId || null,
+        name: operatorGroup.value.operatorName || ''
+      };
+    });
+
     if (this.data.isReassigned && this.dataMeta.length > 0) {
-      const workLogData: WorkLogElement = {
-        ...this.dataMeta[0], // Mantener datos originales
-        operator: this.operatorForm.value.operatorName || '',
-        start_date: this.formatDate(new Date(this.operatorForm.value.start_date)),
-        end_date: this.formatDate(new Date(this.operatorForm.value.end_date)),
-        // Actualizar meta si existe
+      const workLogData = {
+        ...this.dataMeta[0],
+        start_date: startDate,
+        end_date: endDate,
+        operators: operatorData,
         goal_id: this.selectedMeta ? parseInt(this.selectedMeta.idmeta) : this.dataMeta[0].goal_id,
         goal_project: this.selectedMeta?.codmeta || this.dataMeta[0].goal_project,
         goal_detail: this.selectedMeta?.desmeta || this.dataMeta[0].goal_detail
       };
 
-      // Llamar al servicio de actualización
       this.dailyWorkLogService.updateIdmeta(workLogData).subscribe({
         next: (response) => {
           this.isLoading = false;
@@ -265,22 +345,18 @@ export class MechanicalEquipmentWork implements OnInit {
       });
       
     } else {
-      // ✅ MODO CREACIÓN: Crear nuevo registro con FormData
       const formData = new FormData();
-      
       formData.append('maquinaria_id', this.data.mechanicalEquipment.id.toString());
       formData.append('maquinaria_equipo', this.data.mechanicalEquipment.machinery_equipment || '');
       formData.append('maquinaria_marca', this.data.mechanicalEquipment.brand || '');
       formData.append('maquinaria_modelo', this.data.mechanicalEquipment.model || '');
       formData.append('maquinaria_placa', this.data.mechanicalEquipment.plate || '');
       formData.append('maquinaria_serie', this.data.mechanicalEquipment.serial_number || '');
-      formData.append('operador', this.operatorForm.value.operatorName || '');
       
-      const startDate = new Date(this.operatorForm.value.start_date);
-      formData.append('start_date', this.formatDate(startDate));
+      formData.append('start_date', startDate);
+      formData.append('end_date', endDate);
       
-      const endDate = new Date(this.operatorForm.value.end_date);
-      formData.append('end_date', this.formatDate(endDate));
+      formData.append('operators', JSON.stringify(operatorData));
       
       if (this.selectedMeta) {
         formData.append('meta_id', this.selectedMeta.idmeta || '');
@@ -304,7 +380,6 @@ export class MechanicalEquipmentWork implements OnInit {
     }
   }
 
-  // Función para formatear fecha a string
   private formatDate(date: Date): string {
     const year = date.getFullYear();
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -312,12 +387,10 @@ export class MechanicalEquipmentWork implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
-  // Getter para verificar si se puede procesar
   get canProcess(): boolean {
-    return !!this.selectedMeta && this.operatorForm.valid;
+    return !!this.selectedMeta && this.operatorForm.valid && this.operators.length > 0;
   }
 
-  // Getter para errores de fecha inicial
   get startDateError(): string {
     const control = this.operatorForm.get('start_date');
     if (control?.hasError('required')) return 'La fecha inicial es requerida';
@@ -325,18 +398,13 @@ export class MechanicalEquipmentWork implements OnInit {
     return '';
   }
 
-  // Getter para errores de fecha final
   get endDateError(): string {
     const control = this.operatorForm.get('end_date');
-    
     if (control?.hasError('required')) return 'La fecha final es requerida';
     if (control?.hasError('matDatepickerParse')) return 'Formato de fecha inválido';
-    
-    // Error de rango de fechas a nivel de formulario
     if (this.operatorForm.hasError('dateRangeInvalid') && control?.value) {
       return 'La fecha final debe ser posterior a la fecha inicial';
     }
-    
     return '';
   }
 }

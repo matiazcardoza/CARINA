@@ -23,7 +23,7 @@ export interface WorkLogElement {
   goal_detail: string;
   start_date: string;
   end_date: string;
-  operator: string;
+  operators?: { id: number; name: string }[];
   state: number;
 }
 
@@ -47,11 +47,12 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
 
   constructor(private cdr: ChangeDetectorRef) {
     this.dataSource.filterPredicate = (data: WorkLogElement, filter: string) => {
+      const operatorNames = data.operators?.map(op => op.name).join(' ') || '';
       const dataStr = (
         data.description + 
         data.goal_project + 
         data.goal_detail + 
-        data.operator +
+        operatorNames +
         data.id
       ).toLowerCase();
       return dataStr.indexOf(filter) !== -1;
@@ -202,5 +203,12 @@ export class DailyWorkLog implements AfterViewInit, OnInit {
 
   navigateToWorkLogId(id: number, state: number) {
     this.router.navigate(['/daily-work-log/daily-work-log-id', id, state]);
+  }
+
+  getOperatorNames(operators?: { id: number; name: string }[]): string {
+    if (!operators || operators.length === 0) {
+      return 'Sin operadores';
+    }
+    return operators.map(op => op.name).join(', ');
   }
 }

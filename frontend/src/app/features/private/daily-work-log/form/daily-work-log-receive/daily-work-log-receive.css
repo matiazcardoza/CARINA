@@ -634,3 +634,35 @@
     transform: scale(1.1);
   }
 }
+
+.operators-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.operators-header .section-title {
+  margin: 0;
+}
+
+.operator-card {
+  margin-bottom: 12px;
+  padding: 16px;
+}
+
+.operator-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.operator-number {
+  font-weight: 500;
+  color: #1976d2;
+}
+
+.operator-card .field-full {
+  width: 100%;
+}

@@ -17,6 +17,7 @@ import { startWith, map } from 'rxjs/operators';
 import { FormControl } from '@angular/forms';
 
 import { ProductsService, ProductsElement } from '../../../../../services/productsService/products-service';
+import { OperatorsService, OperatorsElement } from '../../../../../services/OperatorsService/operators-service';
 import { MatIconModule } from '@angular/material/icon';
 
 export interface DialogData {
@@ -58,10 +59,14 @@ export class DailyWorkLogForm implements OnInit {
   isLoading = false;
 
   products: ProductsElement[] = [];
+  operators: OperatorsElement[] = [];
 
   filteredProducts: ProductsElement[] = [];
   private productsControl = new FormControl();
   isLoadingProducts = false;
+  isLoadingOperators = false;
+  filteredOperators: OperatorsElement[] = [];
+  private operatorsControl = new FormControl();
 
   selectedFiles: File[] = [];
   previewUrls: string[] = [];
@@ -73,6 +78,7 @@ export class DailyWorkLogForm implements OnInit {
   private fb = inject(FormBuilder);
   private dailyWorkLogService = inject(DailyWorkLogService);
   private productsService = inject(ProductsService);
+  private operatorsService = inject(OperatorsService);
 
   constructor(
     public dialogRef: MatDialogRef<DailyWorkLogForm>,
@@ -88,7 +94,8 @@ export class DailyWorkLogForm implements OnInit {
       start_time: [''],
       initial_fuel: [''],
       product_id: [''],
-      description: ['', Validators.required]
+      description: ['', Validators.required],
+      operator_id: ['', Validators.required]
     };
 
     if (this.isStateTwo) {
@@ -123,8 +130,23 @@ export class DailyWorkLogForm implements OnInit {
       // Si no se requieren campos de producto, habilitamos directamente el combustible
       this.workLogForm.get('initial_fuel')?.disable();
     }*/
+    this.loadOperators();
     this.workLogForm.get('initial_fuel')?.enable();
     this.setupFormValues();
+    if (!this.data.isEdit && !this.isStateTwo) {
+      this.setCurrentTime();
+    }
+  }
+
+  private setCurrentTime() {
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const currentTime = `${hours}:${minutes}`;
+    this.workLogForm.patchValue({
+      start_time: currentTime
+    });
+    this.cdr.detectChanges(); 
   }
 
   private setupProductFieldLogic() {
@@ -167,7 +189,8 @@ export class DailyWorkLogForm implements OnInit {
         work_date: adjustedWorkDate,
         start_time: this.convertTo12HourFormat(this.data.workLog.start_time),
         description: this.data.workLog.description || '',
-        initial_fuel: this.data.workLog.initial_fuel
+        initial_fuel: this.data.workLog.initial_fuel,
+        operator_id: this.data.workLog.operator
       };
 
       // Solo agregar campos de producto si son requeridos
@@ -218,6 +241,10 @@ export class DailyWorkLogForm implements OnInit {
     return product ? `${product.numero} - ${product.item}` : '';
   }
 
+  displayOperator(operator: OperatorsElement | null): string {
+    return operator ? `${operator.name}` : '';
+  }
+
   private _filter(value: string): ProductsElement[] {
     const filterValue = value.toLowerCase();
     return this.products.filter(product =>
@@ -239,6 +266,29 @@ export class DailyWorkLogForm implements OnInit {
       error: (error) => {
         console.error('Error al cargar productos:', error);
         this.isLoadingProducts = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private loadOperators() {
+    this.isLoadingOperators  = true;
+    const serviceId = this.data.serviceId ? this.data.serviceId.toString() : '';
+    this.operatorsService.getOperators(serviceId).subscribe({
+      next: (operators) => {
+        console.log('Operadores cargados:', operators);
+        this.operators = operators;
+        if (this.operators.length > 0 && !this.data.isEdit) {
+          this.workLogForm.get('operator_id')?.setValue(this.operators[0].id);
+        }else{
+          this.workLogForm.get('operator_id')?.setValue(this.data.workLog.operator_id);
+        }
+        this.isLoadingOperators = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error al cargar operadores:', error);
+        this.isLoadingOperators = false;
         this.cdr.detectChanges();
       }
     });
@@ -271,6 +321,8 @@ export class DailyWorkLogForm implements OnInit {
         formData.append('start_time', formValue.start_time);
         formData.append('description', formValue.description);
         formData.append('initial_fuel', formValue.initial_fuel);
+        formData.append('operator_id', formValue.operator_id.id.toString());
+
         formData.append('service_id', this.data.serviceId ? this.data.serviceId.toString() : '');
 
         formData.append('end_time', formValue.end_time);
@@ -299,7 +351,8 @@ export class DailyWorkLogForm implements OnInit {
           start_time: formValue.start_time,
           description: formValue.description,
           service_id: this.data.serviceId ? Number(this.data.serviceId) : null,
-          initial_fuel: parseFloat(formValue.initial_fuel)
+          initial_fuel: parseFloat(formValue.initial_fuel),
+          operator_id: formValue.operator_id
         };
 
         if (this.data.selectedShift) {
@@ -338,6 +391,7 @@ export class DailyWorkLogForm implements OnInit {
       }, 0);
     } else {
       setTimeout(() => {
+        console.log('crear workLogData:', workLogData);
         this.dailyWorkLogService.createWorkLog(workLogData)
           .subscribe({
             next: (newWorkLog) => {

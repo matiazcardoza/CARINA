@@ -111,7 +111,15 @@
               <div class="date-info">
                 <span class="date-value">{{element.goal_detail}}</span>
               </div>
-              <span class="date-value" style="color: blue;">Operador: {{element.operator}}</span>
+              <span class="date-value" style="color: blue;">
+                Operadores:
+                <ng-container *ngIf="element.operators && element.operators.length > 0; else noOps">
+                  {{ getOperatorNames(element.operators) }}
+                </ng-container>
+                <ng-template #noOps>
+                  <span style="color: gray;">Sin operadores</span>
+                </ng-template>
+              </span>
             </td>
           </ng-container>
 

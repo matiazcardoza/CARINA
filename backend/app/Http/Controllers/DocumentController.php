@@ -84,7 +84,7 @@ class DocumentController extends Controller
     public function resendDocument(Request $request){
         $dailyPart = DailyPart::where('document_id', $request->documentId);
         $dailyPart->update([
-            'state' => 3
+            'state' => 2
         ]);
 
         $document = DocumentDailyPart::find($request->documentId);

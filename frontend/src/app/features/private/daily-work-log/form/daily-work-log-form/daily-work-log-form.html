@@ -16,6 +16,24 @@
         <mat-error>{{ workDateError }}</mat-error>
       </mat-form-field>
 
+      <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Operador Asignado</mat-label>
+          <mat-select formControlName="operator_id">
+              <mat-option *ngIf="isLoadingOperators" [disabled]="true">
+                  Cargando operadores...
+              </mat-option>
+              <ng-container *ngIf="!isLoadingOperators">
+                  <mat-option *ngFor="let operator of operators" [value]="operator.id">
+                      {{ operator.name }} 
+                      </mat-option>
+              </ng-container>
+          </mat-select>
+
+          <mat-error *ngIf="workLogForm.get('operator_id')?.hasError('required') && workLogForm.get('operator_id')?.touched">
+              El operador es requerido.
+          </mat-error>
+      </mat-form-field>
+
       <mat-form-field appearance="outline" class="full-width" *ngIf="shouldRequireProductFields">
         <mat-label>Combustible Inicial (Galones)</mat-label>
         <input matInput

@@ -25,10 +25,11 @@ class DailyPartController extends Controller
     {
         $serviceId = $request->id;
         $date = $request->query('date', now()->format('Y-m-d'));
-        $dailyParts = DailyPart::select('daily_parts.*')
+        $dailyParts = DailyPart::select('daily_parts.*', 'operators.name as operator')
+            ->leftJoin('operators', 'daily_parts.operator_id', '=', 'operators.id')
             ->whereDate('work_date', $date)
             ->where('shift_id', $request->shift_id)
-            ->where('service_id', $serviceId)
+            ->where('daily_parts.service_id', $serviceId)
             ->get();
         /*$dailyParts = DailyPart::select('daily_parts.*', 'item_pecosas.numero', 'item_pecosas.item')
             ->whereDate('work_date', $date)
@@ -47,6 +48,7 @@ class DailyPartController extends Controller
         $dailyPart = DailyPart::create([
             'service_id' => $request->service_id,
             'shift_id' => ($request->shift_id === 'all') ? null : $request->shift_id,
+            'operator_id' => $request->operator_id,
             //'itemPecosa_id' => $request->product_id,
             'work_date' => $request->work_date,
             'start_time' => date("H:i", strtotime($request->start_time)),
@@ -116,6 +118,7 @@ class DailyPartController extends Controller
             ]);*/
 
             $dailyPart->update([
+                'operator_id' => $request->operator_id,
                 'start_time' =>date("H:i", strtotime($request->start_time)),
                 'end_time' => date("H:i", strtotime($request->end_time)),
                 'occurrences' => $request->occurrences,
@@ -243,10 +246,13 @@ class DailyPartController extends Controller
             $mechanicalEquipment = MechanicalEquipment::find($service->mechanical_equipment_id);
         }
 
-        $dailyPart = DailyPart::where('work_date', $request->date)
-            ->where('service_id', $serviceId)
+        $dailyPart = DailyPart::select('daily_parts.*', 'operators.name as operator')
+            ->where('work_date', $request->date)
+            ->leftJoin('operators', 'operators.id', '=', 'daily_parts.operator_id')
+            ->where('daily_parts.service_id', $serviceId)
             ->where('shift_id', $request->shift_id)
             ->get();
+
         $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
         $logoWorkPath = storage_path('app/public/image_pdf_template/logo_work.png');
         $qr_code = base64_encode("data_qr_example");

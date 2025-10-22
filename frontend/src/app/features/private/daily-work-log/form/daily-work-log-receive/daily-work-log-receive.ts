@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef, Inject } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -66,6 +66,7 @@ interface OrderResponse {
 export class DailyWorkLogReceive implements OnInit {
   orderForm!: FormGroup;
   importForm!: FormGroup;
+  operators!: FormArray;
   numeroOrdenErrors: string | null = null;
   isLoading = false;
   orderData: OrderDetail[] = [];
@@ -101,7 +102,7 @@ export class DailyWorkLogReceive implements OnInit {
     });
 
     this.importForm = this.fb.group({
-      operador: ['', Validators.required],
+      operators: this.fb.array([]),
       tipoMaquinaria: ['', Validators.required],
       maquinaria: ['', Validators.required],
       marca: ['', Validators.required],
@@ -111,6 +112,9 @@ export class DailyWorkLogReceive implements OnInit {
       serie: ['', Validators.required],
       placa: ['', Validators.required],
     });
+
+    this.operators = this.importForm.get('operators') as FormArray;
+    this.addOperator();
 
     this.importForm.valueChanges.subscribe(() => {
       this.saveCurrentItemData();
@@ -169,10 +173,27 @@ export class DailyWorkLogReceive implements OnInit {
   loadItemData(item: OrderDetail): void {
     const savedData = this.itemFormData.get(item.idserviciodet);
     if (savedData) {
-      this.importForm.patchValue(savedData);
+      this.importForm.patchValue({
+        tipoMaquinaria: savedData.tipoMaquinaria,
+        maquinaria: savedData.maquinaria,
+        marca: savedData.marca,
+        modelo: savedData.modelo,
+        capacidad: savedData.capacidad,
+        year: savedData.year,
+        serie: savedData.serie,
+        placa: savedData.placa,
+      });
+      this.operators.clear();
+      if (savedData.operators && savedData.operators.length > 0) {
+        savedData.operators.forEach((op: any) => {
+          this.operators.push(this.createOperatorGroup(op.operatorName));
+        });
+      } else {
+        this.addOperator();
+      }
     } else {
+      const operatorText = this.getOperator(item);
       const parsedData = {
-        operador: this.getOperator(item),
         tipoMaquinaria: this.getTipoMaquinaria(item),
         maquinaria: this.getMachineryEquipment(item),
         marca: this.getBrand(item),
@@ -181,9 +202,17 @@ export class DailyWorkLogReceive implements OnInit {
         year: this.getYear(item),
         serie: this.getNumberSerial(item),
         placa: this.getPlate(item),
+        operators: []
       };
+
       this.importForm.patchValue(parsedData);
-      // Guardar los datos parseados
+      this.operators.clear();
+      if (operatorText) {
+        this.operators.push(this.createOperatorGroup(operatorText));
+      } else {
+        this.addOperator();
+      }
+      parsedData.operators = this.operators.value;
       this.itemFormData.set(item.idserviciodet, parsedData);
     }
   }
@@ -208,14 +237,16 @@ export class DailyWorkLogReceive implements OnInit {
       idmeta: firstItem.idmeta,
       idmedida: firstItem.idmedida,
       name_catalog: 'Nuevo Item',
-      idserviciodet: Date.now(), // ID temporal único
+      idserviciodet: Date.now(),
       isNew: true
     };
     
     this.orderData.push(newItem);
     this.selectedItem = newItem;
+
+    this.operators.clear();
+    this.addOperator();
     
-    // Inicializar formulario vacío para el nuevo item
     this.importForm.reset();
     this.itemFormData.set(newItem.idserviciodet, {
       operador: '',
@@ -232,7 +263,11 @@ export class DailyWorkLogReceive implements OnInit {
 
   saveCurrentItemData(): void {
     if (this.selectedItem) {
-      this.itemFormData.set(this.selectedItem.idserviciodet, this.importForm.value);
+      const formValue = {
+        ...this.importForm.value,
+        operators: this.operators.value
+      };
+      this.itemFormData.set(this.selectedItem.idserviciodet, formValue);
     }
   }
 
@@ -296,25 +331,28 @@ export class DailyWorkLogReceive implements OnInit {
       return false;
     }
 
-    // Guardar datos del item actual antes de validar
     this.saveCurrentItemData();
 
-    // Validar que todos los items tengan datos guardados
     for (const item of this.orderData) {
       const itemData = this.itemFormData.get(item.idserviciodet);
       
       if (!itemData) {
         return false;
       }
-
-      // Validar que todos los campos requeridos estén completos
-      if (!itemData.operador || !itemData.tipoMaquinaria || !itemData.maquinaria || 
+      if (!itemData.operators || itemData.operators.length === 0) {
+        return false;
+      }
+      for (const op of itemData.operators) {
+        if (!op.operatorName || op.operatorName.trim() === '') {
+          return false;
+        }
+      }
+      if (!itemData.tipoMaquinaria || !itemData.maquinaria || 
           !itemData.marca || !itemData.modelo || !itemData.capacidad || 
           !itemData.year || !itemData.serie || !itemData.placa) {
         return false;
       }
     }
-
     return true;
   }
 
@@ -369,7 +407,7 @@ export class DailyWorkLogReceive implements OnInit {
         serial_number: itemData.serie,
         year: itemData.year,
         plate: itemData.placa,
-        operador: itemData.operador,
+        operators: itemData.operators || [],
         tipoMaquinaria: itemData.tipoMaquinaria,
         description: item.item || ''
       };
@@ -399,6 +437,28 @@ export class DailyWorkLogReceive implements OnInit {
 
   closeDialog(): void {
     this.dialogRef.close(false);
+  }
+
+  private createOperatorGroup(operatorName: string = ''): FormGroup {
+    return this.fb.group({
+      operatorName: [operatorName, Validators.required]
+    });
+  }
+
+  addOperator(): void {
+    this.operators.push(this.createOperatorGroup());
+    this.cdr.detectChanges();
+  }
+
+  removeOperator(index: number): void {
+    if (this.operators.length > 1) {
+      this.operators.removeAt(index);
+      this.cdr.detectChanges();
+    }
+  }
+
+  get operatorsControls() {
+    return this.operators.controls;
   }
 
   getOperator(item: OrderDetail): string {

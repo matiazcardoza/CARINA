@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\EquipmentOrder;
+use App\Models\Operator;
 use Illuminate\Http\Request;
 
 use App\Models\OrderSilucia;
@@ -30,7 +31,6 @@ class OrderSiluciaController extends Controller
             $newService = Service::create([
                 'mechanical_equipment_id' => $request->maquinaria_id,
                 'goal_id' => $request->meta_id,
-                'operator' => $request->operador,
                 'description' => $request->maquinaria_equipo . ' ' . $request->maquinaria_marca . ' ' . $request->maquinaria_modelo . ' ' . $request->maquinaria_placa,
                 'goal_project' => $request->meta_codigo,
                 'goal_detail' => $request->meta_descripcion,
@@ -38,7 +38,17 @@ class OrderSiluciaController extends Controller
                 'end_date' => ($request->end_date === 'NaN-NaN-NaN') ? null : $request->end_date,
                 'state' => 3
             ]);
-
+            $operatorsArray = json_decode($request->operators, true);
+            $createdOperators = [];
+            foreach ($operatorsArray as $operatorName) {
+                if (!empty(trim($operatorName))) {
+                    $operator = Operator::create([
+                        'service_id' => $newService->id,
+                        'name' => trim($operatorName),
+                    ]);
+                    $createdOperators[] = $operator;
+                }
+            }
             return response()->json([
                 'success' => true,
                 'message' => 'registro importado correctamente.',
@@ -81,7 +91,6 @@ class OrderSiluciaController extends Controller
                     'order_id' => $newOrderSilucia->id,
                     'goal_id' => $request->order['idmeta'],
                     'medida_id' => $equipment['medida_id'],
-                    'operator' => $equipment['operador'],
                     'description' => $equipment['machinery_equipment'] . ' ' . $equipment['brand'] . ' ' . $equipment['model'] . ' ' . $equipment['plate'],
                     'goal_project' => $request->order['cod_meta'],
                     'goal_detail' => $request->order['desmeta'],
@@ -89,6 +98,13 @@ class OrderSiluciaController extends Controller
                     'end_date' => $request->order['fechaFinal'],
                     'state' => $equipment['tipoMaquinaria']
                 ]);
+
+                foreach ($equipment['operators'] as $operator) {
+                    Operator::create([
+                        'service_id' => $newService->id,
+                        'name' => $operator['operatorName'],
+                    ]);
+                }
 
                 $services[] = $newService;
             }

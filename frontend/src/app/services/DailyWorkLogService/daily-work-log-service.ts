@@ -190,6 +190,7 @@ export class DailyWorkLogService {
   }
 
   getIdmeta(mechanicalId: number): Observable<WorkLogElement[]> {
+    console.log(mechanicalId);
     return this.http.get<WorkLogApiResponse>(`${this.apiUrl}/api/services/idmeta/${mechanicalId}`, {
       withCredentials: true
     }).pipe(
@@ -198,7 +199,7 @@ export class DailyWorkLogService {
   }
 
   updateIdmeta( workLogData: WorkLogElement): Observable<WorkLogElement> {
-    return this.http.put<SingleApiResponse>(`${this.apiUrl}/api/services/idmeta`, workLogData, {
+    return this.http.put<SingleApiResponse>(`${this.apiUrl}/api/services/idmeta-update`, workLogData, {
       withCredentials: true
     }).pipe(
       map(response => response.data)

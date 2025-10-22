@@ -183,16 +183,54 @@
                 </div>
   
                 <div class="detail-section">
-                  <h4 class="section-title">
-                    <mat-icon>person</mat-icon>
-                    Información del Operador
-                  </h4>
-                  <div class="detail-row">
-                    <mat-form-field appearance="outline" class="field-full">
-                      <mat-label>Operador</mat-label>
-                      <input matInput formControlName="operador">
-                      <mat-icon matSuffix>person</mat-icon>
-                    </mat-form-field>
+                  <div class="operators-header">
+                    <h4 class="section-title">
+                      <mat-icon>person</mat-icon>
+                      Operadores Asignados
+                    </h4>
+                    <button 
+                      mat-mini-fab 
+                      color="primary"
+                      type="button"
+                      (click)="addOperator()"
+                      [disabled]="isLoading"
+                      matTooltip="Agregar operador">
+                      <mat-icon>add</mat-icon>
+                    </button>
+                  </div>
+
+                  <div formArrayName="operators">
+                    <mat-card 
+                      *ngFor="let operator of operatorsControls; let i = index" 
+                      [formGroupName]="i" 
+                      class="operator-card">
+                      
+                      <div class="operator-card-header">
+                        <span class="operator-number">Operador #{{ i + 1 }}</span>
+                        <button 
+                          mat-icon-button 
+                          color="warn"
+                          type="button"
+                          (click)="removeOperator(i)"
+                          [disabled]="operatorsControls.length === 1 || isLoading"
+                          matTooltip="Eliminar operador">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      </div>
+
+                      <mat-form-field appearance="outline" class="field-full">
+                        <mat-label>Nombre del Operador</mat-label>
+                        <input 
+                          matInput 
+                          type="text"
+                          formControlName="operatorName"
+                          placeholder="Ingrese nombre completo del operador">
+                        <mat-icon matSuffix>person</mat-icon>
+                        <mat-error *ngIf="operator.get('operatorName')?.hasError('required')">
+                          El nombre del operador es requerido
+                        </mat-error>
+                      </mat-form-field>
+                    </mat-card>
                   </div>
                 </div>
 

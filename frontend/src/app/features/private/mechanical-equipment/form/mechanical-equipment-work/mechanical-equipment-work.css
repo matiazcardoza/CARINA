@@ -451,3 +451,58 @@
 .equipment-details-card .mat-card-header-text {
   margin: 0;
 }
+
+/* ✅ NUEVO: Estilos para tarjeta de fechas */
+.dates-card {
+  margin-bottom: 24px;
+}
+
+.dates-card mat-card-header {
+  margin-bottom: 16px;
+}
+
+.dates-card mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Estilos existentes de operadores */
+.operators-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.operators-header h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.operator-card {
+  margin-bottom: 2px;
+  padding: 4px;
+  position: relative;
+}
+
+.operator-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.operator-number {
+  font-weight: 600;
+  color: #1976d2;
+  font-size: 14px;
+}
+
+.operator-form {
+  margin-top: 16px;
+}

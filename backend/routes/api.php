@@ -4,6 +4,7 @@ use App\Http\Controllers\DailyPartController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\MechanicalEquipmentController;
+use App\Http\Controllers\OperatorController;
 use App\Http\Controllers\OrderSiluciaController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ServiceController;
@@ -84,7 +85,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/services/{id}/generate-auth', [ServiceController::class, 'generateAuth']);
     Route::post('/services/{id}/generate-liquidation', [ServiceController::class, 'generateLiquidation']);
     Route::get('/services/idmeta/{mechanicalId}', [ServiceController::class, 'getIdmeta']);
-    Route::put('/services/idmeta/', [ServiceController::class, 'updateIdmeta']);
+    Route::put('/services/idmeta-update/', [ServiceController::class, 'updateIdmeta']);
     Route::delete('/daily-service-delete/{id}', [DailyPartController::class, 'destroyService']);
 
     //daily work log routes
@@ -116,4 +117,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //evendence
     Route::get('/daily-work-evendece/{serviceId}', [EvidenceController::class, 'getEvidence']);
+
+    //Operators
+    Route::get('/operators-select/{serviceId}', [OperatorController::class, 'getOperators']);
 });

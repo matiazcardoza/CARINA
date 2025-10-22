@@ -493,7 +493,9 @@
             <tr>
                 <td class="info-label">NOMBRE DEL OPERADOR:</td>
                 <td colspan="3">
-                    <span class="info-line">{{ $service->operator }}</span>
+                    <span class="info-line">
+                        {{ $dailyPart->pluck('operator')->join(', ') }}
+                    </span>
                 </td>
             </tr>
             <tr>
@@ -522,18 +524,25 @@
         <table class="operador-table">
             <thead>
                 <tr>
-                    <th style="width: 25%;">DEL OPERADOR</th>
-                    <th style="width: 25%;">MAÑANA</th>
-                    <th style="width: 25%;">TARDE</th>
-                    <th style="width: 25%;">HORAS TRABAJADAS</th>
+                    <th style="width: 50%;">DEL OPERADOR</th>
+                    <th style="width: 50%;">TURNO</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    @php $part = $dailyPart->first(); @endphp
+                    <td colspan="4">
+                        @if($part && $part->shift_id == 1)
+                            <span>MAÑANA</span>
+                        @elseif($part && $part->shift_id == 2)
+                            <span>TARDE</span>
+                        @elseif($part && $part->shift_id == 3)
+                            <span>NOCHE</span>
+                        @else
+                            <span>Día completo</span>
+                        @endif
+                    </td>
                 </tr>
             </tbody>
         </table>

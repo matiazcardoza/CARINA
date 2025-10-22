@@ -14,6 +14,7 @@ import { MechanicalEquipmentService } from '../../../services/MechanicalEquipmen
 
 export interface MechanicalEquipmentElement {
   id: number;
+  service_id?: number;
   machinery_equipment: string;
   ability: string;
   brand: string;
@@ -22,8 +23,10 @@ export interface MechanicalEquipmentElement {
   year: string;
   serial_number: string;
   state: number;
+  goal_id?: number;
+  goal_project?: string;
   goal_detail?: string;
-  operator?: string;
+  operators?: { id: number; name: string }[];
   state_service?: number;
   start_date?: string;
   end_date?: string;
@@ -221,5 +224,12 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
+  }
+
+  getOperatorNames(operators?: { id: number; name: string }[]): string {
+    if (!operators || operators.length === 0) {
+      return 'Sin operadores';
+    }
+    return operators.map(op => op.name).join(', ');
   }
 }

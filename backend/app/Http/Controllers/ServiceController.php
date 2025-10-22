@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DailyPart;
 use App\Models\MechanicalEquipment;
+use App\Models\Operator;
 use App\Models\OrderSilucia;
 use App\Models\Project;
 use App\Models\Service;
@@ -11,6 +12,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class ServiceController extends Controller
@@ -18,16 +20,39 @@ class ServiceController extends Controller
     function index(Request $request)
     {
         $goalIds = Project::Where('user_id', Auth::id())->pluck('goal_id');
-        $services = Service::select('services.*',
-                                        'orders_silucia.supplier',
-                                        'orders_silucia.machinery_equipment',
-                                        'mechanical_equipment.machinery_equipment as mechanicalEquipment')
-                                    ->leftJoin('orders_silucia', 'services.order_id', '=', 'orders_silucia.id')
-                                    ->leftJoin('mechanical_equipment', 'services.mechanical_equipment_id', '=', 'mechanical_equipment.id')
-                                    ->when(Auth::id() != 1, function ($query) use ($goalIds) {
-                                        $query->whereIn('services.goal_id', $goalIds);
-                                    })
-                                    ->get();
+        $services = DB::table('services')
+            ->select(
+                'services.id',
+                'services.goal_id',
+                'services.description',
+                'services.goal_project',
+                'services.goal_detail',
+                'services.start_date',
+                'services.end_date',
+                'services.state',
+                'orders_silucia.supplier',
+                'equipment_order.machinery_equipment',
+                'mechanical_equipment.machinery_equipment as mechanicalEquipment'
+            )
+            ->leftJoin('orders_silucia', 'services.order_id', '=', 'orders_silucia.id')
+            ->leftJoin('equipment_order', 'orders_silucia.id', '=', 'equipment_order.order_silucia_id')
+            ->leftJoin('mechanical_equipment', 'services.mechanical_equipment_id', '=', 'mechanical_equipment.id')
+            ->when(Auth::id() != 1, function ($query) use ($goalIds) {
+                $query->whereIn('services.goal_id', $goalIds);
+            })
+            ->where('services.state_closure', '!=', 2)
+            ->orderBy('services.id', 'asc')
+            ->get();
+
+        foreach ($services as $service) {
+            $operators = DB::table('operators')
+                ->where('service_id', $service->id)
+                ->where('state', 1)
+                ->select('id', 'name')
+                ->get();
+            $service->operators = $operators;
+        }
+
         return response()->json([
             'message' => 'Daily work log retrieved successfully',
             'data' => $services
@@ -377,18 +402,68 @@ class ServiceController extends Controller
 
     public function updateIdmeta(Request $request)
     {
-        $servicio = Service::find($request->id);
-        $servicio->update([
-            'goal_id' => $request->goal_id,
-            'operator' => $request->operator,
-            'goal_project' => $request->goal_project,
-            'goal_detail' => $request->goal_detail,
-            'start_date' => $request->start_date,
-            'end_date' => $request->end_date
-        ]);
+
+        $servicio = Service::find($request->service_id);
+        if($servicio->goal_id === $request->goal_id){
+            $Service = $servicio->update([
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+            ]);
+
+            $operatorsArray = $request->operators;
+            $incomingIds = collect($operatorsArray)
+                ->pluck('id')
+                ->filter()
+                ->toArray();
+            $currentOperators = Operator::where('service_id', $servicio->id)->get();
+            $toInactivate = $currentOperators->whereNotIn('id', $incomingIds);
+            foreach ($toInactivate as $op) {
+                $op->update(['status' => 0]);
+            }
+            foreach ($operatorsArray as $opData) {
+                $name = trim($opData['name']);
+                if (!empty($opData['id'])) {
+                    $operator = Operator::find($opData['id']);
+                    if ($operator && $operator->name !== $name) {
+                        $operator->update(['name' => $name]);
+                    }
+                } else {
+                    Operator::create([
+                        'service_id' => $servicio->id,
+                        'name' => $name
+                    ]);
+                }
+            }
+        }else{
+            $servicio->update([
+                'state_closure' => 2
+            ]);
+            $Service = Service::create([
+                'mechanical_equipment_id' => $request->id,
+                'goal_id' => $request->meta_id,
+                'description' => $request->machinery_equipment . ' ' . $request->brand . ' ' . $request->model . ' ' . $request->plate,
+                'goal_project' => $request->goal_project,
+                'goal_detail' => $request->goal_detail,
+                'start_date' => ($request->start_date === 'NaN-NaN-NaN') ? null : $request->start_date,
+                'end_date' => ($request->end_date === 'NaN-NaN-NaN') ? null : $request->end_date,
+                'state' => 3
+            ]);
+
+            $operatorsArray = json_decode($request->operators, true);
+            $createdOperators = [];
+            foreach ($operatorsArray as $operatorName) {
+                if (!empty(trim($operatorName))) {
+                    $operator = Operator::create([
+                        'service_id' => $Service->id,
+                        'name' => trim($operatorName),
+                    ]);
+                    $createdOperators[] = $operator;
+                }
+            }
+        }
         return response()->json([
-            'message' => 'Service updated successfully',
-            'data' => $servicio
+            'message' => 'Service reasigned successfully',
+            'data' => $Service
         ]);
     }
 }
