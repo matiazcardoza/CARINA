@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('orders_silucia', function (Blueprint $table) {
-            $table->dropColumn('operator');
             $table->dropColumn('machinery_equipment');
             $table->dropColumn('ability');
             $table->dropColumn('brand');
@@ -29,7 +28,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('orders_silucia', function (Blueprint $table) {
-            $table->string('operator')->nullable()->after('medida_id');
             $table->string('machinery_equipment')->nullable()->after('ruc_supplier');
             $table->string('ability')->nullable()->after('machinery_equipment');
             $table->string('brand')->nullable()->after('ability');
