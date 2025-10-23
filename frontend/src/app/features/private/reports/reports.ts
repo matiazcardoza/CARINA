@@ -23,6 +23,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../../../services/AuthService/auth';
+import { HasPermissionDirective } from '../../../shared/directives/permission.directive';
 
 export interface WorkLogDataElement {
   id: number;
@@ -79,7 +80,8 @@ interface ResumenDashboard {
     MatAutocompleteModule,
     MatMenuModule,
     MatDividerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    HasPermissionDirective
   ],
   templateUrl: './reports.html',
   styleUrl: './reports.css'
