@@ -9,15 +9,15 @@ import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
-import { DailyWorkLogService } from '../../../../../services/DailyWorkLogService/daily-work-log-service';
+import { DailyWorkLogService } from '../../../../../../services/DailyWorkLogService/daily-work-log-service';
 import { MatSelectModule } from '@angular/material/select';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 import { startWith, map } from 'rxjs/operators';
 import { FormControl } from '@angular/forms';
 
-import { ProductsService, ProductsElement } from '../../../../../services/productsService/products-service';
-import { OperatorsService, OperatorsElement } from '../../../../../services/OperatorsService/operators-service';
+import { ProductsService, ProductsElement } from '../../../../../../services/productsService/products-service';
+import { OperatorsService, OperatorsElement } from '../../../../../../services/OperatorsService/operators-service';
 import { MatIconModule } from '@angular/material/icon';
 
 export interface DialogData {

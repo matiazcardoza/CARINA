@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { CommonModule } from '@angular/common';
 import { DailyWorkLogService } from '../../../services/DailyWorkLogService/daily-work-log-service';
-import { DailyWorkLogUpload } from './form/daily-work-log-upload/daily-work-log-upload';
+import { DailyWorkLogUpload } from './daily-work-log-id/form/daily-work-log-upload/daily-work-log-upload';
 import { DailyWorkLogReceive } from './form/daily-work-log-receive/daily-work-log-receive';
 import { DailyWorkLogMechanical } from './form/daily-work-log-mechanical/daily-work-log-mechanical';
 import { MatDialog } from '@angular/material/dialog';

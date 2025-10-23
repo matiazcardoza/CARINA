@@ -494,7 +494,7 @@
                 <td class="info-label">NOMBRE DEL OPERADOR:</td>
                 <td colspan="3">
                     <span class="info-line">
-                        {{ $dailyPart->pluck('operator')->join(', ') }}
+                        {{ $dailyPart->pluck('operator')->unique()->join(', ') }}
                     </span>
                 </td>
             </tr>

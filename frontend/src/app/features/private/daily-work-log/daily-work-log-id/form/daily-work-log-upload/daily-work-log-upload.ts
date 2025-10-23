@@ -7,7 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
-import { DailyWorkLogService } from '../../../../../services/DailyWorkLogService/daily-work-log-service';
+import { DailyWorkLogService } from '../../../../../../services/DailyWorkLogService/daily-work-log-service';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 
 export interface UploadDialogData {
