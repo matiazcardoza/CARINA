@@ -275,7 +275,7 @@ export class Reports implements OnInit {
 
   viewEvidenceData(id: number, servicio: WorkLogElement){
     const dialogRef = this.dialog.open(ViewEvidence, {
-      width: '700px',
+      width: '900px',
       maxWidth: '90vw',
       maxHeight: '90vh',
       data: {

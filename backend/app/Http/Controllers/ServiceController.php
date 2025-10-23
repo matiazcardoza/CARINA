@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DailyPart;
+use App\Models\DocumentDailyPart;
 use App\Models\MechanicalEquipment;
 use App\Models\Operator;
 use App\Models\OrderSilucia;
@@ -59,18 +60,35 @@ class ServiceController extends Controller
         ]);
     }
 
-    function selectedData(Request $request)
+    public function selectedData(Request $request)
     {
+        /** @var \App\Models\User $usuario */
+        $usuario = Auth::user();
+        if ($usuario->hasRole(['SuperAdministrador_pd', 'Admin_equipoMecanico_pd'])) {
+            $services = Service::select('goal_id', 'goal_project', 'goal_detail')
+                ->distinct()
+                ->get();
+            return response()->json([
+                'message' => 'Unique goals retrieved successfully (all projects)',
+                'data' => $services
+            ]);
+        }
+        $goalIds = Project::where('user_id', $usuario->id)->pluck('goal_id');
+        if ($goalIds->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'El usuario no tiene proyectos asignados.'
+            ], 403);
+        }
         $services = Service::select('goal_id', 'goal_project', 'goal_detail')
+            ->whereIn('goal_id', $goalIds)
             ->distinct()
             ->get();
-
         return response()->json([
-            'message' => 'Unique goals retrieved successfully',
+            'message' => 'Unique goals retrieved successfully (user projects only)',
             'data' => $services
         ]);
     }
-
 
     function getDailyPartsData($idGoal)
     {

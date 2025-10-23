@@ -32,4 +32,9 @@ export class ReportsServicesService {
       withCredentials: true
     });
   }  
+
+  openDocumentInNewTab(path: string): void {
+    const url = `${this.apiUrl}/storage/${path}`;
+    window.open(url, '_blank');
+  }
 }

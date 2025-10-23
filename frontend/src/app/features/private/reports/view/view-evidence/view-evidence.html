@@ -1,9 +1,11 @@
 <div class="evidence-dialog">
-  <!-- Header del diálogo -->
   <div class="dialog-header">
     <h2 mat-dialog-title>Evidencias del Servicio</h2>
     <div class="header-actions">
-      <button mat-icon-button (click)="onRefresh()" [disabled]="loading">
+      <!--<button mat-icon-button matTooltip="Descargar Todos los partes diarios, Completados" (click)="downloadMasiveDailyParts()" [disabled]="loading">
+        <mat-icon>cloud_download</mat-icon>
+      </button>-->
+      <button mat-icon-button matTooltip="Actualizar partes diarias" (click)="onRefresh()" [disabled]="loading">
         <mat-icon>refresh</mat-icon>
       </button>
       <button mat-icon-button (click)="onClose()">
@@ -12,15 +14,12 @@
     </div>
   </div>
 
-  <!-- Contenido del diálogo -->
   <div mat-dialog-content class="dialog-content">
-    <!-- Loading spinner -->
     <div *ngIf="loading" class="loading-container">
       <mat-spinner diameter="50"></mat-spinner>
       <p>Cargando evidencias...</p>
     </div>
 
-    <!-- Error state -->
     <div *ngIf="error && !loading" class="error-container">
       <mat-icon class="error-icon">error_outline</mat-icon>
       <p>Error al cargar las evidencias</p>
@@ -29,110 +28,119 @@
       </button>
     </div>
 
-    <!-- Grouped Daily Parts with Evidences -->
     <div *ngIf="!loading && !error && groupedDailyParts.length > 0" class="daily-parts-container">
       <div class="summary-info">
         <p>Total de actividades: {{getTotalActivitiesCount()}} | Total de evidencias: {{getTotalEvidencesCount()}}</p>
       </div>
 
-      <!-- Iterar por grupos de fechas -->
+      <!-- Iteración por fecha -->
       <div *ngFor="let dateGroup of groupedDailyParts; trackBy: trackByDate" class="date-group">
-        
-        <!-- Encabezado de fecha con estado de firmas -->
-        <div class="date-header">
+        <div class="date-header-main">
           <div class="date-info">
             <mat-icon>calendar_today</mat-icon>
             <h3>{{dateGroup.date | date:'dd/MM/yyyy'}}</h3>
           </div>
-          
-          <!-- Estado de firmas para esta fecha -->
-          <div class="signatures-section">
-            <mat-chip-set>
-              <mat-chip [color]="obtenerColorEstadoFirmas(dateGroup.estadoFirmas)" selected>
-                {{ obtenerEstadoFirmas(dateGroup.estadoFirmas) }}
-              </mat-chip>
-            </mat-chip-set>
-            <div class="signatures-detail">
-              <mat-icon [class.signed]="dateGroup.estadoFirmas.controlador">
-                {{ dateGroup.estadoFirmas.controlador ? 'check_circle' : 'radio_button_unchecked' }}
-              </mat-icon>
-              <span class="signature-label">C</span>
-              <mat-icon [class.signed]="dateGroup.estadoFirmas.residente">
-                {{ dateGroup.estadoFirmas.residente ? 'check_circle' : 'radio_button_unchecked' }}
-              </mat-icon>
-              <span class="signature-label">R</span>
-              <mat-icon [class.signed]="dateGroup.estadoFirmas.supervisor">
-                {{ dateGroup.estadoFirmas.supervisor ? 'check_circle' : 'radio_button_unchecked' }}
-              </mat-icon>
-              <span class="signature-label">S</span>
-            </div>
-          </div>
-          
-          <span class="date-evidence-count">{{dateGroup.totalEvidences}} evidencia(s)</span>
+          <span class="date-evidence-count">{{dateGroup.totalEvidences}} evidencia(s) total</span>
         </div>
 
-        <!-- Accordion para las actividades de esta fecha -->
-        <mat-accordion class="daily-parts-accordion">
-          <mat-expansion-panel
-            *ngFor="let dailyPart of dateGroup.parts; trackBy: trackByDailyPartId"
-            class="daily-part-panel">
-
-            <mat-expansion-panel-header>
-              <mat-panel-title class="panel-title">
-                <div class="title-content">
-                  <span class="description">{{dailyPart.description}}</span>
-                  <span class="description">Horas de trabajo: {{ dailyPart.time_worked?.substring(0, 5) }} hs.</span>
-                  <span class="evidence-count"
-                        [class.no-evidence]="dailyPart.evidences.length === 0">
-                    {{dailyPart.evidences.length}} evidencia(s)
-                  </span>
-                </div>
-              </mat-panel-title>
-            </mat-expansion-panel-header>
-
-            <!-- Contenido del panel -->
-            <div class="panel-content">
-              <!-- Sin evidencias -->
-              <div *ngIf="dailyPart.evidences.length === 0" class="no-evidence-message">
-                <mat-icon class="info-icon">info</mat-icon>
-                <p>No hay evidencias registradas para esta actividad</p>
-              </div>
-
-              <!-- Con evidencias -->
-              <div *ngIf="dailyPart.evidences.length > 0" class="evidence-grid">
-                <mat-card
-                  *ngFor="let evidence of dailyPart.evidences; trackBy: trackByEvidenceId"
-                  class="evidence-card"
-                  (click)="openImageModal(evidence.evidence_path)">
-
-                  <div class="image-container">
-                    <img
-                      [src]="getFullImageUrl(evidence.evidence_path)"
-                      [alt]="'Evidencia ' + evidence.id + ' - ' + dailyPart.description"
-                      class="evidence-image"
-                      loading="lazy"
-                      (error)="$event.target.src='assets/images/no-image.png'">
-                    <div class="image-overlay">
-                      <mat-icon>zoom_in</mat-icon>
-                    </div>
-                  </div>
-
-                  <mat-card-content class="card-content">
-                    <p class="evidence-info">ID: {{evidence.id}}</p>
-                    <p class="evidence-info" *ngIf="evidence.created_at">
-                      {{evidence.created_at | date:'dd/MM/yyyy HH:mm'}}
-                    </p>
-                  </mat-card-content>
-                </mat-card>
+        <!-- Iteración por turno dentro de cada fecha -->
+        <div *ngFor="let shift of dateGroup.shifts; trackBy: trackByShiftId" class="shift-group">
+          <div class="shift-header">
+            <div class="shift-info">
+              <mat-icon>schedule</mat-icon>
+              <h4>Turno: {{shift.shift_name}}</h4>
+            </div>
+            <div class="signatures-section">
+              <mat-chip-set>
+                <mat-chip [color]="obtenerColorEstadoFirmas(shift.estadoFirmas)" selected>
+                  {{ obtenerEstadoFirmas(shift.estadoFirmas) }}
+                </mat-chip>
+              </mat-chip-set>
+              <div class="signatures-detail">
+                <mat-icon [class.signed]="shift.estadoFirmas.controlador">
+                  {{ shift.estadoFirmas.controlador ? 'check_circle' : 'radio_button_unchecked' }}
+                </mat-icon>
+                <span class="signature-label">C</span>
+                <mat-icon [class.signed]="shift.estadoFirmas.residente">
+                  {{ shift.estadoFirmas.residente ? 'check_circle' : 'radio_button_unchecked' }}
+                </mat-icon>
+                <span class="signature-label">R</span>
+                <mat-icon [class.signed]="shift.estadoFirmas.supervisor">
+                  {{ shift.estadoFirmas.supervisor ? 'check_circle' : 'radio_button_unchecked' }}
+                </mat-icon>
+                <span class="signature-label">S</span>
               </div>
             </div>
-          </mat-expansion-panel>
-        </mat-accordion>
+            <div>
+              <button mat-icon-button 
+                      matTooltip="Descargar Parte Diario" 
+                      (click)="onDownloadDailyPart(shift.path_document)" 
+                      [disabled]="loading || !shift.path_document">
+                <mat-icon>download</mat-icon>
+              </button>
+            </div>
+            <span class="shift-evidence-count">{{shift.totalEvidences}} evidencia(s)</span>
+          </div>
+
+          <!-- Actividades del turno -->
+          <mat-accordion class="daily-parts-accordion">
+            <mat-expansion-panel
+              *ngFor="let dailyPart of shift.items; trackBy: trackByDailyPartId"
+              class="daily-part-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title class="panel-title">
+                  <div class="title-content">
+                    <span class="description">{{dailyPart.description}}</span>
+                    <span class="description">Horas de trabajo: {{ dailyPart.time_worked?.substring(0, 5) }} hs.</span>
+                    <span class="evidence-count"
+                          [class.no-evidence]="dailyPart.evidences.length === 0">
+                      {{dailyPart.evidences.length}} evidencia(s)
+                    </span>
+                  </div>
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <div class="panel-content">
+                <!-- Sin evidencias -->
+                <div *ngIf="dailyPart.evidences.length === 0" class="no-evidence-message">
+                  <mat-icon class="info-icon">info</mat-icon>
+                  <p>No hay evidencias registradas para esta actividad</p>
+                </div>
+                <!-- Con evidencias -->
+                <div *ngIf="dailyPart.evidences.length > 0" class="evidence-grid">
+                  <mat-card
+                    *ngFor="let evidence of dailyPart.evidences; trackBy: trackByEvidenceId"
+                    class="evidence-card"
+                    (click)="openImageModal(evidence.evidence_path)">
+
+                    <div class="image-container">
+                      <img
+                        [src]="getFullImageUrl(evidence.evidence_path)"
+                        [alt]="'Evidencia ' + evidence.id + ' - ' + dailyPart.description"
+                        class="evidence-image"
+                        loading="lazy"
+                        (error)="$event.target.src='assets/images/no-image.png'">
+                      <div class="image-overlay">
+                        <mat-icon>zoom_in</mat-icon>
+                      </div>
+                    </div>
+
+                    <mat-card-content class="card-content">
+                      <p class="evidence-info">ID: {{evidence.id}}</p>
+                      <p class="evidence-info" *ngIf="evidence.created_at">
+                        {{evidence.created_at | date:'dd/MM/yyyy HH:mm'}}
+                      </p>
+                    </mat-card-content>
+                  </mat-card>
+                </div>
+              </div>
+            </mat-expansion-panel>
+          </mat-accordion>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal para imagen ampliada -->
+  <!-- Modal de imagen ampliada -->
   <div *ngIf="selectedImage" class="image-modal" (click)="closeImageModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
@@ -144,7 +152,6 @@
     </div>
   </div>
 
-  <!-- Actions -->
   <div mat-dialog-actions class="dialog-actions">
     <button mat-button (click)="onClose()">Cerrar</button>
   </div>

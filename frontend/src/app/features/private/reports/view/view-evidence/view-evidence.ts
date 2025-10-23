@@ -10,6 +10,9 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatChipsModule } from '@angular/material/chips';
 import { environment } from '../../../../../../environments/environment';
 import { DailyWorkLogService } from '../../../../../services/DailyWorkLogService/daily-work-log-service';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { ReportsServicesService } from '../../../../../services/ReportsServicesService/reports-services-service';
+import JSZip from 'jszip';
 
 export interface EvidenceDataElement {
   id: number;
@@ -24,20 +27,28 @@ export interface DailyPartWithEvidence {
   description: string;
   work_date: string;
   time_worked?: string;
-  state: number; // 0: sin firmas, 1: controlador, 2: residente, 3: supervisor
+  state: number;
   evidences: EvidenceDataElement[];
 }
 
-export interface GroupedDailyParts {
-  date: string;
-  parts: DailyPartWithEvidence[];
+export interface ShiftGroup {
+  shift_id: number;
+  shift_name: string;
+  document_id: number;
+  path_document: string;
+  state: number;
+  items: DailyPartWithEvidence[];
   totalEvidences: number;
-  // Nuevos campos para el estado de firmas
   estadoFirmas: {
     controlador: boolean;
     residente: boolean;
     supervisor: boolean;
   };
+}
+export interface GroupedDailyParts {
+  date: string;
+  shifts: ShiftGroup[];
+  totalEvidences: number;
 }
 
 export interface DialogData {
@@ -57,7 +68,8 @@ export interface DialogData {
     MatCardModule,
     MatGridListModule,
     MatExpansionModule,
-    MatChipsModule
+    MatChipsModule,
+    MatTooltipModule
   ],
   templateUrl: './view-evidence.html',
   styleUrl: './view-evidence.css'
@@ -72,6 +84,7 @@ export class ViewEvidence implements OnInit {
     public dialogRef: MatDialogRef<ViewEvidence>,
     @Inject(MAT_DIALOG_DATA) public data: DialogData,
     private dailyWorkLogService: DailyWorkLogService,
+    private reportsServicesService: ReportsServicesService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -104,6 +117,17 @@ export class ViewEvidence implements OnInit {
     });
   }
 
+  onDownloadDailyPart(pathDocument: string): void {
+    if (!pathDocument) {
+      console.error('No hay documento disponible');
+      return;
+    }
+    
+    this.reportsServicesService.openDocumentInNewTab(pathDocument);
+  }
+
+  
+
   private transformToGroupedData(groupedData: any): GroupedDailyParts[] {
     if (!groupedData || typeof groupedData !== 'object') {
       return [];
@@ -112,64 +136,56 @@ export class ViewEvidence implements OnInit {
     const result: GroupedDailyParts[] = [];
     
     Object.keys(groupedData).forEach(date => {
-      const parts = groupedData[date];
+      const shiftsData = groupedData[date];
       
-      if (Array.isArray(parts)) {
-        const totalEvidences = parts.reduce(
-          (sum, part) => sum + (part.evidences?.length || 0), 
+      if (Array.isArray(shiftsData)) {
+        const shifts: ShiftGroup[] = shiftsData.map(shift => {
+          const totalEvidences = shift.items.reduce(
+            (sum: number, part: any) => sum + (part.evidences?.length || 0), 
+            0
+          );
+          
+          return {
+            shift_id: shift.shift_id,
+            shift_name: shift.shift_name,
+            document_id: shift.document_id,
+            path_document: shift.path_document,
+            state: shift.state,
+            items: shift.items,
+            totalEvidences: totalEvidences,
+            estadoFirmas: this.calcularEstadoFirmasPorState(shift.state)
+          };
+        });
+
+        const totalEvidences = shifts.reduce(
+          (sum, shift) => sum + shift.totalEvidences, 
           0
         );
         
-        // Calcular el estado de firmas basado en el state de todos los parts
-        const estadoFirmas = this.calcularEstadoFirmasPorFecha(parts);
-        
         result.push({
           date: date,
-          parts: parts,
-          totalEvidences: totalEvidences,
-          estadoFirmas: estadoFirmas
+          shifts: shifts,
+          totalEvidences: totalEvidences
         });
       }
     });
-    
-    // Ordenar por fecha descendente
     return result.sort((a, b) => 
       new Date(b.date).getTime() - new Date(a.date).getTime()
     );
   }
 
-  /**
-   * Calcula el estado de firmas para una fecha específica
-   * Si TODOS los parts tienen state >= N, entonces esa firma está completa
-   */
-  private calcularEstadoFirmasPorFecha(parts: DailyPartWithEvidence[]): {
+  private calcularEstadoFirmasPorState(state: number): {
     controlador: boolean;
     residente: boolean;
     supervisor: boolean;
   } {
-    if (!parts || parts.length === 0) {
-      return {
-        controlador: false,
-        residente: false,
-        supervisor: false
-      };
-    }
-
-    // Verificar si TODOS los parts tienen al menos el state requerido
-    const todosConControlador = parts.every(part => part.state >= 1);
-    const todosConResidente = parts.every(part => part.state >= 2);
-    const todosConSupervisor = parts.every(part => part.state >= 3);
-
     return {
-      controlador: todosConControlador,
-      residente: todosConResidente,
-      supervisor: todosConSupervisor
+      controlador: state >= 1,
+      residente: state >= 2,
+      supervisor: state >= 3
     };
   }
 
-  /**
-   * Obtiene el texto del estado de firmas
-   */
   obtenerEstadoFirmas(estadoFirmas: any): string {
     const firmasCompletas = [
       estadoFirmas.controlador,
@@ -181,10 +197,7 @@ export class ViewEvidence implements OnInit {
     if (firmasCompletas === 0) return 'Pendiente';
     return 'Parcial';
   }
-
-  /**
-   * Obtiene el color del estado de firmas
-   */
+  
   obtenerColorEstadoFirmas(estadoFirmas: any): string {
     const estado = this.obtenerEstadoFirmas(estadoFirmas);
     switch (estado) {
@@ -225,6 +238,10 @@ export class ViewEvidence implements OnInit {
     return evidence.id;
   }
 
+  trackByShiftId(index: number, shift: ShiftGroup): number {
+    return shift.shift_id;
+  }
+
   getTotalEvidencesCount(): number {
     return this.groupedDailyParts.reduce(
       (total, group) => total + group.totalEvidences, 
@@ -234,7 +251,10 @@ export class ViewEvidence implements OnInit {
 
   getTotalActivitiesCount(): number {
     return this.groupedDailyParts.reduce(
-      (total, group) => total + group.parts.length, 
+      (total, group) => total + group.shifts.reduce(
+        (shiftTotal, shift) => shiftTotal + shift.items.length, 
+        0
+      ), 
       0
     );
   }

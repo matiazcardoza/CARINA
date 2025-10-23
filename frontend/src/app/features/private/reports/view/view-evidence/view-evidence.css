@@ -380,7 +380,7 @@
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(26, 1, 255, 0.15);
   border-radius: 20px;
   backdrop-filter: blur(10px);
 }
@@ -439,4 +439,49 @@ mat-chip {
     width: 100%;
     text-align: center;
   }
+}
+
+.shift-group {
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  border-left: 4px solid #7bbe2e;
+}
+
+.shift-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background-color: #aed6f7;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.shift-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shift-info h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.shift-evidence-count {
+  color: #666;
+  font-size: 14px;
+}
+
+.date-header-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background-color: #bdb0fa;
+  border-radius: 8px;
+  margin-bottom: 12px;
 }
