@@ -436,7 +436,7 @@ class ServiceController extends Controller
             $currentOperators = Operator::where('service_id', $servicio->id)->get();
             $toInactivate = $currentOperators->whereNotIn('id', $incomingIds);
             foreach ($toInactivate as $op) {
-                $op->update(['status' => 0]);
+                $op->update(['state' => 0]);
             }
             foreach ($operatorsArray as $opData) {
                 $name = trim($opData['name']);
@@ -453,29 +453,44 @@ class ServiceController extends Controller
                 }
             }
         }else{
-            $servicio->update([
-                'state_closure' => 2
-            ]);
-            $Service = Service::create([
-                'mechanical_equipment_id' => $request->id,
-                'goal_id' => $request->meta_id,
-                'description' => $request->machinery_equipment . ' ' . $request->brand . ' ' . $request->model . ' ' . $request->plate,
-                'goal_project' => $request->goal_project,
-                'goal_detail' => $request->goal_detail,
-                'start_date' => ($request->start_date === 'NaN-NaN-NaN') ? null : $request->start_date,
-                'end_date' => ($request->end_date === 'NaN-NaN-NaN') ? null : $request->end_date,
-                'state' => 3
-            ]);
+            $existService = Service::where('mechanical_equipment_id', $request->id)->where('state_closure', '=', 3)->first();
+            if($existService){
+                $existService->update([
+                    'state_closure' => 1
+                ]);
+                $servicio->update([
+                    'state_closure' => 2
+                ]);
 
-            $operatorsArray = json_decode($request->operators, true);
-            $createdOperators = [];
-            foreach ($operatorsArray as $operatorName) {
-                if (!empty(trim($operatorName))) {
-                    $operator = Operator::create([
-                        'service_id' => $Service->id,
-                        'name' => trim($operatorName),
-                    ]);
-                    $createdOperators[] = $operator;
+                return response()->json([
+                    'message' => 'Service reasigned successfully',
+                    'data' => $servicio
+                ]);
+            }else{
+                $servicio->update([
+                    'state_closure' => 2
+                ]);
+                $Service = Service::create([
+                    'mechanical_equipment_id' => $request->id,
+                    'goal_id' => $request->meta_id,
+                    'description' => $request->machinery_equipment . ' ' . $request->brand . ' ' . $request->model . ' ' . $request->plate,
+                    'goal_project' => $request->goal_project,
+                    'goal_detail' => $request->goal_detail,
+                    'start_date' => ($request->start_date === 'NaN-NaN-NaN') ? null : $request->start_date,
+                    'end_date' => ($request->end_date === 'NaN-NaN-NaN') ? null : $request->end_date,
+                    'state' => 3
+                ]);
+
+                $operatorsArray = json_decode($request->operators, true);
+                $createdOperators = [];
+                foreach ($operatorsArray as $operatorName) {
+                    if (!empty(trim($operatorName))) {
+                        $operator = Operator::create([
+                            'service_id' => $Service->id,
+                            'name' => trim($operatorName),
+                        ]);
+                        $createdOperators[] = $operator;
+                    }
                 }
             }
         }

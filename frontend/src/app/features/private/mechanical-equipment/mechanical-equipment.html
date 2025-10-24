@@ -199,8 +199,6 @@
             </th>
             <td mat-cell *matCellDef="let element" class="actions-cell">
               <div class="action-buttons">
-
-
                 <button mat-icon-button
                         (click)="openEditDialog(element)"
                         matTooltip="Editar equipo"
@@ -216,13 +214,18 @@
                   </button>
                 }@else{
                   <button mat-icon-button
+                          
+                          matTooltip="Apoyo de maquinaria"
+                          class="action-btn support-btn">
+                    <mat-icon>handyman</mat-icon>
+                  </button>
+                  <button mat-icon-button
                           (click)="reasignedWork(element)"
                           matTooltip="Reasignación de obra"
                           class="action-btn view-btn">
                     <mat-icon>change_circle</mat-icon>
                   </button>
                 }
-
                 <button mat-icon-button
                         (click)="deleteMechanicalEquipment(element.id)"
                         matTooltip="Eliminar equipo"
