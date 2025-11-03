@@ -33,6 +33,7 @@
     "@ng-icons/material-icons": "^32.1.0",
     "@primeuix/themes": "^1.2.3",
     "jszip": "^3.10.1",
+    "luxon": "^3.7.2",
     "material-icons": "^1.13.14",
     "ngx-material-timepicker": "^13.1.1",
     "pdfjs-dist": "^5.4.149",

@@ -9,6 +9,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { MechanicalEquipmentForm } from './form/mechanical-equipment-form/mechanical-equipment-form';
 import { MechanicalEquipmentWork } from './form/mechanical-equipment-work/mechanical-equipment-work';
+import { MechanicalEquipmentSupport } from './form/mechanical-equipment-support/mechanical-equipment-support';
 import { MechanicalEquipmentService } from '../../../services/MechanicalEquipmentService/mechanical-equipment-service';
 
 
@@ -147,6 +148,21 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
       data: {
         mechanicalEquipment: mechanicalEquipment,
         isReassigned: true
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.reloadData();
+      }
+    });
+  }
+
+  supportMachinery(mechanicalEquipment: MechanicalEquipmentElement) {
+    const dialogRef = this.dialog.open(MechanicalEquipmentSupport, {
+      width: '900px',
+      data: {
+        mechanicalEquipment: mechanicalEquipment
       }
     });
 

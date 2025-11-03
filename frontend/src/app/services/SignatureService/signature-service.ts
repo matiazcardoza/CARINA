@@ -22,7 +22,7 @@ export interface FirmaDigitalParams {
   providedIn: 'root'
 })
 export class SignatureService {
-  private apiUrl = 'https://sistemas2.regionpuno.gob.pe/firma-api';
+  private apiUrl = 'https://sistemas.regionpuno.gob.pe/firma-api';
 
   firmaDigital(params: FirmaDigitalParams): Observable<any> {
     return new Observable(observer => {

@@ -1,0 +1,135 @@
+<div class="support-container table-wrapper">
+    <div class="header-section">
+        <h2 class="page-title">
+            <mat-icon>build_circle</mat-icon>
+            Maquinaria de Apoyo
+        </h2>
+        <p class="page-subtitle">
+            Asignar maquinaria como apoyo a una meta específica
+        </p>
+    </div>
+
+    <div class="content-section">
+        <!-- Detalles del Equipo -->
+        <mat-card class="equipment-details-card" *ngIf="data.mechanicalEquipment">
+            <mat-card-header>
+                <mat-card-title>Detalles del Equipo</mat-card-title>
+                <mat-card-subtitle>{{ data.mechanicalEquipment.machinery_equipment }}</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content class="equipment-details-content">
+                <div class="detail-item">
+                    <strong>Marca:</strong> {{ data.mechanicalEquipment.brand }}
+                </div>
+                <div class="detail-item">
+                    <strong>Modelo:</strong> {{ data.mechanicalEquipment.model }}
+                </div>
+                <div class="detail-item">
+                    <strong>Placa:</strong> {{ data.mechanicalEquipment.plate || 'N/A' }}
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Búsqueda de Meta -->
+        <h4>
+            <mat-icon>code</mat-icon>
+            Buscar Meta de Apoyo
+        </h4>
+        <mat-card class="meta-card">
+            <mat-card-header>
+                <mat-card-title>Código de Meta</mat-card-title>
+                <mat-card-subtitle>Ingrese el código de la meta a la que irá de apoyo</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+                <form [formGroup]="metaSearchForm" (ngSubmit)="buscarMeta()" class="meta-search-form">
+                    <div class="search-input-container">
+                        <mat-form-field appearance="outline" class="meta-search-field">
+                            <mat-label>Código de Meta</mat-label>
+                            <input 
+                                matInput 
+                                formControlName="metaCode"
+                                placeholder="Ej: META001"
+                                (keyup.enter)="buscarMeta()">
+                            <mat-error *ngIf="metaSearchForm.get('metaCode')?.hasError('required')">
+                                El código es requerido
+                            </mat-error>
+                            <mat-error *ngIf="metaSearchForm.get('metaCode')?.hasError('minlength')">
+                                Mínimo 3 caracteres
+                            </mat-error>
+                        </mat-form-field>
+                        <button 
+                            mat-icon-button 
+                            color="primary"
+                            type="submit"
+                            [disabled]="metaSearchForm.invalid || isLoadingMeta"
+                            class="search-button">
+                            <mat-icon *ngIf="!isLoadingMeta">search</mat-icon>
+                            <mat-progress-spinner 
+                                *ngIf="isLoadingMeta" 
+                                mode="indeterminate" 
+                                diameter="20">
+                            </mat-progress-spinner>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Mensaje de Error -->
+                <div *ngIf="metaErrorMessage" class="meta-error">
+                    <mat-icon color="warn">warning</mat-icon>
+                    <span>{{ metaErrorMessage }}</span>
+                </div>
+
+                <!-- Resultados de Meta -->
+                <div *ngIf="selectedMeta" class="meta-results">
+                    <h5>
+                        <mat-icon color="primary">check_circle</mat-icon>
+                        Meta Encontrada
+                    </h5>
+                    <div class="meta-details">
+                        <div class="meta-item">
+                            <strong>ID Meta:</strong> {{ selectedMeta.idmeta }}
+                        </div>
+                        <div class="meta-item">
+                            <strong>Código:</strong> {{ selectedMeta.codmeta }}
+                        </div>
+                        <div class="meta-item meta-description">
+                            <strong>Descripción:</strong> 
+                            <span>{{ selectedMeta.desmeta }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Acciones -->
+                    <div class="meta-actions">
+                        <button 
+                            mat-raised-button 
+                            color="primary"
+                            (click)="asignarApoyo()"
+                            [disabled]="!canProcess">
+                            <mat-icon *ngIf="!isLoading">support_agent</mat-icon>
+                            <mat-progress-spinner 
+                                *ngIf="isLoading" 
+                                mode="indeterminate" 
+                                diameter="16">
+                            </mat-progress-spinner>
+                            {{ isLoading ? 'Procesando...' : 'Asignar como Apoyo' }}
+                        </button>
+                        <button 
+                            mat-button
+                            (click)="limpiarBusquedaMeta()"
+                            [disabled]="isLoading">
+                            <mat-icon>refresh</mat-icon>
+                            Nueva Búsqueda
+                        </button>
+                        <button 
+                            mat-button 
+                            color="accent"
+                            (click)="limpiarBusquedaMeta()"
+                            [disabled]="isLoading">
+                            <mat-icon>clear</mat-icon>
+                            Limpiar
+                        </button>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+</div>
