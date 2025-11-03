@@ -41,7 +41,7 @@ class ServiceController extends Controller
             ->when(Auth::id() != 1, function ($query) use ($goalIds) {
                 $query->whereIn('services.goal_id', $goalIds);
             })
-            ->where('services.state_closure', '!=', 2)
+            ->where('services.state_closure', '=', 1)
             ->orderBy('services.id', 'asc')
             ->get();
 
@@ -420,9 +420,10 @@ class ServiceController extends Controller
 
     public function updateIdmeta(Request $request)
     {
-
         $servicio = Service::find($request->service_id);
         if($servicio->goal_id === $request->goal_id){
+
+            Log::info('ingreso a funcion si es el mismo goal_id');
             $Service = $servicio->update([
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
@@ -453,11 +454,17 @@ class ServiceController extends Controller
                 }
             }
         }else{
-            $existService = Service::where('mechanical_equipment_id', $request->id)->where('state_closure', '=', 3)->first();
-            if($existService){
-                $existService->update([
+            $existServiceState3 = Service::where('mechanical_equipment_id', $request->id)
+                        ->where('goal_id', $request->goal_id)
+                        ->where('state_closure', '=', 3)->first();
+            $existServiceSupport = Service::where('mechanical_equipment_id', $request->id)
+                        ->where('goal_id', $request->goal_id)
+                        ->where('state_closure', '=', 2)->first();
+            if($existServiceState3){
+                $existServiceState3->update([
                     'state_closure' => 1
                 ]);
+
                 $servicio->update([
                     'state_closure' => 2
                 ]);
@@ -466,30 +473,56 @@ class ServiceController extends Controller
                     'message' => 'Service reasigned successfully',
                     'data' => $servicio
                 ]);
-            }else{
-                $servicio->update([
-                    'state_closure' => 2
-                ]);
-                $Service = Service::create([
-                    'mechanical_equipment_id' => $request->id,
-                    'goal_id' => $request->meta_id,
-                    'description' => $request->machinery_equipment . ' ' . $request->brand . ' ' . $request->model . ' ' . $request->plate,
-                    'goal_project' => $request->goal_project,
-                    'goal_detail' => $request->goal_detail,
-                    'start_date' => ($request->start_date === 'NaN-NaN-NaN') ? null : $request->start_date,
-                    'end_date' => ($request->end_date === 'NaN-NaN-NaN') ? null : $request->end_date,
-                    'state' => 3
-                ]);
+            }else {
+                if($existServiceSupport){
+                    $existServiceSupport->update([
+                        'state_closure' => 1
+                    ]);
 
-                $operatorsArray = json_decode($request->operators, true);
-                $createdOperators = [];
-                foreach ($operatorsArray as $operatorName) {
-                    if (!empty(trim($operatorName))) {
-                        $operator = Operator::create([
-                            'service_id' => $Service->id,
-                            'name' => trim($operatorName),
-                        ]);
-                        $createdOperators[] = $operator;
+                    $servicio->update([
+                        'state_closure' => 2
+                    ]);
+
+                    return response()->json([
+                        'message' => 'Service reasigned successfully',
+                        'data' => $servicio
+                    ]);
+                } else{
+                    $existService = Service::where('mechanical_equipment_id', $request->id)
+                                ->where('goal_id', $request->goal_id)->first();
+                    if($existService){
+                        return response()->json([
+                            'message' => 'Esta maquinaria esta de apoyo, no puede reasignar hasta regresar a su meta original'
+                        ], 409);
+                    }
+
+                    $servicio->update([
+                        'state_closure' => 2
+                    ]);
+                    $Service = Service::create([
+                        'mechanical_equipment_id' => $request->id,
+                        'goal_id' => $request->goal_id,
+                        'description' => $request->machinery_equipment . ' ' . $request->brand . ' ' . $request->model . ' ' . $request->plate,
+                        'goal_project' => $request->goal_project,
+                        'goal_detail' => $request->goal_detail,
+                        'start_date' => ($request->start_date === 'NaN-NaN-NaN') ? null : $request->start_date,
+                        'end_date' => ($request->end_date === 'NaN-NaN-NaN') ? null : $request->end_date,
+                        'state' => 3
+                    ]);
+
+                    $createdOperators = [];
+                    foreach ($request->operators as $operatorData) {
+                        if (is_object($operatorData)) {
+                            $operatorData = (array) $operatorData;
+                        }
+                        $name = trim($operatorData['name'] ?? '');
+                        if (!empty($name)) {
+                            $operator = Operator::create([
+                                'service_id' => $Service->id,
+                                'name' => $name,
+                            ]);
+                            $createdOperators[] = $operator;
+                        }
                     }
                 }
             }

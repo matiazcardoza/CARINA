@@ -2,11 +2,10 @@
   padding: 20px;
   width: 100%;
   margin: 0 auto;
+  max-height: 80vh; /* Define altura máxima */
+  overflow-y: auto; /* Aplica scroll aquí */
 }
 
-.table-wrapper {
-  overflow-y: auto;
-}
 
 
 .header-section {

@@ -29,6 +29,7 @@ export interface MechanicalEquipmentElement {
   goal_detail?: string;
   operators?: { id: number; name: string }[];
   state_service?: number;
+  state_closure?: number;
   start_date?: string;
   end_date?: string;
 }
@@ -93,6 +94,7 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
       this.mechanicalEquipmentService.getMechanicalEquipment()
         .subscribe({
           next: (data) => {
+            console.log(data);
             this.dataSource.data = data;
             this.isLoading = false;
             this.cdr.detectChanges();
@@ -160,7 +162,8 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
 
   supportMachinery(mechanicalEquipment: MechanicalEquipmentElement) {
     const dialogRef = this.dialog.open(MechanicalEquipmentSupport, {
-      width: '900px',
+      width: '700px',
+      maxWidth: 'none',
       data: {
         mechanicalEquipment: mechanicalEquipment
       }

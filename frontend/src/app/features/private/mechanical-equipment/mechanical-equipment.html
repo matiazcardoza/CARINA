@@ -96,9 +96,14 @@
                 <span class="equipment-serial">S/N: {{element.serial_number}}</span>
                 @if(element.state_service !== null){
                   <span class="equipment-serial">Obra: {{element.goal_detail}}</span>
-                  <span class="equipment-serial" style="color: rgb(174, 0, 255);">
-                    Fecha de Asignación: {{ element.start_date ? ( element.start_date + ' a ' + element.end_date ) : '' }}
-                  </span>
+                  @if (element.end_date === null){
+                    <span class="status-badge" style="justify-content: center;" [ngClass]="getStateClass(element.state)">Máquinaria en Apoyo</span>
+                  } @else {
+                    <span class="equipment-serial" style="color: rgb(174, 0, 255);">
+                      Fecha de Asignación: {{ element.start_date ? ( element.start_date + ' a ' + element.end_date ) : '' }}
+                    </span>
+                    
+                  }
                   <span class="equipment-serial" style="color: rgb(27, 143, 23);">
                     Operador(es): 
                     @if(element.operators && element.operators.length > 0) {
@@ -213,12 +218,14 @@
                     <mat-icon>engineering</mat-icon>
                   </button>
                 }@else{
-                  <button mat-icon-button
-                          (click)="supportMachinery(element)"
-                          matTooltip="Apoyo de maquinaria"
-                          class="action-btn support-btn">
-                    <mat-icon>handyman</mat-icon>
-                  </button>
+                  @if (element.end_date != null){
+                    <button mat-icon-button
+                            (click)="supportMachinery(element)"
+                            matTooltip="Apoyo de maquinaria"
+                            class="action-btn support-btn">
+                      <mat-icon>handyman</mat-icon>
+                    </button>
+                  }
                   <button mat-icon-button
                           (click)="reasignedWork(element)"
                           matTooltip="Reasignación de obra"

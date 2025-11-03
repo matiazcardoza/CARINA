@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\MechanicalEquipment;
+use App\Models\Operator;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -15,18 +17,20 @@ class MechanicalEquipmentController extends Controller
                 'mechanical_equipment.*',
                 'services.id as service_id',
                 'services.state as state_service',
+                'services.state_closure',
                 'services.goal_id',
                 'services.goal_detail',
                 'services.goal_project',
                 'services.start_date',
                 'services.end_date'
             )
-            ->where('services.state_closure', '!=', 2)
+            ->where('services.state_closure', '=', 1)
+            ->orWhereNull('services.state_closure')
             ->leftJoin('services', 'mechanical_equipment.id', '=', 'services.mechanical_equipment_id')
             ->get();
 
         $serviceIds = $mechanicalEquipment->pluck('service_id')->filter()->unique()->toArray();
-        
+
         $operators = DB::table('operators')
             ->whereIn('service_id', $serviceIds)
             ->where('state', 1)
@@ -46,6 +50,7 @@ class MechanicalEquipmentController extends Controller
                 'serial_number' => $equipment->serial_number,
                 'state' => $equipment->state,
                 'state_service' => $equipment->state_service,
+                'state_closure' => $equipment->state_closure,
                 'goal_id' => $equipment->goal_id,
                 'goal_detail' => $equipment->goal_detail,
                 'goal_project' => $equipment->goal_project,
@@ -116,5 +121,62 @@ class MechanicalEquipmentController extends Controller
         return response()->json([
             'message' => 'mechanical equipment deleted successfully'
         ], 204);
+    }
+
+    public function supportMachinery(Request $request){
+        $service = Service::find($request->service_id);
+        $existingOperators = Operator::where('service_id', $request->service_id)->get();
+
+        $existService = Service::where('mechanical_equipment_id', $request->id)
+                    ->where('goal_id', $request->goal_id)
+                    ->where('state_closure', 2)
+                    ->first();
+
+        if($existService){
+            $supportService = $existService->update([
+                'state_closure' => 1
+            ]);
+            $service->update([
+                'state_closure' => 3
+            ]);
+
+        } else{
+            $sameService = Service::where('mechanical_equipment_id', $request->id)
+                    ->where('goal_id', $request->goal_id)
+                    ->where('state_closure', 1)
+                    ->first();
+            if($sameService){
+                return response()->json([
+                    'message' => 'No puede apoyar a misma obra'
+                ], 409);
+            }
+
+            $service->update([
+                'state_closure' => 3
+            ]);
+
+            $supportService = Service::create([
+                'mechanical_equipment_id' => $request->id,
+                'goal_id' => $request->goal_id,
+                'description' => $request->machinery_equipment . ' ' . $request->brand . ' ' . $request->model . ' ' . $request->plate,
+                'goal_project' => $request->goal_project,
+                'goal_detail' => $request->goal_detail,
+                'start_date' => ($request->start_date === 'NaN-NaN-NaN') ? null : $request->start_date,
+                'end_date' => ($request->end_date === 'NaN-NaN-NaN') ? null : $request->end_date,
+                'state' => 3
+            ]);
+
+            foreach ($existingOperators as $operator) {
+                Operator::create([
+                    'service_id' => $supportService->id,
+                    'name' => $operator->name
+                ]);
+            }
+        }
+
+        return response()->json([
+            'message' => 'Service reasigned successfully',
+            'data' => $supportService
+        ], 201);
     }
 }

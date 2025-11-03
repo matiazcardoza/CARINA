@@ -29,7 +29,6 @@ interface MetaApiResponse {
 
 export interface DialogData {
   mechanicalEquipment: any;
-  isReassigned?: boolean;
 }
 
 @Component({
@@ -49,7 +48,7 @@ export interface DialogData {
 })
 export class MechanicalEquipmentSupport implements OnInit {
   metaSearchForm: FormGroup;
-  selectedMeta: MetaData | null = null;
+  selectedMeta: MetaData | null = null;                                                                     
   isLoadingMeta = false;
   metaErrorMessage = '';
   isLoading = false;
@@ -69,9 +68,7 @@ export class MechanicalEquipmentSupport implements OnInit {
   }
 
   ngOnInit(): void {
-    if (this.data.isReassigned) {
-      this.loadExistingData();
-    }
+    this.loadExistingData();
   }
 
   private loadExistingData(): void {
@@ -149,19 +146,20 @@ export class MechanicalEquipmentSupport implements OnInit {
     this.isLoading = true;
 
     const formData = new FormData();
-    formData.append('maquinaria_id', this.data.mechanicalEquipment.id.toString());
-    formData.append('maquinaria_equipo', this.data.mechanicalEquipment.machinery_equipment || '');
-    formData.append('maquinaria_marca', this.data.mechanicalEquipment.brand || '');
-    formData.append('maquinaria_modelo', this.data.mechanicalEquipment.model || '');
-    formData.append('maquinaria_placa', this.data.mechanicalEquipment.plate || '');
-    formData.append('maquinaria_serie', this.data.mechanicalEquipment.serial_number || '');
-    formData.append('meta_id', this.selectedMeta.idmeta);
-    formData.append('meta_codigo', this.selectedMeta.codmeta);
-    formData.append('meta_descripcion', this.selectedMeta.desmeta);
+    formData.append('id', this.data.mechanicalEquipment.id.toString());
+    formData.append('machinery_equipment', this.data.mechanicalEquipment.machinery_equipment || '');
+    formData.append('brand', this.data.mechanicalEquipment.brand || '');
+    formData.append('model', this.data.mechanicalEquipment.model || '');
+    formData.append('plate', this.data.mechanicalEquipment.plate || '');
+    formData.append('serial_number', this.data.mechanicalEquipment.serial_number || '');
+    formData.append('service_id', this.data.mechanicalEquipment.service_id || '');
+    formData.append('goal_id', this.selectedMeta.idmeta);
+    formData.append('goal_project', this.selectedMeta.codmeta);
+    formData.append('goal_detail', this.selectedMeta.desmeta);
     formData.append('tipo', 'apoyo'); // Identificador para indicar que es apoyo
 
     // Aquí puedes usar el método del servicio que corresponda para guardar el apoyo
-    this.dailyWorkLogService.importOrder(formData).subscribe({
+    this.mechanicalEquipmentService.supportMachinery(formData).subscribe({
       next: (response) => {
         this.isLoading = false;
         this.cdr.detectChanges();

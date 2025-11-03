@@ -108,6 +108,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/mechanical-equipment', [MechanicalEquipmentController::class, 'store']);
     Route::put('/mechanical-equipment', [MechanicalEquipmentController::class, 'update']);
     Route::delete('/mechanical-equipment/{id}', [MechanicalEquipmentController::class, 'destroy']);
+    Route::post('/mechanical-equipment/support-machinery', [MechanicalEquipmentController::class, 'supportMachinery']);
 
     //products
     Route::get('/products-select', [ProductController::class, 'consultaProductSelect']);

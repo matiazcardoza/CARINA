@@ -3,6 +3,7 @@ import { environment } from '../../../environments/environment';
 import { map, Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { MechanicalEquipmentElement } from '../../features/private/mechanical-equipment/mechanical-equipment';
+import { WorkLogElement } from '../../features/private/daily-work-log/daily-work-log';
 
 interface MechanicalEquipmentApiResponse {
   message: string;
@@ -12,6 +13,11 @@ interface MechanicalEquipmentApiResponse {
 interface SingleApiResponse {
   message: string;
   data: MechanicalEquipmentElement;
+}
+
+interface SupportApiResponse {
+  message:string;
+  data: WorkLogElement;
 }
 
 export interface CreateMechanicalEquipmentData {
@@ -53,6 +59,14 @@ export class MechanicalEquipmentService {
 
   updateMechanicalEquipment(mechanicalEquipmentData: CreateMechanicalEquipmentData): Observable<MechanicalEquipmentElement> {
     return this.http.put<SingleApiResponse>(`${this.apiUrl}/api/mechanical-equipment`, mechanicalEquipmentData, {
+      withCredentials: true
+    }).pipe(
+      map(response => response.data)
+    );
+  }
+
+  supportMachinery( workLogData: FormData): Observable<WorkLogElement> {
+    return this.http.post<SupportApiResponse>(`${this.apiUrl}/api/mechanical-equipment/support-machinery`, workLogData, {
       withCredentials: true
     }).pipe(
       map(response => response.data)

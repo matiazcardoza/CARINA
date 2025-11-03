@@ -28,6 +28,7 @@ class OrderSiluciaController extends Controller
             ], 403);
         }
         if($request->maquinaria_id){
+            Log::info('este es ek request para nmaquinaria: ', $request->all());
             $newService = Service::create([
                 'mechanical_equipment_id' => $request->maquinaria_id,
                 'goal_id' => $request->meta_id,
@@ -40,11 +41,12 @@ class OrderSiluciaController extends Controller
             ]);
             $operatorsArray = json_decode($request->operators, true);
             $createdOperators = [];
-            foreach ($operatorsArray as $operatorName) {
-                if (!empty(trim($operatorName))) {
+
+            foreach ($operatorsArray as $operatorData) {
+                if (!empty(trim($operatorData['name'] ?? ''))) {
                     $operator = Operator::create([
                         'service_id' => $newService->id,
-                        'name' => trim($operatorName),
+                        'name' => trim($operatorData['name']),
                     ]);
                     $createdOperators[] = $operator;
                 }

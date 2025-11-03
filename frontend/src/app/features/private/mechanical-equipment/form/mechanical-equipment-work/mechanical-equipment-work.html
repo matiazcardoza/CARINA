@@ -30,6 +30,7 @@
                         <mat-card-title>
                             <mat-icon>calendar_month</mat-icon>
                             Período de Trabajo
+                            <span *ngIf="!data.isReassigned" class="optional-label">(Opcional)</span>
                         </mat-card-title>
                     </mat-card-header>
                     <mat-card-content>

@@ -506,3 +506,10 @@
 .operator-form {
   margin-top: 16px;
 }
+
+.optional-label {
+  font-size: 0.8em;
+  color: #666;
+  font-weight: normal;
+  margin-left: 8px;
+}
