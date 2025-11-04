@@ -8,6 +8,7 @@ use App\Models\ItemPecosa;
 use App\Models\MechanicalEquipment;
 use App\Models\MovementKardex;
 use App\Models\OrderSilucia;
+use App\Models\Persona;
 use App\Models\Product;
 use App\Models\Service;
 use App\Models\WorkEvidence;
@@ -338,5 +339,10 @@ class DailyPartController extends Controller
             'data' => $document,
             'pages' => $numPages
         ], 201);
+    }
+
+    public function getdailyPartsEarrings($numDoc){
+        Log::info('ingreso a funcion'. $numDoc);
+        $persona = Persona::where('num_doc', $numDoc);
     }
 }

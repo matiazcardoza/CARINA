@@ -17,6 +17,8 @@ use App\Http\Controllers\ShiftsController;
 use Illuminate\Support\Facades\DB;
 
 Route::post('/signature-document/{documentId}/{roleId}', [SignatureController::class, 'storeSignature']);
+Route::get('/dailyParts/earrings/{numDoc}', [DailyPartController::class, 'getdailyPartsEarrings']);
+
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {
         $user = $request->user();
