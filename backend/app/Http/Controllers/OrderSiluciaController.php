@@ -28,7 +28,6 @@ class OrderSiluciaController extends Controller
             ], 403);
         }
         if($request->maquinaria_id){
-            Log::info('este es ek request para nmaquinaria: ', $request->all());
             $newService = Service::create([
                 'mechanical_equipment_id' => $request->maquinaria_id,
                 'goal_id' => $request->meta_id,
