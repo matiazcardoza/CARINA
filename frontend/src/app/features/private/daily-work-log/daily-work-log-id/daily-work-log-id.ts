@@ -197,7 +197,7 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
 
   openCreateDialog() {
     const dialogRef = this.dialog.open(DailyWorkLogForm, {
-      width: '500px',
+      width: '900px',
       data: {
         isEdit: false,
         workLog: null,

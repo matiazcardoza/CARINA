@@ -5,7 +5,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
@@ -19,6 +18,8 @@ import { FormControl } from '@angular/forms';
 import { ProductsService, ProductsElement } from '../../../../../../services/productsService/products-service';
 import { OperatorsService, OperatorsElement } from '../../../../../../services/OperatorsService/operators-service';
 import { MatIconModule } from '@angular/material/icon';
+
+import { CustomTimePicker } from '../../components/custom-time-picker/custom-time-picker';
 
 export interface DialogData {
   isEdit: boolean;
@@ -45,7 +46,7 @@ export interface DialogData {
     MatSelectModule,
     MatAutocompleteModule,
     MatIconModule,
-    NgxMaterialTimepickerModule
+    CustomTimePicker
   ],
   standalone: true,
   providers: [

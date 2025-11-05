@@ -9,19 +9,14 @@
     </div>
 
     <!-- Campos del formulario -->
-    <div class="form-row-container">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Hora de Finalización</mat-label>
-        <input matInput
-              formControlName="end_time"
-              [ngxTimepicker]="endTimePicker"
-              placeholder="HH:MM"
-              readonly>
-        <mat-icon matSuffix (click)="endTimePicker.open()">access_time</mat-icon>
-        <mat-hint>Selecciona la hora de finalización</mat-hint>
-        <mat-error>{{ endTimeError }}</mat-error>
-      </mat-form-field>
-      <ngx-material-timepicker #endTimePicker [enableKeyboardInput]="true"></ngx-material-timepicker>
+    <div class="full-width">
+      <label class="time-label">Hora de Finalización</label>
+      <app-custom-time-picker
+        formControlName="end_time"
+        placeholder="HH:MM AM/PM">
+      </app-custom-time-picker>
+      <mat-error *ngIf="endTimeError">{{ endTimeError }}</mat-error>
+      <span class="hint">Selecciona la hora de finalización</span>
     </div>
 
     <div class="form-row">

@@ -29,6 +29,7 @@
     "@angular/material": "^20.1.5",
     "@angular/platform-browser": "^20.2.1",
     "@angular/router": "^20.2.1",
+    "@ng-bootstrap/ng-bootstrap": "^19.0.0-rc.0",
     "@ng-icons/core": "^32.1.0",
     "@ng-icons/material-icons": "^32.1.0",
     "@primeuix/themes": "^1.2.3",

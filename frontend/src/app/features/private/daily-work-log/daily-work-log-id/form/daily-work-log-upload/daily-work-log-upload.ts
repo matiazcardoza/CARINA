@@ -8,7 +8,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
 import { DailyWorkLogService } from '../../../../../../services/DailyWorkLogService/daily-work-log-service';
-import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
+
+import { CustomTimePicker } from '../../components/custom-time-picker/custom-time-picker';
 
 export interface UploadDialogData {
   isEdit: boolean;
@@ -29,7 +30,7 @@ export interface UploadDialogData {
     MatFormFieldModule,
     MatInputModule,
     MatIconModule,
-    NgxMaterialTimepickerModule
+    CustomTimePicker
   ]
 })
 export class DailyWorkLogUpload implements OnInit {
@@ -67,9 +68,11 @@ export class DailyWorkLogUpload implements OnInit {
 
   private setCurrentTime() {
     const now = new Date();
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const currentTime = `${hours}:${minutes}`;
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const hours12 = hours % 12 || 12;
+    const currentTime = `${hours12.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${period}`;
 
     this.uploadForm.patchValue({
       end_time: currentTime

@@ -341,7 +341,7 @@ class DailyPartController extends Controller
         ], 201);
     }
 
-    public function getdailyPartsEarrings($numDoc){
+    public function getdailyPartsPendings($numDoc){
         Log::info('ingreso a funcion'. $numDoc);
         $persona = Persona::where('num_doc', $numDoc);
     }

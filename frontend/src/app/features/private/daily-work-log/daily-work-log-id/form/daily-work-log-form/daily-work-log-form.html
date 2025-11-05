@@ -47,19 +47,15 @@
       </mat-form-field>
 
       <!-- Campo de Hora Inicial -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Hora Inicial</mat-label>
-        <input matInput
-              formControlName="start_time"
-              [ngxTimepicker]="startTimePicker"
-              placeholder="HH:MM"
-              readonly>
-        <mat-icon matSuffix (click)="startTimePicker.open()">access_time</mat-icon>
-        <mat-hint>Selecciona la hora de inicio</mat-hint>
-        <mat-error>{{ startTimeError }}</mat-error>
-      </mat-form-field>
-      <!-- ELIMINAR el binding [defaultTime] -->
-      <ngx-material-timepicker #startTimePicker [enableKeyboardInput]="true"></ngx-material-timepicker>
+      <div class="full-width">
+        <label class="time-label">Hora Inicial</label>
+        <app-custom-time-picker
+          formControlName="start_time"
+          placeholder="HH:MM AM/PM">
+        </app-custom-time-picker>
+        <mat-error *ngIf="startTimeError">{{ startTimeError }}</mat-error>
+        <span class="hint">Selecciona la hora de inicio</span>
+      </div>
 
       <!-- Campo de Producto - Solo se muestra si shouldShowProductFields es true -->
       <mat-form-field appearance="outline" class="full-width" *ngIf="shouldShowProductFields">
@@ -123,18 +119,15 @@
         </div>
 
         <!-- Campo de Hora Final -->
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Hora de Finalización</mat-label>
-          <input matInput
-                formControlName="end_time"
-                [ngxTimepicker]="endTimePicker"
-                placeholder="HH:MM"
-                readonly>
-          <mat-icon matSuffix (click)="endTimePicker.open()">access_time</mat-icon>
-          <mat-hint>Hora en que se completó el trabajo</mat-hint>
-          <mat-error>{{ endTimeError }}</mat-error>
-        </mat-form-field>
-        <ngx-material-timepicker #endTimePicker [enableKeyboardInput]="true"></ngx-material-timepicker>
+        <div class="full-width">
+          <label class="time-label">Hora de Finalización</label>
+          <app-custom-time-picker
+            formControlName="end_time"
+            placeholder="HH:MM AM/PM">
+          </app-custom-time-picker>
+          <mat-error *ngIf="endTimeError">{{ endTimeError }}</mat-error>
+          <span class="hint">Hora en que se completó el trabajo</span>
+        </div>
 
         <!-- Campo de Ocurrencias -->
         <mat-form-field appearance="outline" class="full-width">

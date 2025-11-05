@@ -238,3 +238,18 @@ button[mat-raised-button] {
   grid-template-columns: 1fr; /* Una sola columna para el campo de hora */
   gap: 16px;
 }
+
+.time-label {
+  display: block;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.hint {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}

@@ -1,0 +1,117 @@
+<div class="custom-time-picker">
+  <!-- Input de visualización -->
+  <div class="time-input-wrapper">
+    <input
+      type="text"
+      class="time-input"
+      [(ngModel)]="manualInput"
+      [placeholder]="placeholder"
+      [readonly]="readonly"
+      (blur)="onManualInputBlur()"
+      (change)="onManualInputChange($event.target.value)"
+      (focus)="togglePicker()"
+    />
+    <mat-icon class="time-icon" (click)="togglePicker()">access_time</mat-icon>
+  </div>
+
+  <!-- Picker desplegable -->
+  <div class="time-picker-dropdown" *ngIf="isOpen" (click)="$event.stopPropagation()">
+    <div class="picker-header">
+      <h4>Seleccionar Hora</h4>
+      <button mat-icon-button (click)="closePicker()" class="close-btn">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="time-selectors">
+      <!-- Selector de Hora con búsqueda -->
+      <div class="selector-column">
+        <label>Hora</label>
+        <mat-form-field appearance="outline" class="time-select">
+          <input 
+            type="text" 
+            matInput 
+            [(ngModel)]="hourSearch"
+            [matAutocomplete]="autoHour"
+            (ngModelChange)="filterHours($event)"
+            (focus)="filterHours(hourSearch)"
+            placeholder="1-12"
+          />
+          <mat-autocomplete 
+            #autoHour="matAutocomplete" 
+            (optionSelected)="onHourSelected($event.option.value)"
+            [autoActiveFirstOption]="true"
+          >
+            <mat-option *ngFor="let h of filteredHours" [value]="h">
+              {{ h }}
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field>
+      </div>
+
+      <div class="separator">:</div>
+
+      <!-- Selector de Minutos con búsqueda -->
+      <div class="selector-column">
+        <label>Minutos</label>
+        <mat-form-field appearance="outline" class="time-select">
+          <input 
+            type="text" 
+            matInput 
+            [(ngModel)]="minuteSearch"
+            [matAutocomplete]="autoMinute"
+            (ngModelChange)="filterMinutes($event)"
+            (focus)="filterMinutes(minuteSearch)"
+            placeholder="00-59"
+          />
+          <mat-autocomplete 
+            #autoMinute="matAutocomplete" 
+            (optionSelected)="onMinuteSelected($event.option.value)"
+            [autoActiveFirstOption]="true"
+          >
+            <mat-option *ngFor="let m of filteredMinutes" [value]="m">
+              {{ m < 10 ? '0' + m : m }}
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field>
+      </div>
+
+      <!-- Selector de AM/PM -->
+      <div class="selector-column period-column">
+        <label>Periodo</label>
+        <button 
+          mat-raised-button 
+          [color]="period === 'AM' ? 'primary' : ''"
+          (click)="period = 'AM'; emitTimeChange()"
+          class="period-btn">
+          AM
+        </button>
+        <button 
+          mat-raised-button 
+          [color]="period === 'PM' ? 'primary' : ''"
+          (click)="period = 'PM'; emitTimeChange()"
+          class="period-btn">
+          PM
+        </button>
+      </div>
+    </div>
+
+    <!-- Vista previa de la hora seleccionada -->
+    <div class="time-preview">
+      <span class="preview-time">{{ formatTime() }}</span>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="picker-actions">
+      <button mat-button (click)="clearTime()">
+        Limpiar
+      </button>
+      <button mat-raised-button color="primary" (click)="applyTime()">
+        Aplicar
+      </button>
+    </div>
+  </div>
+
+  <!-- Overlay para cerrar al hacer click fuera -->
+  <div class="picker-overlay" *ngIf="isOpen" (click)="closePicker()"></div>
+</div>
