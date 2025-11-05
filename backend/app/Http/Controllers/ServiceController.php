@@ -32,7 +32,7 @@ class ServiceController extends Controller
                 'services.end_date',
                 'services.state',
                 'orders_silucia.supplier',
-                'equipment_order.machinery_equipment',
+                DB::raw('GROUP_CONCAT(DISTINCT equipment_order.machinery_equipment) as machinery_equipment'),
                 'mechanical_equipment.machinery_equipment as mechanicalEquipment'
             )
             ->leftJoin('orders_silucia', 'services.order_id', '=', 'orders_silucia.id')
@@ -42,9 +42,20 @@ class ServiceController extends Controller
                 $query->whereIn('services.goal_id', $goalIds);
             })
             ->where('services.state_closure', '=', 1)
+            ->groupBy(
+                'services.id',
+                'services.goal_id',
+                'services.description',
+                'services.goal_project',
+                'services.goal_detail',
+                'services.start_date',
+                'services.end_date',
+                'services.state',
+                'orders_silucia.supplier',
+                'mechanicalEquipment'
+            )
             ->orderBy('services.id', 'asc')
             ->get();
-
         foreach ($services as $service) {
             $operators = DB::table('operators')
                 ->where('service_id', $service->id)
@@ -53,7 +64,6 @@ class ServiceController extends Controller
                 ->get();
             $service->operators = $operators;
         }
-
         return response()->json([
             'message' => 'Daily work log retrieved successfully',
             'data' => $services
