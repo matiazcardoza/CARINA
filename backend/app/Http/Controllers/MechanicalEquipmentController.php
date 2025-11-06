@@ -48,6 +48,7 @@ class MechanicalEquipmentController extends Controller
                 'plate' => $equipment->plate,
                 'year' => $equipment->year,
                 'serial_number' => $equipment->serial_number,
+                'cost_hour' => $equipment->cost_hour,
                 'state' => $equipment->state,
                 'state_service' => $equipment->state_service,
                 'state_closure' => $equipment->state_closure,

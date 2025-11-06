@@ -191,6 +191,10 @@
                   <span>Inactivo</span>
                 }
               </span>
+              <span class="status-badge" [ngClass]="getStateClass(element.state)">
+                <mat-icon class="status-icon">payments</mat-icon>
+                <span>S/. {{ element.cost_hour }}</span>
+              </span>
             </td>
           </ng-container>
 

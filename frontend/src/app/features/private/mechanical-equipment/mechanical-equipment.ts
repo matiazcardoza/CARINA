@@ -23,6 +23,7 @@ export interface MechanicalEquipmentElement {
   plate: string;
   year: string;
   serial_number: string;
+  cost_hour?: number;
   state: number;
   goal_id?: number;
   goal_project?: string;
@@ -94,7 +95,7 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
       this.mechanicalEquipmentService.getMechanicalEquipment()
         .subscribe({
           next: (data) => {
-            console.log(data);
+            console.log('data que llega', data);
             this.dataSource.data = data;
             this.isLoading = false;
             this.cdr.detectChanges();
@@ -129,6 +130,7 @@ export class MechanicalEquipment implements AfterViewInit, OnInit {
   }
 
   openEditDialog(mechanicalEquipment: MechanicalEquipmentElement) {
+    console.log('datos enviados al formulario', mechanicalEquipment);
     const dialogRef = this.dialog.open(MechanicalEquipmentForm, {
       width: '700px',
       data: {

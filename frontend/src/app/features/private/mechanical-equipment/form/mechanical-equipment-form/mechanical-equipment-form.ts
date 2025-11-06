@@ -75,6 +75,7 @@ export class MechanicalEquipmentForm implements OnInit {
         state: this.data.mechanicalEquipment.state,
         cost_hour: this.data.mechanicalEquipment.cost_hour
       });
+      console.log('este es el costo por hora' , this.data.mechanicalEquipment.cost_hour);
     }
   }
 
