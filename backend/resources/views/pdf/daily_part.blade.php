@@ -585,6 +585,9 @@
                                     @php
                                         $start = \Carbon\Carbon::parse($part->start_time);
                                         $end = \Carbon\Carbon::parse($part->end_time);
+                                        if ($end->lt($start)) {
+                                            $end->addDay();
+                                        }
                                         $diff = $start->diff($end);
                                         $hours = $diff->h + ($diff->days * 24);
                                         $minutes = $diff->i;
