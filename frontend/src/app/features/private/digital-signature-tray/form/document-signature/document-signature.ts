@@ -382,7 +382,25 @@ export class DocumentSignature {
     this.loadPdfDocument();
   }
 
-  isControllerAndCanSign(): boolean {
-    return this.documentState === 0 && this.permissionService.hasRole('Controlador_pd');
+  shouldShowSignButton(): boolean {
+    const userRelevantRoles = this.getUserRelevantRoles();
+    
+    // Estado 0: Solo Controlador puede firmar
+    if (this.documentState === 0 && userRelevantRoles.includes('Controlador_pd')) {
+      return true;
+    }
+    
+    // Estado 1: Residente puede firmar (incluso si también es Supervisor)
+    if (this.documentState === 1 && userRelevantRoles.includes('Residente_pd')) {
+      return true;
+    }
+    
+    // Estado 2: Supervisor puede firmar
+    if (this.documentState === 2 && userRelevantRoles.includes('Supervisor_pd')) {
+      return true;
+    }
+    
+    // Estado 3: Nadie puede firmar (documento completado)
+    return false;
   }
 }
