@@ -102,7 +102,11 @@ class ServiceController extends Controller
 
     function getDailyPartsData($idGoal)
     {
-        $services = Service::where('goal_id', $idGoal)->get();
+        $services = Service::join('daily_parts', 'services.id', '=', 'daily_parts.service_id')
+                   ->where('services.goal_id', $idGoal)
+                   ->select('services.*')
+                   ->distinct()
+                   ->get();
 
         $servicesWithTotalTime = $services->map(function ($service) {
             $dailyParts = DailyPart::where('service_id', $service->id)->get();
