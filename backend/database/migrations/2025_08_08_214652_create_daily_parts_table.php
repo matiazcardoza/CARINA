@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id('id');
             $table->unsignedBigInteger('service_id');
             $table->unsignedBigInteger('movement_kardex_id')->nullable();
-            $table->string('description')->nullable();
+            $table->string('description', 1000)->nullable();
             $table->string('occurrences')->nullable();
             $table->date('work_date')->nullable();
             $table->time('start_time')->nullable();

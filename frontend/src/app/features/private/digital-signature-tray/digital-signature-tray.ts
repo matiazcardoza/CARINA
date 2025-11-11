@@ -7,12 +7,13 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-// Asume que estos servicios y diálogos existen
 import { DocumentSignatureService } from '../../../services/DocumentSignatureService/document-signature-service';
 import { DocumentSignature } from './form/document-signature/document-signature';
+import { MassiveDocumentSignature } from './form/massive-document-signature/massive-document-signature';
 
 import { HasPermissionDirective } from '../../../shared/directives/permission.directive';
 import { HasRoleDirective } from '../../../shared/directives/permission.directive';
+
 export interface DocumentSignatureUserElement {
   id: number;
   description: string;
@@ -20,7 +21,8 @@ export interface DocumentSignatureUserElement {
   last_work_date: string;
   file_path: string;
   observation: string;
-  state: string;
+  state: number;
+  pages?: number;
 }
 
 @Component({
@@ -87,35 +89,83 @@ export class DigitalSignatureTray implements AfterViewInit, OnInit {
 
   openSignDialog(id: number) {
     const dialogRef = this.dialog.open(DocumentSignature, {
-          width: '100vw',
-          height: '100vh',
-          maxWidth: '100vw',
-          maxHeight: '100vh',
-          panelClass: ['maximized-dialog-panel', 'no-scroll-dialog'],
-          disableClose: false,
-          hasBackdrop: true,
-          backdropClass: 'maximized-dialog-backdrop',
-          autoFocus: false,
-          restoreFocus: false,
-          data: {
-            documentId: id
-          }
-        });
+      width: '100vw',
+      height: '100vh',
+      maxWidth: '100vw',
+      maxHeight: '100vh',
+      panelClass: ['maximized-dialog-panel', 'no-scroll-dialog'],
+      disableClose: false,
+      hasBackdrop: true,
+      backdropClass: 'maximized-dialog-backdrop',
+      autoFocus: false,
+      restoreFocus: false,
+      data: {
+        documentId: id
+      }
+    });
+  
+    setTimeout(() => {
+      const body = document.body;
+      const html = document.documentElement;
+      body.style.overflow = 'hidden';
+      html.style.overflow = 'hidden';
+    }, 0);
+  
+    dialogRef.afterClosed().subscribe(result => {
+      const body = document.body;
+      const html = document.documentElement;
+      body.style.overflow = '';
+      html.style.overflow = '';
+      this.reloadData();
+      this.cdr.detectChanges();
+    });
+  }
+
+  // NUEVO MÉTODO: Abrir diálogo de firma masiva
+  openMassiveSignDialog() {
+    // Verificar que haya documentos
+    if (this.dataSource.data.length === 0) {
+      alert('No hay documentos disponibles para firma masiva');
+      return;
+    }
+
+    console.log('datos enviados a componente', this.dataSource.data);
+
+    const dialogRef = this.dialog.open(MassiveDocumentSignature, {
+      width: '100vw',
+      height: '100vh',
+      maxWidth: '100vw',
+      maxHeight: '100vh',
+      panelClass: ['maximized-dialog-panel', 'no-scroll-dialog'],
+      disableClose: false,
+      hasBackdrop: true,
+      backdropClass: 'maximized-dialog-backdrop',
+      autoFocus: false,
+      restoreFocus: false,
+      data: {
+        documents: this.dataSource.data
+      }
+    });
+
+    setTimeout(() => {
+      const body = document.body;
+      const html = document.documentElement;
+      body.style.overflow = 'hidden';
+      html.style.overflow = 'hidden';
+    }, 0);
+
+    dialogRef.afterClosed().subscribe(result => {
+      const body = document.body;
+      const html = document.documentElement;
+      body.style.overflow = '';
+      html.style.overflow = '';
       
-        setTimeout(() => {
-          const body = document.body;
-          const html = document.documentElement;
-          body.style.overflow = 'hidden';
-          html.style.overflow = 'hidden';
-        }, 0);
+      if (result && result.signed) {
+        console.log(`Firma masiva completada: ${result.signedCount} firmados, ${result.errorCount} errores`);
+      }
       
-        dialogRef.afterClosed().subscribe(result => {
-          const body = document.body;
-          const html = document.documentElement;
-          body.style.overflow = '';
-          html.style.overflow = '';
-          this.reloadData();
-          this.cdr.detectChanges();
-        });
+      this.reloadData();
+      this.cdr.detectChanges();
+    });
   }
 }

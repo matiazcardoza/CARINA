@@ -1,0 +1,183 @@
+<div class="massive-signature-container">
+  <mat-toolbar color="primary" class="signature-toolbar">
+    <span>Firma Masiva de Documentos</span>
+    <span class="toolbar-spacer"></span>
+    
+    <div *ngIf="isSigningInProgress" class="progress-info">
+      <span>{{ currentSigningIndex }} / {{ totalDocuments }}</span>
+    </div>
+
+    <button mat-icon-button
+            (click)="onCancel()"
+            [disabled]="isSigningInProgress"
+            matTooltip="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </mat-toolbar>
+
+  <div class="role-selector-section" *ngIf="!isSigningInProgress">
+    <div class="role-selector-container">
+      <mat-icon>badge</mat-icon>
+      <span class="role-label">Selecciona tu rol para firmar:</span>
+      
+      <div class="role-buttons">
+        <button *ngFor="let role of userRelevantRoles"
+                mat-stroked-button
+                [class.selected]="selectedRole === role"
+                [color]="selectedRole === role ? 'primary' : ''"
+                (click)="selectedRole = role; onRoleChange()">
+          <mat-icon>{{ selectedRole === role ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+          {{ getRoleDisplayName(role) }}
+          <span class="role-badge">
+            Estado {{ getDocumentStateForRole(role) }}
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Información sobre documentos disponibles -->
+    <div class="role-info" *ngIf="selectedRole">
+      <mat-icon>info_outline</mat-icon>
+      <span>
+        Documentos disponibles para {{ getRoleDisplayName(selectedRole) }}: 
+        <strong>{{ filteredDocuments.length }}</strong>
+      </span>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <!-- Barra de progreso -->
+    <div *ngIf="isSigningInProgress" class="progress-section">
+      <mat-progress-bar mode="determinate" [value]="progressPercentage"></mat-progress-bar>
+      <div class="progress-stats">
+        <span class="stat-success">
+          <mat-icon>check_circle</mat-icon>
+          {{ signedDocuments }} firmados
+        </span>
+        <span class="stat-error">
+          <mat-icon>error</mat-icon>
+          {{ errorDocuments }} errores
+        </span>
+      </div>
+    </div>
+
+    <!-- Header de acciones -->
+    <div class="actions-header" *ngIf="!isSigningInProgress">
+      <div class="selection-info">
+        <mat-icon>assignment</mat-icon>
+        <span>{{ selectedDocuments.length }} de {{ documents.length }} documentos seleccionados</span>
+      </div>
+      
+      <div class="header-buttons">
+        <button mat-stroked-button
+                (click)="selectAll()"
+                [disabled]="isSigningInProgress">
+          <mat-icon>select_all</mat-icon>
+          Seleccionar todos
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="!selectedRole && !isSigningInProgress" class="no-role-selected">
+      <mat-icon>warning</mat-icon>
+      <p>Por favor, selecciona un rol para ver los documentos disponibles</p>
+    </div>
+
+    <!-- Lista de documentos -->
+    <div class="documents-list-container" *ngIf="selectedRole || isSigningInProgress">
+      <mat-list class="documents-list">
+        <mat-list-item *ngFor="let document of filteredDocuments" 
+                       class="document-item"
+                       [class.disabled]="!canSignDocument(document.state)">
+          
+          <div class="document-content">
+            <!-- Checkbox de selección -->
+            <mat-checkbox
+              [checked]="document.selected"
+              [disabled]="isSigningInProgress || !canSignDocument(document.state)"
+              (change)="toggleDocumentSelection(document)"
+              class="document-checkbox">
+            </mat-checkbox>
+
+            <!-- Información del documento -->
+            <div class="document-info">
+              <div class="document-header">
+                <span class="document-id">#{{ document.id }}</span>
+                <span class="document-title" [title]="document.description">
+                  {{ document.description }}
+                </span>
+              </div>
+              
+              <div class="document-details">
+                <span class="document-goal" [title]="document.goal_detail">
+                  {{ document.goal_detail }}
+                </span>
+                <span class="document-date">
+                  <mat-icon>calendar_today</mat-icon>
+                  {{ document.last_work_date | date:'dd/MM/yyyy' }}
+                </span>
+              </div>
+
+              <div class="document-state">
+                <span class="state-badge" [ngClass]="'state-' + document.state">
+                  {{ getDocumentStateLabel(document.state) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Estado de firma -->
+            <div class="signature-status" *ngIf="document.selected">
+              <mat-icon [class]="getStatusClass(document.signatureStatus)">
+                {{ getStatusIcon(document.signatureStatus) }}
+              </mat-icon>
+              
+              <span class="status-text" [class]="getStatusClass(document.signatureStatus)">
+                <ng-container [ngSwitch]="document.signatureStatus">
+                  <span *ngSwitchCase="'pending'">Pendiente</span>
+                  <span *ngSwitchCase="'signing'">Firmando...</span>
+                  <span *ngSwitchCase="'success'">Firmado</span>
+                  <span *ngSwitchCase="'error'">Error</span>
+                </ng-container>
+              </span>
+
+              <!-- Mensaje de error si existe -->
+              <span *ngIf="document.signatureStatus === 'error' && document.errorMessage" 
+                    class="error-message">
+                {{ document.errorMessage }}
+              </span>
+            </div>
+          </div>
+
+          <mat-divider></mat-divider>
+        </mat-list-item>
+      </mat-list>
+    </div>
+  </div>
+
+  <!-- Barra de acciones inferior -->
+  <mat-toolbar class="signature-actions">
+    <div class="actions-content">
+      <div class="info-section">
+        <mat-icon>info</mat-icon>
+        <span>Los documentos se firmarán secuencialmente</span>
+      </div>
+
+      <div class="button-section">
+        <button mat-raised-button
+                (click)="onCancel()"
+                [disabled]="isSigningInProgress">
+          <mat-icon>close</mat-icon>
+          Cancelar
+        </button>
+
+        <button mat-raised-button
+                color="primary"
+                (click)="onSignMassive()"
+                [disabled]="isSigningInProgress || selectedDocuments.length === 0">
+          <mat-icon>{{ isSigningInProgress ? 'hourglass_empty' : 'draw' }}</mat-icon>
+          {{ isSigningInProgress ? 'Firmando...' : 'Firmar Documentos' }}
+        </button>
+      </div>
+    </div>
+  </mat-toolbar>
+</div>

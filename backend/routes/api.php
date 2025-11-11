@@ -17,6 +17,7 @@ use App\Http\Controllers\ShiftsController;
 use Illuminate\Support\Facades\DB;
 
 Route::post('/signature-document/{documentId}/{roleId}', [SignatureController::class, 'storeSignature']);
+Route::post('/signature-document/process-massive/{batchId}/{roleId}', [SignatureController::class, 'processMassiveSignatureResponse']);
 Route::get('/dailyParts/Pendings/{numDoc}', [DailyPartController::class, 'getdailyPartsPendings']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -107,6 +108,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/document-signature/{documentId}', [DocumentController::class, 'getDocumentSignature']);
     Route::get('/documents-signature/pending', [DocumentController::class, 'getPendingDocuments']);
     Route::post('/document-return/resend-to-controller', [DocumentController::class, 'resendDocument']);
+    Route::post('/documents-signature/prepare-massive', [DocumentController::class, 'prepareMassiveSignature']);
 
     //mechanical equipment
     Route::get('/mechanical-equipment', [MechanicalEquipmentController::class, 'index']);

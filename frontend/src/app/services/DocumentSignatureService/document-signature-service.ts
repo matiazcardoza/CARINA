@@ -5,6 +5,14 @@ import { environment } from '../../../environments/environment';
 import { DocumentSignatureUserElement } from '../../features/private/digital-signature-tray/digital-signature-tray';
 import { DocumentDailyPartElement } from '../../features/private/digital-signature-tray/form/document-signature/document-signature';
 
+export interface BatchPreparationResponse {
+  batch_id: string;
+  zip_file_name: string;
+  zip_url: string;
+  documents_info: Array<{ id: number; pages: number }>;
+  total_documents: number;
+}
+
 interface DocumentSignatureApiResponse {
   message: string;
   data: DocumentSignatureUserElement[];
@@ -63,5 +71,23 @@ export class DocumentSignatureService {
     return this.http.post(`${this.apiUrl}/api/document-return/resend-to-controller`, ReturnData, {
       withCredentials: true
     });
+  }
+
+  prepareMassiveSignature(documentIds: number[]): Observable<BatchPreparationResponse> {
+    return this.http.post<{ message: string; data: BatchPreparationResponse }>(
+      `${this.apiUrl}/api/documents-signature/prepare-massive`,
+      { documentIds },
+      { withCredentials: true }
+    ).pipe(
+      map(response => response.data)
+    );
+  }
+
+  cleanupBatchFile(batchId: string): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/api/documents-signature/cleanup-batch`,
+      { batch_id: batchId },
+      { withCredentials: true }
+    );
   }
 }

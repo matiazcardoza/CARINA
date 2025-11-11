@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             UserAdminSeeder::class,
             add_permission::class,
             addTurnos::class,
+            addNigthShift::class,
         ]);
     }
 }

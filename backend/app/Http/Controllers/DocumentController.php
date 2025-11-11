@@ -20,6 +20,7 @@ class DocumentController extends Controller
             'documents_daily_parts.user_id_send',
             'documents_daily_parts.observation',
             'documents_daily_parts.state',
+            'documents_daily_parts.file_path',
             'documents_daily_parts.created_at',
             'documents_daily_parts.updated_at',
             'services.description',
@@ -37,6 +38,7 @@ class DocumentController extends Controller
             'documents_daily_parts.user_id_send',
             'documents_daily_parts.observation',
             'documents_daily_parts.state',
+            'documents_daily_parts.file_path',
             'documents_daily_parts.created_at',
             'documents_daily_parts.updated_at',
             'services.description',
@@ -97,5 +99,128 @@ class DocumentController extends Controller
             'message' => 'Document returned to controller successfully',
             'data' => $document
         ], 201);
+    }
+
+    public function prepareMassiveSignature(Request $request)
+    {
+        try {
+            $documentIds = $request->documentIds;
+            $documents = DocumentDailyPart::whereIn('id', $documentIds)
+                ->where('user_id', Auth::id())
+                ->where('state', '!=', 3)
+                ->get();
+
+            if ($documents->count() !== count($documentIds)) {
+                return response()->json([
+                    'message' => 'Algunos documentos no son válidos o no tienes permiso'
+                ], 403);
+            }
+
+            $tempDir = storage_path('app/public/comp_temp');
+            if (!is_dir($tempDir)) {
+                mkdir($tempDir, 0777, true);
+            }
+
+            $batchId = uniqid('batch_', true);
+            $zipFileName = "{$batchId}.7z";
+            $zipFilePath = "{$tempDir}/{$zipFileName}";
+            
+            $tempBatchDir = "{$tempDir}/batch_{$batchId}";
+            if (!is_dir($tempBatchDir)) {
+                mkdir($tempBatchDir, 0777, true);
+            }
+
+            $rutasArchivos = [];
+            $parser = new \Smalot\PdfParser\Parser();
+            $documentsInfo = [];
+
+            foreach ($documents as $document) {
+                $pdfPath = storage_path('app/public/' . $document->file_path);
+                
+                if (!file_exists($pdfPath)) {
+                    continue;
+                }
+
+                $fecha = date('Y-m-d', strtotime($document->last_work_date ?? 'now'));
+                $nuevoNombre = "daily_part_{$document->id}_{$fecha}.pdf";
+                $nuevaRuta = "{$tempBatchDir}/{$nuevoNombre}";
+
+                if (copy($pdfPath, $nuevaRuta)) {
+                    $rutasArchivos[] = escapeshellarg($nuevaRuta);
+                } else {
+                    continue;
+                }
+
+                try {
+                    $pdf = $parser->parseFile($pdfPath);
+                    $numPages = count($pdf->getPages());
+                } catch (\Exception $e) {
+                    $numPages = 0;
+                }
+
+                $documentsInfo[] = [
+                    'id' => $document->id,
+                    'pages' => $numPages,
+                    'original_name' => basename($document->file_path),
+                    'batch_name' => $nuevoNombre
+                ];
+            }
+
+            if (empty($rutasArchivos)) {
+                $this->deleteDirectory($tempBatchDir);
+                return response()->json([
+                    'message' => 'No se encontraron archivos PDF válidos para comprimir'
+                ], 400);
+            }
+
+            if (PHP_OS_FAMILY === 'Windows') {
+                $comando = '"C:\\Program Files\\7-Zip\\7z.exe" a "' . $zipFilePath . '" ' . implode(' ', $rutasArchivos);
+            } else {
+                $comando = '7z a "' . $zipFilePath . '" ' . implode(' ', $rutasArchivos);
+            }
+            
+            shell_exec($comando . ' 2>&1');
+
+            if (!file_exists($zipFilePath)) {
+                $this->deleteDirectory($tempBatchDir);
+                return response()->json([
+                    'message' => 'Error al crear el archivo comprimido'
+                ], 500);
+            }
+
+            $this->deleteDirectory($tempBatchDir);
+
+            return response()->json([
+                'message' => 'Batch preparado correctamente',
+                'data' => [
+                    'batch_id' => $batchId,
+                    'zip_file_name' => $zipFileName,
+                    'zip_url' => url("storage/comp_temp/{$zipFileName}"),
+                    'documents_info' => $documentsInfo,
+                    'total_documents' => $documents->count()
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Error preparing massive signature: ' . $e->getMessage());
+            
+            return response()->json([
+                'message' => 'Error al preparar firma masiva',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function deleteDirectory($dir)
+    {
+        if (!is_dir($dir)) {
+            return;
+        }
+        $files = array_diff(scandir($dir), ['.', '..']);
+        foreach ($files as $file) {
+            $path = $dir . '/' . $file;
+            is_dir($path) ? $this->deleteDirectory($path) : unlink($path);
+        }
+        rmdir($dir);
     }
 }
