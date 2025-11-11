@@ -195,7 +195,7 @@ class DocumentController extends Controller
                 'data' => [
                     'batch_id' => $batchId,
                     'zip_file_name' => $zipFileName,
-                    'zip_url' => url("storage/comp_temp/{$zipFileName}"),
+                    'zip_url' => config('app.url') . "/storage/comp_temp/{$zipFileName}",
                     'documents_info' => $documentsInfo,
                     'total_documents' => $documents->count()
                 ]
