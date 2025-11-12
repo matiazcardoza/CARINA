@@ -342,16 +342,12 @@ class DailyPartController extends Controller
     }
 
     public function getdailyPartsPendings(Request $request){
-        // Obtener y convertir explícitamente a enteros
         $numDoc = $request->query('dni');
         $mes = (int) $request->query('mes');
         $anio = (int) $request->query('anio');
-
-        // Validación manual
         if ($mes < 1 || $mes > 12) {
             return response()->json(['error' => 'El mes debe estar entre 1 y 12.'], 400);
         }
-
         if ($anio < 1900 || $anio > 2100) {
             return response()->json(['error' => 'El año debe estar entre 1900 y 2100.'], 400);
         }
