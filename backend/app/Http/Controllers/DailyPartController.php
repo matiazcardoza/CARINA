@@ -10,6 +10,7 @@ use App\Models\MovementKardex;
 use App\Models\OrderSilucia;
 use App\Models\Persona;
 use App\Models\Product;
+use App\Models\Project;
 use App\Models\Service;
 use App\Models\WorkEvidence;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -341,44 +342,68 @@ class DailyPartController extends Controller
         ], 201);
     }
 
-    public function getdailyPartsPendings(Request $request){
+    public function getDailyPartsPendings(Request $request)
+    {
         $numDoc = $request->query('dni');
         $mes = (int) $request->query('mes');
         $anio = (int) $request->query('anio');
-        
         if ($mes < 1 || $mes > 12) {
             return response()->json(['error' => 'El mes debe estar entre 1 y 12.'], 400);
         }
         if ($anio < 1900 || $anio > 2100) {
             return response()->json(['error' => 'El año debe estar entre 1900 y 2100.'], 400);
         }
-
         $persona = Persona::where('num_doc', $numDoc)->first();
         if (!$persona) {
             return response()->json(['error' => 'Persona no encontrada con el DNI proporcionado.'], 404);
         }
 
         $userId = $persona->user_id;
-        
         try {
             $prevMonth = $mes - 1;
             $startDate = Carbon::create($anio, $prevMonth, 15, 0, 0, 0)->startOfDay();
-            $endDate = $startDate->copy()->addMonth()->startOfDay();
+            $endDate = $startDate->copy()->addMonth()->subDay()->endOfDay();
         } catch (\Exception $e) {
             Log::error("Error al crear fechas: " . $e->getMessage());
             return response()->json(['error' => 'Parámetros de fecha inválidos.'], 400);
         }
-
-        // Obtener los DailyParts con sus documentos relacionados
-        $dailyParts = DailyPart::with('document') // Asumiendo que existe la relación 'document'
-            ->where('operator_id', $userId)
+        $goals = Project::where('user_id', $userId)->get();
+        
+        if ($goals->isEmpty()) {
+            return response()->json([
+                'dni' => $persona->num_doc,
+                'user_id' => $persona->user_id,
+                'nombre' => trim("{$persona->name} {$persona->last_name}"),
+                'desde' => $startDate->format('Y-m-d'),
+                'hasta' => $endDate->format('Y-m-d'),
+                'total_dias' => $startDate->diffInDays($endDate) + 1,
+                'mensaje' => 'El usuario no tiene proyectos asignados',
+                'reportes' => [],
+            ]);
+        }
+        $projectIds = $goals->pluck('goal_id')->unique();
+        $services = Service::whereIn('goal_id', $projectIds)->get();
+        
+        if ($services->isEmpty()) {
+            return response()->json([
+                'dni' => $persona->num_doc,
+                'user_id' => $persona->user_id,
+                'nombre' => trim("{$persona->name} {$persona->last_name}"),
+                'desde' => $startDate->format('Y-m-d'),
+                'hasta' => $endDate->format('Y-m-d'),
+                'total_dias' => $startDate->diffInDays($endDate) + 1,
+                'mensaje' => 'No hay servicios asociados a los proyectos del usuario',
+                'reportes' => [],
+            ]);
+        }
+        $serviceIds = $services->pluck('id');
+        $dailyParts = DailyPart::with('document')
+            ->whereIn('service_id', $serviceIds)
             ->whereBetween('work_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
             ->get()
             ->groupBy(function ($item) {
                 return Carbon::parse($item->work_date)->format('Y-m-d');
             });
-
-        // Generar la lista de reportes para cada día del rango
         $reportes = [];
         $currentDate = $startDate->copy();
 
@@ -407,10 +432,12 @@ class DailyPartController extends Controller
                     })->pluck('document.state')->unique();
 
                     if ($estadosDocumentos->isNotEmpty()) {
-                        $estados = $estadosDocumentos->implode(', ');
+                        $estados = $estadosDocumentos->sort()->implode(', ');
                         $detalle = "Documentos pendientes (Estados: $estados)";
+                        $reporteHoy = true;
                     } else {
                         $detalle = 'Partes diarios sin documento generado';
+                        $reporteHoy = true;
                     }
                 }
             }
@@ -427,6 +454,9 @@ class DailyPartController extends Controller
         }
 
         $totalDays = $startDate->diffInDays($endDate) + 1;
+        $diasConReportes = collect($reportes)->where('reporte_hoy', true)->count();
+        $diasCompletados = collect($reportes)->where('documento_completado', true)->count();
+        $diasPendientes = $diasConReportes - $diasCompletados;
 
         return response()->json([
             'dni' => $persona->num_doc,
@@ -435,6 +465,13 @@ class DailyPartController extends Controller
             'desde' => $startDate->format('Y-m-d'),
             'hasta' => $endDate->format('Y-m-d'),
             'total_dias' => $totalDays,
+            'estadisticas' => [
+                'dias_con_reportes' => $diasConReportes,
+                'dias_completados' => $diasCompletados,
+                'dias_pendientes' => $diasPendientes,
+                'dias_sin_reportes' => $totalDays - $diasConReportes,
+            ],
+            'proyectos_asignados' => $projectIds->values(),
             'reportes' => $reportes,
         ]);
     }
