@@ -179,7 +179,7 @@ export class DailyWorkSignature {
     const firmaParams: FirmaDigitalParams = {
       location_url_pdf: this.pdfUrlString,
       location_logo: `${environment.BACKEND_URL_STORAGE}image_pdf_template/logo_firma_digital.png`,
-      post_location_upload: `${environment.BACKEND_URL}/api/document-signature/${this.documentId}`,
+      post_location_upload: `${environment.BACKEND_URL}/api/signature-document/${this.documentId}/1`,
       asunto: `Firma de Parte Diario - ${this.data.date}`,
       rol: 'CONTROLADOR',
       tipo: 'daily_parts',

@@ -13,6 +13,7 @@ class SignatureController extends Controller
 {
     public function storeSignature(Request $request, $DocumentId, $roleId)
     {
+        Log::info("Ingreso a storeSignature con DocumentId: {$DocumentId}, roleId: {$roleId}, userId: " . Auth::id());
         $document = DocumentDailyPart::find($DocumentId);
         if ($request->hasFile('signed_file')) {
             $signedFile = $request->file('signed_file');
