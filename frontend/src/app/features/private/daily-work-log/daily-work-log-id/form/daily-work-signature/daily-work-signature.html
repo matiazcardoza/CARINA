@@ -53,9 +53,11 @@
       </span>
     </div>
 
-    <button mat-raised-button
+    <!-- Agregar *ngIf="canControllerSign()" para ocultar el botón -->
+    <button *ngIf="canControllerSign()"
+            mat-raised-button
             [color]="isSigned ? 'accent' : 'warn'"
-            [disabled]="isLoading || !canControllerSign()"
+            [disabled]="isLoading"
             (click)="onSign()"
             class="sign-button">
       <mat-icon>{{ isSigned ? 'refresh' : 'create' }}</mat-icon>
