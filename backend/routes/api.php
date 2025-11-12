@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 
 Route::post('/signature-document/{documentId}/{roleId}', [SignatureController::class, 'storeSignature']);
 Route::post('/signature-document/process-massive/{batchId}/{roleId}', [SignatureController::class, 'processMassiveSignatureResponse']);
-Route::get('/dailyParts/Pendings/{numDoc}', [DailyPartController::class, 'getdailyPartsPendings']);
+Route::get('/dailyParts-Pendings', [DailyPartController::class, 'getdailyPartsPendings']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {

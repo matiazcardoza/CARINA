@@ -341,8 +341,99 @@ class DailyPartController extends Controller
         ], 201);
     }
 
-    public function getdailyPartsPendings($numDoc){
-        Log::info('ingreso a funcion'. $numDoc);
-        $persona = Persona::where('num_doc', $numDoc);
+    public function getdailyPartsPendings(Request $request){
+        // Obtener y convertir explícitamente a enteros
+        $numDoc = $request->query('dni');
+        $mes = (int) $request->query('mes');
+        $anio = (int) $request->query('anio');
+
+        // Validación manual
+        if ($mes < 1 || $mes > 12) {
+            return response()->json(['error' => 'El mes debe estar entre 1 y 12.'], 400);
+        }
+
+        if ($anio < 1900 || $anio > 2100) {
+            return response()->json(['error' => 'El año debe estar entre 1900 y 2100.'], 400);
+        }
+
+        Log::info("Ingreso a funcion getdailyPartsPendings con DNI: {$numDoc}, Mes: {$mes}, Año: {$anio}");
+
+        // 2. Obtener la información de la Persona (Usuario)
+        $persona = Persona::where('num_doc', $numDoc)->first();
+
+        if (!$persona) {
+            return response()->json(['error' => 'Persona no encontrada con el DNI proporcionado.'], 404);
+        }
+
+        $userId = $persona->user_id;
+
+        // 3. Definir el rango de fechas (Del 15 del mes M al 15 del mes M+1)
+        try {
+            Log::info("Creando fechas para Mes: {$mes}, Año: {$anio}");
+            
+            $prevMonth = $mes - 1;
+            $startDate = Carbon::create($anio, $prevMonth, 15, 0, 0, 0)->startOfDay();
+            
+            // Fecha de fin: 15 del mes siguiente
+            $endDate = $startDate->copy()->addMonth()->startOfDay();
+
+        } catch (\Exception $e) {
+            Log::error("Error al crear fechas: " . $e->getMessage());
+            return response()->json(['error' => 'Parámetros de fecha inválidos.'], 400);
+        }
+
+        // 4. Obtener todos los DailyParts (Partes Diarios) de esta persona en el rango de fechas
+        // CORRECCIÓN: usar 'operator_id' y 'work_date' según la estructura real de la tabla
+        $dailyParts = DailyPart::where('operator_id', $userId)
+            ->whereBetween('work_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->get()
+            ->keyBy(function ($item) {
+                // Claveamos la colección por la fecha para una búsqueda rápida (O(1))
+                return Carbon::parse($item->work_date)->format('Y-m-d');
+            });
+
+        // 5. Generar la lista de reportes para cada día del rango
+        $reportes = [];
+        $currentDate = $startDate->copy();
+
+        while ($currentDate->lte($endDate)) {
+            $dateString = $currentDate->format('Y-m-d');
+            $reporteDelDia = $dailyParts->get($dateString);
+
+            $detalle = 'Sin reportes creados';
+            $reporteHoy = false;
+
+            if ($reporteDelDia) {
+                $status = $reporteDelDia->status;
+                if ($status == 3) {
+                    $reporteHoy = true;
+                    $detalle = 'Reporte completado (Estado 3)';
+                } else {
+                    $detalle = "Pendiente: Estado $status";
+                }
+            }
+
+            $reportes[] = [
+                'fecha' => $dateString,
+                'reporte_hoy' => $reporteHoy,
+                'detalle' => $detalle,
+            ];
+
+            $currentDate->addDay();
+        }
+
+        // Calcular el total de días correctamente
+        $totalDays = $startDate->diffInDays($endDate) + 1;
+
+        // 6. Construir la respuesta final JSON
+        return response()->json([
+            'dni' => $persona->num_doc,
+            'user_id' => $persona->user_id,
+            'nombre' => trim("{$persona->nombres} {$persona->apellido_paterno} {$persona->apellido_materno}"),
+            'desde' => $startDate->format('Y-m-d'),
+            'hasta' => $endDate->format('Y-m-d'),
+            'total_dias' => $totalDays,
+            'reportes' => $reportes,
+        ]);
     }
 }
