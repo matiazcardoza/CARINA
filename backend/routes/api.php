@@ -65,6 +65,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/users-update', [UserController::class, 'updateUser']);
     Route::delete('/users-delete/{id}', [UserController::class, 'destroy']);
     Route::put('/users-update-roles', [UserController::class, 'updateUserRoles']);
+    Route::put('/user-change-password', [UserController::class, 'changePassword']);
 
     Route::middleware(['auth:sanctum', 'role:SuperAdministrador_pd'])->group(function () {
         Route::post('/importUser', [UserController::class, 'importUsersSilucia']);

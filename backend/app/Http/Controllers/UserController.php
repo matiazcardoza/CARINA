@@ -394,4 +394,17 @@ class UserController extends Controller
             }
         }
     }
+
+    public function changePassword(Request $request){
+        $user = User::find(Auth::id());
+        $user->update([
+            'password' => bcrypt($request->password),
+            'updated_at' => now()
+        ]);
+
+        return response()->json([
+            'message' => 'Contraseña actualizada correctamente',
+            'data' => $user
+        ], 200);
+    }
 }

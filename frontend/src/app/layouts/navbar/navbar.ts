@@ -1,22 +1,20 @@
-import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { Component, inject, input, output, signal, ChangeDetectorRef } from '@angular/core';
 import { Toolbar } from 'primeng/toolbar';
 import { AvatarModule } from 'primeng/avatar';
-// import { SharedModule } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-// import { IconField } from 'primeng/iconfield';
-// import { InputIcon } from 'primeng/inputicon';
 import { MenuItem } from 'primeng/api';
 import { MenuModule } from 'primeng/menu';
 import { AuthService } from '../../services/AuthService/auth';
 import { finalize } from 'rxjs';
-// import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-// import { updatePrimaryPalette, updateSurfacePalette } from '@primeuix/themes';
-const DARK_CLASS = 'my-app-dark';
-const STORAGE_KEY = 'isDark';
 import { OverlayBadgeModule } from 'primeng/overlaybadge';
 import { TooltipModule } from 'primeng/tooltip';
 import { UsersService } from '../../services/UsersService/users-service';
+import { MatDialog } from '@angular/material/dialog';
+import { ProfileForm } from './profile/profile-form/profile-form';
+
+const DARK_CLASS = 'my-app-dark';
+const STORAGE_KEY = 'isDark';
 
 @Component({
   selector: 'app-navbar',
@@ -24,9 +22,7 @@ import { UsersService } from '../../services/UsersService/users-service';
     Toolbar, 
     AvatarModule, 
     ButtonModule,
-    ButtonModule,
     InputTextModule,
-    // IconField,
     MenuModule,
     OverlayBadgeModule,
     TooltipModule
@@ -37,22 +33,25 @@ import { UsersService } from '../../services/UsersService/users-service';
 export class Navbar {
   private auth = inject(AuthService);
   private usersService = inject(UsersService);
+  private dialog = inject(MatDialog);
+  private cdr = inject(ChangeDetectorRef);
+  
   sentOpenValue = output<boolean>();
   isOpen = input<boolean>(false);
   loading = false;
   isAuthenticated$ = this.auth.isAuthenticated$;
   errorMsg = '';
-  iconName = signal<string>('pi pi-moon')
+  iconName = signal<string>('pi pi-moon');
+  
   profileItems: MenuItem[] = [
-    { label: 'Mi perfil',     icon: 'pi pi-user',     command: () => this.onGoProfile()   },
-    { label: 'Ajustes',       icon: 'pi pi-cog',      command: () => this.onGoSettings()  },
-    // { label: 'cambiar tema',  icon: 'pi pi-pencil',   command: () => this.toggleDark()    },
+    { label: 'Mi perfil',           icon: 'pi pi-user',     command: () => this.onGoProfile()    },
+    { label: 'Cambiar contraseña',  icon: 'pi pi-cog',      command: () => this.onGoSettings()   },
     { separator: true },
-    { label: 'Cerrar sesión', icon: 'pi pi-sign-out', command: () => this.onLogout()      }
+    { label: 'Cerrar sesión',       icon: 'pi pi-sign-out', command: () => this.onLogout()       }
   ];
 
   handleOpenSidebar(value: boolean){
-    this.sentOpenValue.emit(true)
+    this.sentOpenValue.emit(true);
   }
 
   ngOnInit(){ 
@@ -63,16 +62,34 @@ export class Navbar {
   initFromStorage() {
     const isDark = localStorage.getItem(STORAGE_KEY) === '1';
     document.documentElement.classList.toggle(DARK_CLASS, isDark);
-    // Función para alternar tema oscuro o claro para meterial angular
     this.setMaterialTheme(isDark);
   }
 
   onGoProfile(){
-
+    // Implementar si es necesario
   }
 
   onGoSettings(){
+    // Abrir el diálogo de cambiar contraseña con Material Dialog
+    const dialogRef = this.dialog.open(ProfileForm, {
+      width: '95vw',
+      maxWidth: '700px',
+      height: '40vh',
+      disableClose: false, // Permite cerrar con ESC o click fuera
+      autoFocus: true,
+      panelClass: 'password-change-dialog' // Clase CSS personalizada si necesitas
+    });
 
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        // Si el formulario retorna un resultado exitoso
+        Promise.resolve().then(() => {
+          this.cdr.detectChanges();
+          console.log('Contraseña actualizada:', result);
+          // Aquí puedes recargar datos o mostrar un mensaje de éxito
+        });
+      }
+    });
   }
 
   onLogout(){
@@ -82,54 +99,32 @@ export class Navbar {
     this.errorMsg = '';
 
     this.auth.logout()
-      .pipe(
-        finalize(() => (this.loading = false)),
-        // takeUntilDestroyed()
-      )
+      .pipe(finalize(() => (this.loading = false)))
       .subscribe({
-        // El AuthService ya navega a /login en el tap()
         next: () => {},
         error: () => {
-          // Si el backend devolviera error, igual quedas deslogueado (el servicio ya pone false)
           this.errorMsg = 'No se pudo cerrar sesión. Inténtalo nuevamente.';
         }
       });
   }
 
   onAiClick(){
-
+    // Implementar si es necesario
   }
 
-  toggleTheme( ){
+  toggleTheme(){
     const el = document.documentElement;
     const isDark = !el.classList.contains(DARK_CLASS);
     el.classList.toggle(DARK_CLASS, isDark);
     localStorage.setItem(STORAGE_KEY, isDark ? '1' : '0');
-    // Función para alternar tema oscuro o claro para meterial angular
     this.setMaterialTheme(isDark);
     isDark ? this.iconName.set('pi pi-sun') : this.iconName.set('pi pi-moon');
   }
 
-  // iconName = computed(() => this.isDark() ? 'pi pi-moon' : 'pi pi-sun');
-
-
   setPrimaryTheme(){
-    // updatePrimaryPalette({
-    //   50: '{violet.50}', 100: '{violet.100}', 200: '{violet.200}',
-    //   300: '{violet.300}', 400: '{violet.400}', 500: '{violet.500}',
-    //   600: '{violet.600}', 700: '{violet.700}', 800: '{violet.800}',
-    //   900: '{violet.900}', 950: '{violet.950}',
-    // });
-
-    // updateSurfacePalette({
-    //   50: '{violet.50}', 100: '{violet.100}', 200: '{violet.200}',
-    //   300: '{violet.300}', 400: '{violet.400}', 500: '{violet.500}',
-    //   600: '{violet.600}', 700: '{violet.700}', 800: '{violet.800}',
-    //   900: '{violet.900}', 950: '{violet.950}',
-    // })
+    // Implementación de tema
   }
 
-  // Función para alternar tema oscuro o claro para meterial angular
   setMaterialTheme(isDark: boolean) {
     const linkEl = document.getElementById('mat-theme') as HTMLLinkElement | null;
     if (!linkEl) return;
@@ -144,12 +139,11 @@ export class Navbar {
         const nombre = encodeURIComponent(`${user.persona_name} ${user.last_name}`);
         const sistemaId = 20;
         const url = `https://sistemas.regionpuno.gob.pe/incidencias/ticketcreate/?dni=${dni}&nombre=${nombre}&sistema_id=${sistemaId}`;
-      window.open(url, '_blank');
-        },
+        window.open(url, '_blank');
+      },
       error: (error) => {
         console.error('Error al obtener datos del usuario:', error);
       }
     });
   }
-
 }

@@ -28,4 +28,9 @@ class DailyPart extends Model
         'time_worked',
         'state',
     ];
+
+    public function document()
+    {
+        return $this->belongsTo(DocumentDailyPart::class, 'document_id');
+    }
 }

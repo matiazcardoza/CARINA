@@ -1,0 +1,72 @@
+<div class="profile-form-container">
+  <h2>Cambiar Contraseña</h2>
+  
+  <form [formGroup]="profileForm" class="password-form" autocomplete="off">
+    
+    <!-- Campo de Contraseña -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Nueva Contraseña</mat-label>
+      <input matInput 
+             [type]="hidePassword ? 'password' : 'text'"
+             formControlName="password"
+             placeholder="Mínimo 8 caracteres"
+             autocomplete="new-password">
+      <button mat-icon-button matSuffix 
+              type="button"
+              (click)="togglePasswordVisibility()" 
+              [attr.aria-label]="'Mostrar/Ocultar contraseña'" 
+              [attr.aria-pressed]="hidePassword">
+        <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+      </button>
+      <mat-hint>
+        Mínimo 8 caracteres alfanuméricos
+      </mat-hint>
+      <mat-error *ngIf="profileForm.get('password')?.hasError('required')">
+        La contraseña es requerida
+      </mat-error>
+      <mat-error *ngIf="profileForm.get('password')?.hasError('minlength')">
+        Mínimo 8 caracteres
+      </mat-error>
+      <mat-error *ngIf="profileForm.get('password')?.hasError('pattern')">
+        Solo se permiten letras y números
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Campo de Confirmar Contraseña -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Confirmar Contraseña</mat-label>
+      <input matInput 
+             [type]="hideConfirmPassword ? 'password' : 'text'"
+             formControlName="confirmPassword"
+             placeholder="Confirme su contraseña"
+             autocomplete="new-password">
+      <button mat-icon-button matSuffix 
+              type="button"
+              (click)="toggleConfirmPasswordVisibility()" 
+              [attr.aria-label]="'Mostrar/Ocultar contraseña'" 
+              [attr.aria-pressed]="hideConfirmPassword">
+        <mat-icon>{{hideConfirmPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+      </button>
+      <mat-error *ngIf="profileForm.get('confirmPassword')?.hasError('required')">
+        Debe confirmar la contraseña
+      </mat-error>
+      <mat-error *ngIf="profileForm.hasError('passwordMismatch') && profileForm.get('confirmPassword')?.touched">
+        Las contraseñas no coinciden
+      </mat-error>
+    </mat-form-field>
+  </form>
+
+  <!-- Botones de acción -->
+  <div class="form-actions">
+    <button mat-button (click)="onCancel()" [disabled]="isLoading">
+      Cancelar
+    </button>
+    <button mat-raised-button 
+            color="primary" 
+            (click)="onSubmit()"
+            [disabled]="isLoading || profileForm.invalid">
+      <span *ngIf="isLoading">Actualizando...</span>
+      <span *ngIf="!isLoading">Actualizar Contraseña</span>
+    </button>
+  </div>
+</div>

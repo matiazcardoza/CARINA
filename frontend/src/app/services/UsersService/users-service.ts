@@ -128,4 +128,12 @@ export class UsersService {
       }),
     );
   }
+
+  changedPassword(userData: { password: string }): Observable<UserElement> {
+    return this.http.put<SingleApiResponse>(`${this.apiUrl}/api/user-change-password`, userData, {
+      withCredentials: true
+    }).pipe(
+      map(response => response.data)
+    );
+  }
 }
