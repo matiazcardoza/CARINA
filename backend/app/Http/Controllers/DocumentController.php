@@ -103,6 +103,15 @@ class DocumentController extends Controller
         ], 201);
     }
 
+    public function deleteDocumentSignature($id){
+        $document = DocumentDailyPart::find($id);
+        $document->delete();
+
+        return response()->json([
+            'message' => 'document deleted successfully'
+        ], 204);
+    }
+
     public function prepareMassiveSignature(Request $request)
     {
         try {

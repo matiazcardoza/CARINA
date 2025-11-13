@@ -90,4 +90,10 @@ export class DocumentSignatureService {
       { withCredentials: true }
     );
   }
+
+  deleteDocumentSignature(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/api/documents-signature-delete/${id}`, {
+      withCredentials: true
+    });
+  }
 }

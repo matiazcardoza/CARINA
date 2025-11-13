@@ -168,4 +168,33 @@ export class DigitalSignatureTray implements AfterViewInit, OnInit {
       this.cdr.detectChanges();
     });
   }
+
+  deleteDocumentSignature(id: number, state: number) {
+    if (confirm('¿Estás seguro de que deseas eliminar este documento?')) {
+      Promise.resolve().then(() => {
+        this.isLoading = true;
+        this.cdr.detectChanges();
+        
+        if (![0, 1].includes(state)) {
+          alert('Solo se pueden eliminar documentos en estado pendiente.');
+          this.isLoading = false;
+          this.cdr.detectChanges();
+          return;
+        }
+        this.documentSignatureService.deleteDocumentSignature(id)
+          .subscribe({
+            next: () => {
+              this.isLoading = false;
+              this.reloadData();
+              this.cdr.detectChanges();
+            },
+            error: (error) => {
+              this.isLoading = false;
+              this.error = 'Error al eliminar el usuario. Por favor, intenta nuevamente.';
+              this.cdr.detectChanges();
+            }
+          });
+      });
+    }
+  }
 }

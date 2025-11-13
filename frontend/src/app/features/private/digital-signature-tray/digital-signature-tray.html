@@ -143,6 +143,13 @@
                         class="action-btn sign-btn">
                   <mat-icon>draw</mat-icon>
                 </button>
+
+                <button mat-icon-button 
+                        (click)="deleteDocumentSignature(element.id, element.state)"
+                        matTooltip="Eliminar usuario"
+                        class="action-btn delete-btn">
+                  <mat-icon>delete</mat-icon>
+                </button>
               </div>
             </td>
           </ng-container>
