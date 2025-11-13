@@ -417,6 +417,62 @@
             text-align: center;
             padding: 4px;
         }
+
+        .qr-code-container {
+            position: fixed;
+            bottom: 3mm;
+            left: 15mm;
+            right: 15mm;
+            width: calc(100% - 30mm);
+            height: 20px;
+            z-index: 999;
+        }
+
+        .qr-verification-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .qr-verification-table td {
+            vertical-align: middle;
+            padding: 2px;
+        }
+
+        .verification-text {
+            width: calc(100% - 70px); /* Deja espacio fijo para el QR */
+            text-align: left;
+            padding-right: 10px;
+        }
+
+        .verification-text strong {
+            font-size: 8px;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .url-text {
+            font-size: 7px;
+            word-wrap: break-word;
+            word-break: break-all;
+            line-height: 1.3;
+            display: block;
+        }
+
+        .qr-image {
+            width: 70px;
+            text-align: right;
+        }
+
+        .qr-code {
+            width: 60px;
+            height: 60px;
+            max-width: 60px;
+            max-height: 60px;
+            object-fit: contain;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -696,6 +752,21 @@
                 <td>
                     <div class="signature-line"></div>
                     <div class="signature-title">SUPERVISOR DE OBRA</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="qr-code-container">
+        <table class="qr-verification-table">
+            <tr>
+                <td class="verification-text">
+                    <strong>Verificación:</strong><br>
+                    <span class="url-text">{{ $document_url }}</span>
+                </td>
+                <td class="qr-image">
+                    @if(isset($qr_code) && $qr_code)
+                        <img class="qr-code" src="data:image/png;base64,{{ $qr_code }}" alt="QR Code">
+                    @endif
                 </td>
             </tr>
         </table>

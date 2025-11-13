@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Smalot\PdfParser\Parser;
 
 class DailyPartController extends Controller
@@ -257,7 +258,33 @@ class DailyPartController extends Controller
 
         $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
         $logoWorkPath = storage_path('app/public/image_pdf_template/logo_work.png');
-        $qr_code = base64_encode("data_qr_example");
+        $directory = "daily_parts/{$serviceId}";
+        $fileName = "daily_part{$request->shift_id}_{$request->date}.pdf";
+        $filePath = "{$directory}/{$fileName}";
+        if (!Storage::disk('public')->exists($directory)) {
+            Storage::disk('public')->makeDirectory($directory);
+        }
+        $timestamp = time();
+        $documentUrl = url(Storage::url($filePath)) . '?v=' . $timestamp;
+        $qrCode = null;
+        try {
+            $qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&format=png&data=' . urlencode($documentUrl);
+            
+            $context = stream_context_create([
+                'http' => [
+                    'timeout' => 10,
+                    'ignore_errors' => true,
+                    'header' => "User-Agent: Mozilla/5.0\r\n"
+                ]
+            ]);
+            $qrImageData = @file_get_contents($qrApiUrl, false, $context);
+            
+            if ($qrImageData !== false && strlen($qrImageData) > 0) {
+                $qrCode = base64_encode($qrImageData);
+            }
+        } catch (\Exception $e) {
+            Log::warning('No se pudo generar QR Code: ' . $e->getMessage());
+        }
 
         $data = [
             'logoPath' => $logoPath,
@@ -267,63 +294,83 @@ class DailyPartController extends Controller
             'service' => $service,
             'dailyPart' => $dailyPart,
             'pdf' => true,
-            'qr_code' => $qr_code
+            'qr_code' => $qrCode,
+            'document_url' => $documentUrl
         ];
 
         $pdf = Pdf::loadView('pdf.daily_part', $data);
         $pdf->setPaper('A4', 'portrait');
-
-        $directory = "daily_parts/{$serviceId}";
-        $fileName = "daily_part{$request->shift_id}_{$request->date}.pdf";
-        $filePath = "{$directory}/{$fileName}";
-
-        if (Storage::disk('public')->exists($filePath)) {
-            Storage::disk('public')->delete($filePath);
-        }
-
-        Storage::disk('public')->put($filePath, $pdf->output());
-        $existingDocument = DocumentDailyPart::where('file_path', $filePath)->first();
-        if (Auth::id() === 1) {
-            if ($existingDocument) {
-                $existingDocument->update([
-                    'state' => 0
-                ]);
-                $document = $existingDocument;
-            } else {
-                $document = DocumentDailyPart::create([
-                    'user_id' => Auth::id(),
-                    'user_id_send' => Auth::id(),
-                    'file_path' => $filePath,
-                    'state' => 0
-                ]);
-            }
-        } else {
-            $document = DocumentDailyPart::updateOrCreate(
-                [
-                    'user_id' => Auth::id(),
-                    'file_path' => $filePath,
-                ],
-                [
-                    'state' => 0
-                ]
-            );
-        }
-
         
-        DailyPart::where('work_date', $request->date)
-            ->where('service_id', $serviceId)
-            ->where('shift_id', $request->shift_id)
-            ->update([
-                'document_id' => $document->id,
-                'state' => 3
-            ]);
+        if (Storage::disk('public')->exists($filePath)) {
+            try {
+                Storage::disk('public')->delete($filePath);
+                usleep(100000);
+            } catch (\Exception $e) {
+                Log::warning('No se pudo eliminar archivo anterior: ' . $e->getMessage());
+            }
+        }
+
+        try {
+            Storage::disk('public')->put($filePath, $pdf->output());
+        } catch (\Exception $e) {
+            Log::error('Error guardando PDF: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Error al generar el PDF',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+        try {
+            $existingDocument = DocumentDailyPart::where('file_path', $filePath)->first();
+            
+            if (Auth::id() === 1) {
+                if ($existingDocument) {
+                    $existingDocument->update([
+                        'state' => 0,
+                        'updated_at' => now()
+                    ]);
+                    $document = $existingDocument;
+                } else {
+                    $document = DocumentDailyPart::create([
+                        'user_id' => Auth::id(),
+                        'user_id_send' => Auth::id(),
+                        'file_path' => $filePath,
+                        'state' => 0
+                    ]);
+                }
+            } else {
+                $document = DocumentDailyPart::updateOrCreate(
+                    [
+                        'user_id' => Auth::id(),
+                        'file_path' => $filePath,
+                    ],
+                    [
+                        'state' => 0,
+                        'updated_at' => now()
+                    ]
+                );
+            }
+
+            DailyPart::where('work_date', $request->date)
+                ->where('service_id', $serviceId)
+                ->where('shift_id', $request->shift_id)
+                ->update([
+                    'document_id' => $document->id,
+                    'state' => 3,
+                    'updated_at' => now()
+                ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error actualizando base de datos: ' . $e->getMessage());
+        }
 
         return response()->json([
             'message' => 'PDF generado y reemplazado correctamente',
-            'data' => $dailyPart
+            'data' => $dailyPart,
+            'document_url' => url(Storage::url($filePath)),
+            'document_path' => $filePath,
+            'qr_generated' => $qrCode !== null
         ], 201);
     }
-
 
     public function getDocumentWokLog($serviceId, $date, $shift){
         Log::info("serviceId: $serviceId, date: $date, shift: $shift");
