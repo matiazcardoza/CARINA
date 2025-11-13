@@ -32,8 +32,6 @@ class DocumentController extends Controller
         ->leftJoin('services', 'daily_parts.service_id', '=', 'services.id')
         ->where('user_id', Auth::id())
         ->where('documents_daily_parts.state', '!=', 3)
-        ->whereMonth('documents_daily_parts.created_at', now()->month)
-        ->whereYear('documents_daily_parts.created_at', now()->year)
         ->groupBy(
             'documents_daily_parts.id',
             'documents_daily_parts.user_id',
