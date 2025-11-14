@@ -20,6 +20,8 @@ import { OperatorsService, OperatorsElement } from '../../../../../../services/O
 import { MatIconModule } from '@angular/material/icon';
 
 import { CustomTimePicker } from '../../components/custom-time-picker/custom-time-picker';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { FormsModule } from '@angular/forms';
 
 export interface DialogData {
   isEdit: boolean;
@@ -46,7 +48,9 @@ export interface DialogData {
     MatSelectModule,
     MatAutocompleteModule,
     MatIconModule,
-    CustomTimePicker
+    CustomTimePicker,
+    MatCheckboxModule,
+    FormsModule
   ],
   standalone: true,
   providers: [
@@ -76,6 +80,8 @@ export class DailyWorkLogForm implements OnInit {
   maxFileSize = 5 * 1024 * 1024;
   allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
+  includeGasoline = false;
+
   private fb = inject(FormBuilder);
   private dailyWorkLogService = inject(DailyWorkLogService);
   private productsService = inject(ProductsService);
@@ -94,6 +100,7 @@ export class DailyWorkLogForm implements OnInit {
       work_date: ['', Validators.required],
       start_time: [''],
       initial_fuel: [''],
+      gasoline_amount: [{value: '', disabled: true}],
       product_id: [''],
       description: ['', Validators.required],
       operator_id: ['', Validators.required]
@@ -193,6 +200,12 @@ export class DailyWorkLogForm implements OnInit {
         initial_fuel: this.data.workLog.initial_fuel,
         operator_id: this.data.workLog.operator
       };
+
+      if (this.data.workLog.gasolina) {
+        this.includeGasoline = true;
+        formValues.gasoline_amount = this.data.workLog.gasolina;
+        this.workLogForm.get('gasoline_amount')?.enable();
+      }
 
       // Solo agregar campos de producto si son requeridos
       /*if (this.shouldRequireProductFields) {
@@ -355,6 +368,10 @@ export class DailyWorkLogForm implements OnInit {
           initial_fuel: parseFloat(formValue.initial_fuel),
           operator_id: formValue.operator_id
         };
+
+        if (this.includeGasoline) {
+          workLogData.gasoline_amount = parseFloat(formValue.gasoline_amount);
+        }
 
         if (this.data.selectedShift) {
           workLogData.shift_id = this.data.selectedShift;
@@ -542,5 +559,33 @@ export class DailyWorkLogForm implements OnInit {
     const sizes = ['Bytes', 'KB', 'MB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  onGasolineCheckChange(checked: boolean) {
+    this.includeGasoline = checked;
+    const gasolineControl = this.workLogForm.get('gasoline_amount');
+    
+    if (checked) {
+      gasolineControl?.setValidators([Validators.required, Validators.min(0)]);
+      gasolineControl?.enable();
+    } else {
+      gasolineControl?.clearValidators();
+      gasolineControl?.setValue('');
+      gasolineControl?.disable();
+    }
+    gasolineControl?.updateValueAndValidity();
+    this.cdr.detectChanges();
+  }
+
+  get gasolineAmountError() {
+    if (!this.includeGasoline) return '';
+    const control = this.workLogForm.get('gasoline_amount');
+    if (control?.hasError('required') && control?.touched) {
+      return 'La cantidad de gasolina es requerida';
+    }
+    if (control?.hasError('min') && control?.touched) {
+      return 'La cantidad debe ser mayor o igual a 0';
+    }
+    return '';
   }
 }

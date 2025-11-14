@@ -717,7 +717,7 @@
             <tbody>
                 <tr>
                     <th style="width: 20%;">GASOHOL</th>
-                    <td>Gls. </td>
+                    <td>{{ $dailyPart->sum('gasolina') }} Gls. </td>
                     <th style="width: 20%;">ACEITE HIDRÁULICO</th>
                     <td>Gls. </td>
                 </tr>

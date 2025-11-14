@@ -56,6 +56,7 @@ class DailyPartController extends Controller
             'work_date' => $request->work_date,
             'start_time' => date("H:i", strtotime($request->start_time)),
             'initial_fuel' => $request->initial_fuel,
+            'gasolina' => $request->gasoline_amount,
             'description' => $request->description
         ]);
 
@@ -128,6 +129,7 @@ class DailyPartController extends Controller
                 'work_date' => $request->work_date,
                 //'itemPecosa_id' => $request->product_id,
                 'initial_fuel' => $request->initial_fuel ?? null,
+                'gasolina' => $request->gasoline_amount ?? null,
                 'description' => $request->description
             ]);
 

@@ -25,6 +25,7 @@ class DailyPart extends Model
         'start_time',
         'end_time',
         'initial_fuel',
+        'gasolina',
         'time_worked',
         'state',
     ];
