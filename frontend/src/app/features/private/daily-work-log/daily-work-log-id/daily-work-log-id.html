@@ -206,6 +206,12 @@
                   <span class="fuel-unit">G</span>
                 </ng-container>
               </div>
+              <div>
+                @if(element.gasolina){
+                  <span class="fuel-value" style="color: rgb(122, 165, 86); font-size: 12px;">Gasolina: {{element.gasolina}}</span>
+                  <span class="fuel-unit" style="font-size: 12px;"> G</span>
+                }
+              </div>
             </td>
           </ng-container>
 
