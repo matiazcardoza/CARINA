@@ -440,7 +440,7 @@
         }
 
         .verification-text {
-            width: calc(100% - 70px); /* Deja espacio fijo para el QR */
+            width: 85%; /* AUMENTADO de calc(100% - 70px) a 85% */
             text-align: left;
             padding-right: 10px;
         }
@@ -461,7 +461,7 @@
         }
 
         .qr-image {
-            width: 70px;
+            width: 15%; /* REDUCIDO para que coincida con el ancho del QR */
             text-align: right;
         }
 
@@ -472,6 +472,7 @@
             max-height: 60px;
             object-fit: contain;
             display: block;
+            margin-left: auto; /* Para alinear a la derecha dentro de su celda */
         }
     </style>
 </head>
@@ -760,8 +761,9 @@
         <table class="qr-verification-table">
             <tr>
                 <td class="verification-text">
-                    <strong>Verificación:</strong><br>
+                    <strong>Verificación:</strong>
                     <span class="url-text">{{ $document_url }}</span>
+                    <span class="url-text">Documento Generado: {{ \Carbon\Carbon::now()->format('d/m/Y') }}</span>
                 </td>
                 <td class="qr-image">
                     @if(isset($qr_code) && $qr_code)
