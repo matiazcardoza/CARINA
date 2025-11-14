@@ -301,39 +301,141 @@ class UserController extends Controller
         ], 200);
     }
 
-    public function importUsersSilucia(){
+    public function importUsersSilucia()
+    {
         set_time_limit(0);
+        
         $url = 'https://sistemas.regionpuno.gob.pe/siluciav2-api/api/personal/lista?rowsPerPage=0&flag=T&idrol=17';
         $response = Http::get($url);
         $responseData = $response->json();
         $personalData = $responseData['data'] ?? [];
+        
+        $stats = [
+            'created' => 0,
+            'updated' => 0,
+            'errors' => []
+        ];
+
         foreach ($personalData as $persona) {
-            $dni = $persona['dni'];
-            $existingPersona = Persona::where('num_doc', $dni)->first();
-            if ($existingPersona) {
-                $user = $existingPersona->user;
-                $user->assignRole([4, 5]);
-                $this->processUserMetas($user->id, $persona['metas'] ?? []);
-            } else {
-                $user = User::create([
-                    'name' => $persona['nombres'],
-                    'email' => $dni . '@domain.com',
-                    'password' => Hash::make($dni),
-                    'state' => 1
-                ]);
-                Persona::create([
-                    'user_id' => $user->id,
-                    'num_doc' => $dni,
-                    'name' => $persona['nombres'],
-                    'last_name' => $persona['paterno'] . ' ' . $persona['materno']
-                ]);
-                $user->assignRole([4, 5]);
-                $this->processUserMetas($user->id, $persona['metas'] ?? []);
+            try {
+                $dni = $persona['dni'];
+                $cargo = $persona['cargo']['idcargo'] ?? null;
+                $uoperativas = $persona['uoperativas'] ?? [];
+                
+                $roles = $this->determineRoles($cargo, $uoperativas);
+                
+                if (empty($roles)) {
+                    continue;
+                }
+
+                $existingPersona = Persona::where('num_doc', $dni)->first();
+                
+                if ($existingPersona) {
+                    $user = $existingPersona->user;
+                    $user->syncRoles($roles);
+                    
+                    $stats['updated']++;
+                } else {
+                    $user = User::create([
+                        'name' => $persona['nombres'],
+                        'email' => $dni . '@domain.com',
+                        'password' => Hash::make($dni),
+                        'state' => 1
+                    ]);
+
+                    Persona::create([
+                        'user_id' => $user->id,
+                        'num_doc' => $dni,
+                        'name' => $persona['nombres'],
+                        'last_name' => $persona['paterno'] . ' ' . $persona['materno']
+                    ]);
+
+                    $user->assignRole($roles);
+                    
+                    $stats['created']++;
+                }
+                $this->syncUserMetas($user->id, $persona['metas'] ?? []);
+                
+            } catch (\Exception $e) {
+                $stats['errors'][] = [
+                    'dni' => $dni ?? 'unknown',
+                    'error' => $e->getMessage()
+                ];
             }
         }
+
         return response()->json([
-            'message' => 'usuario importado correctamente',
+            'message' => 'Importación completada',
+            'stats' => $stats
         ], 200);
+    }
+
+    private function determineRoles($idCargo, $uoperativas)
+    {
+        $roles = [];
+        $uoperIds = collect($uoperativas)->pluck('iduoper')->toArray();
+        if (in_array($idCargo, [5, 6])) {
+            if (in_array('00106', $uoperIds) || in_array('00107', $uoperIds)) {
+                $roles[] = 4;
+            }
+        }
+        
+        if ($idCargo == 7) {
+            if (in_array('00108', $uoperIds)) {
+                $roles[] = 5;
+            }
+        }
+        
+        $hasResidenteUnits = in_array('00106', $uoperIds) || in_array('00107', $uoperIds);
+        $hasSupervisorUnits = in_array('00108', $uoperIds);
+        
+        if ($hasResidenteUnits && $hasSupervisorUnits) {
+            $roles = [4, 5];
+        }
+        
+        return array_unique($roles);
+    }
+
+    private function syncUserMetas($userId, $metas)
+    {
+        if (empty($metas)) {
+            Project::where('user_id', $userId)->delete();
+            return;
+        }
+
+        $currentYear = date('Y');
+        $incomingMetasIds = [];
+        foreach ($metas as $meta) {
+            $idMeta = $meta['idmeta'];
+            $anio = $meta['anio'] ?? $currentYear;
+            
+            $incomingMetasIds[] = [
+                'goal_id' => $idMeta,
+                'year' => $anio
+            ];
+        }
+        $existingProjects = Project::where('user_id', $userId)->get();
+        $projectsToDelete = $existingProjects->filter(function ($project) use ($incomingMetasIds) {
+            return !collect($incomingMetasIds)->contains(function ($incoming) use ($project) {
+                return $incoming['goal_id'] == $project->goal_id && 
+                    $incoming['year'] == $project->year;
+            });
+        });
+        Project::whereIn('id', $projectsToDelete->pluck('id'))->delete();
+        foreach ($incomingMetasIds as $metaData) {
+            $exists = Project::where('user_id', $userId)
+                ->where('goal_id', $metaData['goal_id'])
+                ->where('year', $metaData['year'])
+                ->exists();
+
+            if (!$exists) {
+                Project::create([
+                    'user_id' => $userId,
+                    'goal_id' => $metaData['goal_id'],
+                    'year' => $metaData['year']
+                ]);
+            }
+        }
     }
 
     public function importControladorSilucia(){
@@ -348,7 +450,7 @@ class UserController extends Controller
             if ($existingPersona) {
                 $user = $existingPersona->user;
                 $user->assignRole([3]);
-                $this->processUserMetas($user->id, $persona['metas'] ?? []);
+                $this->syncUserMetas($user->id, $persona['metas'] ?? []);
             } else {
                 $user = User::create([
                     'name' => $persona['nombres'],
@@ -363,36 +465,12 @@ class UserController extends Controller
                     'last_name' => $persona['paterno'] . ' ' . $persona['materno']
                 ]);
                 $user->assignRole([3]);
-                $this->processUserMetas($user->id, $persona['metas'] ?? []);
+                $this->syncUserMetas($user->id, $persona['metas'] ?? []);
             }
         }
         return response()->json([
             'message' => 'usuario importado correctamente',
         ], 200);
-    }
-
-    private function processUserMetas($userId, $metas)
-    {
-        if (empty($metas)) {
-            return;
-        }
-
-        foreach ($metas as $meta) {
-            $idMeta = $meta['idmeta'];
-            $anio = $meta['anio'] ?? date('Y');
-            $existingProject = Project::where('user_id', $userId)
-                ->where('goal_id', $idMeta)
-                ->where('year', $anio)
-                ->first();
-
-            if (!$existingProject) {
-                Project::create([
-                    'user_id' => $userId,
-                    'goal_id' => $idMeta,
-                    'year' => $anio
-                ]);
-            }
-        }
     }
 
     public function changePassword(Request $request){
