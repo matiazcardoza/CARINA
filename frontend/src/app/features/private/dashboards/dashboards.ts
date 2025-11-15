@@ -321,30 +321,6 @@ export class Dashboards implements OnInit {
     }
   }
 
-  liquidarServicio(id: number, servicio: WorkLogElement) {
-    console.log('id de liquidar servicio:', id);
-    if (confirm('¿Estás seguro de que deseas liquidar este registro?')) {
-      Promise.resolve().then(() => {
-        this.isLoading = true;
-        this.cdr.detectChanges();
-
-        this.dailyWorkLogService.liquidarServicio(id)
-          .subscribe({
-            next: () => {
-              this.isLoading = false;
-              this.cdr.detectChanges();
-              this.getDailyPartsData(servicio);
-            },
-            error: (error) => {
-              this.isLoading = false;
-              this.errorMessage = 'Error al eliminar el registro. Por favor, intenta nuevamente.';
-              this.cdr.detectChanges();
-            }
-          });
-      });
-    }
-  }
-
   
 
   descargarReporte(): void {

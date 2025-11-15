@@ -101,7 +101,7 @@
               <td mat-cell *matCellDef="let parte">
                 <div class="service-info">
                   <strong>{{ parte.description }}</strong>
-                  <div class="service-operator">
+                  <div style="color: blueviolet;" class="service-operator">
                     <mat-icon>person</mat-icon>
                     {{ parte.operator }}
                   </div>
@@ -136,7 +136,7 @@
               <th mat-header-cell *matHeaderCellDef>Seguimiento de Actividades</th>
               <td mat-cell *matCellDef="let parte">
                 <div class="evidence-info">
-                  <button mat-icon-button matTooltip="Seguimiento de Actividades" color="primary" (click)="viewEvidenceData(parte.id, parte)">
+                  <button style="color: rgb(106, 158, 23);" mat-icon-button matTooltip="Seguimiento de Actividades" color="primary" (click)="viewEvidenceData(parte.id, parte)">
                     <mat-icon>track_changes</mat-icon>
                   </button>
                 </div>
@@ -148,52 +148,12 @@
               <th mat-header-cell *matHeaderCellDef>Acciones</th>
               <td mat-cell *matCellDef="let parte">
                 <div class="actions-container">
-                  @if(parte.state_closure == 1){
-                    <button *appHasPermission="'generate_reportes'" mat-icon-button 
+                    <button style="color: rgb(109, 107, 12);" *appHasPermission="'generate_reportes'" mat-icon-button 
                             color="primary" 
-                            (click)="liquidarServicio(parte.id, parte)"
+
                             matTooltip="Liquidar Servicio">
-                      <mat-icon>request_quote</mat-icon>
-                    </button>
-                  } @else if(parte.state_closure == 2){
-                    <button *appHasPermission="'generate_reportes'" mat-icon-button 
-                            [matMenuTriggerFor]="menuAcciones"
-                            matTooltip="Generar documentos">
-                      <mat-icon>more_vert</mat-icon>
-                    </button>
-                  } @else if (parte.state_closure == 3) {
-                    <button *appHasPermission="'generate_reportes'" mat-icon-button 
-                            [matMenuTriggerFor]="menuAcciones"
-                            matTooltip="Más opciones">
-                      <mat-icon>attach_money</mat-icon>
-                    </button>
-                  } @else {
-                    Sin proceso activo
-                  }
-
-                  <!-- Menú contextual -->
-                  <mat-menu #menuAcciones="matMenu" >
-                    <!-- Exportar Solicitud -->
-                    <button mat-menu-item (click)="generateRequest(parte.id)">
-                      <mat-icon>upload_file</mat-icon>
-                      <span>Exportar Solicitud</span>
-                    </button>
-
-                    <!-- Reporte de Autorización -->
-                    <button mat-menu-item (click)="generateAuth(parte.id)">
-                      <mat-icon>assignment</mat-icon>
-                      <span>Reporte de Autorización</span>
-                    </button>
-
-                    <!-- Liquidación de Servicio -->
-                    <button mat-menu-item (click)="generateLiquidation(parte.id)">
-                      <mat-icon>receipt_long</mat-icon>
-                      <span>Liquidación de Servicio</span>
-                    </button>
-                  </mat-menu>
-
-
-                  
+                      <mat-icon>account_balance_wallet</mat-icon>
+                    </button> 
                 </div>
               </td>
             </ng-container>

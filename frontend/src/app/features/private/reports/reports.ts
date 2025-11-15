@@ -25,6 +25,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../../../services/AuthService/auth';
 import { HasPermissionDirective } from '../../../shared/directives/permission.directive';
 
+import { ReportsId } from './reports-id/reports-id/reports-id';
+
 export interface WorkLogDataElement {
   id: number;
   description: string;
@@ -248,30 +250,6 @@ export class Reports implements OnInit {
       case 'Parcial': return 'warn';
       case 'Pendiente': return 'accent';
       default: return 'accent';
-    }
-  }
-
-  liquidarServicio(id: number, servicio: WorkLogElement) {
-    console.log('id de liquidar servicio:', id);
-    if (confirm('¿Estás seguro de que deseas liquidar este registro?')) {
-      Promise.resolve().then(() => {
-        this.isLoading = true;
-        this.cdr.detectChanges();
-
-        this.dailyWorkLogService.liquidarServicio(id)
-          .subscribe({
-            next: () => {
-              this.isLoading = false;
-              this.cdr.detectChanges();
-              this.getDailyPartsData(servicio);
-            },
-            error: (error) => {
-              this.isLoading = false;
-              this.errorMessage = 'Error al eliminar el registro. Por favor, intenta nuevamente.';
-              this.cdr.detectChanges();
-            }
-          });
-      });
     }
   }
 

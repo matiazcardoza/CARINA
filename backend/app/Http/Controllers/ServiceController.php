@@ -135,18 +135,6 @@ class ServiceController extends Controller
         ]);
     }
 
-    function liquidarServicio($serviceId){
-        $service = Service::find($serviceId);
-        $service->update([
-            'state_closure' => 2
-        ]);
-
-        return response()->json([
-            'message' => 'Liquidation service successfully',
-            'data' => $service
-        ]);
-    }
-
     public function generateRequest($serviceId)
     {
         $service = Service::find($serviceId);

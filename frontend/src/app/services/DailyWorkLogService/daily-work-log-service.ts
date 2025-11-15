@@ -164,14 +164,6 @@ export class DailyWorkLogService {
     );
   }
 
-  liquidarServicio(serviceId: number): Observable<WorkLogDataElement[]> {
-    return this.http.post<WorkLogDataApiResponse>(`${this.apiUrl}/api/services/liquidar-servicio/${serviceId}`, {}, {
-      withCredentials: true,
-    }).pipe(
-      map(response => response.data)
-    );
-  }
-
   getWorkLogDocument(serviceId: number, date?: string, shift: number | string = 'all'): Observable<DocumentDailyPartElement> {
     return this.http.get<DocumentDailyPartApiResponse>(`${this.apiUrl}/api/daily-work-document/${serviceId}/${date}/${shift}`, {
       withCredentials: true,
