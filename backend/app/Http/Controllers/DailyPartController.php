@@ -267,11 +267,12 @@ class DailyPartController extends Controller
             Storage::disk('public')->makeDirectory($directory);
         }
         $timestamp = time();
-        $documentUrl = url(Storage::url($filePath)) . '?v=' . $timestamp;
+        $baseUrl = config('app.url');
+        $documentUrl = $baseUrl . Storage::url($filePath) . '?v=' . $timestamp;
         $qrCode = null;
         try {
             $qrApiUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&format=png&data=' . urlencode($documentUrl);
-            
+
             $context = stream_context_create([
                 'http' => [
                     'timeout' => 10,
@@ -280,7 +281,7 @@ class DailyPartController extends Controller
                 ]
             ]);
             $qrImageData = @file_get_contents($qrApiUrl, false, $context);
-            
+
             if ($qrImageData !== false && strlen($qrImageData) > 0) {
                 $qrCode = base64_encode($qrImageData);
             }
@@ -302,7 +303,7 @@ class DailyPartController extends Controller
 
         $pdf = Pdf::loadView('pdf.daily_part', $data);
         $pdf->setPaper('A4', 'portrait');
-        
+
         if (Storage::disk('public')->exists($filePath)) {
             try {
                 Storage::disk('public')->delete($filePath);
@@ -323,7 +324,7 @@ class DailyPartController extends Controller
         }
         try {
             $existingDocument = DocumentDailyPart::where('file_path', $filePath)->first();
-            
+
             if (Auth::id() === 1) {
                 if ($existingDocument) {
                     $existingDocument->update([
@@ -417,7 +418,7 @@ class DailyPartController extends Controller
             return response()->json(['error' => 'Parámetros de fecha inválidos.'], 400);
         }
         $goals = Project::where('user_id', $userId)->get();
-        
+
         if ($goals->isEmpty()) {
             return response()->json([
                 'dni' => $persona->num_doc,
@@ -432,7 +433,7 @@ class DailyPartController extends Controller
         }
         $projectIds = $goals->pluck('goal_id')->unique();
         $services = Service::whereIn('goal_id', $projectIds)->get();
-        
+
         if ($services->isEmpty()) {
             return response()->json([
                 'dni' => $persona->num_doc,
