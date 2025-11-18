@@ -60,7 +60,8 @@ class DocumentController extends Controller
 
         $document = DocumentDailyPart::find($request->documentId);
         $document->update([
-            'user_id' => $request->userId
+            'user_id' => $request->userId,
+            'user_id_send' => Auth::id()
         ]);
         return response()->json([
             'message' => 'Document sent successfully',
