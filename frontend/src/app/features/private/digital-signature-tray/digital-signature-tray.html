@@ -7,10 +7,10 @@
 
     <div class="header-actions">
       <!-- NUEVO: Botón de firma masiva -->
-      <button mat-raised-button 
+      <button mat-raised-button
               color="primary"
               *appHasPermission="'sing_tray_signature'"
-              (click)="openMassiveSignDialog()" 
+              (click)="openMassiveSignDialog()"
               [disabled]="isLoading || dataSource.data.length === 0"
               matTooltip="Firmar múltiples documentos"
               class="massive-sign-button">
@@ -18,13 +18,13 @@
         Firma Masiva
       </button>
 
-      <button mat-icon-button 
-              (click)="reloadData()" 
-              matTooltip="Actualizar datos" 
+      <button mat-icon-button
+              (click)="reloadData()"
+              matTooltip="Actualizar datos"
               class="refresh-button">
         <mat-icon>refresh</mat-icon>
       </button>
-      
+
     </div>
   </div>
 
@@ -144,9 +144,9 @@
                   <mat-icon>draw</mat-icon>
                 </button>
 
-                <button mat-icon-button 
+                <button mat-icon-button
                         (click)="deleteDocumentSignature(element.id, element.state)"
-                        matTooltip="Eliminar usuario"
+                        matTooltip="Eliminar Documento"
                         class="action-btn delete-btn">
                   <mat-icon>delete</mat-icon>
                 </button>
