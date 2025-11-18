@@ -575,6 +575,18 @@
                     <span class="info-line">{{ $orderSilucia->plate ?? $mechanicalEquipment->plate }}</span>
                 </td>
             </tr>
+            @if(!empty($orderSilucia) && $orderSilucia->serial_number)
+            <tr>
+                <td class="info-label">SERIE:</td>
+                <td style="width: 45%;">
+                    <span class="info-line">{{ $orderSilucia->serial_number ?? '-' }}</span>
+                </td>
+                <td class="info-label" style="width: 10%;">MODELO/AÑO:</td>
+                <td style="width: 65%;">
+                    <span class="info-line">{{ $orderSilucia->model . ' - ' . $orderSilucia->year ?? '-' }}</span>
+                </td>
+            </tr>
+            @endif
         </table>
 
         <!-- Operator Table -->
