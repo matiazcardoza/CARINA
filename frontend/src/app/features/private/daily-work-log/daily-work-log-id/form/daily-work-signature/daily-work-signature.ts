@@ -19,6 +19,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
 import { UserElement } from '../../../../users/users';
+import { HasRoleDirective } from '../../../../../../shared/directives/permission.directive';
 
 export interface DocumentDailyPartElement {
   id: number;
@@ -45,7 +46,8 @@ interface DialogData {
     ReactiveFormsModule,
     MatAutocompleteModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    HasRoleDirective
   ],
   templateUrl: './daily-work-signature.html',
   styleUrl: './daily-work-signature.css'

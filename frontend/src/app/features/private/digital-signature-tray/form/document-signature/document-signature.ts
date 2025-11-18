@@ -221,9 +221,19 @@ export class DocumentSignature {
     console.log('Estado del documento:', this.documentState);
     console.log('Roles relevantes del usuario:', userRelevantRoles);
 
+    const hasBothSupervisorAndController = 
+    userRelevantRoles.includes('Supervisor_pd') && 
+    userRelevantRoles.includes('Controlador_pd');
+
     switch (this.documentState) {
       case 0:
-        if (userRelevantRoles.includes('Controlador_pd')) {
+        if (hasBothSupervisorAndController) {
+          return {
+            roleId: this.ROLE_MAPPING['Supervisor_pd'].id,
+            roleName: this.ROLE_MAPPING['Supervisor_pd'].name,
+            statusPosition: this.ROLE_MAPPING['Supervisor_pd'].statusPosition
+          };
+        }else if (userRelevantRoles.includes('Controlador_pd')) {
           return {
             roleId: this.ROLE_MAPPING['Controlador_pd'].id,
             roleName: this.ROLE_MAPPING['Controlador_pd'].name,
@@ -396,7 +406,7 @@ export class DocumentSignature {
     }
     
     // Estado 2: Supervisor puede firmar
-    if (this.documentState === 2 && userRelevantRoles.includes('Supervisor_pd')) {
+    if ([0, 1, 2].includes(this.documentState) && userRelevantRoles.includes('Supervisor_pd')) {
       return true;
     }
     
