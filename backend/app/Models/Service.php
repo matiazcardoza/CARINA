@@ -14,6 +14,7 @@ class Service extends Model
 
     protected $fillable = [
         'order_id',
+        'equipment_order_id',
         'mechanical_equipment_id',
         'goal_id',
         'medida_id',

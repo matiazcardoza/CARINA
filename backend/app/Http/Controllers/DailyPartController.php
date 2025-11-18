@@ -17,6 +17,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -229,24 +230,37 @@ class DailyPartController extends Controller
         $mechanicalEquipment = null;
 
         if($service->order_id){
-            $orderSilucia = OrderSilucia::where('orders_silucia.id', $service->order_id)
-                            ->leftJoin('equipment_order', 'orders_silucia.id', '=', 'equipment_order.order_silucia_id')
-                            ->select('orders_silucia.silucia_id',
-                                    'orders_silucia.order_type',
-                                    'orders_silucia.supplier',
-                                    'orders_silucia.ruc_supplier',
-                                    'orders_silucia.delivery_date',
-                                    'orders_silucia.deadline_day',
-                                    'equipment_order.order_silucia_id',
-                                    'equipment_order.machinery_equipment',
-                                    'equipment_order.ability',
-                                    'equipment_order.brand',
-                                    'equipment_order.model',
-                                    'equipment_order.serial_number',
-                                    'equipment_order.year',
-                                    'equipment_order.plate',
-                                    'orders_silucia.state'
-                                    )->first();
+            $orderSilucia = DB::table('orders_silucia')
+                ->where('orders_silucia.id', $service->order_id)
+                ->select(
+                    'orders_silucia.silucia_id',
+                    'orders_silucia.order_type',
+                    'orders_silucia.supplier',
+                    'orders_silucia.ruc_supplier',
+                    'orders_silucia.delivery_date',
+                    'orders_silucia.deadline_day',
+                    'orders_silucia.state'
+                )
+                ->first();
+            if ($service->equipment_order_id) {
+                $equipment = DB::table('equipment_order')
+                    ->where('id', $service->equipment_order_id)
+                    ->select(
+                        'machinery_equipment',
+                        'ability',
+                        'brand',
+                        'model',
+                        'serial_number',
+                        'year',
+                        'plate'
+                    )
+                    ->first();
+                if ($equipment) {
+                    foreach ($equipment as $key => $value) {
+                        $orderSilucia->{$key} = $value;
+                    }
+                }
+            }
         }else{
             $mechanicalEquipment = MechanicalEquipment::find($service->mechanical_equipment_id);
         }

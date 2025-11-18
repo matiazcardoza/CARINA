@@ -90,6 +90,7 @@ class OrderSiluciaController extends Controller
 
                 $newService = Service::create([
                     'order_id' => $newOrderSilucia->id,
+                    'equipment_order_id' => $newEquipment->id,
                     'goal_id' => $request->order['idmeta'],
                     'medida_id' => $equipment['medida_id'],
                     'description' => $equipment['machinery_equipment'] . ' ' . $equipment['brand'] . ' ' . $equipment['model'] . ' ' . $equipment['plate'],
