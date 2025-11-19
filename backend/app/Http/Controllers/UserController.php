@@ -392,6 +392,15 @@ class UserController extends Controller
         if ($hasResidenteUnits && $hasSupervisorUnits) {
             $roles = [4, 5];
         }
+
+        if (!empty($rolesArray)) {
+            foreach ($rolesArray as $rol) {
+                if ($rol['idrol'] == '34') {
+                    $roles[] = 3;
+                    break;
+                }
+            }
+        }
         
         return array_unique($roles);
     }
