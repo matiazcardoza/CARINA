@@ -182,7 +182,7 @@ export class UsersForm implements OnInit {
       this.usersForm.get('password')?.clearValidators();
       this.usersForm.get('password')?.setValidators([
         Validators.minLength(8),
-        Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
+        Validators.pattern(/^[a-zA-Z0-9]+$/)
       ]);
       this.usersForm.get('confirmPassword')?.clearValidators();
       this.usersForm.get('password')?.updateValueAndValidity();
