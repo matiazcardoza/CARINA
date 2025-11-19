@@ -321,8 +321,9 @@ class UserController extends Controller
                 $dni = $persona['dni'];
                 $cargo = $persona['cargo']['idcargo'] ?? null;
                 $uoperativas = $persona['uoperativas'] ?? [];
+                $rolesArray = $persona['roles'] ?? [];
                 
-                $roles = $this->determineRoles($cargo, $uoperativas);
+                $roles = $this->determineRoles($cargo, $uoperativas, $rolesArray);
                 
                 if (empty($roles)) {
                     continue;
@@ -370,7 +371,7 @@ class UserController extends Controller
         ], 200);
     }
 
-    private function determineRoles($idCargo, $uoperativas)
+    private function determineRoles($idCargo, $uoperativas, $rolesArray = [])
     {
         $roles = [];
         $uoperIds = collect($uoperativas)->pluck('iduoper')->toArray();
