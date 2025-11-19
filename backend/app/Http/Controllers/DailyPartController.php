@@ -122,10 +122,25 @@ class DailyPartController extends Controller
                 'fuel_consumed' => $servicio->fuel_consumed + $diferentFuelService
             ]);*/
 
+            $workDate = $request->work_date;
+            $startTime = date("H:i:s", strtotime($request->start_time));
+            $endTime = date("H:i:s", strtotime($request->end_time));
+
+            $startDateTime = Carbon::parse($workDate . ' ' . $startTime);
+            $endDateTime = Carbon::parse($workDate . ' ' . $endTime);
+
+            if ($endDateTime->lessThan($startDateTime)) {
+                $endDateTime->addDay();
+            }
+
+            $diffInSeconds = $endDateTime->diffInSeconds($startDateTime, true);
+            $workedTime = gmdate('H:i', $diffInSeconds);
+
             $dailyPart->update([
                 'operator_id' => $request->operator_id,
                 'start_time' =>date("H:i", strtotime($request->start_time)),
                 'end_time' => date("H:i", strtotime($request->end_time)),
+                'time_worked' => $workedTime,
                 'occurrences' => $request->occurrences,
                 'work_date' => $request->work_date,
                 //'itemPecosa_id' => $request->product_id,
