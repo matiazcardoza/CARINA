@@ -24,8 +24,9 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../../../services/AuthService/auth';
 import { HasPermissionDirective } from '../../../shared/directives/permission.directive';
+import { Router } from '@angular/router';
 
-import { ReportsId } from './reports-id/reports-id/reports-id';
+import { ReportsId } from './reports-id/reports-id';
 
 export interface WorkLogDataElement {
   id: number;
@@ -124,6 +125,7 @@ export class Reports implements OnInit {
   }
 
   private dialog = inject(MatDialog);
+  private router = inject(Router);
 
   canAccessDashboard: boolean = false;
   canAccessReports: boolean = false;
@@ -335,5 +337,17 @@ export class Reports implements OnInit {
         this.errorMessage = 'Error al generar el PDF. Por favor, intenta nuevamente.';
       }
     });
+  }
+
+    agregarOrden() {
+      console.log('Agregar nueva orden');
+    }
+
+    nuevaPlanilla() {
+      console.log('Nueva planilla');
+    }
+
+  navigateToReportsId(id: number, state: number) {
+    this.router.navigate(['/reports/reports-id', id, state]);
   }
 }

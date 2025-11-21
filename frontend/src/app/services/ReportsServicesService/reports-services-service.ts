@@ -2,6 +2,12 @@ import { Injectable, inject } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { map, Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { LiquidationElement } from '../../features/private/reports/reports-id/reports-id';
+
+interface LiquidationApiResponse {
+  message: string;
+  data: LiquidationElement;
+}
 
 
 @Injectable({
@@ -36,5 +42,13 @@ export class ReportsServicesService {
   openDocumentInNewTab(path: string): void {
     const url = `${this.apiUrl}/storage/${path}`;
     window.open(url, '_blank');
+  }
+
+  getLiquidationData(id: number): Observable<LiquidationElement> {
+    return this.http.get<LiquidationApiResponse>(`${this.apiUrl}/api/report-id/liquidation/${id}`, {
+      withCredentials: true
+    }).pipe(
+      map(response => response.data)
+    );
   }
 }

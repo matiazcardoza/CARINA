@@ -1,0 +1,309 @@
+<div class="reports-container">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <h1>Liquidación de Servicio</h1>
+      <p class="subtitle">Gestión de documentos y reportes</p>
+    </div>
+    <div class="header-right">
+      <span class="badge badge-id">ID: {{ reportId }}</span>
+      <span class="badge" [ngClass]="getBadgeClass(state)">
+        {{ getStateText(state) }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div class="alert alert-error" *ngIf="errorMessage">
+    <span class="alert-icon">⚠️</span>
+    <span>{{ errorMessage }}</span>
+    <button class="alert-close" (click)="errorMessage = null">✕</button>
+  </div>
+
+  <!-- Main Content -->
+  <div class="content-grid">
+    
+    <!-- Left Panel - Information Summary -->
+    <div class="left-panel">
+      <!-- Equipo y Operador -->
+      <div class="info-card" *ngIf="equipmentData">
+        <div class="info-card-header">
+          <span class="info-icon">🚜</span>
+          <h2>Equipo y Operador</h2>
+        </div>
+        <div class="info-card-body">
+          <div class="info-item">
+            <span class="info-label">Equipo:</span>
+            <span class="info-value">{{ equipmentData.machinery_equipment + ' ' +equipmentData.model }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Marca:</span>
+            <span class="info-value">{{ equipmentData.brand }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Placa:</span>
+            <span class="info-value">{{ equipmentData.plate }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Operador:</span>
+            <span class="info-value">{{ equipoOperador.operador }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estado de Documentos -->
+      <div class="info-card">
+        <div class="info-card-header">
+          <span class="info-icon">📄</span>
+          <h2>Estado de Documentos</h2>
+        </div>
+        <div class="info-card-body">
+          <div class="document-status-item" [class.completed]="documentStatus.solicitud">
+            <span class="status-icon">{{ documentStatus.solicitud ? '✓' : '○' }}</span>
+            <span class="status-text">Solicitud de Movilidad</span>
+          </div>
+          <div class="document-status-item" [class.completed]="documentStatus.autorizacion">
+            <span class="status-icon">{{ documentStatus.autorizacion ? '✓' : '○' }}</span>
+            <span class="status-text">Autorización de Servicio</span>
+          </div>
+          <div class="document-status-item" [class.completed]="documentStatus.liquidacion">
+            <span class="status-icon">{{ documentStatus.liquidacion ? '✓' : '○' }}</span>
+            <span class="status-text">Liquidación de Servicio</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Panel - Document Preview -->
+    <div class="right-panel">
+      
+      <!-- Document Selector -->
+      <div class="document-tabs">
+        <button 
+          class="tab-button" 
+          [class.active]="activeDocument === 'solicitud'"
+          (click)="changeDocument('solicitud')">
+          <span class="tab-icon">📋</span>
+          Solicitud de Movilidad
+        </button>
+        <button 
+          class="tab-button" 
+          [class.active]="activeDocument === 'autorizacion'"
+          (click)="changeDocument('autorizacion')">
+          <span class="tab-icon">✅</span>
+          Autorización de Servicio
+        </button>
+        <button 
+          class="tab-button" 
+          [class.active]="activeDocument === 'liquidacion'"
+          (click)="changeDocument('liquidacion')">
+          <span class="tab-icon">💰</span>
+          Liquidación de Servicio
+        </button>
+      </div>
+
+      <!-- Document Preview -->
+      <div class="document-preview">
+        
+        <!-- Solicitud de Movilidad Preview -->
+        <div class="preview-document" *ngIf="activeDocument === 'solicitud'">
+          <h2 class="document-title">SOLICITUD DE MOVILIDAD</h2>
+
+          <div class="document-body">
+            <div class="form-row">
+              <span class="form-label">ÓRGANO/UNIDAD ORGÁNICA SOLICITANTE:</span>
+              <span class="form-value">SUB GERENCIA DE OBRAS</span>
+            </div>
+            <div class="form-row">
+              <span class="form-label">FECHA:</span>
+              <span class="form-value">{{ informacionGeneral.fechaSolicitud }}</span>
+            </div>
+            <div class="form-row">
+              <span class="form-label">OBJETIVO DE LA COMISIÓN:</span>
+              <span class="form-value">{{ proyecto.objetivo }}</span>
+            </div>
+            <div class="form-row">
+              <span class="form-label">DESTINO:</span>
+              <span class="form-value">{{ proyecto.nombre }}</span>
+            </div>
+            <div class="form-row">
+              <span class="form-label">DURACIÓN:</span>
+              <span class="form-value">DEL: {{ informacionGeneral.periodoInicio }} AL: {{ informacionGeneral.periodoFin }}</span>
+            </div>
+            <div class="form-row">
+              <span class="form-label">HORA:</span>
+              <span class="form-value">Salida: {{ informacionGeneral.horaSalida }} Retorno: {{ informacionGeneral.horaRetorno }}</span>
+            </div>
+            <div class="form-row">
+              <span class="form-label">MOVILIDAD / PLACA:</span>
+              <span class="form-value">{{ equipoOperador.equipo }}</span>
+            </div>
+            <div class="form-row">
+              <span class="form-label">CHOFER / OPERARIO:</span>
+              <span class="form-value">{{ equipoOperador.operador }}</span>
+            </div>
+          </div>
+
+          <div class="document-footer">
+            <button class="btn btn-primary btn-lg" (click)="generateRequest()">
+              <span class="btn-icon">📄</span>
+              Generar Solicitud de Movilidad
+            </button>
+          </div>
+        </div>
+
+        <!-- Autorización de Servicio Preview -->
+        <div class="preview-document" *ngIf="activeDocument === 'autorizacion'">
+          <div class="document-header">
+            <h3>REPORTE DIARIO DE AUTORIZACIÓN DE SERVICIO/MAQUINARIA GRP</h3>
+          </div>
+
+          <div class="document-body">
+            <div class="form-row">
+              <span class="form-label">UND ORGÁNICA SOLICITANTE:</span>
+              <span class="form-value">{{ proyecto.organica }}</span>
+            </div>
+            <div class="form-row">
+              <span class="form-label">OBRA:</span>
+              <span class="form-value">{{ proyecto.nombre }}</span>
+            </div>
+            <div class="form-row">
+              <span class="form-label">OPERADOR:</span>
+              <span class="form-value">{{ equipoOperador.operador }}</span>
+            </div>
+            <div class="form-row">
+              <span class="form-label">MÁQUINA:</span>
+              <span class="form-value">{{ equipoOperador.equipo }} - MARCA: {{ equipoOperador.marca }} - PLACA: {{ equipoOperador.placa }}</span>
+            </div>
+            <div class="form-row">
+              <span class="form-label">PERÍODO:</span>
+              <span class="form-value">{{ informacionGeneral.periodoInicio }} - {{ informacionGeneral.periodoFin }}</span>
+            </div>
+
+            <div class="table-container">
+              <table class="work-table">
+                <thead>
+                  <tr>
+                    <th>FECHA</th>
+                    <th>HM TRABAJADAS</th>
+                    <th>HM EQUIVALENTE</th>
+                    <th>CONSUMO COMBUSTIBLE</th>
+                    <th>DÍAS TRABAJADOS</th>
+                    <th>COSTO HORA S/.</th>
+                    <th>IMPORTE TOTAL S/.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let dia of trabajoDiario" [class.no-work]="dia.diasTrabajados === 0">
+                    <td>{{ dia.fecha }}</td>
+                    <td>{{ dia.hmTrabajadas }}</td>
+                    <td>{{ dia.hmEquivalente > 0 ? (dia.hmEquivalente | number:'1.2-2') : '-' }}</td>
+                    <td>{{ dia.combustible > 0 ? (dia.combustible | number:'1.2-2') : '-' }}</td>
+                    <td>{{ dia.diasTrabajados > 0 ? dia.diasTrabajados : '-' }}</td>
+                    <td>S/ {{ dia.costoHora | number:'1.2-2' }}</td>
+                    <td>S/ {{ dia.importeTotal | number:'1.2-2' }}</td>
+                  </tr>
+                  <tr class="total-row">
+                    <td colspan="1">TOTAL</td>
+                    <td>{{ resumenCostos.horasTrabajadas }}</td>
+                    <td>{{ resumenCostos.horasEquivalentes | number:'1.2-2' }}</td>
+                    <td>{{ resumenCostos.combustibleTotal | number:'1.2-2' }}</td>
+                    <td>{{ resumenCostos.diasTrabajados }}</td>
+                    <td>S/ {{ resumenCostos.costoPorHora | number:'1.2-2' }}</td>
+                    <td><strong>S/ {{ resumenCostos.importeTotal | number:'1.2-2' }}</strong></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="summary-box">
+              <h4>RESUMEN</h4>
+              <div class="summary-grid">
+                <div class="summary-item">
+                  <span class="summary-label">HORAS TRABAJADAS:</span>
+                  <span class="summary-value">{{ resumenCostos.horasTrabajadas }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="summary-label">HORA EQUIVALENTE:</span>
+                  <span class="summary-value">{{ resumenCostos.horasEquivalentes }}</span>
+                </div>
+                <div class="summary-item">
+                  <span class="summary-label">COSTO HM:</span>
+                  <span class="summary-value">S/ {{ resumenCostos.costoPorHora | number:'1.2-2' }}</span>
+                </div>
+                <div class="summary-item total">
+                  <span class="summary-label">IMPORTE A PAGAR S/.:</span>
+                  <span class="summary-value">{{ resumenCostos.importeTotal | number:'1.2-2' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="document-footer">
+            <button class="btn btn-success btn-lg" (click)="generarAutorizacion()">
+              <span class="btn-icon">✅</span>
+              Generar Autorización de Servicio
+            </button>
+          </div>
+        </div>
+
+        <!-- Liquidación de Servicio Preview -->
+        <div class="preview-document" *ngIf="activeDocument === 'liquidacion'">
+          <h2 class="document-title">LIQUIDACIÓN DE SERVICIO DE ALQUILER</h2>
+
+          <div class="document-body">
+            <div class="form-row">
+              <span class="form-label">FECHA:</span>
+              <span class="form-value">{{ informacionGeneral.fechaSolicitud }}</span>
+            </div>
+            <div class="form-row">
+              <span class="form-label">USUARIO SOLICITANTE:</span>
+              <span class="form-value">{{ proyecto.organica }}</span>
+            </div>
+            <div class="form-row">
+              <span class="form-label">DIRECCIÓN:</span>
+              <span class="form-value">{{ proyecto.direccion }}</span>
+            </div>
+            <div class="form-row">
+              <span class="form-label">SERVICIO ALQUILADO:</span>
+              <span class="form-value">{{ equipoOperador.equipo }}</span>
+            </div>
+            <div class="form-row">
+              <span class="form-label">PERIODO DE ALQUILER:</span>
+              <span class="form-value">DEL {{ informacionGeneral.periodoInicio }} AL {{ informacionGeneral.periodoFin }} HORAS: DE {{ informacionGeneral.horaSalida }} A {{ informacionGeneral.horaRetorno }}</span>
+            </div>
+            <div class="form-row">
+              <span class="form-label">TOTAL DÍAS/HORAS:</span>
+              <span class="form-value">Días {{ resumenCostos.diasTrabajados }}.00 Horas {{ resumenCostos.horasEquivalentes }}</span>
+            </div>
+            <div class="form-row">
+              <span class="form-label">COSTO DEL SERVICIO:</span>
+              <span class="form-value">POR DÍA: S/. {{ resumenCostos.costoPorDia | number:'1.2-2' }} POR HORA S/. {{ resumenCostos.costoPorHora | number:'1.2-2' }}</span>
+            </div>
+
+            <div class="cost-summary">
+              <div class="cost-row total-cost">
+                <span class="cost-label">TOTAL:</span>
+                <span class="cost-value">S/. {{ resumenCostos.importeTotal | number:'1.2-2' }}</span>
+              </div>
+              <div class="cost-row">
+                <span class="cost-label">TOTAL (EN LETRAS):</span>
+                <span class="cost-value">{{ resumenCostos.importeTotalLetras }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="document-footer">
+            <button class="btn btn-warning btn-lg" (click)="generarLiquidacion()">
+              <span class="btn-icon">💰</span>
+              Generar Liquidación de Servicio
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

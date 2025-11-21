@@ -7,6 +7,7 @@ use App\Http\Controllers\MechanicalEquipmentController;
 use App\Http\Controllers\OperatorController;
 use App\Http\Controllers\OrderSiluciaController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SignatureController;
 use Illuminate\Http\Request;
@@ -15,6 +16,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ShiftsController;
 use Illuminate\Support\Facades\DB;
+use SebastianBergmann\CodeCoverage\Report\Xml\Report;
 
 Route::post('/signature-document/{documentId}/{roleId}', [SignatureController::class, 'storeSignature']);
 Route::post('/signature-document/process-massive/{batchId}/{roleId}', [SignatureController::class, 'processMassiveSignatureResponse']);
@@ -129,4 +131,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     //Operators
     Route::get('/operators-select/{serviceId}', [OperatorController::class, 'getOperators']);
+
+    //reports
+    Route::get('/report-id/liquidation/{id}', [ReportController::class, 'getLiquidationData']);
 });

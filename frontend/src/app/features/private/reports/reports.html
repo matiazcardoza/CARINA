@@ -7,6 +7,28 @@
       <mat-icon>download</mat-icon>
       Descargar Reporte
     </button>
+
+    <div class="action-card">
+      <div class="action-icon orden">📋</div>
+       <div class="action-content">
+        <h3>Nueva Orden</h3>
+        <p>Registrar una nueva orden de servicio</p>
+        <button class="btn btn-primary" (click)="agregarOrden()">
+          Agregar Orden
+        </button>
+      </div>
+    </div>
+
+    <div class="action-card">
+      <div class="action-icon planilla">📊</div>
+      <div class="action-content">
+        <h3>Nueva Planilla</h3>
+        <p>Crear planilla de valorización</p>
+        <button class="btn btn-primary" (click)="nuevaPlanilla()">
+          Nueva Planilla
+        </button>
+      </div>
+    </div>
   </div>
       <mat-card class="header-card">
         <mat-card-header>
@@ -150,7 +172,7 @@
                 <div class="actions-container">
                     <button style="color: rgb(109, 107, 12);" *appHasPermission="'generate_reportes'" mat-icon-button 
                             color="primary" 
-
+                            (click)="navigateToReportsId(parte.id, parte.state)"
                             matTooltip="Liquidar Servicio">
                       <mat-icon>account_balance_wallet</mat-icon>
                     </button> 
