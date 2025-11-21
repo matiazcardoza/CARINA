@@ -18,8 +18,8 @@ export class ReportsServicesService {
   private http = inject(HttpClient);
   private apiUrl = environment.BACKEND_URL;
 
-  generateRequest(id: number): Observable<Blob> {
-    return this.http.post(`${this.apiUrl}/api/services/${id}/generate-request`, {}, {
+  generateRequest(formDataRequest: {serviceId: number; equipment:any; request:any}): Observable<Blob> {
+    return this.http.post(`${this.apiUrl}/api/reports/report-generate-request`, formDataRequest, {
       responseType: 'blob',
       withCredentials: true
     });

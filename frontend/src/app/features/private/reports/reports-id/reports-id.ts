@@ -5,7 +5,7 @@ import { ReportsServicesService } from '../../../../services/ReportsServicesServ
 
 export interface LiquidationElement {
   equipment: any | null;
-  request: [];
+  request: any | null;
   authorization: [];
   liquidation: [];
 }
@@ -43,6 +43,7 @@ export class ReportsId implements OnInit {
   isLoading = false;
   error: string | null = null;
   equipmentData: any | null = null;
+  requestData: any | null = null;
 
 
   // Estado de documentos generados
@@ -142,6 +143,7 @@ export class ReportsId implements OnInit {
           next: (response) => {
             console.log('Liquidation data response:', response);
             this.equipmentData = response.equipment;
+            this.requestData = response.request;
             console.log('Equipment data:', this.equipmentData);
             this.isLoading = false;
             this.cdr.detectChanges();
@@ -161,8 +163,12 @@ export class ReportsId implements OnInit {
   }
 
   generateRequest(): void {
-    const reportId = this.reportId;
-    this.reportsServicesService.generateRequest(reportId).subscribe({
+    const formDataRequest = {
+      serviceId: this.reportId,
+      equipment: this.equipmentData,
+      request: this.requestData
+    };
+    this.reportsServicesService.generateRequest(formDataRequest).subscribe({
       next: (response: Blob) => {
         this.documentStatus.solicitud = true;
         const fileURL = URL.createObjectURL(response);

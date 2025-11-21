@@ -135,29 +135,6 @@ class ServiceController extends Controller
         ]);
     }
 
-    public function generateRequest($serviceId)
-    {
-        $service = Service::find($serviceId);
-        $minDate = DailyPart::where('service_id', $serviceId)->min('work_date');
-        $maxDate = DailyPart::where('service_id', $serviceId)->max('Work_date');
-        $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
-        $qr_code = base64_encode("data_qr_example");
-        $data = [
-            'logoPath' => $logoPath,
-            'service' => $service,
-            'minDate' => $minDate,
-            'maxDate' => $maxDate,
-            'pdf' => true,
-            'qr_code' => $qr_code
-        ];
-
-        $pdf = Pdf::loadView('pdf.request_machinery', $data);
-
-        $pdf->setPaper('A4', 'portrait');
-
-        return $pdf->stream('anexo_01_planilla.pdf');
-    }
-
     public function generateAuth($serviceId)
     {
         $service = Service::find($serviceId);

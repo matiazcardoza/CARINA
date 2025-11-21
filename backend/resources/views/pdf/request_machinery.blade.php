@@ -336,7 +336,7 @@
                 </td>
 
                 <td class="numero-cell">
-                    <div class="numero-box">C-{{ $service->id }}</div>
+                    <div class="numero-box">C-{{ $serviceId }}</div>
                 </td>
             </tr>
         </table>
@@ -356,7 +356,7 @@
         <tr>
             <td class="info-label">FECHA:</td>
             <td>
-                <span class="info-line">{{ $minDate }}</span>
+                <span class="info-line">{{ $requestData['minDate'] }}</span>
             </td>
         </tr>
     </table>
@@ -366,13 +366,13 @@
         <tr>
             <td class="info-label">OBJETIVO DE LA COMISION:</td>
             <td>
-                <span class="info-line">{{ $service->goal_detail }}</span>
+                <span class="info-line">{{ $requestData['goal_detail'] }}</span>
             </td>
         </tr>
         <tr>
             <td class="info-label">DESTINO:</td>
             <td>
-                <span class="info-line">{{ $service->goal_detail }}</span>
+                <span class="info-line">{{ $requestData['goal_detail'] }}</span>
             </td>
         </tr>
     </table>
@@ -387,16 +387,16 @@
                 <th rowspan="2" class="label-col">HORA</th>
             </tr>
             <tr>
-                <td>{{ $minDate }}</td>
-                <td>{{ $maxDate }}</td>
+                <td>{{ $requestData['minDate'] }}</td>
+                <td>{{ $requestData['maxDate'] }}</td>
             </tr>
         </thead>
         <tbody>
             <tr>
                 <td class="label-col">Salida:</td>
-                <td>7:00 a.m.</td>
+                <td>{{ $requestData['minStartTime'] }}</td>
                 <td class="label-col">Retorno:</td>
-                <td>5:00 p.m.</td>
+                <td>{{ $requestData['maxEndTime'] }}</td>
             </tr>
         </tbody>
     </table>
@@ -420,11 +420,15 @@
     <table class="vehicle-table">
         <tr>
             <td class="vehicle-label">MOVILIDAD / PLACA:</td>
-            <td class="vehicle-value">{{ $service->description }}</td>
+            <td class="vehicle-value">{{ $equipment['machinery_equipment'] . ' ' . $equipment['plate']}}</td>
         </tr>
         <tr>
             <td class="vehicle-label">CHOFER / OPERARIO:</td>
-            <td class="vehicle-value">{{ $service->operator }}</td>
+            <td class="vehicle-value">
+                @foreach($equipment['operators'] as $key => $op)
+                    {{ $op['name'] }}@if($key < count($equipment['operators']) - 1), @endif
+                @endforeach
+            </td>
         </tr>
     </table>
 

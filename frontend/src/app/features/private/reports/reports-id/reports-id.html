@@ -46,7 +46,11 @@
           </div>
           <div class="info-item">
             <span class="info-label">Operador:</span>
-            <span class="info-value">{{ equipoOperador.operador }}</span>
+            <span class="info-value">
+                <span *ngFor="let op of equipmentData.operators; let i = index">
+                {{ op.name }}<span *ngIf="i < equipmentData.operators.length - 1">, </span>
+                </span>
+            </span>
           </div>
         </div>
       </div>
@@ -76,7 +80,7 @@
     </div>
 
     <!-- Right Panel - Document Preview -->
-    <div class="right-panel">
+    <div class="right-panel" *ngIf="requestData">
       
       <!-- Document Selector -->
       <div class="document-tabs">
@@ -117,31 +121,35 @@
             </div>
             <div class="form-row">
               <span class="form-label">FECHA:</span>
-              <span class="form-value">{{ informacionGeneral.fechaSolicitud }}</span>
+              <span class="form-value">{{ requestData.minDate }}</span>
             </div>
             <div class="form-row">
               <span class="form-label">OBJETIVO DE LA COMISIÓN:</span>
-              <span class="form-value">{{ proyecto.objetivo }}</span>
+              <span class="form-value">{{ requestData.goal_detail }}</span>
             </div>
             <div class="form-row">
               <span class="form-label">DESTINO:</span>
-              <span class="form-value">{{ proyecto.nombre }}</span>
+              <span class="form-value">{{ requestData.goal_detail }}</span>
             </div>
             <div class="form-row">
               <span class="form-label">DURACIÓN:</span>
-              <span class="form-value">DEL: {{ informacionGeneral.periodoInicio }} AL: {{ informacionGeneral.periodoFin }}</span>
+              <span class="form-value">DEL: {{ requestData.minDate }} AL: {{ requestData.maxDate }}</span>
             </div>
             <div class="form-row">
               <span class="form-label">HORA:</span>
-              <span class="form-value">Salida: {{ informacionGeneral.horaSalida }} Retorno: {{ informacionGeneral.horaRetorno }}</span>
+              <span class="form-value">Salida: {{ requestData.minStartTime }} Retorno: {{ requestData.maxEndTime }}</span>
             </div>
             <div class="form-row">
               <span class="form-label">MOVILIDAD / PLACA:</span>
-              <span class="form-value">{{ equipoOperador.equipo }}</span>
+              <span class="form-value">{{ equipmentData.machinery_equipment + ' ' +equipmentData.plate }}</span>
             </div>
             <div class="form-row">
               <span class="form-label">CHOFER / OPERARIO:</span>
-              <span class="form-value">{{ equipoOperador.operador }}</span>
+                <span class="from-value">
+                    <span *ngFor="let op of equipmentData.operators; let i = index">
+                    {{ op.name }}<span *ngIf="i < equipmentData.operators.length - 1">, </span>
+                    </span>
+                </span>
             </div>
           </div>
 
