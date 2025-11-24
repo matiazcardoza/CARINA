@@ -170,23 +170,27 @@
           <div class="document-body">
             <div class="form-row">
               <span class="form-label">UND ORGÁNICA SOLICITANTE:</span>
-              <span class="form-value">{{ proyecto.organica }}</span>
+              <span class="form-value">SUB GERENCIA DE OBRAS</span>
             </div>
             <div class="form-row">
               <span class="form-label">OBRA:</span>
-              <span class="form-value">{{ proyecto.nombre }}</span>
+              <span class="form-value">{{ requestData.goal_detail }}</span>
             </div>
             <div class="form-row">
               <span class="form-label">OPERADOR:</span>
-              <span class="form-value">{{ equipoOperador.operador }}</span>
+              <span class="form-value">
+                <span *ngFor="let op of equipmentData.operators; let i = index">
+                {{ op.name }}<span *ngIf="i < equipmentData.operators.length - 1">, </span>
+                </span>
+              </span>
             </div>
             <div class="form-row">
               <span class="form-label">MÁQUINA:</span>
-              <span class="form-value">{{ equipoOperador.equipo }} - MARCA: {{ equipoOperador.marca }} - PLACA: {{ equipoOperador.placa }}</span>
+              <span class="form-value">{{ equipmentData.machinery_equipment }} - MARCA: {{ equipmentData.brand }} - PLACA/MODELO: {{ equipmentData.plate + '/' + equipmentData.model}}</span>
             </div>
             <div class="form-row">
               <span class="form-label">PERÍODO:</span>
-              <span class="form-value">{{ informacionGeneral.periodoInicio }} - {{ informacionGeneral.periodoFin }}</span>
+              <span class="form-value">{{ authData.minDate }} - {{ authData.maxDate }}</span>
             </div>
 
             <div class="table-container">
@@ -203,23 +207,23 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let dia of trabajoDiario" [class.no-work]="dia.diasTrabajados === 0">
-                    <td>{{ dia.fecha }}</td>
-                    <td>{{ dia.hmTrabajadas }}</td>
-                    <td>{{ dia.hmEquivalente > 0 ? (dia.hmEquivalente | number:'1.2-2') : '-' }}</td>
-                    <td>{{ dia.combustible > 0 ? (dia.combustible | number:'1.2-2') : '-' }}</td>
-                    <td>{{ dia.diasTrabajados > 0 ? dia.diasTrabajados : '-' }}</td>
-                    <td>S/ {{ dia.costoHora | number:'1.2-2' }}</td>
-                    <td>S/ {{ dia.importeTotal | number:'1.2-2' }}</td>
+                  <tr *ngFor="let dia of authData.processedData" [class.no-work]="dia.has_work === 0">
+                    <td>{{ dia.date }}</td>
+                    <td>{{ dia.time_worked }}</td>
+                    <td>{{ dia.equivalent_hours > 0 ? (dia.equivalent_hours) : '-' }}</td>
+                    <td>{{ dia.fuel_consumption > 0 ? (dia.fuel_consumption) : '-' }}</td>
+                    <td>{{ dia.days_worked !== '-' ? dia.days_worked : '-' }}</td>
+                    <td>S/ {{ dia.cost_per_hour }}</td>
+                    <td>S/ {{ dia.total_amount }}</td>
                   </tr>
                   <tr class="total-row">
                     <td colspan="1">TOTAL</td>
-                    <td>{{ resumenCostos.horasTrabajadas }}</td>
-                    <td>{{ resumenCostos.horasEquivalentes | number:'1.2-2' }}</td>
-                    <td>{{ resumenCostos.combustibleTotal | number:'1.2-2' }}</td>
-                    <td>{{ resumenCostos.diasTrabajados }}</td>
-                    <td>S/ {{ resumenCostos.costoPorHora | number:'1.2-2' }}</td>
-                    <td><strong>S/ {{ resumenCostos.importeTotal | number:'1.2-2' }}</strong></td>
+                    <td>{{ authData.totals.time_worked }}</td>
+                    <td>{{ authData.totals.equivalent_hours }}</td>
+                    <td>{{ authData.totals.fuel_consumption }}</td>
+                    <td>{{ authData.totals.days_worked }}</td>
+                    <td>S/ {{ authData.totals.cost_per_hour }}</td>
+                    <td><strong>S/ {{ authData.totals.total_amount }}</strong></td>
                   </tr>
                 </tbody>
               </table>
@@ -230,26 +234,26 @@
               <div class="summary-grid">
                 <div class="summary-item">
                   <span class="summary-label">HORAS TRABAJADAS:</span>
-                  <span class="summary-value">{{ resumenCostos.horasTrabajadas }}</span>
+                  <span class="summary-value">{{ authData.totals.time_worked }}</span>
                 </div>
                 <div class="summary-item">
                   <span class="summary-label">HORA EQUIVALENTE:</span>
-                  <span class="summary-value">{{ resumenCostos.horasEquivalentes }}</span>
+                  <span class="summary-value">{{ authData.totals.equivalent_hours }}</span>
                 </div>
                 <div class="summary-item">
                   <span class="summary-label">COSTO HM:</span>
-                  <span class="summary-value">S/ {{ resumenCostos.costoPorHora | number:'1.2-2' }}</span>
+                  <span class="summary-value">S/ {{ authData.totals.cost_per_hour }}</span>
                 </div>
                 <div class="summary-item total">
                   <span class="summary-label">IMPORTE A PAGAR S/.:</span>
-                  <span class="summary-value">{{ resumenCostos.importeTotal | number:'1.2-2' }}</span>
+                  <span class="summary-value">{{ authData.totals.total_amount }}</span>
                 </div>
               </div>
             </div>
           </div>
 
           <div class="document-footer">
-            <button class="btn btn-success btn-lg" (click)="generarAutorizacion()">
+            <button class="btn btn-success btn-lg" (click)="generateAuth()">
               <span class="btn-icon">✅</span>
               Generar Autorización de Servicio
             </button>

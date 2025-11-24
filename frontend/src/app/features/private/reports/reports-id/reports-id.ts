@@ -6,7 +6,7 @@ import { ReportsServicesService } from '../../../../services/ReportsServicesServ
 export interface LiquidationElement {
   equipment: any | null;
   request: any | null;
-  authorization: [];
+  auth: any | null;
   liquidation: [];
 }
 
@@ -44,6 +44,7 @@ export class ReportsId implements OnInit {
   error: string | null = null;
   equipmentData: any | null = null;
   requestData: any | null = null;
+  authData: any | null = null;
 
 
   // Estado de documentos generados
@@ -92,29 +93,6 @@ export class ReportsId implements OnInit {
     combustibleTotal: 665.00
   };
 
-  // Detalle de trabajo diario
-  trabajoDiario: DailyWork[] = [
-    { fecha: '13/5/2025', hmTrabajadas: '-', hmEquivalente: 0, combustible: 0, diasTrabajados: 0, costoHora: 285.00, importeTotal: 0 },
-    { fecha: '14/5/2025', hmTrabajadas: '-', hmEquivalente: 0, combustible: 0, diasTrabajados: 0, costoHora: 285.00, importeTotal: 0 },
-    { fecha: '15/5/2025', hmTrabajadas: '-', hmEquivalente: 0, combustible: 0, diasTrabajados: 0, costoHora: 285.00, importeTotal: 0 },
-    { fecha: '16/5/2025', hmTrabajadas: '-', hmEquivalente: 0, combustible: 0, diasTrabajados: 0, costoHora: 285.00, importeTotal: 0 },
-    { fecha: '17/5/2025', hmTrabajadas: '04:10', hmEquivalente: 4.17, combustible: 30.00, diasTrabajados: 1, costoHora: 285.00, importeTotal: 1188.45 },
-    { fecha: '18/5/2025', hmTrabajadas: '-', hmEquivalente: 0, combustible: 0, diasTrabajados: 0, costoHora: 285.00, importeTotal: 0 },
-    { fecha: '19/5/2025', hmTrabajadas: '07:00', hmEquivalente: 7.00, combustible: 70.00, diasTrabajados: 1, costoHora: 285.00, importeTotal: 1995.00 },
-    { fecha: '20/5/2025', hmTrabajadas: '07:00', hmEquivalente: 7.00, combustible: 45.00, diasTrabajados: 1, costoHora: 285.00, importeTotal: 1995.00 },
-    { fecha: '21/5/2025', hmTrabajadas: '08:10', hmEquivalente: 8.17, combustible: 50.00, diasTrabajados: 1, costoHora: 285.00, importeTotal: 2328.45 },
-    { fecha: '22/5/2025', hmTrabajadas: '08:10', hmEquivalente: 8.17, combustible: 60.00, diasTrabajados: 1, costoHora: 285.00, importeTotal: 2328.45 },
-    { fecha: '23/5/2025', hmTrabajadas: '07:10', hmEquivalente: 7.17, combustible: 60.00, diasTrabajados: 1, costoHora: 285.00, importeTotal: 2043.45 },
-    { fecha: '24/5/2025', hmTrabajadas: '03:40', hmEquivalente: 3.67, combustible: 30.00, diasTrabajados: 1, costoHora: 285.00, importeTotal: 1045.95 },
-    { fecha: '25/5/2025', hmTrabajadas: '-', hmEquivalente: 0, combustible: 0, diasTrabajados: 0, costoHora: 285.00, importeTotal: 0 },
-    { fecha: '26/5/2025', hmTrabajadas: '07:10', hmEquivalente: 7.17, combustible: 40.00, diasTrabajados: 1, costoHora: 285.00, importeTotal: 2043.45 },
-    { fecha: '27/5/2025', hmTrabajadas: '08:30', hmEquivalente: 8.50, combustible: 60.00, diasTrabajados: 1, costoHora: 285.00, importeTotal: 2422.50 },
-    { fecha: '28/5/2025', hmTrabajadas: '07:30', hmEquivalente: 7.50, combustible: 60.00, diasTrabajados: 1, costoHora: 285.00, importeTotal: 2137.50 },
-    { fecha: '29/5/2025', hmTrabajadas: '08:30', hmEquivalente: 8.50, combustible: 60.00, diasTrabajados: 1, costoHora: 285.00, importeTotal: 2422.50 },
-    { fecha: '30/5/2025', hmTrabajadas: '08:20', hmEquivalente: 8.33, combustible: 70.00, diasTrabajados: 1, costoHora: 285.00, importeTotal: 2374.05 },
-    { fecha: '31/5/2025', hmTrabajadas: '04:30', hmEquivalente: 4.50, combustible: 30.00, diasTrabajados: 1, costoHora: 285.00, importeTotal: 1282.50 }
-  ];
-
   constructor(
     private route: ActivatedRoute,
     private reportsServicesService: ReportsServicesService,
@@ -144,6 +122,7 @@ export class ReportsId implements OnInit {
             console.log('Liquidation data response:', response);
             this.equipmentData = response.equipment;
             this.requestData = response.request;
+            this.authData = response.auth;
             console.log('Equipment data:', this.equipmentData);
             this.isLoading = false;
             this.cdr.detectChanges();
@@ -180,15 +159,22 @@ export class ReportsId implements OnInit {
     });
   }
 
+  generateAuth() {
+    const serviceId = this.reportId;
+    this.reportsServicesService.generateAuth(serviceId).subscribe({
+      next: (response: Blob) => {
+        const fileURL = URL.createObjectURL(response);
+        window.open(fileURL, '_blank');
+      },
+      error: () => {
+        this.errorMessage = 'Error al generar el PDF. Por favor, intenta nuevamente.';
+      }
+    });
+  }
+
   generarLiquidacion(): void {
     console.log('Generar liquidación');
     this.documentStatus.liquidacion = true;
-    // Aquí iría la llamada al servicio
-  }
-
-  generarAutorizacion(): void {
-    console.log('Generar autorización');
-    this.documentStatus.autorizacion = true;
     // Aquí iría la llamada al servicio
   }
 
