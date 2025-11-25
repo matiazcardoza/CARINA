@@ -160,8 +160,13 @@ export class ReportsId implements OnInit {
   }
 
   generateAuth() {
-    const serviceId = this.reportId;
-    this.reportsServicesService.generateAuth(serviceId).subscribe({
+    const formDataAuth = {
+      serviceId: this.reportId,
+      equipment: this.equipmentData,
+      request: this.requestData,
+      auth: this.authData
+    };
+    this.reportsServicesService.generateAuth(formDataAuth).subscribe({
       next: (response: Blob) => {
         const fileURL = URL.createObjectURL(response);
         window.open(fileURL, '_blank');

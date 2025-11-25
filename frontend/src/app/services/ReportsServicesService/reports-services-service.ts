@@ -25,8 +25,8 @@ export class ReportsServicesService {
     });
   }
 
-  generateAuth(id: number): Observable<Blob> {
-    return this.http.post(`${this.apiUrl}/api/services/${id}/generate-auth`, {}, {
+  generateAuth(formDataAuth: {serviceId: number; equipment:any; request:any; auth:any}): Observable<Blob> {
+    return this.http.post(`${this.apiUrl}/api/reports/report-generate-auth`, formDataAuth, {
       responseType: 'blob',
       withCredentials: true
     });

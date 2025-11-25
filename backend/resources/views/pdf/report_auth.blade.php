@@ -268,7 +268,7 @@
             <tr>
                 <td class="info-label">OBRA:</td>
                 <td>
-                    <span class="info-line">{{ $service->goal_detail }}</span>
+                    <span class="info-line">{{ $requestData->goal_detail }}</span>
                 </td>
             </tr>
         </table>
@@ -286,7 +286,11 @@
             <tr>
                 <td class="info-label">OPERADOR:</td>
                 <td>
-                    <span class="info-line">{{ $service->operator }}</span>
+                    <span class="info-line">
+                        @foreach($equipment['operators'] as $key => $op)
+                            {{ $op['name'] }}@if($key < count($equipment['operators']) - 1), @endif
+                        @endforeach
+                    </span>
                 </td>
             </tr>
         </table>
@@ -295,15 +299,15 @@
             <tr>
                 <td class="info-label" style="width: 90px;">MAQUINA:</td>
                 <td style="width: 145px;">
-                    <span class="info-line">{{ $mechanicalEquipment->machinery_equipment ?? $orderSilucia->machinery_equipment }}</span>
+                    <span class="info-line">{{ $equipment['machinery_equipment'] }}</span>
                 </td>
                 <td class="info-label" style="width: 35px;">MARCA:</td>
                 <td style="width: 100px;">
-                    <span class="info-line">{{ $mechanicalEquipment->brand ?? $orderSilucia->brand }}</span>
+                    <span class="info-line">{{ $equipment['brand'] }}</span>
                 </td>
                 <td class="info-label" style="width: 75px;">PLACA/MODELO:</td>
                 <td style="width: 100px;">
-                    <span class="info-line">{{ 'lkh-458' . ' ' . 'fsf-458' . ' ' . 'lkh-458' }}</span>
+                    <span class="info-line">{{ $equipment['plate'] . '/' . $equipment['model'] }}</span>
                 </td>
             </tr>
         </table>
@@ -311,10 +315,10 @@
             <tr>
                 <td class="info-label">PERIODO:</td>
                 <td>
-                    <span class="info-line">DESDE: {{ $minDate }}</span>
+                    <span class="info-line">DESDE: {{ $authData['minDate'] }}</span>
                 </td>
                 <td>
-                    <span class="info-line">HASTA: {{ $maxDate }}</span>
+                    <span class="info-line">HASTA: {{ $authData['maxDate'] }}</span>
                 </td>
             </tr>
         </table>

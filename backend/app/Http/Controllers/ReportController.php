@@ -151,4 +151,26 @@ class ReportController extends Controller
 
         return $pdf->stream('Solicitud-de-movilidad.pdf');
     }
+
+    public function generateAuth(Request $request)
+    {
+        $service = Service::find($request->serviceId);
+
+        $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
+        $qr_code = base64_encode("data_qr_example");
+
+        $data = [
+            'logoPath' => $logoPath,
+            'service' => $service,
+            'equipment' => $request->equipment,
+            'requestData' => $request->request,
+            'authData' => $request->auth,
+            'qr_code' => $qr_code
+        ];
+
+        $pdf = Pdf::loadView('pdf.report_auth', $data);
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf->stream('Autorización-de-servicio.pdf');
+    }
 }

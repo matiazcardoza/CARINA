@@ -89,7 +89,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/services', [ServiceController::class, 'index']);
     Route::get('/services/selected', [ServiceController::class, 'selectedData']);
     Route::get('/services/daily-parts/{idGoal}', [ServiceController::class, 'getDailyPartsData']);
-    Route::post('/services/{id}/generate-auth', [ServiceController::class, 'generateAuth']);
     Route::post('/services/{id}/generate-liquidation', [ServiceController::class, 'generateLiquidation']);
     Route::get('/services/idmeta/{mechanicalId}', [ServiceController::class, 'getIdmeta']);
     Route::put('/services/idmeta-update/', [ServiceController::class, 'updateIdmeta']);
@@ -134,5 +133,5 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //reports
     Route::get('/report-id/liquidation/{id}', [ReportController::class, 'getLiquidationData']);
     Route::post('/reports/report-generate-request', [ReportController::class, 'generateRequest']);
-
+    Route::post('/reports/report-generate-auth', [ReportController::class, 'generateAuth']);
 });
