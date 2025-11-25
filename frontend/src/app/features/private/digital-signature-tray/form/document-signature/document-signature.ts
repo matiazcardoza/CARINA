@@ -225,6 +225,10 @@ export class DocumentSignature {
     userRelevantRoles.includes('Supervisor_pd') && 
     userRelevantRoles.includes('Controlador_pd');
 
+    const hasBothResidenteAndController = 
+    userRelevantRoles.includes('Residente_pd') && 
+    userRelevantRoles.includes('Controlador_pd');
+
     switch (this.documentState) {
       case 0:
         if (hasBothSupervisorAndController) {
@@ -232,6 +236,12 @@ export class DocumentSignature {
             roleId: this.ROLE_MAPPING['Supervisor_pd'].id,
             roleName: this.ROLE_MAPPING['Supervisor_pd'].name,
             statusPosition: this.ROLE_MAPPING['Supervisor_pd'].statusPosition
+          };
+        } else if (hasBothResidenteAndController){
+          return {
+            roleId: this.ROLE_MAPPING['Residente_pd'].id,
+            roleName: this.ROLE_MAPPING['Residente_pd'].name,
+            statusPosition: this.ROLE_MAPPING['Residente_pd'].statusPosition
           };
         }else if (userRelevantRoles.includes('Controlador_pd')) {
           return {
