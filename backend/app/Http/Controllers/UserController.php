@@ -381,7 +381,7 @@ class UserController extends Controller
             }
         }
         
-        if ($idCargo == 7) {
+        if (in_array($idCargo, [7, 8])) {
             if (in_array('00108', $uoperIds)) {
                 $roles[] = 5;
             }
