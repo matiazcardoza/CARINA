@@ -227,13 +227,7 @@ export class DocumentSignature {
 
     switch (this.documentState) {
       case 0:
-        if (hasBothSupervisorAndController) {
-          return {
-            roleId: this.ROLE_MAPPING['Supervisor_pd'].id,
-            roleName: this.ROLE_MAPPING['Supervisor_pd'].name,
-            statusPosition: this.ROLE_MAPPING['Supervisor_pd'].statusPosition
-          };
-        }else if (userRelevantRoles.includes('Controlador_pd')) {
+        if (userRelevantRoles.includes('Controlador_pd')) {
           return {
             roleId: this.ROLE_MAPPING['Controlador_pd'].id,
             roleName: this.ROLE_MAPPING['Controlador_pd'].name,
