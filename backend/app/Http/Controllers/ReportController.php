@@ -6,9 +6,11 @@ use App\Models\DailyPart;
 use App\Models\MechanicalEquipment;
 use App\Models\Operator;
 use App\Models\Service;
+use App\Models\ServiceLiquidationAdjustment;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class ReportController extends Controller
@@ -121,22 +123,20 @@ class ReportController extends Controller
             'totals'  => $totals,
         ];
 
-        /*$adjustment = DB::table('service_auth_adjustments')
-            ->where('service_id', $serviceId)
-            ->first();
+        $adjustment = ServiceLiquidationAdjustment::where('service_id', $serviceId)->first();
 
         if ($adjustment) {
-            // SI HAY AJUSTES: usar datos ajustados en lugar de los calculados
             $adjustedData = json_decode($adjustment->adjusted_data, true);
-            $auth = $adjustedData;
-            
-            // Opcional: agregar flag para saber que son datos ajustados
+            $equipment = (object) $adjustedData['equipment'];
+            $request = $adjustedData['request'];
+            $auth = $adjustedData['auth'];
+            $liquidation = $adjustedData['liquidation'];
             $auth['is_adjusted'] = true;
             $auth['last_adjustment'] = $adjustment->updated_at;
         } else {
-            // SI NO HAY AJUSTES: usar datos calculados desde daily_parts
+            // SI NO HAY AJUSTES: usar datos calculados (ya existentes)
             $auth['is_adjusted'] = false;
-        }*/
+        }
 
         //liquidation data
         $costPerDay = $totals['total_amount'] / $totals['days_worked'];
@@ -225,23 +225,23 @@ class ReportController extends Controller
     }
 
     public function saveAuthChanges(Request $request)
-    {/*
+    {
         try {
             $serviceId = $request->input('serviceId');
-            $authData = $request->input('authData');
-            
-            // Opción 1: Guardar en una tabla de ajustes/correcciones
-            DB::table('service_auth_adjustments')->updateOrInsert(
+            $adjustedData = [
+                'equipment' => $request->input('equipment'),
+                'request' => $request->input('request'),
+                'auth' => $request->input('auth'),
+                'liquidation' => $request->input('liquidation'),
+            ];
+            ServiceLiquidationAdjustment::updateOrCreate(
                 ['service_id' => $serviceId],
                 [
-                    'adjusted_data' => json_encode($authData),
-                    'updated_at' => now(),
-                    'updated_by' => auth()->id() // Si tienes autenticación
+                    'adjusted_data' => json_encode($adjustedData),
+                    'updated_by' => Auth::id(),
+                    'updated_at' => now()
                 ]
             );
-            
-            // Opción 2: Actualizar los registros originales en daily_parts
-            // (solo si quieres modificar los datos originales)
             
             return response()->json([
                 'message' => 'Cambios guardados exitosamente',
@@ -249,10 +249,13 @@ class ReportController extends Controller
             ], 200);
             
         } catch (\Exception $e) {
+            Log::error('Error saving auth changes: ' . $e->getMessage());
+            
             return response()->json([
                 'message' => 'Error al guardar cambios',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'success' => false
             ], 500);
         }
-    */}
+    }
 }

@@ -95,29 +95,55 @@ export class MassiveDocumentSignature implements OnInit {
       this.onRoleChange();
       return;
     }
+
     if (this.userRelevantRoles.length === 1) {
       this.selectedRole = this.userRelevantRoles[0];
       this.onRoleChange();
       return;
     }
+
     if (this.userRelevantRoles.length > 1) {
-      let maxDocuments = 0;
-      let bestRole: string | null = null;
-      for (const role of this.userRelevantRoles) {
-        const roleState = this.ROLE_MAPPING[role as keyof typeof this.ROLE_MAPPING]?.documentState;
-        const documentsForRole = this.documents.filter(doc => doc.state === roleState).length;
-        if (documentsForRole > maxDocuments) {
-          maxDocuments = documentsForRole;
-          bestRole = role;
+      // Verificar si hay documentos en estado 0
+      const hasState0Documents = this.documents.some(doc => doc.state === 0);
+      
+      if (hasState0Documents) {
+        // Aplicar priorización para estado 0
+        const hasSupervisor = this.userRelevantRoles.includes('Supervisor_pd');
+        const hasResidente = this.userRelevantRoles.includes('Residente_pd');
+        const hasControlador = this.userRelevantRoles.includes('Controlador_pd');
+
+        if (hasSupervisor && hasControlador) {
+          this.selectedRole = 'Supervisor_pd';
+        } else if (hasResidente && hasControlador) {
+          this.selectedRole = 'Residente_pd';
+        } else if (hasControlador) {
+          this.selectedRole = 'Controlador_pd';
+        } else {
+          this.selectedRole = this.userRelevantRoles[0];
+        }
+      } else {
+        // Para otros estados, seleccionar el rol con más documentos
+        let maxDocuments = 0;
+        let bestRole: string | null = null;
+        
+        for (const role of this.userRelevantRoles) {
+          const roleState = this.ROLE_MAPPING[role as keyof typeof this.ROLE_MAPPING]?.documentState;
+          const documentsForRole = this.documents.filter(doc => doc.state === roleState).length;
+          
+          if (documentsForRole > maxDocuments) {
+            maxDocuments = documentsForRole;
+            bestRole = role;
+          }
+        }
+        
+        if (bestRole && maxDocuments > 0) {
+          this.selectedRole = bestRole;
+        } else {
+          this.selectedRole = this.userRelevantRoles[0];
         }
       }
-      if (bestRole && maxDocuments > 0) {
-        this.selectedRole = bestRole;
-        this.onRoleChange();
-      } else {
-        this.selectedRole = this.userRelevantRoles[0];
-        this.onRoleChange();
-      }
+      
+      this.onRoleChange();
     }
   }
 
@@ -136,11 +162,49 @@ export class MassiveDocumentSignature implements OnInit {
     }
 
     const roleState = this.ROLE_MAPPING[this.selectedRole as keyof typeof this.ROLE_MAPPING]?.documentState;
-    this.documents.forEach(doc => {
-      doc.selected = doc.state === roleState;
-    });
     
-    this.filteredDocuments = this.documents.filter(doc => doc.state === roleState);
+    // Lógica especial para estado 0 con múltiples roles
+    if (roleState === 0) {
+      const hasBothSupervisorAndController = 
+        this.userRelevantRoles.includes('Supervisor_pd') && 
+        this.userRelevantRoles.includes('Controlador_pd');
+
+      const hasBothResidenteAndController = 
+        this.userRelevantRoles.includes('Residente_pd') && 
+        this.userRelevantRoles.includes('Controlador_pd');
+
+      // Si es Supervisor y también Controlador, puede firmar docs en estado 0
+      if (this.selectedRole === 'Supervisor_pd' && hasBothSupervisorAndController) {
+        this.documents.forEach(doc => {
+          doc.selected = doc.state === 0;
+        });
+        this.filteredDocuments = this.documents.filter(doc => doc.state === 0);
+      }
+      // Si es Residente y también Controlador, puede firmar docs en estado 0
+      else if (this.selectedRole === 'Residente_pd' && hasBothResidenteAndController) {
+        this.documents.forEach(doc => {
+          doc.selected = doc.state === 0;
+        });
+        this.filteredDocuments = this.documents.filter(doc => doc.state === 0);
+      }
+      // Si es solo Controlador
+      else if (this.selectedRole === 'Controlador_pd') {
+        this.documents.forEach(doc => {
+          doc.selected = doc.state === 0;
+        });
+        this.filteredDocuments = this.documents.filter(doc => doc.state === 0);
+      } else {
+        this.documents.forEach(doc => doc.selected = false);
+        this.filteredDocuments = [];
+      }
+    } else {
+      // Para estados 1 y 2: lógica normal
+      this.documents.forEach(doc => {
+        doc.selected = doc.state === roleState;
+      });
+      this.filteredDocuments = this.documents.filter(doc => doc.state === roleState);
+    }
+    
     this.totalDocuments = this.filteredDocuments.filter(d => d.selected).length;
     this.cdr.detectChanges();
   }
@@ -187,6 +251,36 @@ export class MassiveDocumentSignature implements OnInit {
     if (!this.selectedRole) return false;
     
     const roleState = this.ROLE_MAPPING[this.selectedRole as keyof typeof this.ROLE_MAPPING]?.documentState;
+    
+    // Para estado 0: verificar si puede firmar con rol prioritario
+    if (state === 0) {
+      const hasBothSupervisorAndController = 
+        this.userRelevantRoles.includes('Supervisor_pd') && 
+        this.userRelevantRoles.includes('Controlador_pd');
+
+      const hasBothResidenteAndController = 
+        this.userRelevantRoles.includes('Residente_pd') && 
+        this.userRelevantRoles.includes('Controlador_pd');
+
+      // Supervisor con Controlador puede firmar estado 0
+      if (this.selectedRole === 'Supervisor_pd' && hasBothSupervisorAndController) {
+        return true;
+      }
+
+      // Residente con Controlador puede firmar estado 0
+      if (this.selectedRole === 'Residente_pd' && hasBothResidenteAndController) {
+        return true;
+      }
+
+      // Controlador puede firmar estado 0
+      if (this.selectedRole === 'Controlador_pd') {
+        return true;
+      }
+
+      return false;
+    }
+    
+    // Para otros estados: lógica normal
     return state === roleState;
   }
 
@@ -201,9 +295,54 @@ export class MassiveDocumentSignature implements OnInit {
       return null;
     }
 
+    // Verificar que el rol seleccionado corresponde al estado del documento
     const roleConfig = this.ROLE_MAPPING[this.selectedRole as keyof typeof this.ROLE_MAPPING];
     
-    if (roleConfig && roleConfig.documentState === state) {
+    if (!roleConfig || roleConfig.documentState !== state) {
+      console.error('El rol seleccionado no corresponde al estado del documento');
+      return null;
+    }
+
+    // Para estado 0: aplicar lógica de priorización si el usuario tiene múltiples roles
+    if (state === 0) {
+      const hasBothSupervisorAndController = 
+        this.userRelevantRoles.includes('Supervisor_pd') && 
+        this.userRelevantRoles.includes('Controlador_pd');
+
+      const hasBothResidenteAndController = 
+        this.userRelevantRoles.includes('Residente_pd') && 
+        this.userRelevantRoles.includes('Controlador_pd');
+
+      // Si tiene Supervisor + Controlador y eligió Supervisor
+      if (hasBothSupervisorAndController && this.selectedRole === 'Supervisor_pd') {
+        return {
+          roleId: this.ROLE_MAPPING['Supervisor_pd'].id,
+          roleName: this.ROLE_MAPPING['Supervisor_pd'].name,
+          statusPosition: this.ROLE_MAPPING['Supervisor_pd'].statusPosition
+        };
+      }
+
+      // Si tiene Residente + Controlador y eligió Residente
+      if (hasBothResidenteAndController && this.selectedRole === 'Residente_pd') {
+        return {
+          roleId: this.ROLE_MAPPING['Residente_pd'].id,
+          roleName: this.ROLE_MAPPING['Residente_pd'].name,
+          statusPosition: this.ROLE_MAPPING['Residente_pd'].statusPosition
+        };
+      }
+
+      // Si solo eligió Controlador o no tiene múltiples roles
+      if (this.selectedRole === 'Controlador_pd') {
+        return {
+          roleId: this.ROLE_MAPPING['Controlador_pd'].id,
+          roleName: this.ROLE_MAPPING['Controlador_pd'].name,
+          statusPosition: this.ROLE_MAPPING['Controlador_pd'].statusPosition
+        };
+      }
+    }
+
+    // Para estados 1 y 2: usar el rol seleccionado directamente
+    if (state === 1 || state === 2) {
       return {
         roleId: roleConfig.id,
         roleName: roleConfig.name,
@@ -231,12 +370,13 @@ export class MassiveDocumentSignature implements OnInit {
       alert('Error: Todos los documentos deben estar en el mismo estado');
       return;
     }
-    const expectedState = this.getDocumentStateForRole(this.selectedRole);
-    if (states[0] !== expectedState) {
-      alert(`Error: Los documentos seleccionados no corresponden al rol ${this.getRoleDisplayName(this.selectedRole)}`);
+    const documentState = states[0];
+    const roleToSign = this.getRoleToSignByDocumentState(documentState);
+    
+    if (!roleToSign) {
+      alert(`Error: No tienes permiso para firmar documentos en estado ${documentState} con el rol ${this.getRoleDisplayName(this.selectedRole)}`);
       return;
     }
-
     this.isSigningInProgress = true;
     this.signedDocuments = 0;
     this.errorDocuments = 0;
@@ -263,6 +403,7 @@ export class MassiveDocumentSignature implements OnInit {
         doc.signatureStatus = 'signing';
       });
       this.cdr.detectChanges();
+
 
       const firmaParams: FirmaDigitalParams = {
         location_url_pdf: batchData.zip_url,

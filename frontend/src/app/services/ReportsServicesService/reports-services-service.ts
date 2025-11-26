@@ -9,6 +9,11 @@ interface LiquidationApiResponse {
   data: LiquidationElement;
 }
 
+interface SaveChangesResponse {
+  message: string;
+  success: boolean;
+  data?: any;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -37,7 +42,16 @@ export class ReportsServicesService {
       responseType: 'blob',
       withCredentials: true
     });
-  }  
+  }
+
+  saveAuthChanges(changesData: {serviceId: number; equipment: any; request: any; auth: any; liquidation: any;
+  }): Observable<SaveChangesResponse> {
+    return this.http.post<SaveChangesResponse>(
+      `${this.apiUrl}/api/reports/save-auth-changes`,
+      changesData,
+      { withCredentials: true }
+    );
+  }
 
   openDocumentInNewTab(path: string): void {
     const url = `${this.apiUrl}/storage/${path}`;

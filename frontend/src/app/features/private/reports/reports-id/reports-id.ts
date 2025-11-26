@@ -307,6 +307,24 @@ export class ReportsId implements OnInit {
       cost_per_hour: this.editedAuthData.totals.cost_per_hour,
       total_amount: Math.round(totalAmount * 100) / 100
     };
+    this.updateLiquidationData();
+  }
+
+  updateLiquidationData(): void {
+    const authData = this.editMode ? this.editedAuthData : this.authData;
+    
+    if (!authData || !this.liquidationData) return;
+
+    const costPerDay = authData.totals.days_worked > 0
+      ? authData.totals.total_amount / authData.totals.days_worked
+      : 0;
+
+    const totalInWords = this.getTotalInWords();
+
+    this.liquidationData = {
+      cost_per_day: Math.round(costPerDay * 100) / 100,
+      total_in_words: totalInWords
+    };
   }
 
   addRowTop(): void {
@@ -336,6 +354,7 @@ export class ReportsId implements OnInit {
     this.editedAuthData.minDate = newDate.toLocaleDateString('es-PE');
     this.requestData.minDate = this.formatDateForRequest(newDate);
     this.hasUnsavedChanges = true;
+    this.updateLiquidationData();
   }
 
   addRowBottom(): void {
@@ -365,6 +384,7 @@ export class ReportsId implements OnInit {
     this.editedAuthData.maxDate = newDate.toLocaleDateString('es-PE');
     this.requestData.maxDate = this.formatDateForRequest(newDate);
     this.hasUnsavedChanges = true;
+    this.updateLiquidationData();
   }
 
   private formatDateForRequest(date: Date): string {
@@ -564,7 +584,7 @@ export class ReportsId implements OnInit {
       request: this.requestData,
       auth: this.editedAuthData,
       liquidation: this.liquidationData
-    };/*
+    };
     this.reportsServicesService.saveAuthChanges(changesData).subscribe({
       next: (response) => {
         console.log('Cambios guardados:', response);
@@ -583,6 +603,6 @@ export class ReportsId implements OnInit {
         console.error('Error al guardar cambios:', error);
         this.errorMessage = 'Error al guardar los cambios. Por favor, intenta nuevamente.';
       }
-    });*/
+    });
   }
 }
