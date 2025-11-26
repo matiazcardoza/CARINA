@@ -374,16 +374,4 @@ export class Dashboards implements OnInit {
       return 'warn';
     }
   }
-
-  generateLiquidation(id: number) {
-    this.reportsServicesService.generateLiquidation(id).subscribe({
-      next: (response: Blob) => {
-        const fileURL = URL.createObjectURL(response);
-        window.open(fileURL, '_blank');
-      },
-      error: () => {
-        this.errorMessage = 'Error al generar el PDF. Por favor, intenta nuevamente.';
-      }
-    });
-  }
 }

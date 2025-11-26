@@ -746,3 +746,98 @@
     justify-content: center;
   }
 }
+
+/* Estilos para modo edición */
+.edit-controls {
+  margin: 10px 0;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.edit-buttons-group {
+  display: flex;
+  gap: 8px;
+}
+
+.editable {
+  background-color: #fffbcc;
+  cursor: text;
+  border: 2px dashed #ffc107;
+  padding: 4px;
+  transition: all 0.3s ease;
+}
+
+.editable:hover {
+  background-color: #fff9b3;
+  border-color: #ff9800;
+}
+
+.editable:focus {
+  outline: none;
+  background-color: #ffffff;
+  border-color: #4CAF50;
+  box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+}
+
+.new-row {
+  background-color: #e8f5e9;
+  animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.btn-icon-delete {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.btn-icon-delete:hover {
+  background: #d32f2f;
+  transform: scale(1.1);
+}
+
+.row-actions-top,
+.row-actions-bottom {
+  margin: 10px 0;
+  text-align: center;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 14px;
+}
+
+.btn-info {
+  background-color: #2196F3;
+  color: white;
+}
+
+.btn-info:hover {
+  background-color: #1976D2;
+}
+
+/* Indicador de cambios no guardados */
+.edit-controls .btn-success[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.edit-controls .btn-icon {
+  font-size: 16px;     /* Reducido de 24px */
+}
+
+.edit-controls .btn {
+  padding: 8px 16px;  /* Reducido de 16px 32px */
+  font-size: 13px;     /* Reducido de 16px */
+  text-transform: none; /* Quitar mayúsculas si quieres */
+}

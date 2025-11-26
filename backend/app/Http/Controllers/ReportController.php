@@ -121,6 +121,23 @@ class ReportController extends Controller
             'totals'  => $totals,
         ];
 
+        /*$adjustment = DB::table('service_auth_adjustments')
+            ->where('service_id', $serviceId)
+            ->first();
+
+        if ($adjustment) {
+            // SI HAY AJUSTES: usar datos ajustados en lugar de los calculados
+            $adjustedData = json_decode($adjustment->adjusted_data, true);
+            $auth = $adjustedData;
+            
+            // Opcional: agregar flag para saber que son datos ajustados
+            $auth['is_adjusted'] = true;
+            $auth['last_adjustment'] = $adjustment->updated_at;
+        } else {
+            // SI NO HAY AJUSTES: usar datos calculados desde daily_parts
+            $auth['is_adjusted'] = false;
+        }*/
+
         //liquidation data
         $costPerDay = $totals['total_amount'] / $totals['days_worked'];
         $formatter = new \NumberFormatter('es', \NumberFormatter::SPELLOUT);
@@ -138,7 +155,7 @@ class ReportController extends Controller
                 'equipment' => $equipment,
                 'request' => $request,
                 'auth' => $auth,
-                'liquidation' => $liquidation,
+                'liquidation' => $liquidation
             ]
         ], 201);
     }
@@ -184,4 +201,58 @@ class ReportController extends Controller
 
         return $pdf->stream('Autorización-de-servicio.pdf');
     }
+
+    public function generateLiquidation(Request $request)
+    {
+
+        $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
+        $qr_code = base64_encode("data_qr_example");
+
+        $data = [
+            'logoPath' => $logoPath,
+            'serviceId' => $request->serviceId,
+            'equipment' => $request->equipment,
+            'requestData' => $request->input('request'),
+            'authData' => $request->auth,
+            'liquidationData' => $request->liquidation,
+            'qr_code' => $qr_code,
+        ];
+
+        $pdf = Pdf::loadView('pdf.liquidation_service', $data);
+        $pdf->setPaper('A4', 'landscape');
+
+        return $pdf->stream('Liquidacion-servicio-alquiler.pdf');
+    }
+
+    public function saveAuthChanges(Request $request)
+    {/*
+        try {
+            $serviceId = $request->input('serviceId');
+            $authData = $request->input('authData');
+            
+            // Opción 1: Guardar en una tabla de ajustes/correcciones
+            DB::table('service_auth_adjustments')->updateOrInsert(
+                ['service_id' => $serviceId],
+                [
+                    'adjusted_data' => json_encode($authData),
+                    'updated_at' => now(),
+                    'updated_by' => auth()->id() // Si tienes autenticación
+                ]
+            );
+            
+            // Opción 2: Actualizar los registros originales en daily_parts
+            // (solo si quieres modificar los datos originales)
+            
+            return response()->json([
+                'message' => 'Cambios guardados exitosamente',
+                'success' => true
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al guardar cambios',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    */}
 }

@@ -32,8 +32,8 @@ export class ReportsServicesService {
     });
   }
 
-  generateLiquidation(id: number): Observable<Blob> {
-    return this.http.post(`${this.apiUrl}/api/services/${id}/generate-liquidation`, {}, {
+  generateLiquidation(formDataLiquidation: {serviceId: number; equipment:any; request:any; auth:any; liquidation:any}): Observable<Blob> {
+    return this.http.post(`${this.apiUrl}/api/reports/report-generate-liquidation`, formDataLiquidation, {
       responseType: 'blob',
       withCredentials: true
     });

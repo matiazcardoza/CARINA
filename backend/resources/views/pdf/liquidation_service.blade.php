@@ -363,7 +363,7 @@
                 <td class="info-cell">
                     <div class="anexo-box">ANEXO N°06</div>
                     <div class="fecha-box"><span class="info-line">{{ \Carbon\Carbon::now()->format('d/m/Y') }}</span></div>
-                    <div class="numero-box">C-{{ $service->id }}</div>
+                    <div class="numero-box">C-{{ $serviceId }}</div>
                 </td>
             </tr>
         </table>
@@ -395,7 +395,7 @@
                 <table class="info-table">
                     <tr>
                         <td class="info-label">SERVICIO ALQUILADO:</td>
-                        <td class="info-value">{{ $service->description }}</td>
+                        <td class="info-value">{{ $equipment['machinery_equipment'] . ' ' . $equipment['brand'] . ' ' . $equipment['model'] . ' ' . $equipment['plate'] }}</td>
                     </tr>
                 </table>
             </div>
@@ -417,8 +417,8 @@
                         <td class="info-label">PERIODO DE ALQUILER:</td>
                         <td class="info-value">
                             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                <span>DEL {{ $minDate }} AL {{ $maxDate }}</span>
-                                <span style="font-weight: bold;">HORAS: 7:00 a.m. A 05:00 p.m.</span>
+                                <span>DEL {{ $requestData['minDate'] }} AL {{ $requestData['maxDate'] }}</span>
+                                <span style="font-weight: bold;">HORAS: {{ $requestData['minStartTime'] }} A {{ $requestData['maxEndTime'] }}</span>
                             </div>
                         </td>
                     </tr>
@@ -429,8 +429,8 @@
                         <td class="info-label">TOTAL DIAS/HORAS:</td>
                         <td class="info-value">
                             <div style="display: flex; gap: 15px;">
-                                <span><strong>Días:</strong> {{ $totalDaysWorked }}</span>
-                                <span><strong>Horas:</strong> {{ $totalEquivalentHours }}</span>
+                                <span><strong>Días:</strong> {{ $authData['totals']['days_worked'] }}</span>
+                                <span><strong>Horas:</strong> {{ $authData['totals']['equivalent_hours'] }}</span>
                             </div>
                         </td>
                     </tr>
@@ -446,11 +446,11 @@
                             <div class="cost-breakdown">
                                 <div class="cost-item">
                                     <span class="cost-item-label">POR DÍA:</span>
-                                    <span class="cost-value currency">S/. {{ $costPerDay }}</span>
+                                    <span class="cost-value currency">S/. {{ $liquidationData['cost_per_day'] }}</span>
                                 </div>
                                 <div class="cost-item">
                                     <span class="cost-item-label">POR HORA:</span>
-                                    <span class="cost-value currency">S/. {{ $costPerHour }}</span>
+                                    <span class="cost-value currency">S/. {{ $authData['totals']['cost_per_hour'] }}</span>
                                 </div>
                             </div>
                         </td>
@@ -463,14 +463,14 @@
     <!-- Total final destacado -->
     <div class="total-final-section">
         <span class="total-final-label">TOTAL A PAGAR:</span>
-        <span class="total-final-value currency">S/. {{ $totalAmount }}</span>
+        <span class="total-final-value currency">S/. {{ $authData['totals']['total_amount'] }}</span>
     </div>
 
     <!-- Total en letras -->
     <div class="total-words-section">
         <div class="total-words-label">TOTAL (EN LETRAS):</div>
         <div class="total-words-value">
-            {{ $totalInWords }}
+            {{ $liquidationData['total_in_words'] }}
         </div>
     </div>
 

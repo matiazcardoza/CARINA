@@ -163,101 +163,188 @@
 
         <!-- Autorización de Servicio Preview -->
         <div class="preview-document" *ngIf="activeDocument === 'autorizacion'">
-          <div class="document-header">
-            <h3>REPORTE DIARIO DE AUTORIZACIÓN DE SERVICIO/MAQUINARIA GRP</h3>
-          </div>
+            <div class="document-header">
+                <h3>REPORTE DIARIO DE AUTORIZACIÓN DE SERVICIO/MAQUINARIA GRP</h3>
+                
+                <!-- Botones de control de edición -->
+                <div class="edit-controls">
+                <button 
+                    *ngIf="!editMode" 
+                    class="btn btn-secondary" 
+                    (click)="enableEditMode()">
+                    <span class="btn-icon">✏️</span>
+                    Editar Datos
+                </button>
+                
+                <div *ngIf="editMode" class="edit-buttons-group">
+                    <button class="btn btn-success" (click)="saveAuthChanges()" [disabled]="!hasUnsavedChanges">
+                    <span class="btn-icon">💾</span>
+                    Guardar Cambios
+                    </button>
+                    <button class="btn btn-danger" (click)="cancelEdit()">
+                    <span class="btn-icon">✖️</span>
+                    Cancelar
+                    </button>
+                </div>
+                </div>
+            </div>
 
-          <div class="document-body">
-            <div class="form-row">
-              <span class="form-label">UND ORGÁNICA SOLICITANTE:</span>
-              <span class="form-value">SUB GERENCIA DE OBRAS</span>
-            </div>
-            <div class="form-row">
-              <span class="form-label">OBRA:</span>
-              <span class="form-value">{{ requestData.goal_detail }}</span>
-            </div>
-            <div class="form-row">
-              <span class="form-label">OPERADOR:</span>
-              <span class="form-value">
-                <span *ngFor="let op of equipmentData.operators; let i = index">
-                {{ op.name }}<span *ngIf="i < equipmentData.operators.length - 1">, </span>
+            <div class="document-body">
+                <!-- Info básica -->
+                <div class="form-row">
+                <span class="form-label">UND ORGÁNICA SOLICITANTE:</span>
+                <span class="form-value">SUB GERENCIA DE OBRAS</span>
+                </div>
+                <div class="form-row">
+                <span class="form-label">OBRA:</span>
+                <span class="form-value">{{ requestData.goal_detail }}</span>
+                </div>
+                <div class="form-row">
+                <span class="form-label">OPERADOR:</span>
+                <span class="form-value">
+                    <span *ngFor="let op of equipmentData.operators; let i = index">
+                    {{ op.name }}<span *ngIf="i < equipmentData.operators.length - 1">, </span>
+                    </span>
                 </span>
-              </span>
-            </div>
-            <div class="form-row">
-              <span class="form-label">MÁQUINA:</span>
-              <span class="form-value">{{ equipmentData.machinery_equipment }} - MARCA: {{ equipmentData.brand }} - PLACA/MODELO: {{ equipmentData.plate + '/' + equipmentData.model}}</span>
-            </div>
-            <div class="form-row">
-              <span class="form-label">PERÍODO:</span>
-              <span class="form-value">{{ authData.minDate }} - {{ authData.maxDate }}</span>
+                </div>
+                <div class="form-row">
+                <span class="form-label">MÁQUINA:</span>
+                <span class="form-value">{{ equipmentData.machinery_equipment }} - MARCA: {{ equipmentData.brand }} - PLACA/MODELO: {{ equipmentData.plate + '/' + equipmentData.model}}</span>
+                </div>
+                <div class="form-row">
+                <span class="form-label">PERÍODO:</span>
+                <span class="form-value">{{ (editMode ? editedAuthData : authData).minDate }} - {{ (editMode ? editedAuthData : authData).maxDate }}</span>
+                </div>
+
+                <!-- Botones para agregar fila arriba -->
+                <div *ngIf="editMode" class="row-actions-top">
+                <button class="btn btn-sm btn-info" (click)="addRowTop()">
+                    <span class="btn-icon">➕</span>
+                    Agregar Fila Arriba
+                </button>
+                </div>
+
+                <div class="table-container">
+                <table class="work-table">
+                    <thead>
+                    <tr>
+                        <th>FECHA</th>
+                        <th>HM TRABAJADAS</th>
+                        <th>HM EQUIVALENTE</th>
+                        <th>CONSUMO COMBUSTIBLE</th>
+                        <th>DÍAS TRABAJADOS</th>
+                        <th>COSTO HORA S/.</th>
+                        <th>IMPORTE TOTAL S/.</th>
+                        <th *ngIf="editMode">ACCIONES</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr *ngFor="let dia of (editMode ? editedAuthData : authData).processedData; let i = index" 
+                        [class.no-work]="dia.has_work === false"
+                        [class.new-row]="dia.isNew">
+                        
+                        <!-- Fecha (no editable) -->
+                        <td>{{ dia.date }}</td>
+                        
+                        <!-- HM Trabajadas (editable) -->
+                        <td 
+                        [contentEditable]="editMode"
+                        [class.editable]="editMode"
+                        (dblclick)="onCellDoubleClick(i, 'time_worked')"
+                        (blur)="updateCellValue(i, 'time_worked', $event)"
+                        [attr.data-field]="'time_worked'">
+                        {{ dia.time_worked }}
+                        </td>
+                        
+                        <!-- HM Equivalente (calculado) -->
+                        <td>{{ dia.equivalent_hours > 0 ? dia.equivalent_hours : '-' }}</td>
+                        
+                        <!-- Consumo Combustible (editable) -->
+                        <td 
+                        [contentEditable]="editMode"
+                        [class.editable]="editMode"
+                        (dblclick)="onCellDoubleClick(i, 'fuel_consumption')"
+                        (blur)="updateCellValue(i, 'fuel_consumption', $event)"
+                        [attr.data-field]="'fuel_consumption'">
+                        {{ dia.fuel_consumption > 0 ? dia.fuel_consumption : '-' }}
+                        </td>
+
+                        
+                        <!-- Días Trabajados (no editable) -->
+                        <td>{{ dia.days_worked !== '-' ? dia.days_worked : '-' }}</td>
+                        
+                        <!-- Costo Hora (editable) -->
+                        <td>
+                            S/ {{ dia.cost_per_hour }}
+                        </td>
+                        
+                        <!-- Importe Total (calculado) -->
+                        <td>S/ {{ dia.total_amount }}</td>
+                        
+                        <!-- Acciones -->
+                        <td *ngIf="editMode">
+                        <button 
+                            class="btn-icon-delete" 
+                            (click)="deleteRow(i)"
+                            title="Eliminar fila">
+                            🗑️
+                        </button>
+                        </td>
+                    </tr>
+                    
+                    <!-- Fila de totales -->
+                    <tr class="total-row">
+                        <td colspan="1">TOTAL</td>
+                        <td>{{ (editMode ? editedAuthData : authData).totals.time_worked }}</td>
+                        <td>{{ (editMode ? editedAuthData : authData).totals.equivalent_hours }}</td>
+                        <td>{{ (editMode ? editedAuthData : authData).totals.fuel_consumption }}</td>
+                        <td>{{ (editMode ? editedAuthData : authData).totals.days_worked }}</td>
+                        <td>S/ {{ (editMode ? editedAuthData : authData).totals.cost_per_hour }}</td>
+                        <td><strong>S/ {{ (editMode ? editedAuthData : authData).totals.total_amount }}</strong></td>
+                        <td *ngIf="editMode"></td>
+                    </tr>
+                    </tbody>
+                </table>
+                </div>
+
+                <!-- Botones para agregar fila abajo -->
+                <div *ngIf="editMode" class="row-actions-bottom">
+                <button class="btn btn-sm btn-info" (click)="addRowBottom()">
+                    <span class="btn-icon">➕</span>
+                    Agregar Fila Abajo
+                </button>
+                </div>
+
+                <!-- Resumen -->
+                <div class="summary-box">
+                <h4>RESUMEN</h4>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                    <span class="summary-label">HORAS TRABAJADAS:</span>
+                    <span class="summary-value">{{ (editMode ? editedAuthData : authData).totals.time_worked }}</span>
+                    </div>
+                    <div class="summary-item">
+                    <span class="summary-label">HORA EQUIVALENTE:</span>
+                    <span class="summary-value">{{ (editMode ? editedAuthData : authData).totals.equivalent_hours }}</span>
+                    </div>
+                    <div class="summary-item">
+                    <span class="summary-label">COSTO HM:</span>
+                    <span class="summary-value">S/ {{ (editMode ? editedAuthData : authData).totals.cost_per_hour }}</span>
+                    </div>
+                    <div class="summary-item total">
+                    <span class="summary-label">IMPORTE A PAGAR S/.:</span>
+                    <span class="summary-value">{{ (editMode ? editedAuthData : authData).totals.total_amount }}</span>
+                    </div>
+                </div>
+                </div>
             </div>
 
-            <div class="table-container">
-              <table class="work-table">
-                <thead>
-                  <tr>
-                    <th>FECHA</th>
-                    <th>HM TRABAJADAS</th>
-                    <th>HM EQUIVALENTE</th>
-                    <th>CONSUMO COMBUSTIBLE</th>
-                    <th>DÍAS TRABAJADOS</th>
-                    <th>COSTO HORA S/.</th>
-                    <th>IMPORTE TOTAL S/.</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let dia of authData.processedData" [class.no-work]="dia.has_work === 0">
-                    <td>{{ dia.date }}</td>
-                    <td>{{ dia.time_worked }}</td>
-                    <td>{{ dia.equivalent_hours > 0 ? (dia.equivalent_hours) : '-' }}</td>
-                    <td>{{ dia.fuel_consumption > 0 ? (dia.fuel_consumption) : '-' }}</td>
-                    <td>{{ dia.days_worked !== '-' ? dia.days_worked : '-' }}</td>
-                    <td>S/ {{ dia.cost_per_hour }}</td>
-                    <td>S/ {{ dia.total_amount }}</td>
-                  </tr>
-                  <tr class="total-row">
-                    <td colspan="1">TOTAL</td>
-                    <td>{{ authData.totals.time_worked }}</td>
-                    <td>{{ authData.totals.equivalent_hours }}</td>
-                    <td>{{ authData.totals.fuel_consumption }}</td>
-                    <td>{{ authData.totals.days_worked }}</td>
-                    <td>S/ {{ authData.totals.cost_per_hour }}</td>
-                    <td><strong>S/ {{ authData.totals.total_amount }}</strong></td>
-                  </tr>
-                </tbody>
-              </table>
+            <div class="document-footer">
+                <button class="btn btn-success btn-lg" (click)="generateAuth()">
+                <span class="btn-icon">✅</span>
+                Generar Autorización de Servicio
+                </button>
             </div>
-
-            <div class="summary-box">
-              <h4>RESUMEN</h4>
-              <div class="summary-grid">
-                <div class="summary-item">
-                  <span class="summary-label">HORAS TRABAJADAS:</span>
-                  <span class="summary-value">{{ authData.totals.time_worked }}</span>
-                </div>
-                <div class="summary-item">
-                  <span class="summary-label">HORA EQUIVALENTE:</span>
-                  <span class="summary-value">{{ authData.totals.equivalent_hours }}</span>
-                </div>
-                <div class="summary-item">
-                  <span class="summary-label">COSTO HM:</span>
-                  <span class="summary-value">S/ {{ authData.totals.cost_per_hour }}</span>
-                </div>
-                <div class="summary-item total">
-                  <span class="summary-label">IMPORTE A PAGAR S/.:</span>
-                  <span class="summary-value">{{ authData.totals.total_amount }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="document-footer">
-            <button class="btn btn-success btn-lg" (click)="generateAuth()">
-              <span class="btn-icon">✅</span>
-              Generar Autorización de Servicio
-            </button>
-          </div>
         </div>
 
         <!-- Liquidación de Servicio Preview -->
@@ -286,22 +373,22 @@
               <span class="form-value">DEL {{ requestData.minDate }} AL {{ requestData.maxDate }} HORAS: DE {{ requestData.minStartTime }} A {{ requestData.maxEndTime }}</span>
             </div>
             <div class="form-row">
-              <span class="form-label">TOTAL DÍAS/HORAS:</span>
-              <span class="form-value">Días {{ authData.totals.days_worked }} Horas {{ authData.totals.equivalent_hours }}</span>
+                <span class="form-label">TOTAL DÍAS/HORAS:</span>
+                <span class="form-value">Días {{ (editMode ? editedAuthData : authData).totals.days_worked }} Horas {{ (editMode ? editedAuthData : authData).totals.equivalent_hours }}</span>
             </div>
             <div class="form-row">
-              <span class="form-label">COSTO DEL SERVICIO:</span>
-              <span class="form-value">POR DÍA: S/. {{ liquidationData.cost_per_day }} POR HORA S/. {{ authData.totals.cost_per_hour }}</span>
+                <span class="form-label">COSTO DEL SERVICIO:</span>
+                <span class="form-value">POR DÍA: S/. {{ getCostPerDay() }} POR HORA S/. {{ (editMode ? editedAuthData : authData).totals.cost_per_hour }}</span>
             </div>
 
             <div class="cost-summary">
               <div class="cost-row total-cost">
                 <span class="cost-label">TOTAL:</span>
-                <span class="cost-value">S/. {{ authData.totals.total_amount }}</span>
+                <span class="cost-value">S/. {{ (editMode ? editedAuthData : authData).totals.total_amount }}</span>
               </div>
               <div class="cost-row">
                 <span class="cost-label">TOTAL (EN LETRAS):</span>
-                <span class="cost-value">{{ liquidationData.total_in_words }}</span>
+                <span class="cost-value">{{ getTotalInWords() }}</span>
               </div>
             </div>
           </div>
