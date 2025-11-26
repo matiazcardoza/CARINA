@@ -121,13 +121,24 @@ class ReportController extends Controller
             'totals'  => $totals,
         ];
 
+        //liquidation data
+        $costPerDay = $totals['total_amount'] / $totals['days_worked'];
+        $formatter = new \NumberFormatter('es', \NumberFormatter::SPELLOUT);
+        $totalInWords = strtoupper($formatter->format(floor($totals['total_amount'])));
+        $cents = round(($totals['total_amount'] - floor($totals['total_amount'])) * 100);
+        $totalInWordsComplete = $totalInWords . ' CON ' . sprintf('%02d', $cents) . '/100 SOLES';
+        $liquidation = [
+            'cost_per_day' => round($costPerDay, 2),
+            'total_in_words' => $totalInWordsComplete
+        ];
+
         return response()->json([
             'message' => 'Liquidation data retrieved successfully',
             'data' => [
                 'equipment' => $equipment,
                 'request' => $request,
                 'auth' => $auth,
-                'liquidation' => $service->liquidation,
+                'liquidation' => $liquidation,
             ]
         ], 201);
     }
@@ -163,7 +174,7 @@ class ReportController extends Controller
             'logoPath' => $logoPath,
             'service' => $service,
             'equipment' => $request->equipment,
-            'requestData' => $request->request,
+            'requestData' => $request->input('request'),
             'authData' => $request->auth,
             'qr_code' => $qr_code
         ];

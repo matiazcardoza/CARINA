@@ -7,23 +7,13 @@ export interface LiquidationElement {
   equipment: any | null;
   request: any | null;
   auth: any | null;
-  liquidation: [];
+  liquidation: any | null;
 }
 
 interface DocumentStatus {
   solicitud: boolean;
   autorizacion: boolean;
   liquidacion: boolean;
-}
-
-interface DailyWork {
-  fecha: string;
-  hmTrabajadas: string;
-  hmEquivalente: number;
-  combustible: number;
-  diasTrabajados: number;
-  costoHora: number;
-  importeTotal: number;
 }
 
 @Component({
@@ -38,6 +28,7 @@ export class ReportsId implements OnInit {
   state: number = 0;
   errorMessage: string | null = null;
   activeDocument: 'solicitud' | 'autorizacion' | 'liquidacion' = 'solicitud';
+  today: Date = new Date();
 
   //implementacion de componente
   isLoading = false;
@@ -45,6 +36,7 @@ export class ReportsId implements OnInit {
   equipmentData: any | null = null;
   requestData: any | null = null;
   authData: any | null = null;
+  liquidationData: any | null = null;
 
 
   // Estado de documentos generados
@@ -52,45 +44,6 @@ export class ReportsId implements OnInit {
     solicitud: false,
     autorizacion: false,
     liquidacion: false
-  };
-
-  // Información general
-  informacionGeneral = {
-    orden: '1137',
-    fechaSolicitud: '13/5/2025',
-    periodoInicio: '17/5/2025',
-    periodoFin: '31/5/2025',
-    duracionDias: 13,
-    horaSalida: '7:00 a.m.',
-    horaRetorno: '5:00 p.m.'
-  };
-
-  // Información del equipo y operador
-  equipoOperador = {
-    equipo: 'EXCAVADORA PC 360',
-    marca: 'KOMATSU',
-    placa: 'PC 360',
-    operador: 'HUGO PEDRO RAMOS CALAMULLO'
-  };
-
-  // Información del proyecto
-  proyecto = {
-    organica: 'SUB GERENCIA DE EJECUCION DE PROYECTOS',
-    direccion: 'JR. MOQUEGUA N° 269-A',
-    nombre: 'MEJORAMIENTO DE LA CARRETERA (EMP 34B) AZANGARO - (EMP PU-102) JILA PURINA DE LOS DISTRITO DE AZANGARO - DISTRITO DE TIRAPATA - PROVINCIA DE AZANGARO - REGION PUNO',
-    objetivo: 'MEJORAMIENTO DE LA CARRETERA (EMP 34B) AZANGARO - (EMP PU-102) JILA PURINA DE LOS DISTRITO DE AZANGARO - DISTRITO DE TIRAPATA - PROVINCIA DE AZANGARO - REGION PUNO'
-  };
-
-  // Resumen de costos
-  resumenCostos = {
-    horasTrabajadas: '89:50',
-    horasEquivalentes: 89.83,
-    diasTrabajados: 13,
-    costoPorHora: 285.00,
-    costoPorDia: 1969.35,
-    importeTotal: 25601.55,
-    importeTotalLetras: 'VEINTICINCO MIL SEISCIENTOS UNO CON 55/100 SOLES',
-    combustibleTotal: 665.00
   };
 
   constructor(
@@ -123,6 +76,7 @@ export class ReportsId implements OnInit {
             this.equipmentData = response.equipment;
             this.requestData = response.request;
             this.authData = response.auth;
+            this.liquidationData = response.liquidation;
             console.log('Equipment data:', this.equipmentData);
             this.isLoading = false;
             this.cdr.detectChanges();
@@ -177,10 +131,17 @@ export class ReportsId implements OnInit {
     });
   }
 
-  generarLiquidacion(): void {
-    console.log('Generar liquidación');
-    this.documentStatus.liquidacion = true;
-    // Aquí iría la llamada al servicio
+  generateLiquidation() {
+    const serviceId = this.reportId;
+    this.reportsServicesService.generateLiquidation(serviceId).subscribe({
+      next: (response: Blob) => {
+        const fileURL = URL.createObjectURL(response);
+        window.open(fileURL, '_blank');
+      },
+      error: () => {
+        this.errorMessage = 'Error al generar el PDF. Por favor, intenta nuevamente.';
+      }
+    });
   }
 
   getBadgeClass(state: number): string {

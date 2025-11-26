@@ -267,47 +267,47 @@
           <div class="document-body">
             <div class="form-row">
               <span class="form-label">FECHA:</span>
-              <span class="form-value">{{ informacionGeneral.fechaSolicitud }}</span>
+              <span class="form-value">{{ today | date:'dd/MM/yyyy' }}</span>
             </div>
             <div class="form-row">
               <span class="form-label">USUARIO SOLICITANTE:</span>
-              <span class="form-value">{{ proyecto.organica }}</span>
+              <span class="form-value">SUB GERENCIA DE OBRAS</span>
             </div>
             <div class="form-row">
               <span class="form-label">DIRECCIÓN:</span>
-              <span class="form-value">{{ proyecto.direccion }}</span>
+              <span class="form-value">JR. MOQUEGUA N° 269-A</span>
             </div>
             <div class="form-row">
               <span class="form-label">SERVICIO ALQUILADO:</span>
-              <span class="form-value">{{ equipoOperador.equipo }}</span>
+              <span class="form-value">{{ equipmentData.machinery_equipment  + ' ' + equipmentData.model + ' ' + equipmentData.plate}}</span>
             </div>
             <div class="form-row">
               <span class="form-label">PERIODO DE ALQUILER:</span>
-              <span class="form-value">DEL {{ informacionGeneral.periodoInicio }} AL {{ informacionGeneral.periodoFin }} HORAS: DE {{ informacionGeneral.horaSalida }} A {{ informacionGeneral.horaRetorno }}</span>
+              <span class="form-value">DEL {{ requestData.minDate }} AL {{ requestData.maxDate }} HORAS: DE {{ requestData.minStartTime }} A {{ requestData.maxEndTime }}</span>
             </div>
             <div class="form-row">
               <span class="form-label">TOTAL DÍAS/HORAS:</span>
-              <span class="form-value">Días {{ resumenCostos.diasTrabajados }}.00 Horas {{ resumenCostos.horasEquivalentes }}</span>
+              <span class="form-value">Días {{ authData.totals.days_worked }} Horas {{ authData.totals.equivalent_hours }}</span>
             </div>
             <div class="form-row">
               <span class="form-label">COSTO DEL SERVICIO:</span>
-              <span class="form-value">POR DÍA: S/. {{ resumenCostos.costoPorDia | number:'1.2-2' }} POR HORA S/. {{ resumenCostos.costoPorHora | number:'1.2-2' }}</span>
+              <span class="form-value">POR DÍA: S/. {{ liquidationData.cost_per_day }} POR HORA S/. {{ authData.totals.cost_per_hour }}</span>
             </div>
 
             <div class="cost-summary">
               <div class="cost-row total-cost">
                 <span class="cost-label">TOTAL:</span>
-                <span class="cost-value">S/. {{ resumenCostos.importeTotal | number:'1.2-2' }}</span>
+                <span class="cost-value">S/. {{ authData.totals.total_amount }}</span>
               </div>
               <div class="cost-row">
                 <span class="cost-label">TOTAL (EN LETRAS):</span>
-                <span class="cost-value">{{ resumenCostos.importeTotalLetras }}</span>
+                <span class="cost-value">{{ liquidationData.total_in_words }}</span>
               </div>
             </div>
           </div>
 
           <div class="document-footer">
-            <button class="btn btn-warning btn-lg" (click)="generarLiquidacion()">
+            <button class="btn btn-warning btn-lg" (click)="generateLiquidation()">
               <span class="btn-icon">💰</span>
               Generar Liquidación de Servicio
             </button>

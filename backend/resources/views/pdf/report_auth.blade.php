@@ -268,7 +268,7 @@
             <tr>
                 <td class="info-label">OBRA:</td>
                 <td>
-                    <span class="info-line">{{ $requestData->goal_detail }}</span>
+                    <span class="info-line">{{ $requestData['goal_detail'] }}</span>
                 </td>
             </tr>
         </table>
@@ -338,7 +338,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($processedData as $dayData)
+            @foreach($authData['processedData'] as $dayData)
                 <tr class="{{ $dayData['has_work'] ? 'work-row' : 'no-work-row' }}">
                     <td>{{ $dayData['date'] }}</td>
                     <td>{{ $dayData['time_worked'] }}</td>
@@ -353,12 +353,12 @@
             <!-- Fila de totales -->
             <tr class="total-row">
                 <td style="font-weight: bold;">TOTALES</td>
-                <td style="font-weight: bold;">{{ $totals['time_worked'] }}</td>
-                <td style="font-weight: bold;">{{ $totals['equivalent_hours'] }}</td>
-                <td style="font-weight: bold;">{{ $totals['fuel_consumption'] }}</td>
-                <td style="font-weight: bold;">{{ $totals['days_worked'] }}</td>
-                <td class="currency" style="font-weight: bold;">S/. {{ $totals['cost_per_hour'] }}</td>
-                <td class="currency" style="font-weight: bold;">S/. {{ $totals['total_amount'] }}</td>
+                <td style="font-weight: bold;">{{ $authData['totals']['time_worked'] }}</td>
+                <td style="font-weight: bold;">{{ $authData['totals']['equivalent_hours'] }}</td>
+                <td style="font-weight: bold;">{{ $authData['totals']['fuel_consumption'] }}</td>
+                <td style="font-weight: bold;">{{ $authData['totals']['days_worked'] }}</td>
+                <td class="currency" style="font-weight: bold;">S/. {{ $authData['totals']['cost_per_hour'] }}</td>
+                <td class="currency" style="font-weight: bold;">S/. {{ $authData['totals']['total_amount'] }}</td>
             </tr>
         </tbody>
     </table>
@@ -378,10 +378,10 @@
             </thead>
             <tbody>
                 <tr>
-                    <td class="summary-value">{{ $totals['time_worked'] }}</td>
-                    <td class="summary-value">{{ $totals['equivalent_hours'] }}</td>
-                    <td class="summary-value currency">S/. {{ $totals['cost_per_hour'] }}</td>
-                    <td class="summary-value currency">S/. {{ $totals['total_amount'] }}</td>
+                    <td class="summary-value">{{ $authData['totals']['time_worked'] }}</td>
+                    <td class="summary-value">{{ $authData['totals']['equivalent_hours'] }}</td>
+                    <td class="summary-value currency">S/. {{ $authData['totals']['cost_per_hour'] }}</td>
+                    <td class="summary-value currency">S/. {{ $authData['totals']['total_amount'] }}</td>
                 </tr>
             </tbody>
         </table>
