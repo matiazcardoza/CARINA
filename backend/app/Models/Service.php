@@ -26,6 +26,7 @@ class Service extends Model
         'start_date',
         'end_date',
         'state',
-        'state_closure'
+        'state_closure',
+        'state_valorized'
     ];
 }

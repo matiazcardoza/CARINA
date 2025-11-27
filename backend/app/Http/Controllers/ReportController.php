@@ -373,4 +373,15 @@ class ReportController extends Controller
             ], 500);
         }
     }
+
+    public function  closeService($serviceId){
+        $service = Service::find($serviceId);
+        $service->update([
+            'state_valorized' => 2
+        ]);
+
+        return response()->json([
+            'message' => 'Servicio cerrado correctamente'
+        ], 200);
+    }
 }

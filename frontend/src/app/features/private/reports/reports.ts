@@ -316,7 +316,21 @@ export class Reports implements OnInit {
   }
 
   closeService(serviceId: number) {
-    console.log('Cerrando servicio con ID:', serviceId);
+    if (confirm('¿Está seguro de que desea cerrar este servicio? Esta acción no se puede deshacer.')) {
+      this.reportsServicesService.closeService(serviceId).subscribe({
+        next: () => {
+          // Recargar los datos del servicio actualmente seleccionado
+          if (this.selectedServicio) {
+            this.getDailyPartsData(this.selectedServicio);
+          }
+          this.cdr.detectChanges(); // Forzar detección de cambios
+        },
+        error: (error) => {
+          console.error('Error al cerrar servicio:', error);
+          this.errorMessage = 'Error al cerrar el servicio. Por favor, intenta nuevamente.';
+        }
+      });
+    }
   }
 
   agregarOrden() {

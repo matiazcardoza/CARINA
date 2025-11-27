@@ -104,6 +104,7 @@ class ServiceController extends Controller
     {
         $services = Service::join('daily_parts', 'services.id', '=', 'daily_parts.service_id')
                    ->where('services.goal_id', $idGoal)
+                   ->where('services.state_valorized', '!=', 2)
                    ->select('services.*')
                    ->distinct()
                    ->get();
