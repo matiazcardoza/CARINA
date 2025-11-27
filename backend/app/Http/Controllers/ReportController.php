@@ -266,113 +266,36 @@ class ReportController extends Controller
 
     public function downloadMergedDailyParts($serviceId)
     {
-        try {
+        $documents = DB::table('documents_daily_parts as ddp')
+            ->join('daily_parts as dp', 'ddp.id', '=', 'dp.document_id')
+            ->where('dp.service_id', $serviceId)
+            ->where('ddp.state', 3)
+            ->select('ddp.file_path')
+            ->orderBy('ddp.created_at', 'asc')
+            ->get();
 
-            if (!$serviceId) {
-                return response()->json([
-                    'ok' => false,
-                    'error' => 'Service ID es requerido'
-                ], 400);
-            }
-
-            // Obtener documentos completados ordenados por fecha
-            $documents = DB::table('documents_daily_parts as ddp')
-                ->join('daily_parts as dp', 'ddp.id', '=', 'dp.document_id')
-                ->where('dp.service_id', $serviceId)
-                ->where('ddp.state', 3)
-                ->select('ddp.id', 'ddp.file_path', 'ddp.created_at')
-                ->orderBy('ddp.created_at', 'asc')
-                ->get();
-
-            if ($documents->isEmpty()) {
-                return response()->json([
-                    'ok' => false,
-                    'error' => 'No se encontraron partes diarios completados para este servicio'
-                ], 404);
-            }
-
-            // Crear instancia de FPDI
-            $pdf = new Fpdi();
-            $pdf->SetAutoPageBreak(false);
-
-            $addedPages = 0;
-            $errorFiles = [];
-
-            foreach ($documents as $document) {
-                $fullPath = storage_path('app/public/' . $document->file_path);
-
-                if (!file_exists($fullPath)) {
-                    $errorFiles[] = $document->id;
-                    Log::warning("Archivo no encontrado: {$fullPath}");
-                    continue;
-                }
-
-                try {
-                    // Obtener número de páginas del PDF
-                    $pageCount = $pdf->setSourceFile($fullPath);
-
-                    // Agregar cada página del PDF
-                    for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
-                        // Agregar nueva página
-                        $templateId = $pdf->importPage($pageNo);
-                        $size = $pdf->getTemplateSize($templateId);
-
-                        // Usar el tamaño original del PDF
-                        if ($size['orientation'] == 'L') {
-                            $pdf->AddPage('L', [$size['width'], $size['height']]);
-                        } else {
-                            $pdf->AddPage('P', [$size['width'], $size['height']]);
-                        }
-
-                        // Usar la plantilla importada
-                        $pdf->useTemplate($templateId);
-
-                        $addedPages++;
-                    }
-
-                    // Opcional: Agregar una página separadora con información
-                    // $this->addSeparatorPage($pdf, $document);
-
-                } catch (\Exception $e) {
-                    $errorFiles[] = $document->id;
-                    Log::error("Error al procesar PDF {$document->id}: " . $e->getMessage());
-                    continue;
-                }
-            }
-
-            if ($addedPages === 0) {
-                return response()->json([
-                    'ok' => false,
-                    'error' => 'No se pudieron agregar documentos al PDF unificado'
-                ], 500);
-            }
-
-            // Crear directorio temporal
-            $tempDir = storage_path('app/public/temp_downloads');
-            if (!is_dir($tempDir)) {
-                mkdir($tempDir, 0777, true);
-            }
-
-            // Nombre del archivo unificado
-            $mergedFileName = 'partes_diarios_unificado_servicio_' . $serviceId . '_' . date('Y-m-d') . '.pdf';
-            $mergedFilePath = $tempDir . '/' . $mergedFileName;
-
-            // Guardar PDF unificado
-            $pdf->Output('F', $mergedFilePath);
-
-            // Descargar y eliminar después
-            return response()->download($mergedFilePath, $mergedFileName)->deleteFileAfterSend(true);
-
-        } catch (\Exception $e) {
-            Log::error('Error en downloadMergedDailyParts: ' . $e->getMessage());
-            Log::error($e->getTraceAsString());
-
+        if ($documents->isEmpty()) {
             return response()->json([
                 'ok' => false,
-                'error' => 'Error al procesar la descarga: ' . $e->getMessage()
-            ], 500);
+                'error' => 'No se encontraron partes diarios completados'
+            ], 404);
         }
+        $outputFile = storage_path('app/public/temp_downloads/unidos_' . time() . '.pdf');
+        $output = fopen($outputFile, 'wb');
+
+        foreach ($documents as $document) {
+            $path = storage_path('app/public/' . $document->file_path);
+
+            if (file_exists($path)) {
+                fwrite($output, file_get_contents($path));
+            }
+        }
+
+        fclose($output);
+
+        return response()->download($outputFile)->deleteFileAfterSend(true);
     }
+
 
     public function  closeService($serviceId){
         $service = Service::find($serviceId);

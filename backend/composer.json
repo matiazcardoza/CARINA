@@ -16,12 +16,15 @@
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
+        "mikehaertl/php-pdftk": "^0.14.2",
         "phiki/phiki": "^2.0",
         "setasign/fpdf": "^1.8",
         "setasign/fpdi": "^2.6",
+        "shihjay2/tcpdi-merger": "^0.5.0",
         "simplesoftwareio/simple-qrcode": "^4.2",
         "smalot/pdfparser": "^2.12",
-        "spatie/laravel-permission": "^6.21"
+        "spatie/laravel-permission": "^6.21",
+        "spatie/pdf-to-image": "^1.2"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
