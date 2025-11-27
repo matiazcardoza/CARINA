@@ -74,4 +74,10 @@ export class ReportsServicesService {
       }
     );
   }
+
+  closeService(serviceId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/api/reports/close-service/${serviceId}`, {}, {
+      withCredentials: true
+    });
+  }
 }
