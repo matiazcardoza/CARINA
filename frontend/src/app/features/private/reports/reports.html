@@ -176,7 +176,7 @@
                             color="primary">
                       <mat-icon>cloud_download</mat-icon>
                     </button>
-                    <button mat-icon-button
+                    <button mat-icon-button *appHasPermission="'generate_reportes'"
                             matTooltip="Cerrar Servicio"
                             (click)="closeService(parte.id)"
                             style="color: rgb(161, 12, 12);"
