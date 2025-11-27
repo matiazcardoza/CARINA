@@ -271,7 +271,8 @@ class ReportController extends Controller
         ->join('daily_parts as dp', 'ddp.id', '=', 'dp.document_id')
         ->where('dp.service_id', $serviceId)
         ->where('ddp.state', 3)
-        ->select('ddp.file_path')
+        ->select('ddp.id', 'ddp.file_path', 'ddp.created_at')
+        ->groupBy('ddp.id', 'ddp.file_path', 'ddp.created_at')
         ->orderBy('ddp.created_at', 'asc')
         ->get();
 
