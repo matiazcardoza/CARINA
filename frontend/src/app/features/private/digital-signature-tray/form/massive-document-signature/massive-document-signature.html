@@ -18,28 +18,28 @@
   <div class="role-selector-section" *ngIf="!isSigningInProgress">
     <div class="role-selector-container">
       <mat-icon>badge</mat-icon>
-      <span class="role-label">Selecciona tu rol para firmar:</span>
+      <span class="role-label">Selecciona el rol y estado para firmar:</span>
       
       <div class="role-buttons">
-        <button *ngFor="let role of userRelevantRoles"
+        <button *ngFor="let option of availableRoleStateOptions"
                 mat-stroked-button
-                [class.selected]="selectedRole === role"
-                [color]="selectedRole === role ? 'primary' : ''"
-                (click)="selectedRole = role; onRoleChange()">
-          <mat-icon>{{ selectedRole === role ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
-          {{ getRoleDisplayName(role) }}
+                [class.selected]="selectedRoleState === option"
+                [color]="selectedRoleState === option ? 'primary' : ''"
+                (click)="selectedRoleState = option; onRoleStateChange()">
+          <mat-icon>{{ selectedRoleState === option ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+          {{ option.displayName }}
           <span class="role-badge">
-            Estado {{ getDocumentStateForRole(role) }}
+            {{ option.documentCount }} doc{{ option.documentCount !== 1 ? 's' : '' }}
           </span>
         </button>
       </div>
     </div>
 
     <!-- Información sobre documentos disponibles -->
-    <div class="role-info" *ngIf="selectedRole">
+    <div class="role-info" *ngIf="selectedRoleState">
       <mat-icon>info_outline</mat-icon>
       <span>
-        Documentos disponibles para {{ getRoleDisplayName(selectedRole) }}: 
+        Documentos disponibles para {{ selectedRoleState.displayName }}: 
         <strong>{{ filteredDocuments.length }}</strong>
       </span>
     </div>
@@ -78,13 +78,13 @@
       </div>
     </div>
 
-    <div *ngIf="!selectedRole && !isSigningInProgress" class="no-role-selected">
+    <div *ngIf="!selectedRoleState && !isSigningInProgress" class="no-role-selected">
       <mat-icon>warning</mat-icon>
-      <p>Por favor, selecciona un rol para ver los documentos disponibles</p>
+      <p>Por favor, selecciona un rol y estado para ver los documentos disponibles</p>
     </div>
 
     <!-- Lista de documentos -->
-    <div class="documents-list-container" *ngIf="selectedRole || isSigningInProgress">
+    <div class="documents-list-container" *ngIf="selectedRoleState || isSigningInProgress">
       <mat-list class="documents-list">
         <mat-list-item *ngFor="let document of filteredDocuments" 
                        class="document-item"
