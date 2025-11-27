@@ -111,7 +111,7 @@ class ReportController extends Controller
         $totalTimeFormatted = sprintf('%02d:%02d', $totalHours, $totalMinutes);
         $totals = [
             'time_worked'      => $totalTimeFormatted,
-            'equivalent_hours' => $totalEquivalentHours,
+            'equivalent_hours' => round($totalEquivalentHours, 2),
             'fuel_consumption' => $totalFuelConsumption,
             'days_worked'      => $totalDaysWorked,
             'cost_per_hour'    => $costPerHour,

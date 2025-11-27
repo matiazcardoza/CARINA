@@ -257,12 +257,11 @@ export class ReportsId implements OnInit {
     if (timeMatch) {
       const hours = parseInt(timeMatch[1]);
       const minutes = parseInt(timeMatch[2]);
-      row.equivalent_hours = hours + (minutes / 60);
+      row.equivalent_hours = parseFloat((hours + (minutes / 60)).toFixed(2));
     }
 
     // Recalcular monto total
-    row.total_amount = row.equivalent_hours * row.cost_per_hour;
-    row.total_amount = Math.round(row.total_amount * 100) / 100;
+    row.total_amount = parseFloat((row.equivalent_hours * row.cost_per_hour).toFixed(2));
   }
 
   recalculateTotals(): void {
@@ -301,11 +300,11 @@ export class ReportsId implements OnInit {
 
     this.editedAuthData.totals = {
       time_worked: `${String(totalHours).padStart(2, '0')}:${String(totalMinutes).padStart(2, '0')}`,
-      equivalent_hours: Math.round(totalEquivalentHours * 100) / 100,
-      fuel_consumption: Math.round(totalFuelConsumption * 100) / 100,
+      equivalent_hours: parseFloat(totalEquivalentHours.toFixed(2)),
+      fuel_consumption: parseFloat(totalFuelConsumption.toFixed(2)),
       days_worked: totalDaysWorked,
-      cost_per_hour: this.editedAuthData.totals.cost_per_hour,
-      total_amount: Math.round(totalAmount * 100) / 100
+      cost_per_hour: parseFloat(this.editedAuthData.totals.cost_per_hour.toFixed(2)),
+      total_amount: parseFloat(totalAmount.toFixed(2))
     };
     this.updateLiquidationData();
   }
@@ -322,7 +321,7 @@ export class ReportsId implements OnInit {
     const totalInWords = this.getTotalInWords();
 
     this.liquidationData = {
-      cost_per_day: Math.round(costPerDay * 100) / 100,
+      cost_per_day: parseFloat(costPerDay.toFixed(2)),
       total_in_words: totalInWords
     };
   }
@@ -344,7 +343,7 @@ export class ReportsId implements OnInit {
       equivalent_hours: 0,
       fuel_consumption: 0,
       days_worked: '-',
-      cost_per_hour: this.editedAuthData.totals.cost_per_hour,
+      cost_per_hour: parseFloat(this.editedAuthData.totals.cost_per_hour.toFixed(2)),
       total_amount: 0,
       has_work: true,
       isNew: true
@@ -374,7 +373,7 @@ export class ReportsId implements OnInit {
       equivalent_hours: 0,
       fuel_consumption: 0,
       days_worked: '-',
-      cost_per_hour: this.editedAuthData.totals.cost_per_hour,
+      cost_per_hour: parseFloat(this.editedAuthData.totals.cost_per_hour.toFixed(2)),
       total_amount: 0,
       has_work: true,
       isNew: true
@@ -461,10 +460,10 @@ export class ReportsId implements OnInit {
   getCostPerDay(): number {
     const authData = this.editMode ? this.editedAuthData : this.authData;
     if (!authData || !authData.totals.days_worked || authData.totals.days_worked === 0) {
-      return 0;
+      return 0.00;
     }
     const costPerDay = authData.totals.total_amount / authData.totals.days_worked;
-    return Math.round(costPerDay * 100) / 100; // Redondear a 2 decimales
+    return parseFloat(costPerDay.toFixed(2)); // FORZAR 2 decimales
   }
 
   getTotalInWords(): string {
