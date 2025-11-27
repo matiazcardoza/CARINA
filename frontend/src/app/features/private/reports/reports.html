@@ -111,7 +111,7 @@
               <td mat-cell *matCellDef="let parte">
                 <mat-chip-set>
                   <mat-chip [color]="obtenerColorEstado(parte.state)" selected>
-                    {{ obtenerTextoEstado(parte.state) }}
+                    {{ obtenerTextoEstado(parte.state) }}-{{ parte.id }}
                   </mat-chip>
                 </mat-chip-set>
               </td>
