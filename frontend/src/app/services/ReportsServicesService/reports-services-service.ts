@@ -65,4 +65,13 @@ export class ReportsServicesService {
       map(response => response.data)
     );
   }
+
+  downloadAllCompletedDailyParts(serviceId: number): Observable<Blob> {
+    console.log('Downloading all completed daily parts for service ID:', serviceId);
+    return this.http.post(`${this.apiUrl}/api/reports/download-merged-daily-parts/${serviceId}`, {}, {
+        responseType: 'blob',
+        withCredentials: true
+      }
+    );
+  }
 }

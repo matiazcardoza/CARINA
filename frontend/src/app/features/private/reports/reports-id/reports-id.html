@@ -22,7 +22,7 @@
 
   <!-- Main Content -->
   <div class="content-grid">
-    
+
     <!-- Left Panel - Information Summary -->
     <div class="left-panel">
       <!-- Equipo y Operador -->
@@ -81,25 +81,25 @@
 
     <!-- Right Panel - Document Preview -->
     <div class="right-panel" *ngIf="requestData">
-      
+
       <!-- Document Selector -->
       <div class="document-tabs">
-        <button 
-          class="tab-button" 
+        <button
+          class="tab-button"
           [class.active]="activeDocument === 'solicitud'"
           (click)="changeDocument('solicitud')">
           <span class="tab-icon">📋</span>
           Solicitud de Movilidad
         </button>
-        <button 
-          class="tab-button" 
+        <button
+          class="tab-button"
           [class.active]="activeDocument === 'autorizacion'"
           (click)="changeDocument('autorizacion')">
           <span class="tab-icon">✅</span>
           Autorización de Servicio
         </button>
-        <button 
-          class="tab-button" 
+        <button
+          class="tab-button"
           [class.active]="activeDocument === 'liquidacion'"
           (click)="changeDocument('liquidacion')">
           <span class="tab-icon">💰</span>
@@ -109,7 +109,7 @@
 
       <!-- Document Preview -->
       <div class="document-preview">
-        
+
         <!-- Solicitud de Movilidad Preview -->
         <div class="preview-document" *ngIf="activeDocument === 'solicitud'">
           <h2 class="document-title">SOLICITUD DE MOVILIDAD</h2>
@@ -165,17 +165,17 @@
         <div class="preview-document" *ngIf="activeDocument === 'autorizacion'">
             <div class="document-header">
                 <h3>REPORTE DIARIO DE AUTORIZACIÓN DE SERVICIO/MAQUINARIA GRP</h3>
-                
+
                 <!-- Botones de control de edición -->
                 <div class="edit-controls">
-                <button 
-                    *ngIf="!editMode" 
-                    class="btn btn-secondary" 
+                <button
+                    *ngIf="!editMode"
+                    class="btn btn-secondary"
                     (click)="enableEditMode()">
                     <span class="btn-icon">✏️</span>
                     Editar Datos
                 </button>
-                
+
                 <div *ngIf="editMode" class="edit-buttons-group">
                     <button class="btn btn-success" (click)="saveAuthChanges()" [disabled]="!hasUnsavedChanges">
                     <span class="btn-icon">💾</span>
@@ -239,15 +239,15 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr *ngFor="let dia of (editMode ? editedAuthData : authData).processedData; let i = index" 
+                    <tr *ngFor="let dia of (editMode ? editedAuthData : authData).processedData; let i = index"
                         [class.no-work]="dia.has_work === false"
                         [class.new-row]="dia.isNew">
-                        
+
                         <!-- Fecha (no editable) -->
                         <td>{{ dia.date }}</td>
-                        
+
                         <!-- HM Trabajadas (editable) -->
-                        <td 
+                        <td
                         [contentEditable]="editMode"
                         [class.editable]="editMode"
                         (dblclick)="onCellDoubleClick(i, 'time_worked')"
@@ -255,12 +255,12 @@
                         [attr.data-field]="'time_worked'">
                         {{ dia.time_worked }}
                         </td>
-                        
+
                         <!-- HM Equivalente (calculado) -->
                         <td>{{ dia.equivalent_hours > 0 ? dia.equivalent_hours : '-' }}</td>
-                        
+
                         <!-- Consumo Combustible (editable) -->
-                        <td 
+                        <td
                         [contentEditable]="editMode"
                         [class.editable]="editMode"
                         (dblclick)="onCellDoubleClick(i, 'fuel_consumption')"
@@ -269,29 +269,29 @@
                         {{ dia.fuel_consumption > 0 ? dia.fuel_consumption : '-' }}
                         </td>
 
-                        
+
                         <!-- Días Trabajados (no editable) -->
                         <td>{{ dia.days_worked !== '-' ? dia.days_worked : '-' }}</td>
-                        
+
                         <!-- Costo Hora (editable) -->
                         <td>
                             S/ {{ dia.cost_per_hour }}
                         </td>
-                        
+
                         <!-- Importe Total (calculado) -->
                         <td>S/ {{ dia.total_amount }}</td>
-                        
+
                         <!-- Acciones -->
                         <td *ngIf="editMode">
-                        <button 
-                            class="btn-icon-delete" 
+                        <button
+                            class="btn-icon-delete"
                             (click)="deleteRow(i)"
                             title="Eliminar fila">
                             🗑️
                         </button>
                         </td>
                     </tr>
-                    
+
                     <!-- Fila de totales -->
                     <tr class="total-row">
                         <td colspan="1">TOTAL</td>
@@ -378,7 +378,7 @@
             </div>
             <div class="form-row">
                 <span class="form-label">COSTO DEL SERVICIO:</span>
-                <span class="form-value">POR DÍA: S/. {{ getCostPerDay() }} POR HORA S/. {{ (editMode ? editedAuthData : authData).totals.cost_per_hour }}</span>
+                <span class="form-value">POR DÍA: S/. {{ liquidationData?.cost_per_day || 0 }} POR HORA S/. {{ (editMode ? editedAuthData : authData).totals.cost_per_hour }}</span>
             </div>
 
             <div class="cost-summary">
@@ -388,7 +388,7 @@
               </div>
               <div class="cost-row">
                 <span class="cost-label">TOTAL (EN LETRAS):</span>
-                <span class="cost-value">{{ getTotalInWords() }}</span>
+                <span class="cost-value">{{ liquidationData?.total_in_words || '' }}</span>
               </div>
             </div>
           </div>

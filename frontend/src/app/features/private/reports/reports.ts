@@ -105,9 +105,9 @@ export class Reports implements OnInit {
   // Columnas actualizadas para la tabla
   displayedColumns: string[] = [
     'estado',
-    'servicio', 
-    'horasTrabajadas', 
-    'combustibleConsumido', 
+    'servicio',
+    'horasTrabajadas',
+    'combustibleConsumido',
     'evidencias',
     'acciones'
   ];
@@ -141,7 +141,7 @@ export class Reports implements OnInit {
   loadServices(): void {
     this.isLoading = true;
     this.errorMessage = '';
-    
+
     this.dailyWorkLogService.getSelectedServiceData()
       .pipe(
         catchError(error => {
@@ -164,7 +164,7 @@ export class Reports implements OnInit {
   getDailyPartsData(servicio: WorkLogElement): void {
     this.isLoading = true;
     this.errorMessage = '';
-    
+
     this.dailyWorkLogService.getDailyPartData(servicio.goal_id)
     .pipe(
       catchError(error => {
@@ -212,14 +212,14 @@ export class Reports implements OnInit {
   // Método para convertir tiempo trabajado a horas decimales
   convertirTiempoAHoras(tiempo: string): number {
     if (!tiempo) return 0;
-    
+
     const partes = tiempo.split(':');
     if (partes.length !== 3) return 0;
-    
+
     const horas = parseInt(partes[0]);
     const minutos = parseInt(partes[1]);
     const segundos = parseInt(partes[2]);
-    
+
     return horas + (minutos / 60) + (segundos / 3600);
   }
 
@@ -297,19 +297,35 @@ export class Reports implements OnInit {
     }
 
     const filterValue = value.toLowerCase();
-    return this.servicioList.filter(servicio => 
+    return this.servicioList.filter(servicio =>
       servicio.goal_project?.toLowerCase().includes(filterValue) ||
       servicio.goal_detail?.toLowerCase().includes(filterValue)
     );
   }
 
-    agregarOrden() {
-      console.log('Agregar nueva orden');
-    }
+  downloadAllCompletedDailyParts(serviceId: number) {
+    this.reportsServicesService.downloadAllCompletedDailyParts(serviceId).subscribe({
+      next: (response: Blob) => {
+        const fileURL = URL.createObjectURL(response);
+        window.open(fileURL, '_blank');
+      },
+      error: () => {
+        this.errorMessage = 'Error al generar el PDF. Por favor, intenta nuevamente.';
+      }
+    });
+  }
 
-    nuevaPlanilla() {
-      console.log('Nueva planilla');
-    }
+  closeService(serviceId: number) {
+    console.log('Cerrando servicio con ID:', serviceId);
+  }
+
+  agregarOrden() {
+    console.log('Agregar nueva orden');
+  }
+
+  nuevaPlanilla() {
+    console.log('Nueva planilla');
+  }
 
   navigateToReportsId(id: number, state: number) {
     this.router.navigate(['/reports/reports-id', id, state]);

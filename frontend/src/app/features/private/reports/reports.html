@@ -1,5 +1,5 @@
 <div class="dashboard-container">
-  
+
   <!-- Header del Dashboard -->
   <div class="dashboard-header">
     <h1>Reportes - Partes Diarios</h1>
@@ -41,29 +41,29 @@
         <form [formGroup]="searchForm">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Seleccionar Servicio</mat-label>
-              <input 
+              <input
               type="text"
               placeholder="Escriba para buscar o seleccione..."
               matInput
               formControlName="servicioSearch"
               [matAutocomplete]="auto">
               <mat-icon matSuffix>search</mat-icon>
-              <button mat-icon-button matSuffix (click)="limpiarSelector()" 
-                      matTooltip="Limpiar selección" 
+              <button mat-icon-button matSuffix (click)="limpiarSelector()"
+                      matTooltip="Limpiar selección"
                       type="button">
                 <mat-icon>clear</mat-icon>
               </button>
-                  
-              <mat-autocomplete 
-              #auto="matAutocomplete" 
+
+              <mat-autocomplete
+              #auto="matAutocomplete"
               [displayWith]="displayServicio"
               (optionSelected)="onServicioSelected($event.option.value)">
-                  
-              <mat-option 
-                  *ngFor="let servicio of filteredServicio| async" 
+
+              <mat-option
+                  *ngFor="let servicio of filteredServicio| async"
                   [value]="servicio"
                   class="servicio-option">
-                      
+
                   <div class="option-content">
                     <div class="option-header">
                         <span>CODIGO META: </span><strong>{{servicio.goal_project || 'Sin Placa'}}</strong>
@@ -71,7 +71,7 @@
                     <div class="option-title">{{servicio.goal_detail}}</div>
                   </div>
               </mat-option>
-                
+
               <mat-option *ngIf="(filteredServicio | async)?.length === 0" disabled>
                   <div class="no-results">
                   <mat-icon>search_off</mat-icon>
@@ -102,9 +102,9 @@
           <mat-card-subtitle>{{ partesDiariosReales.length }} registros encontrados</mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>
-          
+
           <table mat-table [dataSource]="partesDiariosReales" class="parts-table">
-            
+
             <!-- Columna Estado (reemplaza Fecha) -->
             <ng-container matColumnDef="estado">
               <th mat-header-cell *matHeaderCellDef>Estado</th>
@@ -170,19 +170,32 @@
               <th mat-header-cell *matHeaderCellDef>Acciones</th>
               <td mat-cell *matCellDef="let parte">
                 <div class="actions-container">
-                    <button style="color: rgb(109, 107, 12);" *appHasPermission="'generate_reportes'" mat-icon-button 
-                            color="primary" 
+                    <button mat-icon-button matTooltip="Descargar Todos los partes diarios, Completados"
+                            (click)="downloadAllCompletedDailyParts(parte.id)"
+                            style="color: rgb(12, 92, 161);"
+                            color="primary">
+                      <mat-icon>cloud_download</mat-icon>
+                    </button>
+                    <button mat-icon-button
+                            matTooltip="Cerrar Servicio"
+                            (click)="closeService(parte.id)"
+                            style="color: rgb(161, 12, 12);"
+                            color="primary">
+                      <mat-icon>lock</mat-icon>
+                    </button>
+                    <button style="color: rgb(109, 107, 12);" *appHasPermission="'generate_reportes'" mat-icon-button
+                            color="primary"
                             (click)="navigateToReportsId(parte.id, parte.state)"
                             matTooltip="Liquidar Servicio">
                       <mat-icon>account_balance_wallet</mat-icon>
-                    </button> 
+                    </button>
                 </div>
               </td>
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-            
+
           </table>
 
           <!-- Mensaje cuando no hay datos -->

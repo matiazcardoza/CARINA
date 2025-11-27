@@ -209,23 +209,23 @@ export class ReportsId implements OnInit {
   updateCellValue(rowIndex: number, field: string, event: any): void {
     const value = event.target.textContent.trim();
     const row = this.editedAuthData.processedData[rowIndex];
-    
+
     switch(field) {
       case 'time_worked':
         // Validar formato HH:MM
         if (/^\d{1,2}:\d{2}$/.test(value)) {
           row.time_worked = value;
-          
+
           // Si había '-' y ahora hay horas, establecer días trabajados en 1
           if (row.days_worked === '-' || row.days_worked === 0) {
             row.days_worked = 1;
           }
-          
+
           // Si se estableció '00:00' o '-', resetear días trabajados
           if (value === '00:00' || value === '-') {
             row.days_worked = '-';
           }
-          
+
           this.recalculateRow(rowIndex);
         } else {
           // Restaurar valor anterior si formato inválido
@@ -233,7 +233,7 @@ export class ReportsId implements OnInit {
           alert('Formato inválido. Use HH:MM (ejemplo: 08:30)');
         }
         break;
-        
+
       case 'fuel_consumption':
         const fuelValue = parseFloat(value);
         if (!isNaN(fuelValue) && fuelValue >= 0) {
@@ -244,14 +244,14 @@ export class ReportsId implements OnInit {
         }
         break;
     }
-    
+
     this.hasUnsavedChanges = true;
     this.recalculateTotals();
   }
 
   recalculateRow(rowIndex: number): void {
     const row = this.editedAuthData.processedData[rowIndex];
-    
+
     // Convertir time_worked a horas equivalentes
     const timeMatch = row.time_worked.match(/(\d+):(\d+)/);
     if (timeMatch) {
@@ -259,7 +259,7 @@ export class ReportsId implements OnInit {
       const minutes = parseInt(timeMatch[2]);
       row.equivalent_hours = hours + (minutes / 60);
     }
-    
+
     // Recalcular monto total
     row.total_amount = row.equivalent_hours * row.cost_per_hour;
     row.total_amount = Math.round(row.total_amount * 100) / 100;
@@ -275,7 +275,7 @@ export class ReportsId implements OnInit {
     this.editedAuthData.processedData.forEach((row: any) => {
       // Verificar si la fila tiene trabajo real
       const hasValidWork = row.time_worked !== '-' && row.time_worked !== '00:00';
-      
+
       if (hasValidWork) {
         const timeMatch = row.time_worked.match(/(\d+):(\d+)/);
         if (timeMatch) {
@@ -283,22 +283,22 @@ export class ReportsId implements OnInit {
           const minutes = parseInt(timeMatch[2]);
           totalSeconds += (hours * 3600) + (minutes * 60);
         }
-        
+
         totalEquivalentHours += parseFloat(row.equivalent_hours) || 0;
         totalFuelConsumption += parseFloat(row.fuel_consumption) || 0;
-        
+
         // Solo contar días si days_worked es 1 o '1'
         if (row.days_worked === 1 || row.days_worked === '1') {
           totalDaysWorked += 1;
         }
-        
+
         totalAmount += parseFloat(row.total_amount) || 0;
       }
     });
 
     const totalHours = Math.floor(totalSeconds / 3600);
     const totalMinutes = Math.floor((totalSeconds % 3600) / 60);
-    
+
     this.editedAuthData.totals = {
       time_worked: `${String(totalHours).padStart(2, '0')}:${String(totalMinutes).padStart(2, '0')}`,
       equivalent_hours: Math.round(totalEquivalentHours * 100) / 100,
@@ -312,7 +312,7 @@ export class ReportsId implements OnInit {
 
   updateLiquidationData(): void {
     const authData = this.editMode ? this.editedAuthData : this.authData;
-    
+
     if (!authData || !this.liquidationData) return;
 
     const costPerDay = authData.totals.days_worked > 0
@@ -329,15 +329,15 @@ export class ReportsId implements OnInit {
 
   addRowTop(): void {
     if (!this.editMode) return;
-    
+
     // Obtener la fecha de la primera fila actual
     const firstRow = this.editedAuthData.processedData[0];
     const firstDate = this.parseDate(firstRow.date);
-    
+
     // Restar un día
     const newDate = new Date(firstDate);
     newDate.setDate(newDate.getDate() - 1);
-    
+
     const newRow = {
       date: newDate.toLocaleDateString('es-PE'),
       time_worked: '-',
@@ -349,7 +349,7 @@ export class ReportsId implements OnInit {
       has_work: true,
       isNew: true
     };
-    
+
     this.editedAuthData.processedData.unshift(newRow);
     this.editedAuthData.minDate = newDate.toLocaleDateString('es-PE');
     this.requestData.minDate = this.formatDateForRequest(newDate);
@@ -359,15 +359,15 @@ export class ReportsId implements OnInit {
 
   addRowBottom(): void {
     if (!this.editMode) return;
-    
+
     // Obtener la fecha de la última fila actual
     const lastRow = this.editedAuthData.processedData[this.editedAuthData.processedData.length - 1];
     const lastDate = this.parseDate(lastRow.date);
-    
+
     // Sumar un día
     const newDate = new Date(lastDate);
     newDate.setDate(newDate.getDate() + 1);
-    
+
     const newRow = {
       date: newDate.toLocaleDateString('es-PE'),
       time_worked: '-',
@@ -379,7 +379,7 @@ export class ReportsId implements OnInit {
       has_work: true,
       isNew: true
     };
-    
+
     this.editedAuthData.processedData.push(newRow);
     this.editedAuthData.maxDate = newDate.toLocaleDateString('es-PE');
     this.requestData.maxDate = this.formatDateForRequest(newDate);
@@ -404,16 +404,16 @@ export class ReportsId implements OnInit {
       const year = parseInt(parts[2], 10);
       return new Date(year, month, day);
     }
-    
+
     // Si el formato es diferente, ajusta según corresponda
     return new Date(dateString);
   }
 
   deleteRow(index: number): void {
     if (!this.editMode) return;
-    
+
     const totalRows = this.editedAuthData.processedData.length;
-    
+
     // Si es la primera o última fila, eliminar completamente
     if (index === 0 || index === totalRows - 1) {
       if (confirm('¿Está seguro de eliminar esta fila?')) {
@@ -432,7 +432,7 @@ export class ReportsId implements OnInit {
         row.total_amount = 0;
         row.days_worked = '-';
         row.has_work = true;
-        
+
         this.recalculateTotals();
         this.hasUnsavedChanges = true;
       }
@@ -441,18 +441,18 @@ export class ReportsId implements OnInit {
 
   private updateDateRanges(): void {
     if (this.editedAuthData.processedData.length === 0) return;
-    
+
     // Obtener primera y última fecha del array
     const firstRow = this.editedAuthData.processedData[0];
     const lastRow = this.editedAuthData.processedData[this.editedAuthData.processedData.length - 1];
-    
+
     const firstDate = this.parseDate(firstRow.date);
     const lastDate = this.parseDate(lastRow.date);
-    
+
     // Actualizar en editedAuthData (formato dd/MM/yyyy)
     this.editedAuthData.minDate = firstRow.date;
     this.editedAuthData.maxDate = lastRow.date;
-    
+
     // Actualizar en requestData (formato YYYY-MM-DD)
     this.requestData.minDate = this.formatDateForRequest(firstDate);
     this.requestData.maxDate = this.formatDateForRequest(lastDate);
@@ -472,31 +472,31 @@ export class ReportsId implements OnInit {
     if (!authData) {
       return '';
     }
-    
+
     const totalAmount = authData.totals.total_amount;
     const integerPart = Math.floor(totalAmount);
     const cents = Math.round((totalAmount - integerPart) * 100);
-    
+
     // Convertir el número entero a palabras
     const words = this.numberToWords(integerPart);
-    
+
     return `${words} CON ${cents.toString().padStart(2, '0')}/100 SOLES`;
   }
 
   private numberToWords(num: number): string {
     if (num === 0) return 'CERO';
-    
+
     const unidades = ['', 'UNO', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
     const especiales = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE'];
     const decenas = ['', '', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
     const centenas = ['', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS'];
-    
+
     const convertirGrupo = (n: number): string => {
       if (n === 0) return '';
       if (n === 100) return 'CIEN';
-      
+
       let resultado = '';
-      
+
       // Centenas
       const c = Math.floor(n / 100);
       if (c > 0) {
@@ -504,14 +504,14 @@ export class ReportsId implements OnInit {
         n %= 100;
         if (n > 0) resultado += ' ';
       }
-      
+
       // Decenas y unidades
       if (n >= 10 && n < 20) {
         resultado += especiales[n - 10];
       } else {
         const d = Math.floor(n / 10);
         const u = n % 10;
-        
+
         if (d > 0) {
           resultado += decenas[d];
           if (u > 0) {
@@ -521,39 +521,39 @@ export class ReportsId implements OnInit {
           resultado += unidades[u];
         }
       }
-      
+
       return resultado;
     };
-    
+
     if (num < 1000) {
       return convertirGrupo(num);
     } else if (num < 1000000) {
       const miles = Math.floor(num / 1000);
       const resto = num % 1000;
       let resultado = '';
-      
+
       if (miles === 1) {
         resultado = 'MIL';
       } else {
         resultado = convertirGrupo(miles) + ' MIL';
       }
-      
+
       if (resto > 0) {
         resultado += ' ' + convertirGrupo(resto);
       }
-      
+
       return resultado;
     } else {
       const millones = Math.floor(num / 1000000);
       const resto = num % 1000000;
       let resultado = '';
-      
+
       if (millones === 1) {
         resultado = 'UN MILLÓN';
       } else {
         resultado = convertirGrupo(millones) + ' MILLONES';
       }
-      
+
       if (resto > 0) {
         if (resto >= 1000) {
           const miles = Math.floor(resto / 1000);
@@ -570,14 +570,14 @@ export class ReportsId implements OnInit {
           resultado += ' ' + convertirGrupo(resto);
         }
       }
-      
+
       return resultado;
     }
   }
 
   saveAuthChanges(): void {
     if (!this.hasUnsavedChanges) return;
-    
+
     const changesData = {
       serviceId: this.reportId,
       equipment: this.equipmentData,
@@ -585,23 +585,33 @@ export class ReportsId implements OnInit {
       auth: this.editedAuthData,
       liquidation: this.liquidationData
     };
+
+    this.isLoading = true;
+
     this.reportsServicesService.saveAuthChanges(changesData).subscribe({
       next: (response) => {
         console.log('Cambios guardados:', response);
-        
+
         // Actualizar los datos originales con los editados
         this.authData = JSON.parse(JSON.stringify(this.editedAuthData));
-        
-        // Salir del modo edición
+
+        // IMPORTANTE: Resetear TODOS los estados del modo edición
         this.editMode = false;
+        this.editedAuthData = null;
         this.hasUnsavedChanges = false;
         this.editingCell = null;
-        
+        this.isLoading = false;
+
+        // Forzar la detección de cambios
+        this.cdr.detectChanges();
+
         alert('Cambios guardados correctamente');
       },
       error: (error) => {
         console.error('Error al guardar cambios:', error);
         this.errorMessage = 'Error al guardar los cambios. Por favor, intenta nuevamente.';
+        this.isLoading = false;
+        this.cdr.detectChanges();
       }
     });
   }

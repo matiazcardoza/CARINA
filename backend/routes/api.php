@@ -135,4 +135,5 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/reports/report-generate-auth', [ReportController::class, 'generateAuth']);
     Route::post('/reports/report-generate-liquidation', [ReportController::class, 'generateLiquidation']);
     Route::post('/reports/save-auth-changes', [ReportController::class, 'saveAuthChanges']);
+    Route::post('/reports/download-merged-daily-parts/{serviceId}', [ReportController::class, 'downloadMergedDailyParts']);
 });

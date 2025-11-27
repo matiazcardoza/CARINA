@@ -2,9 +2,6 @@
   <div class="dialog-header">
     <h2 mat-dialog-title>Evidencias del Servicio</h2>
     <div class="header-actions">
-      <!--<button mat-icon-button matTooltip="Descargar Todos los partes diarios, Completados" (click)="downloadMasiveDailyParts()" [disabled]="loading">
-        <mat-icon>cloud_download</mat-icon>
-      </button>-->
       <button mat-icon-button matTooltip="Actualizar partes diarias" (click)="onRefresh()" [disabled]="loading">
         <mat-icon>refresh</mat-icon>
       </button>
@@ -72,9 +69,9 @@
               </div>
             </div>
             <div>
-              <button mat-icon-button 
-                      matTooltip="Descargar Parte Diario" 
-                      (click)="onDownloadDailyPart(shift.path_document)" 
+              <button mat-icon-button
+                      matTooltip="Descargar Parte Diario"
+                      (click)="onDownloadDailyPart(shift.path_document)"
                       [disabled]="loading || !shift.path_document">
                 <mat-icon>download</mat-icon>
               </button>
