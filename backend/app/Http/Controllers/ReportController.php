@@ -271,9 +271,9 @@ class ReportController extends Controller
         ->join('daily_parts as dp', 'ddp.id', '=', 'dp.document_id')
         ->where('dp.service_id', $serviceId)
         ->where('ddp.state', 3)
-        ->select('ddp.id', 'ddp.file_path', 'ddp.created_at')
-        ->groupBy('ddp.id', 'ddp.file_path', 'ddp.created_at')
-        ->orderBy('ddp.created_at', 'asc')
+        ->select('ddp.id', 'ddp.file_path', 'ddp.created_at', 'dp.work_date')
+        ->groupBy('ddp.id', 'ddp.file_path', 'ddp.created_at', 'dp.work_date')
+        ->orderBy('dp.work_date', 'asc')
         ->get();
 
     if ($documents->isEmpty()) {
