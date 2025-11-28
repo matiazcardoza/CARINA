@@ -109,13 +109,14 @@ class ReportController extends Controller
         $totalHours = floor($totalSecondsWorked / 3600);
         $totalMinutes = floor(($totalSecondsWorked % 3600) / 60);
         $totalTimeFormatted = sprintf('%02d:%02d', $totalHours, $totalMinutes);
+        $totalAmountTotal = $totalEquivalentHours * $costPerHour;
         $totals = [
             'time_worked'      => $totalTimeFormatted,
             'equivalent_hours' => round($totalEquivalentHours, 2),
             'fuel_consumption' => $totalFuelConsumption,
             'days_worked'      => $totalDaysWorked,
             'cost_per_hour'    => $costPerHour,
-            'total_amount'     => round($totalAmount, 2)
+            'total_amount'     => round($totalAmountTotal, 2)
         ];
 
         $auth = [
