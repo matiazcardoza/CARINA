@@ -115,6 +115,9 @@ class ServiceController extends Controller
 
     foreach ($services as $service) {
         // Obtener daily parts del servicio
+        if ($service->state != 3) {
+            continue;
+        }
         $dailyParts = DailyPart::where('service_id', $service->id)->get();
 
         // Calcular segundos totales trabajados

@@ -25,8 +25,9 @@
         </button>
       </div>
     </div>-->
-    <div class="action-card">
-      <button class="btn btn-primary" (click)="openValorizedDialog(1)">
+    <div class="action-card" *appHasPermission="'generate_reportes'">
+      <button class="btn btn-primary"
+        (click)="openValorizedDialog(1)">
         💰 Valorizar
       </button>
     </div>
