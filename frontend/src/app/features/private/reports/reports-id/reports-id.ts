@@ -250,65 +250,68 @@ export class ReportsId implements OnInit {
   }
 
   recalculateRow(rowIndex: number): void {
-    const row = this.editedAuthData.processedData[rowIndex];
+  const row = this.editedAuthData.processedData[rowIndex];
 
-    // Convertir time_worked a horas equivalentes
-    const timeMatch = row.time_worked.match(/(\d+):(\d+)/);
-    if (timeMatch) {
-      const hours = parseInt(timeMatch[1]);
-      const minutes = parseInt(timeMatch[2]);
-      // FORZAR 2 decimales usando toFixed y parseFloat
-      row.equivalent_hours = parseFloat((hours + (minutes / 60)).toFixed(2));
-    }
-
-    // Recalcular monto total con 2 decimales fijos
-    row.total_amount = parseFloat((row.equivalent_hours * row.cost_per_hour).toFixed(2));
+  // Convertir time_worked a horas equivalentes
+  const timeMatch = row.time_worked.match(/(\d+):(\d+)/);
+  if (timeMatch) {
+    const hours = parseInt(timeMatch[1]);
+    const minutes = parseInt(timeMatch[2]);
+    // FORZAR 2 decimales usando toFixed y parseFloat
+    row.equivalent_hours = parseFloat((hours + (minutes / 60)).toFixed(2));
   }
+
+  // Recalcular monto total con 2 decimales fijos
+  row.total_amount = parseFloat((row.equivalent_hours * row.cost_per_hour).toFixed(2));
+}
 
   recalculateTotals(): void {
-    let totalSeconds = 0;
-    let totalEquivalentHours = 0;
-    let totalFuelConsumption = 0;
-    let totalDaysWorked = 0;
-    let totalAmount = 0;
+  let totalSeconds = 0;
+  let totalEquivalentHours = 0;
+  let totalFuelConsumption = 0;
+  let totalDaysWorked = 0;
+  let totalAmount = 0;
 
-    this.editedAuthData.processedData.forEach((row: any) => {
-      const hasValidWork = row.time_worked !== '-' && row.time_worked !== '00:00';
+  this.editedAuthData.processedData.forEach((row: any) => {
+    const hasValidWork = row.time_worked !== '-' && row.time_worked !== '00:00';
 
-      if (hasValidWork) {
-        const timeMatch = row.time_worked.match(/(\d+):(\d+)/);
-        if (timeMatch) {
-          const hours = parseInt(timeMatch[1]);
-          const minutes = parseInt(timeMatch[2]);
-          totalSeconds += (hours * 3600) + (minutes * 60);
-        }
-
-        totalEquivalentHours += parseFloat(row.equivalent_hours) || 0;
-        totalFuelConsumption += parseFloat(row.fuel_consumption) || 0;
-
-        if (row.days_worked === 1 || row.days_worked === '1') {
-          totalDaysWorked += 1;
-        }
-
-        totalAmount += parseFloat(row.total_amount) || 0;
+    if (hasValidWork) {
+      const timeMatch = row.time_worked.match(/(\d+):(\d+)/);
+      if (timeMatch) {
+        const hours = parseInt(timeMatch[1]);
+        const minutes = parseInt(timeMatch[2]);
+        totalSeconds += (hours * 3600) + (minutes * 60);
       }
-    });
 
-    const totalHours = Math.floor(totalSeconds / 3600);
-    const totalMinutes = Math.floor((totalSeconds % 3600) / 60);
+      totalEquivalentHours += parseFloat(row.equivalent_hours) || 0;
+      totalFuelConsumption += parseFloat(row.fuel_consumption) || 0;
 
-    // FORZAR 2 decimales en TODOS los totales usando toFixed y parseFloat
-    this.editedAuthData.totals = {
-      time_worked: `${String(totalHours).padStart(2, '0')}:${String(totalMinutes).padStart(2, '0')}`,
-      equivalent_hours: parseFloat(totalEquivalentHours.toFixed(2)),
-      fuel_consumption: parseFloat(totalFuelConsumption.toFixed(2)),
-      days_worked: totalDaysWorked,
-      cost_per_hour: parseFloat(this.editedAuthData.totals.cost_per_hour.toFixed(2)),
-      total_amount: parseFloat(totalAmount.toFixed(2))
-    };
+      if (row.days_worked === 1 || row.days_worked === '1') {
+        totalDaysWorked += 1;
+      }
 
-    this.updateLiquidationData();
-  }
+      totalAmount += parseFloat(row.total_amount) || 0;
+    }
+  });
+
+  const totalHours = Math.floor(totalSeconds / 3600);
+  const totalMinutes = Math.floor((totalSeconds % 3600) / 60);
+
+  // ✅ SOLUCIÓN: Convertir cost_per_hour a número antes de usar toFixed
+  const costPerHour = parseFloat(this.editedAuthData.totals.cost_per_hour) || 0;
+
+  // FORZAR 2 decimales en TODOS los totales usando toFixed y parseFloat
+  this.editedAuthData.totals = {
+    time_worked: `${String(totalHours).padStart(2, '0')}:${String(totalMinutes).padStart(2, '0')}`,
+    equivalent_hours: parseFloat(totalEquivalentHours.toFixed(2)),
+    fuel_consumption: parseFloat(totalFuelConsumption.toFixed(2)),
+    days_worked: totalDaysWorked,
+    cost_per_hour: parseFloat(costPerHour.toFixed(2)), // ✅ Ahora sí funciona
+    total_amount: parseFloat(totalAmount.toFixed(2))
+  };
+
+  this.updateLiquidationData();
+}
 
   updateLiquidationData(): void {
   const authData = this.editMode ? this.editedAuthData : this.authData;
@@ -337,14 +340,17 @@ export class ReportsId implements OnInit {
   const newDate = new Date(firstDate);
   newDate.setDate(newDate.getDate() - 1);
 
+  // ✅ SOLUCIÓN: Convertir cost_per_hour a número primero
+  const costPerHour = parseFloat(this.editedAuthData.totals.cost_per_hour) || 0;
+
   const newRow = {
     date: newDate.toLocaleDateString('es-PE'),
     time_worked: '-',
-    equivalent_hours: 0.00, // FORZAR decimal
-    fuel_consumption: 0.00, // FORZAR decimal
+    equivalent_hours: 0.00,
+    fuel_consumption: 0.00,
     days_worked: '-',
-    cost_per_hour: parseFloat(this.editedAuthData.totals.cost_per_hour.toFixed(2)),
-    total_amount: 0.00, // FORZAR decimal
+    cost_per_hour: parseFloat(costPerHour.toFixed(2)), // ✅ Ahora sí es seguro
+    total_amount: 0.00,
     has_work: true,
     isNew: true
   };
@@ -365,14 +371,17 @@ export class ReportsId implements OnInit {
   const newDate = new Date(lastDate);
   newDate.setDate(newDate.getDate() + 1);
 
+  // ✅ SOLUCIÓN: Convertir cost_per_hour a número primero
+  const costPerHour = parseFloat(this.editedAuthData.totals.cost_per_hour) || 0;
+
   const newRow = {
     date: newDate.toLocaleDateString('es-PE'),
     time_worked: '-',
-    equivalent_hours: 0.00, // FORZAR decimal
-    fuel_consumption: 0.00, // FORZAR decimal
+    equivalent_hours: 0.00,
+    fuel_consumption: 0.00,
     days_worked: '-',
-    cost_per_hour: parseFloat(this.editedAuthData.totals.cost_per_hour.toFixed(2)),
-    total_amount: 0.00, // FORZAR decimal
+    cost_per_hour: parseFloat(costPerHour.toFixed(2)), // ✅ Ahora sí es seguro
+    total_amount: 0.00,
     has_work: true,
     isNew: true
   };
