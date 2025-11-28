@@ -34,7 +34,9 @@
           <tr *ngFor="let machinery of valorationData.machinery; let i = index">
             <td class="text-center">{{ i + 1 }}</td>
             <td>{{ getMachineryName(machinery.equipment) }}</td>
-            <td>{{ getOperatorNames(machinery.equipment) }}</td>
+            <td>
+              <input type="text" class="editable-input editable-operator" [(ngModel)]="editedOperators[i]">
+            </td>
             <td>{{ getBrand(machinery.equipment) }}</td>
             <td>{{ getPlate(machinery.equipment) }}</td>
             <td class="text-center">{{ machinery.time_worked }}</td>
@@ -52,6 +54,22 @@
             </td>
             <td colspan="2"></td>
           </tr>
+
+          <!-- NUEVO: INPUT DE PLANILLA -->
+          <tr class="planilla-row">
+            <td colspan="7" class="text-right"><strong>MONTO PLANILLA</strong></td>
+            <td class="text-right">
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                class="editable-input planilla-input"
+                [(ngModel)]="amountPlanilla"
+                (input)="onAmountPlanillaChange()">
+            </td>
+            <td colspan="2"></td>
+          </tr>
+
         </tbody>
       </table>
     </div>
@@ -60,10 +78,19 @@
     <div class="summary-section">
       <div class="summary-card">
         <h3>RESUMEN</h3>
+
         <div class="summary-item-large">
-          <span class="summary-label">MONTO TOTAL DE VALORIZACIÓN:</span>
-          <span class="summary-value">S/. {{ valorationData.valoration_amount | number:'1.2-2' }}</span>
+          <span class="summary-label">MONTO TOTAL DE VALORIZACIÓN (FINAL):</span>
+          <span class="summary-value">
+            S/.
+            <input
+              type="number"
+              class="editable-input editable-total"
+              [value]="editedValorationAmount"
+              readonly>
+          </span>
         </div>
+
         <div class="summary-note">
           <p>Pago a operadores de maquinaria pesada del GRP, según Planilla</p>
         </div>
@@ -72,7 +99,7 @@
 
   </div>
 
-  <!-- Footer con botones -->
+  <!-- Footer -->
   <div class="valorized-footer">
     <button mat-raised-button color="warn" (click)="closeDialog()">
       <mat-icon>close</mat-icon>

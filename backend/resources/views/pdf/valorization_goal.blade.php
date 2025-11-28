@@ -303,11 +303,11 @@
                 </tr>
                 <tr>
                     <td class="summary-label">Pago de operadores de maquinaria pesada del GRP, según Planilla</td>
-                    <td class="summary-value currency">S/. -</td>
+                    <td class="summary-value currency">S/. {{ number_format($amountPlanilla ?? 0, 2) }}</td>
                 </tr>
                 <tr>
                     <td class="summary-label"><strong>TOTAL A PAGAR</strong></td>
-                    <td class="summary-value currency"><strong><span>S/. {{ number_format($valorationData['valoration_amount'], 2) }}</span></strong></td>
+                    <td class="summary-value currency"><strong><span>S/. {{ number_format($editedValorationAmount ?? $valorationData['valoration_amount'], 2) }}</span></strong></td>
                 </tr>
             </tbody>
         </table>

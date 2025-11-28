@@ -1,37 +1,3 @@
-/* Estilos globales para quitar bordes redondeados del diálogo */
-::ng-deep .maximized-dialog-panel {
-  border-radius: 0 !important;
-}
-
-::ng-deep .mat-mdc-dialog-container {
-  border-radius: 0 !important;
-}
-
-::ng-deep .mat-mdc-dialog-surface {
-  border-radius: 0 !important;
-}
-
-::ng-deep .mdc-dialog__surface {
-  border-radius: 0 !important;
-}
-
-::ng-deep .cdk-overlay-pane {
-  border-radius: 0 !important;
-}
-
-/* Asegurar que el contenedor ocupe toda la pantalla */
-::ng-deep .maximized-dialog-panel .mat-mdc-dialog-container {
-  border-radius: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  max-width: 100vw !important;
-  max-height: 100vh !important;
-}
-
-::ng-deep .no-scroll-dialog .mat-mdc-dialog-container {
-  border-radius: 0 !important;
-}
-
 .valorized-container {
   display: flex;
   flex-direction: column;
@@ -319,4 +285,43 @@
   .valorized-footer button {
     width: 100%;
   }
+}
+
+.editable-input {
+  border: 1px solid #ccc;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: inherit;
+  font-weight: bold;
+  width: 150px;
+}
+
+.editable-input:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.1);
+}
+
+.editable-operator {
+  width: 100%;
+  min-width: 150px;
+}
+.planilla-row {
+  background-color: #f0f4ff;
+}
+
+.planilla-input {
+  width: 120px;
+  padding: 4px 8px;
+  font-size: 14px;
+  text-align: right;
+  border: 1px solid #b4c7ff;
+  border-radius: 4px;
+}
+
+.editable-total {
+  width: 140px;
+  text-align: right;
+  background-color: #f7f7f7;
+  font-weight: bold;
 }

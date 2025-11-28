@@ -167,7 +167,6 @@ class ReportController extends Controller
 
     public function generateRequest(Request $request)
     {
-        Log::info('Generating request PDF with data: ', $request->all());
         $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
         $qr_code = base64_encode("data_qr_example");
         $data = [
@@ -231,6 +230,7 @@ class ReportController extends Controller
 
     public function generateValorization(Request $request)
     {
+        Log::info('Valorization request data: ' . json_encode($request->json()->all()));
         $serviceId = $request->machinery[0]['service_id'];
 
         $goalDetail = DB::table('services')
@@ -247,8 +247,11 @@ class ReportController extends Controller
         $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
         $qr_code = base64_encode("data_qr_example");
         $valorationData = $request->json()->all();
-
+        $editedValorationAmount = $request->input('editedValorationAmount');
+        $amountPlanilla = $request->input('amountPlanilla');
         $data = [
+            'editedValorationAmount' => $editedValorationAmount,
+            'amountPlanilla' => $amountPlanilla,
             'goalDetail' => $goalDetail,
             'mes' => $mes,
             'logoPath' => $logoPath,

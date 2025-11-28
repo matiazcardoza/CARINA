@@ -1,9 +1,10 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { ValorationData, ValorationMachinery } from '../../../../../services/DailyWorkLogService/daily-work-log-service';
+import { ValorationData } from '../../../../../services/DailyWorkLogService/daily-work-log-service';
 import { ReportsServicesService } from '../../../../../services/ReportsServicesService/reports-services-service';
 
 export interface DialogData {
@@ -18,7 +19,8 @@ export interface DialogData {
     CommonModule,
     MatDialogModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    FormsModule
   ],
   templateUrl: './report-valorized.html',
   styleUrl: './report-valorized.css'
@@ -26,8 +28,12 @@ export interface DialogData {
 export class ReportValorized implements OnInit {
 
   valorationData: ValorationData;
+  editedValorationAmount: number;
+  editedOperators: { [key: number]: string } = {};
   serviceId: number;
   errorMessage: string | null = null;
+
+  amountPlanilla: number = 0;   // NUEVO
 
   displayedColumns: string[] = [
     'item',
@@ -49,14 +55,46 @@ export class ReportValorized implements OnInit {
   ) {
     this.valorationData = data.valorationData;
     this.serviceId = data.serviceId;
+    this.editedValorationAmount = data.valorationData.valoration_amount;
+
+    this.valorationData.machinery.forEach((machinery, index) => {
+      this.editedOperators[index] = this.getOperatorNames(machinery.equipment);
+    });
   }
 
   ngOnInit(): void {
     console.log('Datos de valorización recibidos:', this.valorationData);
   }
 
+  // Recalcular automaticamente el total final
+  onAmountPlanillaChange(): void {
+    if (this.amountPlanilla >= 0) {
+      this.editedValorationAmount =
+        this.valorationData.valoration_amount - this.amountPlanilla;
+    }
+  }
+
   generateValorization(): void {
-    const valorationDataSend = this.valorationData;
+    const valorationDataSend = JSON.parse(JSON.stringify(this.valorationData));
+
+    // Aplicar operadores editados
+    valorationDataSend.machinery.forEach((machinery: any, index: number) => {
+      if (this.editedOperators[index] && machinery.equipment?.operators) {
+        const operatorNames = this.editedOperators[index]
+          .split(',')
+          .map((name: string) => name.trim());
+
+        machinery.equipment.operators = operatorNames.map((name: string, i: number) => ({
+          ...(machinery.equipment.operators[i] || {}),
+          name: name
+        }));
+      }
+    });
+
+    // Enviar con EXACTAMENTE 2 DECIMALES
+    valorationDataSend.editedValorationAmount = Number(this.editedValorationAmount.toFixed(2));
+    valorationDataSend.amountPlanilla = Number(this.amountPlanilla.toFixed(2));
+
     this.reportsServicesService.generateValorization(valorationDataSend).subscribe({
       next: (response: Blob) => {
         const fileURL = URL.createObjectURL(response);
@@ -92,3 +130,4 @@ export class ReportValorized implements OnInit {
     return equipment?.plate || 'N/A';
   }
 }
+
