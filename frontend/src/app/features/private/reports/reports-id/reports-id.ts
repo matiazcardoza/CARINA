@@ -270,7 +270,6 @@ export class ReportsId implements OnInit {
   let totalEquivalentHours = 0;
   let totalFuelConsumption = 0;
   let totalDaysWorked = 0;
-  let totalAmount = 0;
 
   this.editedAuthData.processedData.forEach((row: any) => {
     const hasValidWork = row.time_worked !== '-' && row.time_worked !== '00:00';
@@ -289,25 +288,24 @@ export class ReportsId implements OnInit {
       if (row.days_worked === 1 || row.days_worked === '1') {
         totalDaysWorked += 1;
       }
-
-      totalAmount += parseFloat(row.total_amount) || 0;
     }
   });
 
   const totalHours = Math.floor(totalSeconds / 3600);
   const totalMinutes = Math.floor((totalSeconds % 3600) / 60);
 
-  // ✅ SOLUCIÓN: Convertir cost_per_hour a número antes de usar toFixed
   const costPerHour = parseFloat(this.editedAuthData.totals.cost_per_hour) || 0;
 
-  // FORZAR 2 decimales en TODOS los totales usando toFixed y parseFloat
+  // ✅ CÁLCULO CORRECTO: total_amount = cost_per_hour × equivalent_hours
+  const totalAmount = parseFloat((totalEquivalentHours * costPerHour).toFixed(2));
+
   this.editedAuthData.totals = {
     time_worked: `${String(totalHours).padStart(2, '0')}:${String(totalMinutes).padStart(2, '0')}`,
     equivalent_hours: parseFloat(totalEquivalentHours.toFixed(2)),
     fuel_consumption: parseFloat(totalFuelConsumption.toFixed(2)),
     days_worked: totalDaysWorked,
-    cost_per_hour: parseFloat(costPerHour.toFixed(2)), // ✅ Ahora sí funciona
-    total_amount: parseFloat(totalAmount.toFixed(2))
+    cost_per_hour: parseFloat(costPerHour.toFixed(2)),
+    total_amount: totalAmount  // ✅ Ahora se calcula directamente
   };
 
   this.updateLiquidationData();
