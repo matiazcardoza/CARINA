@@ -229,6 +229,39 @@ class ReportController extends Controller
         return $pdf->stream('Liquidacion-servicio-alquiler.pdf');
     }
 
+    public function generateValorization(Request $request)
+    {
+        $serviceId = $request->machinery[0]['service_id'];
+
+        $goalDetail = DB::table('services')
+            ->where('id', $serviceId)
+            ->value('goal_detail');
+        $maxWorkedDate = DB::table('daily_parts')
+            ->where('service_id', $serviceId)
+            ->max('work_date');
+        $mes = strtoupper(
+            \Carbon\Carbon::parse($maxWorkedDate)
+                ->locale('es')
+                ->monthName
+        );
+        $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
+        $qr_code = base64_encode("data_qr_example");
+        $valorationData = $request->json()->all();
+
+        $data = [
+            'goalDetail' => $goalDetail,
+            'mes' => $mes,
+            'logoPath' => $logoPath,
+            'valorationData' => $valorationData,
+            'qr_code' => $qr_code,
+        ];
+
+        $pdf = Pdf::loadView('pdf.valorization_goal', $data);
+        $pdf->setPaper('A4', 'landscape');
+
+        return $pdf->stream('Valoracion-goal.pdf');
+    }
+
     public function saveAuthChanges(Request $request)
     {
         try {

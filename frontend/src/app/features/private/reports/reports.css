@@ -1,3 +1,4 @@
+/* Dashboard General */
 .dashboard-container {
   padding: 20px;
   background-color: #f5f5f5;
@@ -8,7 +9,7 @@
   width: 95%;
 }
 
-form{
+form {
   display: flex;
   justify-content: center;
 }
@@ -95,7 +96,7 @@ form{
   margin-bottom: 10px;
 }
 
-/* Header Card Styles */
+/* Header Card */
 .header-card {
   margin-bottom: 20px;
   background: linear-gradient(135deg, #4a9fe9 0%, #8db2db 100%);
@@ -216,32 +217,32 @@ form{
   font-size: 0.9rem;
 }
 
-/* Responsive Design */
+/* Responsive */
 @media (max-width: 768px) {
   .dashboard-container {
     padding: 10px;
   }
-  
+
   .dashboard-header {
     flex-direction: column;
     gap: 10px;
     text-align: center;
   }
-  
+
   .summary-cards {
     grid-template-columns: 1fr;
   }
-  
+
   .charts-container {
     grid-template-columns: 1fr;
   }
-  
+
   .project-selector {
     max-width: 100%;
   }
 }
 
-/* Tab Styles */
+/* Tabs */
 ::ng-deep .mat-mdc-tab-group {
   margin-top: 20px;
 }
@@ -250,23 +251,18 @@ form{
   padding: 20px 0;
 }
 
-/* Progress Bar Custom Styles */
 ::ng-deep .mat-mdc-progress-bar {
   margin-top: 8px;
 }
 
-/* Badge Custom Styles */
+/* Badge */
 ::ng-deep .mat-badge-content {
   font-size: 10px;
 }
 
-.action-icon.orden {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.action-icon.planilla {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
+/* ----------------------------- */
+/*        ACTION CARDS NUEVOS    */
+/* ----------------------------- */
 
 .actions-section h2 {
   font-size: 22px;
@@ -275,62 +271,60 @@ form{
   font-weight: 600;
 }
 
+/* Tarjeta simple: icono + botón */
 .action-card {
   display: flex;
-  gap: 15px;
-  padding: 20px;
-  background-color: #f8f9fa;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background-color: #e6dcc1;
   border-radius: 10px;
-  margin-bottom: 15px;
-  transition: all 0.3s ease;
+  width: fit-content;
   border: 2px solid transparent;
+  transition: 0.3s ease;
 }
 
 .action-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   border-color: #e1e8ed;
 }
 
+/* Íconos */
 .action-icon {
-  font-size: 36px;
-  width: 60px;
-  height: 60px;
+  font-size: 32px;
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
-  flex-shrink: 0;
 }
 
-.action-content {
-  flex: 1;
+.action-icon.orden {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
 }
 
-.action-content h3 {
-  font-size: 18px;
-  color: #2c3e50;
-  margin: 0 0 5px 0;
-  font-weight: 600;
+.action-icon.planilla {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
 }
 
-.action-content p {
-  font-size: 14px;
-  color: #6c757d;
-  margin: 0 0 12px 0;
+.action-icon.valorizacion {
+  background: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
+  color: white;
 }
 
-/* Botones */
+/* Botones pequeños */
 .btn {
-  padding: 10px 20px;
+  padding: 6px 14px;
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: 6px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  width: 100%;
-  text-align: center;
+  transition: 0.3s ease;
 }
 
 .btn-primary {
@@ -342,15 +336,4 @@ form{
   background-color: #2980b9;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
-}
-
-.btn-secondary {
-  background-color: #95a5a6;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background-color: #7f8c8d;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(149, 165, 166, 0.3);
 }

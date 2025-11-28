@@ -124,10 +124,10 @@ export class Dashboards implements OnInit {
   // Columnas actualizadas para la tabla
   displayedColumns: string[] = [
     'estado',
-    'servicio', 
-    'horasTrabajadas', 
-    'combustibleConsumido', 
-    'estadoFirmas', 
+    'servicio',
+    'horasTrabajadas',
+    'combustibleConsumido',
+    'estadoFirmas',
     'evidencias',
     'acciones'
   ];
@@ -148,31 +148,7 @@ export class Dashboards implements OnInit {
 
   ngOnInit(): void {
     this.runUserImport();
-    this.loadServices();
     this.calcularResumenDashboard();
-  }
-
-  loadServices(): void {
-    this.isLoading = true;
-    this.errorMessage = '';
-    
-    this.dailyWorkLogService.getSelectedServiceData()
-      .pipe(
-        catchError(error => {
-          console.error('Error loading mechanical equipment:', error);
-          this.errorMessage = 'Error al cargar la servicio. Por favor, intente nuevamente.';
-          return of([]);
-        })
-      )
-      .subscribe(service => {
-        this.servicioList = service;
-        this.isLoading = false;
-        this.filteredServicio = this.searchForm.get('servicioSearch')!.valueChanges.pipe(
-          startWith(''),
-          map(value => this._filterServicio(typeof value === 'string' ? value : value?.goal_detail || ''))
-        );
-        this.cdr.detectChanges();
-      });
   }
 
   runUserImport(): void {
@@ -191,27 +167,6 @@ export class Dashboards implements OnInit {
         error: (error) => {
             console.error('La importación de usuarios falló al ingresar:', error);
         }
-    });
-  }
-
-  getDailyPartsData(servicio: WorkLogElement): void {
-    this.isLoading = true;
-    this.errorMessage = '';
-    
-    this.dailyWorkLogService.getDailyPartData(servicio.goal_id)
-    .pipe(
-      catchError(error => {
-        console.error('Error al cargar los partes diarios:', error);
-        this.errorMessage = 'Error al cargar los partes diarios. Por favor, intente nuevamente.';
-        return of([]);
-      })
-    )
-    .subscribe((data: WorkLogDataElement[]) => {
-      console.log('Estos son los datos que llegan:', data);
-      this.partesDiariosReales = data;
-      this.calcularResumenDashboardReal();
-      this.isLoading = false;
-      this.cdr.detectChanges();
     });
   }
 
@@ -246,14 +201,14 @@ export class Dashboards implements OnInit {
   // Método para convertir tiempo trabajado a horas decimales
   convertirTiempoAHoras(tiempo: string): number {
     if (!tiempo) return 0;
-    
+
     const partes = tiempo.split(':');
     if (partes.length !== 3) return 0;
-    
+
     const horas = parseInt(partes[0]);
     const minutos = parseInt(partes[1]);
     const segundos = parseInt(partes[2]);
-    
+
     return horas + (minutos / 60) + (segundos / 3600);
   }
 
@@ -267,18 +222,18 @@ export class Dashboards implements OnInit {
       .reduce((total, parte) => {
         return total + this.convertirTiempoAHoras(parte.total_time_worked);
       }, 0);
-    
+
     this.resumenDashboard.totalCombustibleConsumido = this.partesDiariosReales
       .reduce((total, parte) => {
         return total + parseFloat(parte.fuel_consumed || '0');
       }, 0);
-    
+
     // Para los completados usamos datos falsos por ahora
     this.resumenDashboard.partesCompletados = Math.floor(this.partesDiariosReales.length * 0.7);
     this.resumenDashboard.partesPendientes = this.partesDiariosReales.length - this.resumenDashboard.partesCompletados;
-    
-    this.resumenDashboard.porcentajeEficiencia = 
-      this.partesDiariosReales.length > 0 
+
+    this.resumenDashboard.porcentajeEficiencia =
+      this.partesDiariosReales.length > 0
         ? (this.resumenDashboard.partesCompletados / this.partesDiariosReales.length) * 100
         : 0;
   }
@@ -321,7 +276,7 @@ export class Dashboards implements OnInit {
     }
   }
 
-  
+
 
   descargarReporte(): void {
     console.log('Descargando reporte...');
@@ -345,18 +300,13 @@ export class Dashboards implements OnInit {
     return servicio ? `${servicio.goal_project || 'N/A'} - ${servicio.goal_detail}` : '';
   }
 
-  onServicioSelected(servicio: WorkLogElement): void {
-    this.selectedServicio = servicio;
-    this.getDailyPartsData(servicio);
-  }
-
   private _filterServicio(value: string): WorkLogElement[] {
     if (!value) {
       return this.servicioList;
     }
 
     const filterValue = value.toLowerCase();
-    return this.servicioList.filter(servicio => 
+    return this.servicioList.filter(servicio =>
       servicio.goal_project?.toLowerCase().includes(filterValue) ||
       servicio.goal_detail?.toLowerCase().includes(filterValue)
     );
@@ -365,7 +315,7 @@ export class Dashboards implements OnInit {
   obtenerColorBotonFirmas(parteId: any): string {
     const estadoFirmas = this.obtenerDatosFalsos(parteId).estadoFirmas;
     const todasFirmadas = estadoFirmas.controlador && estadoFirmas.residente && estadoFirmas.supervisor;
-    
+
     if (todasFirmadas) {
       return 'primary';
     } else if (estadoFirmas.controlador || estadoFirmas.residente || estadoFirmas.supervisor) {

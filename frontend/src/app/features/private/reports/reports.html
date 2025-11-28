@@ -3,10 +3,6 @@
   <!-- Header del Dashboard -->
   <div class="dashboard-header">
     <h1>Reportes - Partes Diarios</h1>
-    <button mat-raised-button color="primary"  (click)="descargarReporte()">
-      <mat-icon>download</mat-icon>
-      Descargar Reporte
-    </button>
 
     <!--<div class="action-card">
       <div class="action-icon orden">📋</div>
@@ -29,6 +25,12 @@
         </button>
       </div>
     </div>-->
+    <div class="action-card">
+      <button class="btn btn-primary" (click)="openValorizedDialog(1)">
+        💰 Valorizar
+      </button>
+    </div>
+
   </div>
       <mat-card class="header-card">
         <mat-card-header>

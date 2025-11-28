@@ -14,7 +14,7 @@ import { FormBuilder, FormsModule, FormGroup, Validators, ReactiveFormsModule } 
 import { MatAutocomplete, MatAutocompleteModule } from '@angular/material/autocomplete';
 import { Observable, startWith, map, catchError, of } from 'rxjs';
 import { WorkLogElement } from '../../../features/private/daily-work-log/daily-work-log';
-import { DailyWorkLogService } from '../../../services/DailyWorkLogService/daily-work-log-service';
+import { DailyWorkLogService, ValorationData } from '../../../services/DailyWorkLogService/daily-work-log-service';
 import { ReportsServicesService } from '../../../services/ReportsServicesService/reports-services-service';
 import { MatInputModule } from '@angular/material/input';
 import { MatDialog } from '@angular/material/dialog';
@@ -25,6 +25,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../../../services/AuthService/auth';
 import { HasPermissionDirective } from '../../../shared/directives/permission.directive';
 import { Router } from '@angular/router';
+import { ReportValorized } from './view/report-valorized/report-valorized';
 
 import { ReportsId } from './reports-id/reports-id';
 
@@ -95,6 +96,7 @@ export class Reports implements OnInit {
   filteredServicio!: Observable<WorkLogElement[]>;
   selectedServicio: WorkLogElement | null = null;
   servicioList: WorkLogElement[] = [];
+  valorationData: ValorationData | null = null;
 
   isLoading = false;
   errorMessage = '';
@@ -170,12 +172,16 @@ export class Reports implements OnInit {
       catchError(error => {
         console.error('Error al cargar los partes diarios:', error);
         this.errorMessage = 'Error al cargar los partes diarios. Por favor, intente nuevamente.';
-        return of([]);
+        return of({ valoration: null, data: [] });
       })
     )
-    .subscribe((data: WorkLogDataElement[]) => {
-      console.log('Estos son los datos que llegan:', data);
-      this.partesDiariosReales = data;
+    .subscribe((response: { valoration: ValorationData | null, data: WorkLogDataElement[] }) => {
+      console.log('Datos recibidos:', response);
+      console.log('Valoración:', response.valoration);
+
+      this.partesDiariosReales = response.data;
+      this.valorationData = response.valoration;
+
       this.isLoading = false;
       this.cdr.detectChanges();
     });
@@ -333,13 +339,50 @@ export class Reports implements OnInit {
     }
   }
 
-  agregarOrden() {
-    console.log('Agregar nueva orden');
+  openValorizedDialog(id: number) {
+    // Verificar que existe valorationData antes de abrir el diálogo
+    if (!this.valorationData) {
+      this.errorMessage = 'No hay datos de valorización disponibles para este servicio.';
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ReportValorized, {
+      width: '100vw',
+      height: '100vh',
+      maxWidth: '100vw',
+      maxHeight: '100vh',
+      panelClass: ['maximized-dialog-panel', 'no-scroll-dialog'],
+      disableClose: false,
+      hasBackdrop: true,
+      backdropClass: 'maximized-dialog-backdrop',
+      autoFocus: false,
+      restoreFocus: false,
+      data: {
+        valorationData: this.valorationData,  // Enviar los datos de valorización completos
+        serviceId: id  // Mantener el serviceId por si lo necesitas
+      }
+    });
+
+    // Bloquea el scroll del body y html
+    setTimeout(() => {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    }, 0);
+
+    dialogRef.afterClosed().subscribe(() => {
+      // Restaurar scroll
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+
+      // Recargar datos si es necesario
+      if (this.selectedServicio) {
+        this.getDailyPartsData(this.selectedServicio);
+      }
+
+      this.cdr.detectChanges();
+    });
   }
 
-  nuevaPlanilla() {
-    console.log('Nueva planilla');
-  }
 
   navigateToReportsId(id: number, state: number) {
     this.router.navigate(['/reports/reports-id', id, state]);

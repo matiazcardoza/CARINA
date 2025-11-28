@@ -44,6 +44,13 @@ export class ReportsServicesService {
     });
   }
 
+  generateValorization(valorationData: any): Observable<Blob> {
+    return this.http.post(`${this.apiUrl}/api/reports/report-generate-valorization`, valorationData, {
+      responseType: 'blob',
+      withCredentials: true
+    });
+  }
+
   saveAuthChanges(changesData: {serviceId: number; equipment: any; request: any; auth: any; liquidation: any;
   }): Observable<SaveChangesResponse> {
     return this.http.post<SaveChangesResponse>(
