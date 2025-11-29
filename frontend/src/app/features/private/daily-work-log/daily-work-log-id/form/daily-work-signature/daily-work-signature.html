@@ -54,17 +54,20 @@
     </div>
 
     <!-- Agregar *ngIf="canControllerSign()" para ocultar el botón -->
-    <ng-container *appHasRole="'Controlador_pd'">
-      <button *ngIf="canControllerSign()"
-              mat-raised-button
-              [color]="isSigned ? 'accent' : 'warn'"
-              [disabled]="isLoading"
-              (click)="onSign()"
-              class="sign-button">
-        <mat-icon>{{ isSigned ? 'refresh' : 'create' }}</mat-icon>
-        {{ isSigned ? 'Firmar nuevamente' : 'Firmar documento' }}
-      </button>
-    </ng-container>
+     <div *appHasRole="'Controlador_pd'">
+      <ng-container *appHasRole="['!Residente_pd', '!Supervisor_pd']">
+        <button *ngIf="canControllerSign()"
+                mat-raised-button
+                [color]="isSigned ? 'accent' : 'warn'"
+                [disabled]="isLoading"
+                (click)="onSign()"
+                class="sign-button">
+          <mat-icon>{{ isSigned ? 'refresh' : 'create' }}</mat-icon>
+          {{ isSigned ? 'Firmar nuevamente' : 'Firmar documento' }}
+        </button>
+      </ng-container>
+     </div>
+
   </div>
 
   <mat-toolbar class="signature-actions">
