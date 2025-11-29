@@ -55,7 +55,8 @@
 
     <!-- Agregar *ngIf="canControllerSign()" para ocultar el botón -->
      <div *appHasRole="'Controlador_pd'">
-      <ng-container *appHasRole="['!Residente_pd', '!Supervisor_pd']">
+     <!--<ng-container *appHasRole="['!Residente_pd', '!Supervisor_pd']">-->
+      <ng-container *appHasRole="'Controlador_pd'">
         <button *ngIf="canControllerSign()"
                 mat-raised-button
                 [color]="isSigned ? 'accent' : 'warn'"
