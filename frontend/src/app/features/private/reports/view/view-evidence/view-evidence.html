@@ -132,6 +132,7 @@
               </div>
             </mat-expansion-panel>
           </mat-accordion>
+          <span style="font-size: 9px;" *ngIf="shift.items.length"><strong>Responsable con el documento: {{ shift.items[0]?.user_name + ' ' + shift.items[0]?.user_lastname }}</strong></span>
         </div>
       </div>
     </div>

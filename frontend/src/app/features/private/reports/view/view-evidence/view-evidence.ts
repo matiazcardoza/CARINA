@@ -28,6 +28,8 @@ export interface DailyPartWithEvidence {
   work_date: string;
   time_worked?: string;
   state: number;
+  user_name?: string;
+  user_lastname?: string;
   evidences: EvidenceDataElement[];
 }
 
