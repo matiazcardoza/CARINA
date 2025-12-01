@@ -265,77 +265,64 @@ class ReportController extends Controller
     }
 
     public function downloadMergedDailyParts($serviceId)
-{
-    // Obtener documentos
-    $documents = DB::table('documents_daily_parts as ddp')
-        ->join('daily_parts as dp', 'ddp.id', '=', 'dp.document_id')
-        ->where('dp.service_id', $serviceId)
-        ->where('ddp.state', 3)
-        ->select('ddp.file_path')
-        ->orderBy('ddp.created_at', 'asc')
-        ->get();
+    {
+        $documents = DB::table('documents_daily_parts as ddp')
+            ->join('daily_parts as dp', 'ddp.id', '=', 'dp.document_id')
+            ->where('dp.service_id', $serviceId)
+            ->where('ddp.state', 3)
+            ->select('ddp.file_path')
+            ->orderBy('ddp.created_at', 'asc')
+            ->get();
 
-    if ($documents->isEmpty()) {
-        return response()->json(['ok' => false, 'error' => 'No hay documentos'], 404);
+        if ($documents->isEmpty()) {
+            return response()->json(['ok' => false, 'error' => 'No hay documentos'], 404);
+        }
+        $tempDir = storage_path('app/public/temp_downloads');
+        if (!is_dir($tempDir)) mkdir($tempDir, 0777, true);
+
+        $outputFile = $tempDir . '/unido_' . time() . '.pdf';
+        $inputFiles = [];
+        foreach ($documents as $doc) {
+            $inputFiles[] = storage_path('app/public/' . $doc->file_path);
+        }
+        $pdfunite = trim(shell_exec("which pdfunite"));
+        $gs = trim(shell_exec("which gs"));
+
+        if ($pdfunite) {
+            $cmd = $pdfunite . ' ';
+            foreach ($inputFiles as $file) {
+                $cmd .= escapeshellarg($file) . ' ';
+            }
+            $cmd .= escapeshellarg($outputFile);
+
+            exec($cmd, $out, $ret);
+
+            if ($ret !== 0) {
+                return response()->json(['ok' => false, 'error' => 'Error uniendo PDFs con pdfunite'], 500);
+            }
+
+        } elseif ($gs) {
+            $cmd = $gs . " -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=" . escapeshellarg($outputFile);
+
+            foreach ($inputFiles as $file) {
+                $cmd .= " " . escapeshellarg($file);
+            }
+
+            exec($cmd, $out, $ret);
+
+            if ($ret !== 0) {
+                return response()->json(['ok' => false, 'error' => 'Error uniendo PDFs con Ghostscript'], 500);
+            }
+
+        } else {
+            return response()->json([
+                'ok' => false,
+                'error' => 'El servidor no tiene pdfunite ni ghostscript. No se puede unir PDFs manteniendo firmas.'
+            ], 500);
+        }
+
+        return response()->download($outputFile)->deleteFileAfterSend(true);
     }
-
-    // Preparar ruta de salida
-    $tempDir = storage_path('app/public/temp_downloads');
-    if (!is_dir($tempDir)) mkdir($tempDir, 0777, true);
-
-    $outputFile = $tempDir . '/unido_' . time() . '.pdf';
-
-    // Rutas de entrada
-    $inputFiles = [];
-    foreach ($documents as $doc) {
-        $inputFiles[] = storage_path('app/public/' . $doc->file_path);
-    }
-
-    // Detectar binarios disponibles en el servidor Ubuntu
-    $pdfunite = trim(shell_exec("which pdfunite"));
-    $gs = trim(shell_exec("which gs"));
-
-    if ($pdfunite) {
-        // ⭐ Método preferido
-        $cmd = $pdfunite . ' ';
-        foreach ($inputFiles as $file) {
-            $cmd .= escapeshellarg($file) . ' ';
-        }
-        $cmd .= escapeshellarg($outputFile);
-
-        exec($cmd, $out, $ret);
-
-        if ($ret !== 0) {
-            return response()->json(['ok' => false, 'error' => 'Error uniendo PDFs con pdfunite'], 500);
-        }
-
-    } elseif ($gs) {
-
-        // ⭐ Segundo método
-        $cmd = $gs . " -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=" . escapeshellarg($outputFile);
-
-        foreach ($inputFiles as $file) {
-            $cmd .= " " . escapeshellarg($file);
-        }
-
-        exec($cmd, $out, $ret);
-
-        if ($ret !== 0) {
-            return response()->json(['ok' => false, 'error' => 'Error uniendo PDFs con Ghostscript'], 500);
-        }
-
-    } else {
-
-        // ❌ No hay forma nativa en PHP de mantener firmas sin estos binarios
-        return response()->json([
-            'ok' => false,
-            'error' => 'El servidor no tiene pdfunite ni ghostscript. No se puede unir PDFs manteniendo firmas.'
-        ], 500);
-    }
-
-    return response()->download($outputFile)->deleteFileAfterSend(true);
-}
-
 
     public function  closeService($serviceId){
         $service = Service::find($serviceId);
