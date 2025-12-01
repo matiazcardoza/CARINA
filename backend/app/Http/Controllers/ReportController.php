@@ -111,7 +111,7 @@ class ReportController extends Controller
         $totalTimeFormatted = sprintf('%02d:%02d', $totalHours, $totalMinutes);
         list($hours, $minutes) = explode(':', $totalTimeFormatted);
         $totalEquivalentHoursTotal = $totalHours + ($totalMinutes / 60);
-        $totalAmountTotal = $totalEquivalentHours * $costPerHour;
+        $totalAmountTotal = $totalEquivalentHoursTotal * $costPerHour;
         $totals = [
             'time_worked'      => $totalTimeFormatted,
             'equivalent_hours' => round($totalEquivalentHoursTotal, 2),

@@ -119,18 +119,24 @@ class ServiceController extends Controller
             continue;
         }
         $dailyParts = DailyPart::where('service_id', $service->id)->get();
-
+        
         // Calcular segundos totales trabajados
-        $totalSecondsWorked = $dailyParts->reduce(function ($carry, $item) {
-            if ($item->time_worked && str_contains($item->time_worked, ':')) {
-                [$hours, $minutes, $seconds] = array_pad(explode(':', $item->time_worked), 3, 0);
-                $hours = is_numeric($hours) ? (int)$hours : 0;
-                $minutes = is_numeric($minutes) ? (int)$minutes : 0;
-                $seconds = is_numeric($seconds) ? (int)$seconds : 0;
-                return $carry + ($hours * 3600) + ($minutes * 60) + $seconds;
+        $dateGroups = $dailyParts->groupBy('work_date');
+        $totalSecondsWorked = 0;
+        
+        foreach ($dateGroups as $date => $parts) {
+            $daySeconds = 0;
+            foreach ($parts as $p) {
+                if ($p->time_worked && str_contains($p->time_worked, ':')) {
+                    [$h, $m, $s] = array_pad(explode(':', $p->time_worked), 3, 0);
+                    $h = is_numeric($h) ? (int)$h : 0;
+                    $m = is_numeric($m) ? (int)$m : 0;
+                    $s = is_numeric($s) ? (int)$s : 0;
+                    $daySeconds += ($h * 3600) + ($m * 60) + $s;
+                }
             }
-            return $carry;
-        }, 0);
+            $totalSecondsWorked += $daySeconds;
+        }
 
         // Formatear tiempo total trabajado
         $totalHours = floor($totalSecondsWorked / 3600);
