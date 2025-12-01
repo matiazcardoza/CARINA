@@ -153,9 +153,13 @@ class ServiceController extends Controller
         $adjustment = ServiceLiquidationAdjustment::where('service_id', $service->id)->first();
 
         if ($adjustment) {
-            // Si hay ajuste, usar datos ajustados
             $adjustedData = json_decode($adjustment->adjusted_data, true);
             $equipment = (object) $adjustedData['equipment'];
+            
+            // Tomar TODOS los valores de los totales ajustados
+            $totalTimeFormatted = $adjustedData['auth']['totals']['time_worked'] ?? '00:00';
+            $totalEquivalentHours = $adjustedData['auth']['totals']['equivalent_hours'] ?? 0;
+            $totalDaysWorked = $adjustedData['auth']['totals']['days_worked'] ?? 0;
             $costPerHour = $adjustedData['auth']['totals']['cost_per_hour'] ?? 0;
             $totalAmount = $adjustedData['auth']['totals']['total_amount'] ?? 0;
             $costPerDay = $adjustedData['liquidation']['cost_per_day'] ?? 0;
