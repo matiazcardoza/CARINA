@@ -267,7 +267,6 @@ export class ReportsId implements OnInit {
 
   recalculateTotals(): void {
   let totalSeconds = 0;
-  let totalEquivalentHours = 0;
   let totalFuelConsumption = 0;
   let totalDaysWorked = 0;
 
@@ -282,7 +281,6 @@ export class ReportsId implements OnInit {
         totalSeconds += (hours * 3600) + (minutes * 60);
       }
 
-      totalEquivalentHours += parseFloat(row.equivalent_hours) || 0;
       totalFuelConsumption += parseFloat(row.fuel_consumption) || 0;
 
       if (row.days_worked === 1 || row.days_worked === '1') {
@@ -293,6 +291,7 @@ export class ReportsId implements OnInit {
 
   const totalHours = Math.floor(totalSeconds / 3600);
   const totalMinutes = Math.floor((totalSeconds % 3600) / 60);
+  const totalEquivalentHours = totalHours + (totalMinutes / 60);
 
   const costPerHour = parseFloat(this.editedAuthData.totals.cost_per_hour) || 0;
 
