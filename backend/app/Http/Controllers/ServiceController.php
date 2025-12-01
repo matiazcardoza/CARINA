@@ -156,6 +156,8 @@ class ServiceController extends Controller
         } else {
             // Si no hay ajuste, calcular normalmente
             $equipment = MechanicalEquipment::find($service->mechanical_equipment_id);
+            $operators = Operator::where('service_id', $service->id)->get();
+            $equipment->operators = $operators;
             $costPerHour = $equipment->cost_hour ?? 0;
             $totalAmount = $totalEquivalentHours * $costPerHour;
             $costPerDay = $totalDaysWorked > 0 ? $totalAmount / $totalDaysWorked : 0;
@@ -166,6 +168,7 @@ class ServiceController extends Controller
             'service_id' => $service->id,
             'equipment' => $equipment,
             'time_worked' => $totalTimeFormatted,
+            'equivalent_hours' => round($totalEquivalentHours, 2),
             'cost_per_hour' => $costPerHour,
             'total_amount' => round($totalAmount, 2),
             'cost_per_day' => round($costPerDay, 2),

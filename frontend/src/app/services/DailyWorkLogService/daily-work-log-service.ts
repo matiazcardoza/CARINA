@@ -56,6 +56,7 @@ export interface ValorationMachinery {
   service_id: number;
   equipment: any;
   time_worked: string;
+  equivalent_hours: number;
   cost_per_hour: number;
   total_amount: number;
   cost_per_day: number;

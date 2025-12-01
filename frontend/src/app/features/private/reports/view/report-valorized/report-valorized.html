@@ -39,7 +39,7 @@
             </td>
             <td>{{ getBrand(machinery.equipment) }}</td>
             <td>{{ getPlate(machinery.equipment) }}</td>
-            <td class="text-center">{{ machinery.time_worked }}</td>
+            <td class="text-center">{{ machinery.equivalent_hours | number:'1.2-2'}}</td>
             <td class="text-right">{{ machinery.cost_per_hour | number:'1.2-2' }}</td>
             <td class="text-right highlight">S/. {{ machinery.total_amount | number:'1.2-2' }}</td>
             <td class="text-right">S/. {{ machinery.cost_per_day | number:'1.2-2' }}</td>
