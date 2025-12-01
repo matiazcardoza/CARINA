@@ -250,142 +250,146 @@ export class ReportsId implements OnInit {
   }
 
   recalculateRow(rowIndex: number): void {
-    const row = this.editedAuthData.processedData[rowIndex];
+  const row = this.editedAuthData.processedData[rowIndex];
 
-    // Convertir time_worked a horas equivalentes
-    const timeMatch = row.time_worked.match(/(\d+):(\d+)/);
-    if (timeMatch) {
-      const hours = parseInt(timeMatch[1]);
-      const minutes = parseInt(timeMatch[2]);
-      row.equivalent_hours = hours + (minutes / 60);
-    }
-
-    // Recalcular monto total
-    row.total_amount = row.equivalent_hours * row.cost_per_hour;
-    row.total_amount = Math.round(row.total_amount * 100) / 100;
+  // Convertir time_worked a horas equivalentes
+  const timeMatch = row.time_worked.match(/(\d+):(\d+)/);
+  if (timeMatch) {
+    const hours = parseInt(timeMatch[1]);
+    const minutes = parseInt(timeMatch[2]);
+    // FORZAR 2 decimales usando toFixed y parseFloat
+    row.equivalent_hours = parseFloat((hours + (minutes / 60)).toFixed(2));
   }
+
+  // Recalcular monto total con 2 decimales fijos
+  row.total_amount = parseFloat((row.equivalent_hours * row.cost_per_hour).toFixed(2));
+}
 
   recalculateTotals(): void {
-    let totalSeconds = 0;
-    let totalEquivalentHours = 0;
-    let totalFuelConsumption = 0;
-    let totalDaysWorked = 0;
-    let totalAmount = 0;
+  let totalSeconds = 0;
+  let totalEquivalentHours = 0;
+  let totalFuelConsumption = 0;
+  let totalDaysWorked = 0;
 
-    this.editedAuthData.processedData.forEach((row: any) => {
-      // Verificar si la fila tiene trabajo real
-      const hasValidWork = row.time_worked !== '-' && row.time_worked !== '00:00';
+  this.editedAuthData.processedData.forEach((row: any) => {
+    const hasValidWork = row.time_worked !== '-' && row.time_worked !== '00:00';
 
-      if (hasValidWork) {
-        const timeMatch = row.time_worked.match(/(\d+):(\d+)/);
-        if (timeMatch) {
-          const hours = parseInt(timeMatch[1]);
-          const minutes = parseInt(timeMatch[2]);
-          totalSeconds += (hours * 3600) + (minutes * 60);
-        }
-
-        totalEquivalentHours += parseFloat(row.equivalent_hours) || 0;
-        totalFuelConsumption += parseFloat(row.fuel_consumption) || 0;
-
-        // Solo contar días si days_worked es 1 o '1'
-        if (row.days_worked === 1 || row.days_worked === '1') {
-          totalDaysWorked += 1;
-        }
-
-        totalAmount += parseFloat(row.total_amount) || 0;
+    if (hasValidWork) {
+      const timeMatch = row.time_worked.match(/(\d+):(\d+)/);
+      if (timeMatch) {
+        const hours = parseInt(timeMatch[1]);
+        const minutes = parseInt(timeMatch[2]);
+        totalSeconds += (hours * 3600) + (minutes * 60);
       }
-    });
 
-    const totalHours = Math.floor(totalSeconds / 3600);
-    const totalMinutes = Math.floor((totalSeconds % 3600) / 60);
+      totalEquivalentHours += parseFloat(row.equivalent_hours) || 0;
+      totalFuelConsumption += parseFloat(row.fuel_consumption) || 0;
 
-    this.editedAuthData.totals = {
-      time_worked: `${String(totalHours).padStart(2, '0')}:${String(totalMinutes).padStart(2, '0')}`,
-      equivalent_hours: Math.round(totalEquivalentHours * 100) / 100,
-      fuel_consumption: Math.round(totalFuelConsumption * 100) / 100,
-      days_worked: totalDaysWorked,
-      cost_per_hour: this.editedAuthData.totals.cost_per_hour,
-      total_amount: Math.round(totalAmount * 100) / 100
-    };
-    this.updateLiquidationData();
-  }
+      if (row.days_worked === 1 || row.days_worked === '1') {
+        totalDaysWorked += 1;
+      }
+    }
+  });
+
+  const totalHours = Math.floor(totalSeconds / 3600);
+  const totalMinutes = Math.floor((totalSeconds % 3600) / 60);
+
+  const costPerHour = parseFloat(this.editedAuthData.totals.cost_per_hour) || 0;
+
+  // ✅ CÁLCULO CORRECTO: total_amount = cost_per_hour × equivalent_hours
+  const totalAmount = parseFloat((totalEquivalentHours * costPerHour).toFixed(2));
+
+  this.editedAuthData.totals = {
+    time_worked: `${String(totalHours).padStart(2, '0')}:${String(totalMinutes).padStart(2, '0')}`,
+    equivalent_hours: parseFloat(totalEquivalentHours.toFixed(2)),
+    fuel_consumption: parseFloat(totalFuelConsumption.toFixed(2)),
+    days_worked: totalDaysWorked,
+    cost_per_hour: parseFloat(costPerHour.toFixed(2)),
+    total_amount: totalAmount  // ✅ Ahora se calcula directamente
+  };
+
+  this.updateLiquidationData();
+}
 
   updateLiquidationData(): void {
-    const authData = this.editMode ? this.editedAuthData : this.authData;
+  const authData = this.editMode ? this.editedAuthData : this.authData;
 
-    if (!authData || !this.liquidationData) return;
+  if (!authData || !this.liquidationData) return;
 
-    const costPerDay = authData.totals.days_worked > 0
-      ? authData.totals.total_amount / authData.totals.days_worked
-      : 0;
+  // FORZAR 2 decimales en cost_per_day
+  const costPerDay = authData.totals.days_worked > 0
+    ? authData.totals.total_amount / authData.totals.days_worked
+    : 0;
 
-    const totalInWords = this.getTotalInWords();
+  const totalInWords = this.getTotalInWords();
 
-    this.liquidationData = {
-      cost_per_day: Math.round(costPerDay * 100) / 100,
-      total_in_words: totalInWords
-    };
-  }
+  this.liquidationData = {
+    cost_per_day: parseFloat(costPerDay.toFixed(2)),
+    total_in_words: totalInWords
+  };
+}
 
   addRowTop(): void {
-    if (!this.editMode) return;
+  if (!this.editMode) return;
 
-    // Obtener la fecha de la primera fila actual
-    const firstRow = this.editedAuthData.processedData[0];
-    const firstDate = this.parseDate(firstRow.date);
+  const firstRow = this.editedAuthData.processedData[0];
+  const firstDate = this.parseDate(firstRow.date);
 
-    // Restar un día
-    const newDate = new Date(firstDate);
-    newDate.setDate(newDate.getDate() - 1);
+  const newDate = new Date(firstDate);
+  newDate.setDate(newDate.getDate() - 1);
 
-    const newRow = {
-      date: newDate.toLocaleDateString('es-PE'),
-      time_worked: '-',
-      equivalent_hours: 0,
-      fuel_consumption: 0,
-      days_worked: '-',
-      cost_per_hour: this.editedAuthData.totals.cost_per_hour,
-      total_amount: 0,
-      has_work: true,
-      isNew: true
-    };
+  // ✅ SOLUCIÓN: Convertir cost_per_hour a número primero
+  const costPerHour = parseFloat(this.editedAuthData.totals.cost_per_hour) || 0;
 
-    this.editedAuthData.processedData.unshift(newRow);
-    this.editedAuthData.minDate = newDate.toLocaleDateString('es-PE');
-    this.requestData.minDate = this.formatDateForRequest(newDate);
-    this.hasUnsavedChanges = true;
-    this.updateLiquidationData();
-  }
+  const newRow = {
+    date: newDate.toLocaleDateString('es-PE'),
+    time_worked: '-',
+    equivalent_hours: 0.00,
+    fuel_consumption: 0.00,
+    days_worked: '-',
+    cost_per_hour: parseFloat(costPerHour.toFixed(2)), // ✅ Ahora sí es seguro
+    total_amount: 0.00,
+    has_work: true,
+    isNew: true
+  };
+
+  this.editedAuthData.processedData.unshift(newRow);
+  this.editedAuthData.minDate = newDate.toLocaleDateString('es-PE');
+  this.requestData.minDate = this.formatDateForRequest(newDate);
+  this.hasUnsavedChanges = true;
+  this.updateLiquidationData();
+}
 
   addRowBottom(): void {
-    if (!this.editMode) return;
+  if (!this.editMode) return;
 
-    // Obtener la fecha de la última fila actual
-    const lastRow = this.editedAuthData.processedData[this.editedAuthData.processedData.length - 1];
-    const lastDate = this.parseDate(lastRow.date);
+  const lastRow = this.editedAuthData.processedData[this.editedAuthData.processedData.length - 1];
+  const lastDate = this.parseDate(lastRow.date);
 
-    // Sumar un día
-    const newDate = new Date(lastDate);
-    newDate.setDate(newDate.getDate() + 1);
+  const newDate = new Date(lastDate);
+  newDate.setDate(newDate.getDate() + 1);
 
-    const newRow = {
-      date: newDate.toLocaleDateString('es-PE'),
-      time_worked: '-',
-      equivalent_hours: 0,
-      fuel_consumption: 0,
-      days_worked: '-',
-      cost_per_hour: this.editedAuthData.totals.cost_per_hour,
-      total_amount: 0,
-      has_work: true,
-      isNew: true
-    };
+  // ✅ SOLUCIÓN: Convertir cost_per_hour a número primero
+  const costPerHour = parseFloat(this.editedAuthData.totals.cost_per_hour) || 0;
 
-    this.editedAuthData.processedData.push(newRow);
-    this.editedAuthData.maxDate = newDate.toLocaleDateString('es-PE');
-    this.requestData.maxDate = this.formatDateForRequest(newDate);
-    this.hasUnsavedChanges = true;
-    this.updateLiquidationData();
-  }
+  const newRow = {
+    date: newDate.toLocaleDateString('es-PE'),
+    time_worked: '-',
+    equivalent_hours: 0.00,
+    fuel_consumption: 0.00,
+    days_worked: '-',
+    cost_per_hour: parseFloat(costPerHour.toFixed(2)), // ✅ Ahora sí es seguro
+    total_amount: 0.00,
+    has_work: true,
+    isNew: true
+  };
+
+  this.editedAuthData.processedData.push(newRow);
+  this.editedAuthData.maxDate = newDate.toLocaleDateString('es-PE');
+  this.requestData.maxDate = this.formatDateForRequest(newDate);
+  this.hasUnsavedChanges = true;
+  this.updateLiquidationData();
+}
 
   private formatDateForRequest(date: Date): string {
     // El backend espera formato 'YYYY-MM-DD'
@@ -410,34 +414,32 @@ export class ReportsId implements OnInit {
   }
 
   deleteRow(index: number): void {
-    if (!this.editMode) return;
+  if (!this.editMode) return;
 
-    const totalRows = this.editedAuthData.processedData.length;
+  const totalRows = this.editedAuthData.processedData.length;
 
-    // Si es la primera o última fila, eliminar completamente
-    if (index === 0 || index === totalRows - 1) {
-      if (confirm('¿Está seguro de eliminar esta fila?')) {
-        this.editedAuthData.processedData.splice(index, 1);
-        this.updateDateRanges();
-        this.recalculateTotals();
-        this.hasUnsavedChanges = true;
-      }
-    } else {
-      // Si es una fila intermedia, solo reiniciar valores
-      if (confirm('¿Está seguro de reiniciar esta fila?')) {
-        const row = this.editedAuthData.processedData[index];
-        row.time_worked = '-';
-        row.equivalent_hours = 0;
-        row.fuel_consumption = 0;
-        row.total_amount = 0;
-        row.days_worked = '-';
-        row.has_work = true;
+  if (index === 0 || index === totalRows - 1) {
+    if (confirm('¿Está seguro de eliminar esta fila?')) {
+      this.editedAuthData.processedData.splice(index, 1);
+      this.updateDateRanges();
+      this.recalculateTotals();
+      this.hasUnsavedChanges = true;
+    }
+  } else {
+    if (confirm('¿Está seguro de reiniciar esta fila?')) {
+      const row = this.editedAuthData.processedData[index];
+      row.time_worked = '-';
+      row.equivalent_hours = 0.00; // FORZAR decimal
+      row.fuel_consumption = 0.00; // FORZAR decimal
+      row.total_amount = 0.00; // FORZAR decimal
+      row.days_worked = '-';
+      row.has_work = true;
 
-        this.recalculateTotals();
-        this.hasUnsavedChanges = true;
-      }
+      this.recalculateTotals();
+      this.hasUnsavedChanges = true;
     }
   }
+}
 
   private updateDateRanges(): void {
     if (this.editedAuthData.processedData.length === 0) return;
@@ -459,13 +461,13 @@ export class ReportsId implements OnInit {
   }
 
   getCostPerDay(): number {
-    const authData = this.editMode ? this.editedAuthData : this.authData;
-    if (!authData || !authData.totals.days_worked || authData.totals.days_worked === 0) {
-      return 0;
-    }
-    const costPerDay = authData.totals.total_amount / authData.totals.days_worked;
-    return Math.round(costPerDay * 100) / 100; // Redondear a 2 decimales
+  const authData = this.editMode ? this.editedAuthData : this.authData;
+  if (!authData || !authData.totals.days_worked || authData.totals.days_worked === 0) {
+    return 0.00;
   }
+  const costPerDay = authData.totals.total_amount / authData.totals.days_worked;
+  return parseFloat(costPerDay.toFixed(2)); // FORZAR 2 decimales
+}
 
   getTotalInWords(): string {
     const authData = this.editMode ? this.editedAuthData : this.authData;

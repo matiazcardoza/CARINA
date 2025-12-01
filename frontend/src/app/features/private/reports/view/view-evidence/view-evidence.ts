@@ -28,6 +28,8 @@ export interface DailyPartWithEvidence {
   work_date: string;
   time_worked?: string;
   state: number;
+  user_name?: string;
+  user_lastname?: string;
   evidences: EvidenceDataElement[];
 }
 
@@ -100,10 +102,10 @@ export class ViewEvidence implements OnInit {
     this.dailyWorkLogService.getEvidenceData(this.data.ServiceId).subscribe({
       next: (response: any) => {
         console.log('Evidences response:', response);
-        
+
         const data = response.data || response;
         this.groupedDailyParts = this.transformToGroupedData(data);
-        
+
         console.log('Grouped daily parts:', this.groupedDailyParts);
         this.loading = false;
         this.cdr.markForCheck();
@@ -122,11 +124,11 @@ export class ViewEvidence implements OnInit {
       console.error('No hay documento disponible');
       return;
     }
-    
-    this.reportsServicesService.openDocumentInNewTab(pathDocument);
-  }
+    const timestamp = new Date().getTime();
+    const urlWithTimestamp = `${pathDocument}?t=${timestamp}`;
 
-  
+    this.reportsServicesService.openDocumentInNewTab(urlWithTimestamp);
+  }
 
   private transformToGroupedData(groupedData: any): GroupedDailyParts[] {
     if (!groupedData || typeof groupedData !== 'object') {
@@ -134,17 +136,17 @@ export class ViewEvidence implements OnInit {
     }
 
     const result: GroupedDailyParts[] = [];
-    
+
     Object.keys(groupedData).forEach(date => {
       const shiftsData = groupedData[date];
-      
+
       if (Array.isArray(shiftsData)) {
         const shifts: ShiftGroup[] = shiftsData.map(shift => {
           const totalEvidences = shift.items.reduce(
-            (sum: number, part: any) => sum + (part.evidences?.length || 0), 
+            (sum: number, part: any) => sum + (part.evidences?.length || 0),
             0
           );
-          
+
           return {
             shift_id: shift.shift_id,
             shift_name: shift.shift_name,
@@ -158,10 +160,10 @@ export class ViewEvidence implements OnInit {
         });
 
         const totalEvidences = shifts.reduce(
-          (sum, shift) => sum + shift.totalEvidences, 
+          (sum, shift) => sum + shift.totalEvidences,
           0
         );
-        
+
         result.push({
           date: date,
           shifts: shifts,
@@ -169,7 +171,7 @@ export class ViewEvidence implements OnInit {
         });
       }
     });
-    return result.sort((a, b) => 
+    return result.sort((a, b) =>
       new Date(b.date).getTime() - new Date(a.date).getTime()
     );
   }
@@ -197,7 +199,7 @@ export class ViewEvidence implements OnInit {
     if (firmasCompletas === 0) return 'Pendiente';
     return 'Parcial';
   }
-  
+
   obtenerColorEstadoFirmas(estadoFirmas: any): string {
     const estado = this.obtenerEstadoFirmas(estadoFirmas);
     switch (estado) {
@@ -219,7 +221,8 @@ export class ViewEvidence implements OnInit {
   }
 
   getFullImageUrl(path: string): string {
-    return `${environment.BACKEND_URL}/storage/${path}`;
+    const timestamp = new Date().getTime();
+    return `${environment.BACKEND_URL}/storage/${path}?t=${timestamp}`;
   }
 
   onClose(): void {
@@ -244,7 +247,7 @@ export class ViewEvidence implements OnInit {
 
   getTotalEvidencesCount(): number {
     return this.groupedDailyParts.reduce(
-      (total, group) => total + group.totalEvidences, 
+      (total, group) => total + group.totalEvidences,
       0
     );
   }
@@ -252,9 +255,9 @@ export class ViewEvidence implements OnInit {
   getTotalActivitiesCount(): number {
     return this.groupedDailyParts.reduce(
       (total, group) => total + group.shifts.reduce(
-        (shiftTotal, shift) => shiftTotal + shift.items.length, 
+        (shiftTotal, shift) => shiftTotal + shift.items.length,
         0
-      ), 
+      ),
       0
     );
   }

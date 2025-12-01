@@ -109,13 +109,14 @@ class ReportController extends Controller
         $totalHours = floor($totalSecondsWorked / 3600);
         $totalMinutes = floor(($totalSecondsWorked % 3600) / 60);
         $totalTimeFormatted = sprintf('%02d:%02d', $totalHours, $totalMinutes);
+        $totalAmountTotal = $totalEquivalentHours * $costPerHour;
         $totals = [
             'time_worked'      => $totalTimeFormatted,
-            'equivalent_hours' => $totalEquivalentHours,
+            'equivalent_hours' => round($totalEquivalentHours, 2),
             'fuel_consumption' => $totalFuelConsumption,
             'days_worked'      => $totalDaysWorked,
             'cost_per_hour'    => $costPerHour,
-            'total_amount'     => round($totalAmount, 2)
+            'total_amount'     => round($totalAmountTotal, 2)
         ];
 
         $auth = [
@@ -167,7 +168,6 @@ class ReportController extends Controller
 
     public function generateRequest(Request $request)
     {
-        Log::info('Generating request PDF with data: ', $request->all());
         $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
         $qr_code = base64_encode("data_qr_example");
         $data = [
@@ -229,6 +229,43 @@ class ReportController extends Controller
         return $pdf->stream('Liquidacion-servicio-alquiler.pdf');
     }
 
+    public function generateValorization(Request $request)
+    {
+        Log::info('Valorization request data: ' . json_encode($request->json()->all()));
+        $serviceId = $request->machinery[0]['service_id'];
+
+        $goalDetail = DB::table('services')
+            ->where('id', $serviceId)
+            ->value('goal_detail');
+        $maxWorkedDate = DB::table('daily_parts')
+            ->where('service_id', $serviceId)
+            ->max('work_date');
+        $mes = strtoupper(
+            \Carbon\Carbon::parse($maxWorkedDate)
+                ->locale('es')
+                ->monthName
+        );
+        $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
+        $qr_code = base64_encode("data_qr_example");
+        $valorationData = $request->json()->all();
+        $editedValorationAmount = $request->input('editedValorationAmount');
+        $amountPlanilla = $request->input('amountPlanilla');
+        $data = [
+            'editedValorationAmount' => $editedValorationAmount,
+            'amountPlanilla' => $amountPlanilla,
+            'goalDetail' => $goalDetail,
+            'mes' => $mes,
+            'logoPath' => $logoPath,
+            'valorationData' => $valorationData,
+            'qr_code' => $qr_code,
+        ];
+
+        $pdf = Pdf::loadView('pdf.valorization_goal', $data);
+        $pdf->setPaper('A4', 'landscape');
+
+        return $pdf->stream('Valoracion-goal.pdf');
+    }
+
     public function saveAuthChanges(Request $request)
     {
         try {
@@ -265,14 +302,16 @@ class ReportController extends Controller
     }
 
     public function downloadMergedDailyParts($serviceId)
-    {
-        $documents = DB::table('documents_daily_parts as ddp')
-            ->join('daily_parts as dp', 'ddp.id', '=', 'dp.document_id')
-            ->where('dp.service_id', $serviceId)
-            ->where('ddp.state', 3)
-            ->select('ddp.file_path')
-            ->orderBy('ddp.created_at', 'asc')
-            ->get();
+{
+    // Obtener documentos
+    $documents = DB::table('documents_daily_parts as ddp')
+        ->join('daily_parts as dp', 'ddp.id', '=', 'dp.document_id')
+        ->where('dp.service_id', $serviceId)
+        ->where('ddp.state', [1, 2, 3])
+        ->select('ddp.id', 'ddp.file_path', 'ddp.created_at', 'dp.work_date')
+        ->groupBy('ddp.id', 'ddp.file_path', 'ddp.created_at', 'dp.work_date')
+        ->orderBy('dp.work_date', 'asc')
+        ->get();
 
         if ($documents->isEmpty()) {
             return response()->json(['ok' => false, 'error' => 'No hay documentos'], 404);
@@ -280,46 +319,128 @@ class ReportController extends Controller
         $tempDir = storage_path('app/public/temp_downloads');
         if (!is_dir($tempDir)) mkdir($tempDir, 0777, true);
 
-        $outputFile = $tempDir . '/unido_' . time() . '.pdf';
-        $inputFiles = [];
-        foreach ($documents as $doc) {
-            $inputFiles[] = storage_path('app/public/' . $doc->file_path);
+    $outputFile = $tempDir . '/unido_' . time() . '.pdf';
+
+    // Rutas de entrada
+    $inputFiles = [];
+    foreach ($documents as $doc) {
+        $inputFiles[] = storage_path('app/public/' . $doc->file_path);
+    }
+
+    // ⭐ DETECTAR HERRAMIENTAS DISPONIBLES (orden de preferencia)
+    $pdftk = trim(shell_exec("which pdftk 2>/dev/null"));
+    $qpdf = trim(shell_exec("which qpdf 2>/dev/null"));
+    $gs = trim(shell_exec("which gs 2>/dev/null"));
+    $pdfunite = trim(shell_exec("which pdfunite 2>/dev/null"));
+
+    $success = false;
+
+    // ═══════════════════════════════════════════════════════════
+    // 🥇 MÉTODO 1: PDFTK (El mejor para preservar contenido)
+    // ═══════════════════════════════════════════════════════════
+    if ($pdftk && !$success) {
+        $cmd = $pdftk;
+        foreach ($inputFiles as $file) {
+            $cmd .= " " . escapeshellarg($file);
         }
-        $pdfunite = trim(shell_exec("which pdfunite"));
-        $gs = trim(shell_exec("which gs"));
+        $cmd .= " cat output " . escapeshellarg($outputFile);
 
-        if ($pdfunite) {
-            $cmd = $pdfunite . ' ';
-            foreach ($inputFiles as $file) {
-                $cmd .= escapeshellarg($file) . ' ';
-            }
-            $cmd .= escapeshellarg($outputFile);
+        exec($cmd . " 2>&1", $out, $ret);
 
-            exec($cmd, $out, $ret);
-
-            if ($ret !== 0) {
-                return response()->json(['ok' => false, 'error' => 'Error uniendo PDFs con pdfunite'], 500);
-            }
-
-        } elseif ($gs) {
-            $cmd = $gs . " -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -sOutputFile=" . escapeshellarg($outputFile);
-
-            foreach ($inputFiles as $file) {
-                $cmd .= " " . escapeshellarg($file);
-            }
-
-            exec($cmd, $out, $ret);
-
-            if ($ret !== 0) {
-                return response()->json(['ok' => false, 'error' => 'Error uniendo PDFs con Ghostscript'], 500);
-            }
-
+        if ($ret === 0 && file_exists($outputFile)) {
+            $success = true;
         } else {
-            return response()->json([
-                'ok' => false,
-                'error' => 'El servidor no tiene pdfunite ni ghostscript. No se puede unir PDFs manteniendo firmas.'
-            ], 500);
+            Log::warning('pdftk falló: ' . implode("\n", $out));
         }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // 🥈 MÉTODO 2: QPDF (Muy bueno, alternativa a pdftk)
+    // ═══════════════════════════════════════════════════════════
+    if ($qpdf && !$success) {
+        $cmd = $qpdf . " --empty --pages";
+        foreach ($inputFiles as $file) {
+            $cmd .= " " . escapeshellarg($file);
+        }
+        $cmd .= " -- " . escapeshellarg($outputFile);
+
+        exec($cmd . " 2>&1", $out, $ret);
+
+        if ($ret === 0 && file_exists($outputFile)) {
+            $success = true;
+        } else {
+            Log::warning('qpdf falló: ' . implode("\n", $out));
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // 🥉 MÉTODO 3: GHOSTSCRIPT (Con configuración optimizada)
+    // ═══════════════════════════════════════════════════════════
+    if ($gs && !$success) {
+        $cmd = $gs . " -dBATCH -dNOPAUSE -dQUIET -dSAFER";
+        $cmd .= " -sDEVICE=pdfwrite";
+        $cmd .= " -dCompatibilityLevel=1.7";
+        $cmd .= " -dPDFSETTINGS=/prepress"; // Máxima calidad
+        $cmd .= " -dEmbedAllFonts=true";
+        $cmd .= " -dSubsetFonts=true";
+        $cmd .= " -dCompressFonts=false";
+        $cmd .= " -dAutoRotatePages=/None";
+        $cmd .= " -dColorImageResolution=300";
+        $cmd .= " -dGrayImageResolution=300";
+        $cmd .= " -dMonoImageResolution=1200";
+        $cmd .= " -dDetectDuplicateImages=true";
+        $cmd .= " -dDownsampleColorImages=false"; // No reducir calidad de imágenes
+        $cmd .= " -dDownsampleGrayImages=false";
+        $cmd .= " -dDownsampleMonoImages=false";
+        $cmd .= " -sOutputFile=" . escapeshellarg($outputFile);
+
+        foreach ($inputFiles as $file) {
+            $cmd .= " " . escapeshellarg($file);
+        }
+
+        exec($cmd . " 2>&1", $out, $ret);
+
+        if ($ret === 0 && file_exists($outputFile)) {
+            $success = true;
+        } else {
+            Log::warning('ghostscript falló: ' . implode("\n", $out));
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // 🏅 MÉTODO 4: PDFUNITE (Rápido pero puede perder contenido)
+    // ═══════════════════════════════════════════════════════════
+    if ($pdfunite && !$success) {
+        $cmd = $pdfunite . ' ';
+        foreach ($inputFiles as $file) {
+            $cmd .= escapeshellarg($file) . ' ';
+        }
+        $cmd .= escapeshellarg($outputFile);
+
+        exec($cmd . " 2>&1", $out, $ret);
+
+        if ($ret === 0 && file_exists($outputFile)) {
+            $success = true;
+        } else {
+            Log::warning('pdfunite falló: ' . implode("\n", $out));
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // ❌ SIN HERRAMIENTAS DISPONIBLES
+    // ═══════════════════════════════════════════════════════════
+    if (!$success) {
+        return response()->json([
+            'ok' => false,
+            'error' => 'No se pudo unir los PDFs. Herramientas probadas: pdftk, qpdf, ghostscript, pdfunite',
+            'available_tools' => [
+                'pdftk' => !empty($pdftk),
+                'qpdf' => !empty($qpdf),
+                'ghostscript' => !empty($gs),
+                'pdfunite' => !empty($pdfunite)
+            ]
+        ], 500);
+    }
 
         return response()->download($outputFile)->deleteFileAfterSend(true);
     }

@@ -20,6 +20,7 @@ interface WorkLogIdApiResponse {
 
 interface WorkLogDataApiResponse {
   message: string;
+  valoration: ValorationData;
   data: WorkLogDataElement[];
 }
 
@@ -49,6 +50,21 @@ export interface CreateWorkLogData {
 export interface SendDocumentData {
   userId: number;
   documentId: number | null;
+}
+
+export interface ValorationMachinery {
+  service_id: number;
+  equipment: any;
+  time_worked: string;
+  cost_per_hour: number;
+  total_amount: number;
+  cost_per_day: number;
+  days_worked: number;
+}
+
+export interface ValorationData {
+  machinery: ValorationMachinery[];
+  valoration_amount: number;
 }
 
 @Injectable({
@@ -148,11 +164,14 @@ export class DailyWorkLogService {
     );
   }
 
-  getDailyPartData(codGoal: number): Observable<WorkLogDataElement[]> {
+  getDailyPartData(codGoal: number): Observable<{ valoration: ValorationData, data: WorkLogDataElement[] }> {
     return this.http.get<WorkLogDataApiResponse>(`${this.apiUrl}/api/services/daily-parts/${codGoal}`, {
       withCredentials: true,
     }).pipe(
-      map(response => response.data)
+      map(response => ({
+        valoration: response.valoration,
+        data: response.data
+      }))
     );
   }
 

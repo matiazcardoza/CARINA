@@ -9,6 +9,7 @@ use App\Models\Operator;
 use App\Models\OrderSilucia;
 use App\Models\Project;
 use App\Models\Service;
+use App\Models\ServiceLiquidationAdjustment;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -101,40 +102,91 @@ class ServiceController extends Controller
     }
 
     function getDailyPartsData($idGoal)
-    {
-        $services = Service::join('daily_parts', 'services.id', '=', 'daily_parts.service_id')
-                   ->where('services.goal_id', $idGoal)
-                   ->where('services.state_valorized', '!=', 2)
-                   ->select('services.*')
-                   ->distinct()
-                   ->get();
+{
+    $services = Service::join('daily_parts', 'services.id', '=', 'daily_parts.service_id')
+               ->where('services.goal_id', $idGoal)
+               ->where('services.state_valorized', '!=', 2)
+               ->select('services.*')
+               ->distinct()
+               ->get();
 
-        $servicesWithTotalTime = $services->map(function ($service) {
-            $dailyParts = DailyPart::where('service_id', $service->id)->get();
+    $machinery = [];
+    $totalValorationAmount = 0;
 
-            $totalSeconds = $dailyParts->reduce(function ($carry, $item) {
-                if ($item->time_worked && str_contains($item->time_worked, ':')) {
-                    [$hours, $minutes, $seconds] = explode(':', $item->time_worked);
-                    $hours = is_numeric($hours) ? (int)$hours : 0;
-                    $minutes = is_numeric($minutes) ? (int)$minutes : 0;
-                    $seconds = is_numeric($seconds) ? (int)$seconds : 0;
-                    return $carry + ($hours * 3600) + ($minutes * 60) + $seconds;
-                }
-                return $carry;
-            }, 0);
+    foreach ($services as $service) {
+        // Obtener daily parts del servicio
+        if ($service->state != 3) {
+            continue;
+        }
+        $dailyParts = DailyPart::where('service_id', $service->id)->get();
 
-            $totalTimeWorked = gmdate('H:i:s', $totalSeconds);
+        // Calcular segundos totales trabajados
+        $totalSecondsWorked = $dailyParts->reduce(function ($carry, $item) {
+            if ($item->time_worked && str_contains($item->time_worked, ':')) {
+                [$hours, $minutes, $seconds] = array_pad(explode(':', $item->time_worked), 3, 0);
+                $hours = is_numeric($hours) ? (int)$hours : 0;
+                $minutes = is_numeric($minutes) ? (int)$minutes : 0;
+                $seconds = is_numeric($seconds) ? (int)$seconds : 0;
+                return $carry + ($hours * 3600) + ($minutes * 60) + $seconds;
+            }
+            return $carry;
+        }, 0);
 
-            $service->total_time_worked = $totalTimeWorked;
+        // Formatear tiempo total trabajado
+        $totalHours = floor($totalSecondsWorked / 3600);
+        $totalMinutes = floor(($totalSecondsWorked % 3600) / 60);
+        $totalTimeFormatted = sprintf('%02d:%02d', $totalHours, $totalMinutes);
 
-            return $service;
-        });
+        // Calcular horas equivalentes
+        $totalEquivalentHours = $totalHours + ($totalMinutes / 60);
 
-        return response()->json([
-            'message' => 'Daily work log retrieved successfully',
-            'data' => $servicesWithTotalTime
-        ]);
+        // Calcular días trabajados (días únicos con registros)
+        $totalDaysWorked = $dailyParts->pluck('work_date')->unique()->count();
+
+        // Verificar si hay ajuste para este servicio
+        $adjustment = ServiceLiquidationAdjustment::where('service_id', $service->id)->first();
+
+        if ($adjustment) {
+            // Si hay ajuste, usar datos ajustados
+            $adjustedData = json_decode($adjustment->adjusted_data, true);
+            $equipment = (object) $adjustedData['equipment'];
+            $costPerHour = $adjustedData['auth']['totals']['cost_per_hour'] ?? 0;
+            $totalAmount = $adjustedData['auth']['totals']['total_amount'] ?? 0;
+            $costPerDay = $adjustedData['liquidation']['cost_per_day'] ?? 0;
+        } else {
+            // Si no hay ajuste, calcular normalmente
+            $equipment = MechanicalEquipment::find($service->mechanical_equipment_id);
+            $costPerHour = $equipment->cost_hour ?? 0;
+            $totalAmount = $totalEquivalentHours * $costPerHour;
+            $costPerDay = $totalDaysWorked > 0 ? $totalAmount / $totalDaysWorked : 0;
+        }
+
+        // Agregar datos de esta maquinaria
+        $machinery[] = [
+            'service_id' => $service->id,
+            'equipment' => $equipment,
+            'time_worked' => $totalTimeFormatted,
+            'cost_per_hour' => $costPerHour,
+            'total_amount' => round($totalAmount, 2),
+            'cost_per_day' => round($costPerDay, 2),
+            'days_worked' => $totalDaysWorked,
+        ];
+
+        // Sumar al total general
+        $totalValorationAmount += $totalAmount;
     }
+
+    $valoration = [
+        'machinery' => $machinery,
+        'valoration_amount' => round($totalValorationAmount, 2)
+    ];
+
+    return response()->json([
+        'message' => 'Daily work log retrieved successfully',
+        'valoration' => $valoration,
+        'data' => $services
+    ]);
+}
 
     public function getPathPdf($id)
     {

@@ -3,10 +3,6 @@
   <!-- Header del Dashboard -->
   <div class="dashboard-header">
     <h1>Reportes - Partes Diarios</h1>
-    <button mat-raised-button color="primary"  (click)="descargarReporte()">
-      <mat-icon>download</mat-icon>
-      Descargar Reporte
-    </button>
 
     <!--<div class="action-card">
       <div class="action-icon orden">📋</div>
@@ -29,6 +25,13 @@
         </button>
       </div>
     </div>-->
+    <div class="action-card" *appHasPermission="'generate_reportes'">
+      <button class="btn btn-primary"
+        (click)="openValorizedDialog(1)">
+        💰 Valorizar
+      </button>
+    </div>
+
   </div>
       <mat-card class="header-card">
         <mat-card-header>
@@ -111,7 +114,7 @@
               <td mat-cell *matCellDef="let parte">
                 <mat-chip-set>
                   <mat-chip [color]="obtenerColorEstado(parte.state)" selected>
-                    {{ obtenerTextoEstado(parte.state) }}
+                    {{ obtenerTextoEstado(parte.state) }}-{{ parte.id }}
                   </mat-chip>
                 </mat-chip-set>
               </td>
@@ -125,7 +128,7 @@
                   <strong>{{ parte.description }}</strong>
                   <div style="color: blueviolet;" class="service-operator">
                     <mat-icon>person</mat-icon>
-                    {{ parte.operator }}
+                    
                   </div>
                 </div>
               </td>
