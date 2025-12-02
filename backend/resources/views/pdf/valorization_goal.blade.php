@@ -274,7 +274,7 @@
                     </td>
                     <td>{{ $machinery['equipment']['brand'] ?? 'N/A' }}</td>
                     <td>{{ $machinery['equipment']['plate'] ?? 'N/A' }}</td>
-                    <td>{{ $machinery['time_worked'] }}</td>
+                    <td>{{ $machinery['equivalent_hours'] }}</td>
                     <td class="currency">{{ number_format($machinery['cost_per_hour'], 2) }}</td>
                     <td class="currency" style="font-weight: bold;">S/. {{ number_format($machinery['total_amount'], 2) }}</td>
                     <td class="currency">S/. {{ number_format($machinery['cost_per_day'], 2) }}</td>

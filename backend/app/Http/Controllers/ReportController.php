@@ -233,7 +233,6 @@ class ReportController extends Controller
 
     public function generateValorization(Request $request)
     {
-        Log::info('Valorization request data: ' . json_encode($request->json()->all()));
         $serviceId = $request->machinery[0]['service_id'];
 
         $goalDetail = DB::table('services')
