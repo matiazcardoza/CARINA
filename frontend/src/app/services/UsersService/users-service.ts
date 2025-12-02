@@ -56,6 +56,14 @@ export class UsersService {
     );
   }
 
+  getUsersSelected(documentState: number): Observable<UserElement[]> {
+    return this.http.get<UserApiResponse>(`${this.apiUrl}/api/users-selected/${documentState}`, {
+      withCredentials: true
+    }).pipe(
+      map(response => response.data)
+    );
+  }
+
   getUserIncidencia(): Observable<UserElement[]> {
     return this.http.get<UserApiResponse>(`${this.apiUrl}/api/users-incidencia`, {
       withCredentials: true

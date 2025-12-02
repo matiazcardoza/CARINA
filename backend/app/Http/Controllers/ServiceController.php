@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Log;
 
 class ServiceController extends Controller
 {
-    function index(Request $request)
+    function index()
     {
         $goalIds = Project::Where('user_id', Auth::id())->pluck('goal_id');
         $services = DB::table('services')

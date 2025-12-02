@@ -89,10 +89,13 @@ export class DailyWorkSignature {
   }
 
   private loadUsers(): void {
-    this.usersService.getUsers().subscribe({
+    const documentState = this.documentState;
+    this.usersService.getUsersSelected(documentState).subscribe({
       next: (users) => {
         this.users = users;
         this.filteredUsers = [...this.users];
+        this.userForm.get('userId')?.setValue('');
+        this.userForm.get('userId')?.markAsUntouched();
         this.cdr.detectChanges();
       },
       error: (error) => {
@@ -144,7 +147,7 @@ export class DailyWorkSignature {
             const document_id = data.id;
             this.documentId = document_id;
             this.documentState = data.state || 0;
-
+            this.loadUsers();
             const fullPdfUrl = `${environment.BACKEND_URL_STORAGE}${pdfPath}?timestamp=${new Date().getTime()}`;
             this.pdfUrlString = fullPdfUrl;
             this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fullPdfUrl);
@@ -178,6 +181,7 @@ export class DailyWorkSignature {
     this.isSigningInProgress = true;
     this.error = null;
     this.cdr.detectChanges();
+    this.loadPdfDocument();
 
     const firmaParams: FirmaDigitalParams = {
       location_url_pdf: this.pdfUrlString,

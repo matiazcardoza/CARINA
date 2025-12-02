@@ -42,7 +42,7 @@ class UserController extends Controller
                     'persona_name' => $user->persona_name ?? 'N/A',
                     'last_name' => $user->last_name ?? '',
                     'email' => $user->email,
-                    'roles' => [], // aquí meteremos id y name
+                    'roles' => [],
                     'role_names' => '',
                     'state' => $user->state ?? 1,
                     'created_at' => $user->created_at,
@@ -92,10 +92,8 @@ class UserController extends Controller
         $q = trim((string) $request->query('q', ''));
 
         $query = User::query()
-            // Si tus roles son guard 'api', especifícalo:
             ->role('almacen.operario', 'api')
             ->select('id','name','email')
-            // Eager load de SOLO la primera persona:
             ->with(['persona:id,user_id,num_doc,name,last_name,state']);
 
         if ($q !== '') {
@@ -110,9 +108,8 @@ class UserController extends Controller
             });
         }
 
-        $users = $query->get(); // SIN paginación
+        $users = $query->get();
 
-        // (Opcional) Formatear respuesta combinada
         $data = $users->map(function ($u) {
             return [
                 'id'        => $u->id,
@@ -371,40 +368,52 @@ class UserController extends Controller
         ], 200);
     }
 
-    private function determineRoles($idCargo, $uoperativas, $rolesArray = [])
-    {
-        $roles = [];
-        $uoperIds = collect($uoperativas)->pluck('iduoper')->toArray();
-        if (in_array($idCargo, [5, 6])) {
-            if (in_array('00106', $uoperIds) || in_array('00107', $uoperIds)) {
-                $roles[] = 4;
-            }
-        }
-        
-        if (in_array($idCargo, [7, 8])) {
-            if (in_array('00108', $uoperIds)) {
-                $roles[] = 5;
-            }
-        }
-        
-        $hasResidenteUnits = in_array('00106', $uoperIds) || in_array('00107', $uoperIds);
-        $hasSupervisorUnits = in_array('00108', $uoperIds);
-        
-        if ($hasResidenteUnits && $hasSupervisorUnits) {
-            $roles = [4, 5];
-        }
+    // SOLO REEMPLAZAR LA FUNCIÓN determineRoles()
+// Las demás funciones permanecen exactamente igual
 
-        if (!empty($rolesArray)) {
-            foreach ($rolesArray as $rol) {
-                if ($rol['idrol'] == '34') {
-                    $roles[] = 3;
-                    break;
-                }
+private function determineRoles($idCargo, $uoperativas, $rolesArray = [])
+{
+    $roles = [];
+    $uoperIds = collect($uoperativas)->pluck('iduoper')->toArray();
+    
+    // Verificar unidades operativas
+    $hasResidenteUnits = in_array('00106', $uoperIds) || in_array('00107', $uoperIds);
+    $hasSupervisorUnits = in_array('00108', $uoperIds);
+    
+    // REGLA 1: Si tiene cargo de RESIDENTE (5 o 6)
+    if (in_array($idCargo, [5, 6])) {
+        if ($hasResidenteUnits) {
+            $roles[] = 4; // Solo Residente
+        }
+    } 
+    // REGLA 2: Si tiene cargo de SUPERVISOR (7 u 8)
+    elseif (in_array($idCargo, [7, 8])) {
+        if ($hasSupervisorUnits) {
+            $roles[] = 5; // Solo Supervisor
+        }
+    } 
+    // REGLA 3: Sin cargo definido (null) - asignar según unidades
+    else {
+        // Prioridad: Supervisor > Residente
+        if ($hasSupervisorUnits) {
+            $roles[] = 5; // Supervisor
+        } elseif ($hasResidenteUnits) {
+            $roles[] = 4; // Residente
+        }
+    }
+    
+    // REGLA 4: Controlador (rol 3) - puede coexistir con cualquier otro rol
+    if (!empty($rolesArray)) {
+        foreach ($rolesArray as $rol) {
+            if ($rol['idrol'] == '34') {
+                $roles[] = 3;
+                break;
             }
         }
-        
-        return array_unique($roles);
     }
+    
+    return array_unique($roles);
+}
 
     private function syncUserMetas($userId, $metas)
     {
@@ -493,6 +502,51 @@ class UserController extends Controller
         return response()->json([
             'message' => 'Contraseña actualizada correctamente',
             'data' => $user
+        ], 200);
+    }
+
+    public function getUserSelect($documentState){
+        $goalIds = Project::where('user_id', Auth::id())
+                      ->pluck('goal_id')
+                      ->toArray();
+        $userIds = Project::whereIn('goal_id', $goalIds)
+                      ->where('user_id', '!=', Auth::id())
+                      ->distinct()
+                      ->pluck('user_id')
+                      ->toArray();
+
+        Log::info('estos son los users ids:',$userIds);
+        $query = User::select(
+                    'users.*',
+                    'roles.id as role_id',
+                    'roles.name as role_name',
+                    'personas.num_doc',
+                    'personas.name as persona_name',
+                    'personas.last_name'
+                )
+                ->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
+                ->leftJoin('roles', 'model_has_roles.role_id', '=', 'roles.id')
+                ->leftJoin('personas', 'users.id', '=', 'personas.user_id')
+                ->whereIn('users.id', $userIds);
+        
+        switch ($documentState) {
+            case 0:
+                return response()->json([
+                    'message' => 'Debes de firmar el documento',
+                ], 400);
+            case 1:
+                $query->where('model_has_roles.role_id', 4);
+                break;
+            case 2:
+                $query->where('model_has_roles.role_id', 5);
+                break;
+            }
+
+        $users = $query->get();
+        
+        return response()->json([
+            'message' => 'Users retrieved successfully',
+            'data' => $users
         ], 200);
     }
 }
