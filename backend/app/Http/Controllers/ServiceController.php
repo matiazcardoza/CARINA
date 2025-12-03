@@ -224,7 +224,6 @@ class ServiceController extends Controller
         $servicio = Service::find($request->service_id);
         if($servicio->goal_id === $request->goal_id){
 
-            Log::info('ingreso a funcion si es el mismo goal_id');
             $Service = $servicio->update([
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,

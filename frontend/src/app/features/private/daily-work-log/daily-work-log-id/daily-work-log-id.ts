@@ -21,6 +21,7 @@ import { ShiftsService } from '../../../../services/ShiftsService/shifts-service
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 import { HasPermissionDirective, HasRoleDirective } from '../../../../shared/directives/permission.directive';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 export interface WorkLogIdElement {
   id: number;
@@ -65,7 +66,7 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
 
   shiftsData: any[] = [];
 
-  constructor(private route: ActivatedRoute, private cdr: ChangeDetectorRef) {}
+  constructor(private route: ActivatedRoute, private cdr: ChangeDetectorRef, private snackBar: MatSnackBar) {}
 
   displayedColumns: string[] = ['id', 'description', 'work_date', 'start_time', 'initial_fuel', 'end_time', 'actions'];
   dataSource = new MatTableDataSource<WorkLogIdElement>([]);
@@ -285,7 +286,17 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
       body.style.overflow = '';
       html.style.overflow = '';
 
-      if (result) {
+      if (result === true) {
+        this.snackBar.open(
+          'Documento enviado correctamente',
+          'Cerrar',
+          {
+            duration: 4000,
+            horizontalPosition: 'end',
+            verticalPosition: 'top',
+            panelClass: ['success-snackbar']
+          }
+        );
         this.reloadData();
       }
     });

@@ -21,6 +21,13 @@ import { MatInputModule } from '@angular/material/input';
 import { UserElement } from '../../../../users/users';
 import { HasRoleDirective } from '../../../../../../shared/directives/permission.directive';
 
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
+import { PermissionService } from '../../../../../../services/AuthService/permission';
+import { MatDialog } from '@angular/material/dialog';
+import { AlertConfirm } from '../../../../../../components/alert-confirm/alert-confirm';
+
 export interface DocumentDailyPartElement {
   id: number;
   file_path: string;
@@ -47,10 +54,11 @@ interface DialogData {
     MatAutocompleteModule,
     MatFormFieldModule,
     MatInputModule,
-    HasRoleDirective
+    HasRoleDirective,
+    MatSnackBarModule
   ],
   templateUrl: './daily-work-signature.html',
-  styleUrl: './daily-work-signature.css'
+  styleUrl: './daily-work-signature.css',
 })
 export class DailyWorkSignature {
 
@@ -63,10 +71,14 @@ export class DailyWorkSignature {
   signatureData: any = null;
   isSigningInProgress = false;
   documentState: number = 0;
+  shouldAutoSend = false;
 
   userForm: FormGroup;
   users: UserElement[] = [];
   filteredUsers: UserElement[] = [];
+
+  userRoles: string[] = [];
+  numberOfPages: number = 1;
 
   constructor(
     public dialogRef: MatDialogRef<DailyWorkSignature>,
@@ -76,30 +88,111 @@ export class DailyWorkSignature {
     private signatureService: SignatureService,
     private sanitizer: DomSanitizer,
     private fb: FormBuilder,
-    private usersService: UsersService
+    private usersService: UsersService,
+    private snackBar: MatSnackBar,
+    private permissionService: PermissionService,
+    private dialog: MatDialog
   ) {
     this.userForm = this.fb.group({
       userId: ['', Validators.required],
     });
   }
 
+  private readonly ROLE_MAPPING = {
+    'Controlador_pd': { id: 3, name: 'CONTROLADOR', statusPosition: '1' },
+    'Residente_pd': { id: 4, name: 'RESIDENTE', statusPosition: '2' },
+    'Supervisor_pd': { id: 5, name: 'SUPERVISOR', statusPosition: '3' }
+  };
+
   ngOnInit(): void {
-    this.loadUsers();
+    this.loadUserRoles();
     this.loadPdfDocument();
   }
 
-  private loadUsers(): void {
+  private loadUserRoles(): void {
+    this.permissionService.roles$.subscribe({
+      next: (roles) => {
+        this.userRoles = roles;
+        console.log('Roles del usuario cargados:', this.userRoles);
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error al cargar roles del usuario:', error);
+      }
+    });
+  }
+
+  private getUserRelevantRoles(): string[] {
+    const relevantRoles = ['Controlador_pd', 'Residente_pd', 'Supervisor_pd'];
+    return relevantRoles.filter(role => this.permissionService.hasRole(role));
+  }
+
+  private getRoleToSignByDocumentState(): { 
+    roleId: number; 
+    roleName: string; 
+    statusPosition: string 
+  } | null {
+    const userRelevantRoles = this.getUserRelevantRoles();
+    
+    const hasBothSupervisorAndController = 
+    userRelevantRoles.includes('Supervisor_pd') && 
+    userRelevantRoles.includes('Controlador_pd');
+
+    const hasBothResidenteAndController = 
+    userRelevantRoles.includes('Residente_pd') && 
+    userRelevantRoles.includes('Controlador_pd');
+
+    switch (this.documentState) {
+      case 0:
+        if (hasBothSupervisorAndController) {
+          return {
+            roleId: this.ROLE_MAPPING['Supervisor_pd'].id,
+            roleName: this.ROLE_MAPPING['Supervisor_pd'].name,
+            statusPosition: this.ROLE_MAPPING['Supervisor_pd'].statusPosition
+          };
+        } else if (hasBothResidenteAndController) {
+          return {
+            roleId: this.ROLE_MAPPING['Residente_pd'].id,
+            roleName: this.ROLE_MAPPING['Residente_pd'].name,
+            statusPosition: this.ROLE_MAPPING['Residente_pd'].statusPosition
+          };
+        } else if (userRelevantRoles.includes('Controlador_pd')) {
+          return {
+            roleId: this.ROLE_MAPPING['Controlador_pd'].id,
+            roleName: this.ROLE_MAPPING['Controlador_pd'].name,
+            statusPosition: this.ROLE_MAPPING['Controlador_pd'].statusPosition
+          };
+        }
+        break;
+    }
+
+    return null;
+  }
+
+  loadUsers(): void {
     const documentState = this.documentState;
     this.usersService.getUsersSelected(documentState).subscribe({
       next: (users) => {
         this.users = users;
         this.filteredUsers = [...this.users];
-        this.userForm.get('userId')?.setValue('');
+        if (this.users.length > 0 && !this.userForm.get('userId')?.value) {
+          this.userForm.get('userId')?.setValue(this.users[0]);
+        }
         this.userForm.get('userId')?.markAsUntouched();
         this.cdr.detectChanges();
+        if (this.isSigned && this.shouldAutoSend) {
+          this.handleAutoSend();
+          this.shouldAutoSend = false;
+        }
       },
       error: (error) => {
-        console.error('Error al cargar usuarios:', error);
+        const msg = error.error.message;
+        this.snackBar.open(msg, 'Cerrar', {
+          duration: 4000,
+          horizontalPosition: 'end',
+          verticalPosition: 'top',
+          panelClass: ['error-snackbar']
+        });
       }
     });
     this.userForm.get('userId')?.valueChanges.pipe(
@@ -126,6 +219,7 @@ export class DailyWorkSignature {
 
   onUserSelected(user: UserElement): void {
     this.userForm.get('userId')?.setValue(user);
+    this.cdr.detectChanges();
   }
 
   loadPdfDocument(): void {
@@ -147,7 +241,8 @@ export class DailyWorkSignature {
             const document_id = data.id;
             this.documentId = document_id;
             this.documentState = data.state || 0;
-            this.loadUsers();
+            this.numberOfPages = data.pages || 1;
+            if (this.documentState !== 0) {this.loadUsers();};
             const fullPdfUrl = `${environment.BACKEND_URL_STORAGE}${pdfPath}?timestamp=${new Date().getTime()}`;
             this.pdfUrlString = fullPdfUrl;
             this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fullPdfUrl);
@@ -167,9 +262,16 @@ export class DailyWorkSignature {
       });
   }
 
-  canControllerSign(): boolean {
-    console.log('Document state:', this.documentState);
-    return this.documentState === 0;
+  canUserSign(): boolean {
+    const roleToSign = this.getRoleToSignByDocumentState();
+    
+    if (!roleToSign) {
+      console.log('El usuario no puede firmar en este estado');
+      return false;
+    }
+
+    console.log('El usuario puede firmar con:', roleToSign);
+    return true;
   }
 
   onSign(): void {
@@ -178,27 +280,39 @@ export class DailyWorkSignature {
       return;
     }
 
+    const roleToSign = this.getRoleToSignByDocumentState();
+    if (!roleToSign) {
+      this.snackBar.open(
+        'No tienes permiso para firmar en este estado del documento',
+        'Cerrar',
+        {
+          duration: 4000,
+          horizontalPosition: 'end',
+          verticalPosition: 'top',
+          panelClass: ['error-snackbar']
+        }
+      );
+      return;
+    }
+
     this.isSigningInProgress = true;
     this.error = null;
+    this.shouldAutoSend = true;
     this.cdr.detectChanges();
-    this.loadPdfDocument();
 
     const firmaParams: FirmaDigitalParams = {
       location_url_pdf: this.pdfUrlString,
       location_logo: `${environment.BACKEND_URL_STORAGE}image_pdf_template/logo_firma_digital.png`,
-      post_location_upload: `${environment.BACKEND_URL}/api/signature-document/${this.documentId}/3`,
+      post_location_upload: `${environment.BACKEND_URL}/api/signature-document/${this.documentId}/${roleToSign.roleId}`,
       asunto: `Firma de Parte Diario - ${this.data.date}`,
-      rol: 'CONTROLADOR',
+      rol: roleToSign.roleName,
       tipo: 'daily_parts',
-      status_position: '1',
+      status_position: roleToSign.statusPosition,
       visible_position: false,
       bacht_operation: false,
-      npaginas: 1,
+      npaginas: this.numberOfPages,
       token: ''
     };
-
-    // Llamar al servicio que abrirá la ventana popup
-    console.log(firmaParams);
 
     this.signatureService.firmaDigital(firmaParams)
       .subscribe({
@@ -214,6 +328,7 @@ export class DailyWorkSignature {
           console.error('Error durante la firma digital:', error);
           this.isSigningInProgress = false;
           this.error = error;
+          this.shouldAutoSend = false;
           this.cdr.detectChanges();
 
           if (error.includes('bloqueada')) {
@@ -227,12 +342,85 @@ export class DailyWorkSignature {
       });
   }
 
+  private handleAutoSend(): void {
+    if (this.users.length === 1) {
+      this.userForm.get('userId')?.setValue(this.users[0]);
+      this.onSendConfirm();
+      return;
+    }
+
+    const selected = this.userForm.get('userId')?.value;
+
+    if (!selected || typeof selected !== 'object') {
+      return;
+    }
+
+    const dialogRef = this.dialog.open(AlertConfirm, {
+      width: '450px',
+      data: {
+        title: 'Confirmar envío de documento',
+        message: '¿Está seguro de enviar este documento a:',
+        content: `${selected.persona_name} ${selected.last_name} (${selected.num_doc})`,
+        confirmText: 'Enviar',
+        cancelText: 'Cancelar'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.onSendConfirm();
+      } else {
+        this.userForm.get('userId')?.setValue('');
+        this.shouldAutoSend = false;
+      }
+    });
+  }
+
   onCancel(): void {
     this.dialogRef.close(false);
   }
 
   onSend(): void {
+    const selected = this.userForm.get('userId')?.value;
+
+    if (!this.isUserObjectSelected()) {
+      this.snackBar.open('Debe seleccionar un usuario de la lista', 'Cerrar', {
+        duration: 4000,
+        horizontalPosition: 'end',
+        verticalPosition: 'top',
+        panelClass: ['warning-snackbar']
+      });
+      this.userForm.get('userId')?.setValue('');
+      return;
+    }
+
+    if (this.users.length > 1) {
+      const dialogRef = this.dialog.open(AlertConfirm, {
+        width: '450px',
+        data: {
+          title: 'Confirmar envío de documento',
+          message: '¿Está seguro de enviar este documento a:',
+          content: `${selected.persona_name} ${selected.last_name} (${selected.num_doc})`,
+          confirmText: 'Enviar',
+          cancelText: 'Cancelar'
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.onSendConfirm();
+        }
+      });
+      
+      return;
+    }
+
+    this.onSendConfirm();
+  }
+
+  private onSendConfirm(): void {
     const selectedUser = this.userForm.get('userId')?.value as UserElement;
+
     const formSend = {
       userId: selectedUser.id,
       documentId: this.documentId
@@ -240,12 +428,15 @@ export class DailyWorkSignature {
 
     this.dailyWorkLogService.sendDocument(formSend)
       .subscribe({
-        next: (response) => {
-          this.dialogRef.close(true);
-        },
-        error: (error) => {
-        }
+        next: () => this.dialogRef.close(true),
+        error: () => {}
     });
+  }
+
+
+  private isUserObjectSelected(): boolean {
+    const value = this.userForm.get('userId')?.value;
+    return value && typeof value === 'object' && value.id !== undefined;
   }
 
   onNoClick(): void {
@@ -254,5 +445,11 @@ export class DailyWorkSignature {
 
   onRetry(): void {
     this.loadPdfDocument();
+  }
+
+  clearUserSelection(event: Event): void {
+    event.stopPropagation();
+    this.userForm.get('userId')?.setValue('');
+    this.userForm.get('userId')?.markAsUntouched();
   }
 }

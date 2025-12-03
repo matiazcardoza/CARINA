@@ -107,6 +107,16 @@
               matInput
               formControlName="userId"
               [matAutocomplete]="autoUser">
+        
+        <!-- BOTÓN PARA LIMPIAR SELECCIÓN -->
+        <button mat-icon-button matSuffix 
+                *ngIf="userForm.get('userId')?.value"
+                (click)="clearUserSelection($event)"
+                type="button"
+                matTooltip="Limpiar selección">
+          <mat-icon>close</mat-icon>
+        </button>
+        
         <mat-autocomplete #autoUser="matAutocomplete"
                           [displayWith]="displayUser"
                           (optionSelected)="onUserSelected($event.option.value)">
@@ -114,7 +124,10 @@
             {{ user.persona_name }} {{ user.last_name }} {{ user.num_doc }} - {{ user.email }}
           </mat-option>
         </mat-autocomplete>
-        <mat-error *ngIf="userForm.get('userId')?.hasError('required')">El usuario es requerido</mat-error>
+        
+        <mat-error *ngIf="userForm.get('userId')?.hasError('required')">
+          El usuario es requerido
+        </mat-error>
       </mat-form-field>
     </form>
 

@@ -54,21 +54,19 @@
     </div>
 
     <!-- Agregar *ngIf="canControllerSign()" para ocultar el botón -->
-     <div *appHasRole="'Controlador_pd'">
-     <!--<ng-container *appHasRole="['!Residente_pd', '!Supervisor_pd']">-->
-      <ng-container *appHasRole="'Controlador_pd'">
-        <button *ngIf="canControllerSign()"
-                mat-raised-button
-                [color]="isSigned ? 'accent' : 'warn'"
-                [disabled]="isLoading"
-                (click)="onSign()"
-                class="sign-button">
-          <mat-icon>{{ isSigned ? 'refresh' : 'create' }}</mat-icon>
-          {{ isSigned ? 'Firmar nuevamente' : 'Firmar documento' }}
-        </button>
-      </ng-container>
-     </div>
-
+     
+     <!--<div *appHasRole="'Controlador_pd'"><ng-container *appHasRole="['!Residente_pd', '!Supervisor_pd']">-->
+    <ng-container *appHasRole="'Controlador_pd'">
+      <button *ngIf="canUserSign()"
+              mat-raised-button
+              [color]="isSigned ? 'accent' : 'warn'"
+              [disabled]="isLoading"
+              (click)="onSign()"
+              class="sign-button">
+        <mat-icon>{{ isSigned ? 'refresh' : 'create' }}</mat-icon>
+        {{ isSigned ? 'Firmar nuevamente' : 'Firmar documento' }}
+      </button>
+    </ng-container>
   </div>
 
   <mat-toolbar class="signature-actions">
@@ -80,6 +78,15 @@
               matInput
               formControlName="userId"
               [matAutocomplete]="autoUser">
+        
+        <button mat-icon-button matSuffix 
+              *ngIf="userForm.get('userId')?.value"
+              (click)="clearUserSelection($event)"
+              type="button"
+              matTooltip="Limpiar selección">
+          <mat-icon>close</mat-icon>
+        </button>
+        
         <mat-autocomplete #autoUser="matAutocomplete"
                           [displayWith]="displayUser"
                           (optionSelected)="onUserSelected($event.option.value)">
@@ -87,7 +94,10 @@
             {{ user.persona_name }} {{ user.last_name}} {{ user.num_doc }} - {{ user.email }}
           </mat-option>
         </mat-autocomplete>
-        <mat-error *ngIf="userForm.get('userId')?.hasError('required')">El usuario es requerido</mat-error>
+        
+        <mat-error *ngIf="userForm.get('userId')?.hasError('required')">
+          El usuario es requerido
+        </mat-error>
       </mat-form-field>
     </form>
 

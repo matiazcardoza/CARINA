@@ -306,8 +306,8 @@ class UserController extends Controller
         $response = Http::get($url);
         $responseData = $response->json();
         $personalData = $responseData['data'] ?? [];
-        
         $stats = [
+            
             'created' => 0,
             'updated' => 0,
             'errors' => []
@@ -506,16 +506,19 @@ private function determineRoles($idCargo, $uoperativas, $rolesArray = [])
     }
 
     public function getUserSelect($documentState){
-        $goalIds = Project::where('user_id', Auth::id())
-                      ->pluck('goal_id')
-                      ->toArray();
+        if (Auth::id() == 1) {
+            $goalIds = [888];
+        } else {
+            $goalIds = Project::where('user_id', Auth::id())
+                        ->pluck('goal_id')
+                        ->toArray();
+        }
         $userIds = Project::whereIn('goal_id', $goalIds)
                       ->where('user_id', '!=', Auth::id())
                       ->distinct()
                       ->pluck('user_id')
                       ->toArray();
 
-        Log::info('estos son los users ids:',$userIds);
         $query = User::select(
                     'users.*',
                     'roles.id as role_id',
@@ -527,12 +530,13 @@ private function determineRoles($idCargo, $uoperativas, $rolesArray = [])
                 ->leftJoin('model_has_roles', 'users.id', '=', 'model_has_roles.model_id')
                 ->leftJoin('roles', 'model_has_roles.role_id', '=', 'roles.id')
                 ->leftJoin('personas', 'users.id', '=', 'personas.user_id')
-                ->whereIn('users.id', $userIds);
+                ->whereIn('users.id', $userIds)
+                ->where('personas.num_doc', '!=', 'U40098666');
         
         switch ($documentState) {
             case 0:
                 return response()->json([
-                    'message' => 'Debes de firmar el documento',
+                    'message' => 'Para seleccionar al usuario debes de firmar el documento correspondiente',
                 ], 400);
             case 1:
                 $query->where('model_has_roles.role_id', 4);

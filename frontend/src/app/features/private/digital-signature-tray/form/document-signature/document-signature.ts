@@ -22,6 +22,11 @@ import { MatInputModule } from '@angular/material/input';
 import { UserElement } from '../../../users/users';
 import { PermissionService } from '../../../../../services/AuthService/permission';
 
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
+import { AlertConfirm } from '../../../../../components/alert-confirm/alert-confirm';
+
 export interface DocumentDailyPartElement {
   id: number;
   file_path: string;
@@ -45,7 +50,8 @@ interface DialogData {
     ReactiveFormsModule,
     MatAutocompleteModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    MatSnackBarModule
   ],
   templateUrl: './document-signature.html',
   styleUrl: './document-signature.css'
@@ -88,7 +94,9 @@ export class DocumentSignature {
     private fb: FormBuilder,
     private usersService: UsersService,
     private documentSignatureService: DocumentSignatureService,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {
     this.userForm = this.fb.group({
       userId: ['', Validators.required],
@@ -97,7 +105,6 @@ export class DocumentSignature {
   }
 
   ngOnInit(): void {
-    this.loadUsers();
     this.loadUserRoles();
     this.loadPdfDocument();
   }
@@ -115,11 +122,21 @@ export class DocumentSignature {
     });
   }
 
+  private isUserObjectSelected(): boolean {
+    const value = this.userForm.get('userId')?.value;
+    return value && typeof value === 'object' && value.id !== undefined;
+  }
+
   private loadUsers(): void {
-    this.usersService.getUsers().subscribe({
+    const documentState = this.documentState;
+    this.usersService.getUsersSelected(documentState).subscribe({
       next: (users) => {
         this.users = users;
         this.filteredUsers = [...this.users];
+        if (this.users.length === 1 && !this.userForm.get('userId')?.value) {
+          this.userForm.get('userId')?.setValue(this.users[0]);
+        }
+        this.userForm.get('userId')?.markAsUntouched();
         this.cdr.detectChanges();
       },
       error: (error) => {
@@ -186,11 +203,9 @@ export class DocumentSignature {
             const pdfPath = data.file_path;
             const document_id = data.id;
             this.documentId = document_id;
-
             this.documentState = data.state || 0;
-
             this.numberOfPages = data.pages || 0;
-
+            if (this.documentState !== 0) {this.loadUsers();};
             const fullPdfUrl = `${environment.BACKEND_URL_STORAGE}${pdfPath}?timestamp=${new Date().getTime()}`;
             this.pdfUrlString = fullPdfUrl;
             this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fullPdfUrl);
@@ -361,19 +376,53 @@ export class DocumentSignature {
   }
 
   onSend(): void {
+    const selected = this.userForm.get('userId')?.value;
+    if (!this.isUserObjectSelected()) {
+      this.snackBar.open('Debe seleccionar un usuario de la lista', 'Cerrar', {
+        duration: 4000,
+        horizontalPosition: 'end',
+        verticalPosition: 'top',
+        panelClass: ['warning-snackbar']
+      });
+      this.userForm.get('userId')?.setValue('');
+      return;
+    }
+
+    if (this.users.length > 1) {
+      const dialogRef = this.dialog.open(AlertConfirm, {
+        width: '450px',
+        data: {
+          title: 'Confirmar envío de documento',
+          message: '¿Está seguro de enviar este documento a:',
+          content: `${selected.persona_name} ${selected.last_name} (${selected.num_doc})`,
+          confirmText: 'Enviar',
+          cancelText: 'Cancelar'
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.onSendConfirm();
+        }
+      });
+      
+      return;
+    }
+    this.onSendConfirm();
+  }
+
+  private onSendConfirm(): void {
     const selectedUser = this.userForm.get('userId')?.value as UserElement;
+
     const formSend = {
       userId: selectedUser.id,
       documentId: this.documentId
-    }
+    };
 
     this.dailyWorkLogService.sendDocument(formSend)
       .subscribe({
-        next: (response) => {
-          this.dialogRef.close(true);
-        },
-        error: (error) => {
-        }
+        next: () => this.dialogRef.close(true),
+        error: () => {}
     });
   }
 
@@ -404,23 +453,21 @@ export class DocumentSignature {
 
   shouldShowSignButton(): boolean {
     const userRelevantRoles = this.getUserRelevantRoles();
-    
-    // Estado 0: Solo Controlador puede firmar
     if (this.documentState === 0 && userRelevantRoles.includes('Controlador_pd')) {
       return true;
     }
-    
-    // Estado 1: Residente puede firmar (incluso si también es Supervisor)
     if (this.documentState === 1 && userRelevantRoles.includes('Residente_pd')) {
       return true;
     }
-    
-    // Estado 2: Supervisor puede firmar
     if ([0, 1, 2].includes(this.documentState) && userRelevantRoles.includes('Supervisor_pd')) {
       return true;
     }
-    
-    // Estado 3: Nadie puede firmar (documento completado)
     return false;
+  }
+
+  clearUserSelection(event: Event): void {
+    event.stopPropagation();
+    this.userForm.get('userId')?.setValue('');
+    this.userForm.get('userId')?.markAsUntouched();
   }
 }

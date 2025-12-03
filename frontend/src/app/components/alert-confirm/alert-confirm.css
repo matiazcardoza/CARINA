@@ -1,0 +1,442 @@
+/* ============================================
+   CONTENEDOR PRINCIPAL
+   ============================================ */
+.alert-confirm-dialog {
+  min-width: 450px;
+  max-width: 550px;
+}
+
+/* ============================================
+   HEADER DEL DIÁLOGO
+   ============================================ */
+.dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 24px 16px 24px;
+  border-bottom: 2px solid #e0e0e0;
+  margin-bottom: 0;
+  border-radius: 4px 4px 0 0;
+}
+
+.dialog-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.dialog-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   ESTILOS POR TIPO DE ALERTA
+   ============================================ */
+
+/* INFO - Azul */
+.header-info {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+}
+
+.header-info .dialog-icon {
+  color: #1976d2;
+}
+
+.header-info h2 {
+  color: #1565c0;
+}
+
+/* WARNING - Naranja/Amarillo */
+.header-warning {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+}
+
+.header-warning .dialog-icon {
+  color: #f57c00;
+}
+
+.header-warning h2 {
+  color: #e65100;
+}
+
+/* DANGER - Rojo */
+.header-danger {
+  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+}
+
+.header-danger .dialog-icon {
+  color: #d32f2f;
+}
+
+.header-danger h2 {
+  color: #c62828;
+}
+
+/* SUCCESS - Verde */
+.header-success {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+}
+
+.header-success .dialog-icon {
+  color: #388e3c;
+}
+
+.header-success h2 {
+  color: #2e7d32;
+}
+
+/* ============================================
+   CONTENIDO DEL DIÁLOGO
+   ============================================ */
+.dialog-content {
+  padding: 24px !important;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.dialog-message {
+  margin: 0 0 20px 0;
+  font-size: 16px;
+  color: #424242; /* CORREGIDO: color de texto normal */
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+/* ============================================
+   TARJETA DE INFORMACIÓN DEL USUARIO
+   ============================================ */
+.user-info-card {
+  background: #fafafa;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s ease;
+}
+
+.user-info-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.user-info-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  color: white;
+}
+
+.user-info-header mat-icon {
+  font-size: 22px;
+  width: 22px;
+  height: 22px;
+}
+
+.header-text {
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.user-details {
+  padding: 16px;
+  background: white;
+}
+
+.user-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  transition: background-color 0.2s ease;
+}
+
+.user-detail-row:hover {
+  background-color: #f5f5f5;
+  margin: 0 -8px;
+  padding: 12px 8px;
+  border-radius: 6px;
+}
+
+.user-detail-row:not(:last-child) {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.detail-icon {
+  color: #757575;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #616161; /* CORREGIDO: gris oscuro profesional */
+  font-size: 14px;
+  min-width: 70px;
+}
+
+.detail-value {
+  color: #212121; /* CORREGIDO: negro suave */
+  font-size: 14px;
+  font-weight: 500;
+  flex: 1;
+  word-break: break-word;
+}
+
+/* ============================================
+   ACCIONES DEL DIÁLOGO (BOTONES)
+   ============================================ */
+.dialog-actions {
+  padding: 16px 24px 24px 24px !important;
+  margin: 0 !important;
+  gap: 12px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #fafafa;
+}
+
+.cancel-button,
+.confirm-button {
+  min-width: 120px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.cancel-button {
+  color: #616161; /* CORREGIDO: gris neutro */
+  border: 1px solid #e0e0e0;
+}
+
+.cancel-button:hover {
+  background-color: #f5f5f5;
+  border-color: #bdbdbd;
+  color: #424242; /* CORREGIDO: gris más oscuro al hover */
+}
+
+.confirm-button {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* CORREGIDO: sombra negra normal */
+}
+
+.confirm-button:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+.confirm-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.confirm-button mat-icon,
+.cancel-button mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+/* ============================================
+   ANIMACIONES
+   ============================================ */
+.alert-confirm-dialog {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ============================================
+   SCROLLBAR PERSONALIZADO
+   ============================================ */
+.dialog-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dialog-content::-webkit-scrollbar-track {
+  background: #f5f5f5; /* CORREGIDO: gris claro */
+  border-radius: 4px;
+}
+
+.dialog-content::-webkit-scrollbar-thumb {
+  background: #bdbdbd; /* CORREGIDO: gris medio */
+  border-radius: 4px;
+}
+
+.dialog-content::-webkit-scrollbar-thumb:hover {
+  background: #9e9e9e;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 600px) {
+  .alert-confirm-dialog {
+    min-width: 100%;
+    max-width: 100%;
+  }
+
+  .dialog-header {
+    padding: 20px 16px 12px 16px;
+  }
+
+  .dialog-header h2 {
+    font-size: 18px;
+  }
+
+  .dialog-icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .dialog-content {
+    padding: 16px !important;
+  }
+
+  .dialog-message {
+    font-size: 14px;
+  }
+
+  .user-info-header {
+    padding: 10px 12px;
+  }
+
+  .header-text {
+    font-size: 12px;
+  }
+
+  .user-details {
+    padding: 12px;
+  }
+
+  .user-detail-row {
+    flex-wrap: wrap;
+    padding: 10px 0;
+  }
+
+  .detail-label {
+    min-width: 60px;
+    font-size: 13px;
+  }
+
+  .detail-value {
+    font-size: 13px;
+  }
+
+  .dialog-actions {
+    padding: 12px 16px 16px 16px !important;
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .cancel-button,
+  .confirm-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 400px) {
+  .dialog-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .dialog-icon {
+    align-self: center;
+  }
+
+  .user-detail-row {
+    gap: 8px;
+  }
+
+  .detail-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* ============================================
+   ESTADOS DE FOCUS PARA ACCESIBILIDAD
+   ============================================ */
+.cancel-button:focus,
+.confirm-button:focus {
+  outline: 2px solid #1976d2;
+  outline-offset: 2px;
+}
+
+/* ============================================
+   MODO OSCURO (SI TU APP LO MANEJA)
+   ============================================ */
+.dark-theme .alert-confirm-dialog,
+:host-context(.dark-theme) .alert-confirm-dialog {
+  .user-info-card {
+    background: #303030;
+    border-color: #424242;
+  }
+
+  .user-details {
+    background: #424242;
+  }
+
+  .user-detail-row {
+    border-bottom-color: #616161;
+  }
+
+  .user-detail-row:hover {
+    background-color: #4a4a4a;
+  }
+
+  .detail-label {
+    color: #bdbdbd;
+  }
+
+  .detail-value {
+    color: #e0e0e0;
+  }
+
+  .dialog-message {
+    color: #e0e0e0;
+  }
+
+  .dialog-header {
+    border-bottom-color: #424242;
+  }
+
+  .dialog-actions {
+    background-color: #303030;
+    border-top-color: #424242;
+  }
+
+  .cancel-button {
+    border-color: #616161;
+    color: #bdbdbd;
+  }
+
+  .cancel-button:hover {
+    background-color: #424242;
+    border-color: #757575;
+    color: #e0e0e0;
+  }
+}
