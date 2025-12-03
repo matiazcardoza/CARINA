@@ -13,6 +13,7 @@ import { MassiveDocumentSignature } from './form/massive-document-signature/mass
 
 import { HasPermissionDirective } from '../../../shared/directives/permission.directive';
 import { HasRoleDirective } from '../../../shared/directives/permission.directive';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 export interface DocumentSignatureUserElement {
   id: number;
@@ -50,6 +51,8 @@ export class DigitalSignatureTray implements AfterViewInit, OnInit {
   private documentSignatureService = inject(DocumentSignatureService);
   private dialog = inject(MatDialog);
   private cdr = inject(ChangeDetectorRef);
+  private snackBar = inject(MatSnackBar);
+
 
   isLoading = false;
   error: string | null = null;
@@ -116,8 +119,19 @@ export class DigitalSignatureTray implements AfterViewInit, OnInit {
       const html = document.documentElement;
       body.style.overflow = '';
       html.style.overflow = '';
-      this.reloadData();
-      this.cdr.detectChanges();
+      if (result?.success) {
+        this.snackBar.open(
+          result.message,
+          'Cerrar',
+          {
+            duration: 4000,
+            horizontalPosition: 'end',
+            verticalPosition: 'top',
+            panelClass: ['success-snackbar']
+          }
+        );
+        this.reloadData();
+      }
     });
   }
 

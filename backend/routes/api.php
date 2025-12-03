@@ -110,6 +110,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/document-return/resend-to-controller', [DocumentController::class, 'resendDocument']);
     Route::post('/documents-signature/prepare-massive', [DocumentController::class, 'prepareMassiveSignature']);
     Route::delete('/documents-signature-delete/{id}', [DocumentController::class, 'deleteDocumentSignature']);
+    Route::post('document-signature-send/send-massive', [DocumentController::class, 'sendMassiveDocument']);
 
     //mechanical equipment
     Route::get('/mechanical-equipment', [MechanicalEquipmentController::class, 'index']);

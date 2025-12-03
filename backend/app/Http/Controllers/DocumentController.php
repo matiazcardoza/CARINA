@@ -63,8 +63,15 @@ class DocumentController extends Controller
             'user_id' => $request->userId,
             'user_id_send' => Auth::id()
         ]);
+        if ($document->state == 1){
+            $message = 'Documento correctamente enviado al RESIDENTE';
+        } else if ($document->state == 2){
+            $message = 'Documento correctamente enviado al SUPERVISOR';
+        } else if ($document->state == 3){
+            $message = 'proceso de firma de parte diario completado';
+        }
         return response()->json([
-            'message' => 'Document sent successfully',
+            'message' => $message,
             'data' => $document
         ], 201);
     }
@@ -232,5 +239,44 @@ class DocumentController extends Controller
             is_dir($path) ? $this->deleteDirectory($path) : unlink($path);
         }
         rmdir($dir);
+    }
+    public function sendMassiveDocument(Request $request)
+    {
+        $documentIds = $request->documentIds;
+        $userId = $request->userId;
+
+        $updatedDocuments = [];
+        foreach ($documentIds as $documentId) {
+            $dailyPart = DailyPart::where('document_id', $documentId)->first();
+            if ($dailyPart) {
+                $dailyPart->update(['state' => 4]);
+            }
+            $document = DocumentDailyPart::find($documentId);
+            if ($document) {
+                $document->update([
+                    'user_id' => $userId,
+                    'user_id_send' => Auth::id(),
+                ]);
+                $updatedDocuments[] = $document;
+            }
+        }
+        if (!empty($updatedDocuments)) {
+            $firstDocument = $updatedDocuments[0];
+            if ($firstDocument->state == 1) {
+                $message = 'Documentos correctamente enviados al RESIDENTE';
+            } else if ($firstDocument->state == 2) {
+                $message = 'Documentos correctamente enviados al SUPERVISOR';
+            } else if ($firstDocument->state == 3) {
+                $message = 'Proceso de firma de parte diario completado';
+            } else {
+                $message = 'Documentos enviados correctamente';
+            }
+        } else {
+            $message = 'No se encontraron documentos válidos para actualizar';
+        }
+        return response()->json([
+            'message' => $message,
+            'data' => $updatedDocuments,
+        ], 201);
     }
 }

@@ -67,6 +67,7 @@ export class DocumentSignature {
   signatureData: any = null;
   isSigningInProgress = false;
   numberOfPages: number = 0;
+  shouldAutoSend = false;
 
   userForm: FormGroup;
   users: UserElement[] = [];
@@ -133,11 +134,16 @@ export class DocumentSignature {
       next: (users) => {
         this.users = users;
         this.filteredUsers = [...this.users];
-        if (this.users.length === 1 && !this.userForm.get('userId')?.value) {
+        if (this.users.length > 0 && !this.userForm.get('userId')?.value) {
           this.userForm.get('userId')?.setValue(this.users[0]);
         }
         this.userForm.get('userId')?.markAsUntouched();
         this.cdr.detectChanges();
+
+        if (this.isSigned && this.shouldAutoSend) {
+          this.handleAutoSend();
+          this.shouldAutoSend = false;
+        }
       },
       error: (error) => {
         console.error('Error al cargar usuarios:', error);
@@ -148,6 +154,40 @@ export class DocumentSignature {
       map(value => (typeof value === 'string' ? value : value?.name))
     ).subscribe(name => {
       this.filteredUsers = this._filterUsers(name || '');
+    });
+  }
+
+  private handleAutoSend(): void {
+    if (this.users.length === 1) {
+      this.userForm.get('userId')?.setValue(this.users[0]);
+      this.onSendConfirm();
+      return;
+    }
+
+    const selected = this.userForm.get('userId')?.value;
+
+    if (!selected || typeof selected !== 'object') {
+      return;
+    }
+
+    const dialogRef = this.dialog.open(AlertConfirm, {
+      width: '450px',
+      data: {
+        title: 'Confirmar envío de documento',
+        message: '¿Está seguro de enviar este documento a:',
+        content: `${selected.persona_name} ${selected.last_name} (${selected.num_doc})`,
+        confirmText: 'Enviar',
+        cancelText: 'Cancelar'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.onSendConfirm();
+      } else {
+        this.userForm.get('userId')?.setValue('');
+        this.shouldAutoSend = false;
+      }
     });
   }
 
@@ -205,6 +245,7 @@ export class DocumentSignature {
             this.documentId = document_id;
             this.documentState = data.state || 0;
             this.numberOfPages = data.pages || 0;
+            console.log('Estado del documento:', this.documentState);
             if (this.documentState !== 0) {this.loadUsers();};
             const fullPdfUrl = `${environment.BACKEND_URL_STORAGE}${pdfPath}?timestamp=${new Date().getTime()}`;
             this.pdfUrlString = fullPdfUrl;
@@ -328,6 +369,7 @@ export class DocumentSignature {
 
     this.isSigningInProgress = true;
     this.error = null;
+    this.shouldAutoSend = true;
     this.cdr.detectChanges();
 
     const firmaParams: FirmaDigitalParams = {
@@ -358,6 +400,7 @@ export class DocumentSignature {
           console.error('Error durante la firma digital:', error);
           this.isSigningInProgress = false;
           this.error = error;
+          this.shouldAutoSend = false;
           this.cdr.detectChanges();
 
           if (error.includes('bloqueada')) {
@@ -421,8 +464,24 @@ export class DocumentSignature {
 
     this.dailyWorkLogService.sendDocument(formSend)
       .subscribe({
-        next: () => this.dialogRef.close(true),
-        error: () => {}
+        next: (response) => {
+        this.dialogRef.close({
+          success: true,
+          message: response.message
+        });
+      },
+      error: (error) => {
+        this.snackBar.open(
+          'Error al enviar el documento',
+          'Cerrar',
+          {
+            duration: 4000,
+            horizontalPosition: 'end',
+            verticalPosition: 'top',
+            panelClass: ['error-snackbar']
+          }
+        );
+      }
     });
   }
 

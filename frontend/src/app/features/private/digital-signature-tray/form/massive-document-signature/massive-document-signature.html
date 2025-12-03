@@ -173,11 +173,52 @@
         <button mat-raised-button
                 color="primary"
                 (click)="onSignMassive()"
-                [disabled]="isSigningInProgress || selectedDocuments.length === 0">
+                [disabled]="isSigningInProgress || selectedDocuments.length === 0 || hasPendingSend">
           <mat-icon>{{ isSigningInProgress ? 'hourglass_empty' : 'draw' }}</mat-icon>
           {{ isSigningInProgress ? 'Firmando...' : 'Firmar Documentos' }}
         </button>
       </div>
     </div>
+  </mat-toolbar>
+  <mat-toolbar class="signature-actions">
+    <form [formGroup]="userForm" class="user-selector-form">
+      <mat-form-field appearance="outline" class="user-selector-field dense-form-field">
+        <input type="text"
+              placeholder="NOMBRE - DNI - CORREO"
+              aria-label="Usuarios"
+              matInput
+              formControlName="userId"
+              [matAutocomplete]="autoUser">
+        
+        <button mat-icon-button matSuffix 
+                *ngIf="userForm.get('userId')?.value"
+                (click)="clearUserSelection($event)"
+                type="button"
+                matTooltip="Limpiar selección">
+          <mat-icon>close</mat-icon>
+        </button>
+        
+        <mat-autocomplete #autoUser="matAutocomplete"
+                          [displayWith]="displayUser"
+                          (optionSelected)="onUserSelected($event.option.value)">
+          <mat-option *ngFor="let user of filteredUsers" [value]="user">
+            {{ user.persona_name }} {{ user.last_name }} {{ user.num_doc }} - {{ user.email }}
+          </mat-option>
+        </mat-autocomplete>
+        
+        <mat-error *ngIf="userForm.get('userId')?.hasError('required')">
+          El usuario es requerido
+        </mat-error>
+      </mat-form-field>
+    </form>
+
+    <button mat-raised-button
+            color="warn"
+            [disabled]="!userForm.valid"
+            [class.pulse-button]="!userForm.valid"
+            (click)="onSend()">
+      <mat-icon>send</mat-icon>
+      Enviar documento
+    </button>
   </mat-toolbar>
 </div>

@@ -274,6 +274,10 @@ export class DailyWorkSignature {
     return true;
   }
 
+  onSignPassword(){
+    this.signatureService;
+  }
+
   onSign(): void {
     if (!this.pdfUrlString) {
       console.error('No hay URL de PDF disponible para firmar');

@@ -61,6 +61,15 @@
               mat-raised-button
               [color]="isSigned ? 'accent' : 'warn'"
               [disabled]="isLoading"
+              (click)="onSignPassword()"
+              class="sign-button">
+        <mat-icon>{{ 'verified_user' }}</mat-icon>
+        {{ 'Firmar por contraseña' }}
+      </button>
+      <button *ngIf="canUserSign()"
+              mat-raised-button
+              [color]="isSigned ? 'accent' : 'warn'"
+              [disabled]="isLoading"
               (click)="onSign()"
               class="sign-button">
         <mat-icon>{{ isSigned ? 'refresh' : 'create' }}</mat-icon>

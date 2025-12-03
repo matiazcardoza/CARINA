@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\DailyPart;
 use App\Models\DocumentDailyPart;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use setasign\Fpdi\Fpdi;
 
 class SignatureController extends Controller
 {
@@ -207,6 +210,156 @@ class SignatureController extends Controller
     private function calculateDailyPartState($documentState)
     {
         return $documentState === 3 ? 5 : 4;
+    }
+
+    private function drawOnPdf($inputPdf, $outputPdf, $text, $x, $y)
+    {
+        $pdf = new Fpdi('P', 'pt');
+        $pageCount = $pdf->setSourceFile($inputPdf);
+
+        for ($i = 1; $i <= $pageCount; $i++) {
+
+            $tpl = $pdf->importPage($i);
+            $size = $pdf->getTemplateSize($tpl);
+
+            $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+            $pdf->useTemplate($tpl);
+
+            if ($i === $pageCount) {
+
+                // -----------------------------
+                // 1️⃣ Insertar imagen (firma) a la izquierda
+                // -----------------------------
+                //$imgPath = public_path(aqui tiene que ser un logo que esta en la carpeta public/storage/image_pdf_template/logo-gore.png
+
+                $imgWidth = 22; // tamaño img
+                //$imgHeight = 0; // altura automática
+
+                //if (file_exists($imgPath)) {
+                 //   $pdf->Image($imgPath, $x, $y, $imgWidth, $imgHeight);
+               // }
+
+                // -----------------------------
+                // 2️⃣ Insertar texto a la derecha de la imagen
+                // -----------------------------
+                $pdf->SetFont('Helvetica', '', 6);
+                $pdf->SetTextColor(0, 0, 0);
+
+                // POSICIÓN DEL TEXTO (derecha de la imagen con margen 2pt)
+                $textX = $x + $imgWidth + 2;
+                $textY = $y;
+                $pdf->SetXY($textX, $textY);
+
+                // ESCALA REAL
+                //$pdf->StartTransform();
+                //$pdf->Scale(70, 70); // 70% del tamaño original → pequeño
+                $pdf->MultiCell(120, 8, $text, 0, 'L');
+                //$pdf->StopTransform();
+            }
+        }
+
+        $pdf->Output($outputPdf, "F");
+    }
+
+    public function signatureOfPassword(Request $request)
+    {
+        $request->validate([
+            'row' => 'required|array',
+            'password' => 'required|string',
+        ]);
+
+        $user = User::find(Auth::id());
+
+        if (!$user || empty($user->persona->num_doc)) {
+            return response()->json(['correcto' => false, 'mensaje' => 'Usuario inválido'], 401);
+        }
+
+        $payload = [
+            'username' => $user->persona->num_doc,
+            'password' => $request->password,
+        ];
+
+        $url = 'https://sistemas.regionpuno.gob.pe/siluciav2-api/api/silucia-auth';
+
+        try {
+            $response = Http::withoutVerifying()
+                ->withHeaders([
+                    'Authorization' => 'Bearer ' . config('services.silucia.api_token'),
+                    'Content-Type' => 'application/json',
+                ])
+                ->withBody(json_encode($payload), 'application/json')
+                ->post($url);
+
+            if (!$response->successful()) {
+                return response()->json(['correcto' => false, 'mensaje' => 'Contraseña incorrecta'], 401);
+            }
+
+        } catch (\Exception $e) {
+            return response()->json(['correcto' => false, 'mensaje' => 'Error al conectar con API externa'], 500);
+        }
+
+        $row = $request->input('row');
+        $realFilename = $row['real_filename'] ?? null;
+        if (!$realFilename) {
+            return response()->json(['correcto' => false, 'mensaje' => 'Archivo no disponible en el row'], 422);
+        }
+
+        $filePath = storage_path('public/storage/daily_parts/' . $realFilename . '.pdf');
+
+        if (!file_exists($filePath)) {
+            return response()->json(['correcto' => false, 'mensaje' => 'Archivo no encontrado en storage'], 404);
+        }
+
+        $tmpPath = tempnam(sys_get_temp_dir(), 'pdf_') . '.pdf';
+        copy($filePath, $tmpPath);
+
+
+        $drawnPdfPath = tempnam(sys_get_temp_dir(), 'pdf_signed_') . '.pdf';
+
+
+        $textoFirma = 
+            "Firmado con contraseña por:\n" .
+            $user->name . " " . ($user->persona->num_doc ?? '') . "\n" .
+            "Motivo: Firma con contraseña\n" .
+            "Fecha: " . now()->format('d/m/Y H:i:sO');
+
+
+        $this->drawOnPdf(
+            $tmpPath,
+            $drawnPdfPath,
+            $textoFirma,
+            $row['current_step']['pos_x'], 
+            $row['current_step']['pos_y'], 
+            9
+        );
+
+        $tmpFile = new \Illuminate\Http\UploadedFile(
+            $drawnPdfPath,
+            $row['display_name'] ?? $realFilename,
+            'application/pdf',
+            null,
+            true
+        );
+
+        $storev2Request = \Illuminate\Http\Request::create(
+            '/fake/storev2?userId=' . ($row['auth_user_id'] ?? $user->id)
+                . '&obraId=' . $row['reportable_id']
+                . '&reportId=' . $row['id']
+                . '&token=' . ($row['current_step']['callback_token'] ?? ''),
+            'POST',
+            [],
+            [],
+            ['file' => $tmpFile],
+            []
+        );
+        //$response = app()->make(\App\Http\Controllers\SignatureController::class)
+           // ->storev2($storev2Request);
+
+        if (file_exists($tmpPath)) {
+            unlink($tmpPath);
+        }
+
+        return $response;
     }
 }
 

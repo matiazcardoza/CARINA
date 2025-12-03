@@ -39,6 +39,10 @@ interface ResendDocumentData {
   observation: string;
 }
 
+export interface SendDocumentMassiveData {
+  userId: number;
+  documentIds: number[];
+}
 
 @Injectable({
   providedIn: 'root'
@@ -93,6 +97,12 @@ export class DocumentSignatureService {
 
   deleteDocumentSignature(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/api/documents-signature-delete/${id}`, {
+      withCredentials: true
+    });
+  }
+
+  sendDocumentMassive(data: SendDocumentMassiveData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/api/document-signature-send/send-massive`, data, {
       withCredentials: true
     });
   }

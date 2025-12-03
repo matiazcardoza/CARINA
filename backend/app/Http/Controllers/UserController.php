@@ -306,8 +306,8 @@ class UserController extends Controller
         $response = Http::get($url);
         $responseData = $response->json();
         $personalData = $responseData['data'] ?? [];
+        
         $stats = [
-            
             'created' => 0,
             'updated' => 0,
             'errors' => []
@@ -507,7 +507,8 @@ private function determineRoles($idCargo, $uoperativas, $rolesArray = [])
 
     public function getUserSelect($documentState){
         if (Auth::id() == 1) {
-            $goalIds = [888];
+            $goalIds = Project::pluck('goal_id')->toArray();
+            //$goalIds = [888];
         } else {
             $goalIds = Project::where('user_id', Auth::id())
                         ->pluck('goal_id')

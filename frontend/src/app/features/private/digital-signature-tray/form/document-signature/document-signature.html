@@ -108,7 +108,6 @@
               formControlName="userId"
               [matAutocomplete]="autoUser">
         
-        <!-- BOTÓN PARA LIMPIAR SELECCIÓN -->
         <button mat-icon-button matSuffix 
                 *ngIf="userForm.get('userId')?.value"
                 (click)="clearUserSelection($event)"

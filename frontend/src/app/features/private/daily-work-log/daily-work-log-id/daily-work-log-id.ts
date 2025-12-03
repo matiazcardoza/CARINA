@@ -330,17 +330,6 @@ export class DailyWorkLogId implements AfterViewInit, OnInit {
   }
 
   generatePdf(id: number) {
-    /*this.dailyWorkLogService.generatePdf(id, this.selectedDate).subscribe({
-      next: (response: Blob) => {
-        const fileURL = URL.createObjectURL(response);
-        window.open(fileURL, '_blank');
-      },
-      error: () => {
-        this.error = 'Error al generar el PDF. Por favor, intenta nuevamente.';
-      }
-    });*/
-    console.log(this.selectedDate);
-
     this.dailyWorkLogService.generatePdf(id, this.selectedDate, this.selectedShift)
       .subscribe({
         next: (responde) => {

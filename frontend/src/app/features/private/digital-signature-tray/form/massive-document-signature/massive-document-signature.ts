@@ -11,11 +11,24 @@ import { CommonModule } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
 import { forkJoin, of, concat } from 'rxjs';
 import { catchError, tap, delay } from 'rxjs/operators';
+import { FormBuilder, FormGroup, ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 import { DocumentSignatureService } from '../../../../../services/DocumentSignatureService/document-signature-service';
 import { SignatureService, FirmaDigitalParams } from '../../../../../services/SignatureService/signature-service';
 import { PermissionService } from '../../../../../services/AuthService/permission';
 import { environment } from '../../../../../../environments/environment';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+
+import { UserElement } from '../../../users/users';
+import { AlertConfirm } from '../../../../../components/alert-confirm/alert-confirm';
+import { MatDialog } from '@angular/material/dialog';
+
+import { UsersService } from '../../../../../services/UsersService/users-service';
+import { startWith, map } from 'rxjs/operators';
+import { MatInputModule } from '@angular/material/input';
 
 export interface DocumentToSign {
   id: number;
@@ -49,13 +62,19 @@ interface RoleStateOption {
   standalone: true,
   imports: [
     CommonModule,
+    ReactiveFormsModule,
     MatIconModule,
     MatButtonModule,
     MatToolbarModule,
     MatProgressSpinnerModule,
     MatProgressBarModule,
     MatListModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    MatSnackBarModule,
+    MatAutocompleteModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatFormFieldModule
   ],
   templateUrl: './massive-document-signature.html',
   styleUrl: './massive-document-signature.css'
@@ -73,6 +92,13 @@ export class MassiveDocumentSignature implements OnInit {
   availableRoleStateOptions: RoleStateOption[] = [];
   selectedRoleState: RoleStateOption | null = null;
   filteredDocuments: DocumentToSign[] = [];
+
+  userForm: FormGroup;
+  users: UserElement[] = [];
+  filteredUsers: UserElement[] = [];
+  shouldAutoSend = false;
+  hasPendingSend = false;
+  private signedDocumentIds: Set<number> = new Set();
   
   private readonly ROLE_MAPPING = {
     'Controlador_pd': { 
@@ -102,8 +128,16 @@ export class MassiveDocumentSignature implements OnInit {
     private documentSignatureService: DocumentSignatureService,
     private signatureService: SignatureService,
     private sanitizer: DomSanitizer,
-    private permissionService: PermissionService
-  ) {}
+    private permissionService: PermissionService,
+    private snackBar: MatSnackBar,
+    private fb: FormBuilder,
+    private dialog: MatDialog,
+    private usersService: UsersService
+  ) {
+    this.userForm = this.fb.group({
+      userId: ['', Validators.required]
+    });
+  }
 
   ngOnInit(): void {
     this.createRoleStateOptions();
@@ -123,10 +157,10 @@ export class MassiveDocumentSignature implements OnInit {
       const roleConfig = this.ROLE_MAPPING[role as keyof typeof this.ROLE_MAPPING];
       if (!roleConfig) return;
 
-      // Crear una opción por cada estado que el rol puede firmar
       roleConfig.documentStates.forEach(state => {
-        // Contar documentos disponibles para este rol+estado
-        const documentCount = this.data.documents.filter(doc => doc.state === state).length;
+        const documentCount = this.data.documents.filter(doc => 
+          doc.state === state && !this.signedDocumentIds.has(doc.id)
+        ).length;
         
         if (documentCount > 0) {
           this.availableRoleStateOptions.push({
@@ -179,11 +213,16 @@ export class MassiveDocumentSignature implements OnInit {
     }
 
     // Filtrar documentos solo del estado específico seleccionado
-    this.documents.forEach(doc => {
-      doc.selected = doc.state === this.selectedRoleState!.state;
-    });
+     this.documents.forEach(doc => {
+        doc.selected = doc.state === this.selectedRoleState!.state 
+                      && !this.signedDocumentIds.has(doc.id);
+      });
+      
+    this.filteredDocuments = this.documents.filter(doc => 
+      doc.state === this.selectedRoleState!.state 
+      && !this.signedDocumentIds.has(doc.id)
+    );
     
-    this.filteredDocuments = this.documents.filter(doc => doc.state === this.selectedRoleState!.state);
     this.totalDocuments = this.filteredDocuments.filter(d => d.selected).length;
     this.cdr.detectChanges();
   }
@@ -207,6 +246,16 @@ export class MassiveDocumentSignature implements OnInit {
 
   toggleDocumentSelection(document: DocumentToSign): void {
     if (!this.isSigningInProgress && this.selectedRoleState && this.canSignDocument(document.state)) {
+      if (!document.selected && this.selectedDocuments.length >= 20) {
+        this.snackBar.open('Solo puedes seleccionar un máximo de 20 documentos para firma masiva', 'Cerrar', {
+          duration: 4000,
+          horizontalPosition: 'end',
+          verticalPosition: 'top',
+          panelClass: ['warning-snackbar']
+        });
+        return;
+      }
+
       document.selected = !document.selected;
       this.totalDocuments = this.selectedDocuments.length;
       this.cdr.detectChanges();
@@ -218,9 +267,30 @@ export class MassiveDocumentSignature implements OnInit {
     
     const allSelected = this.filteredDocuments.every(d => d.selected);
     
-    this.filteredDocuments.forEach(doc => {
-      doc.selected = !allSelected;
-    });
+    if (!allSelected) {
+      let count = 0;
+      this.filteredDocuments.forEach(doc => {
+        if (count < 20) {
+          doc.selected = true;
+          count++;
+        } else {
+          doc.selected = false;
+        }
+      });
+      
+      if (this.filteredDocuments.length > 20) {
+        this.snackBar.open('Solo se han seleccionado los primeros 20 documentos (máximo permitido)', 'Cerrar', {
+          duration: 4000,
+          horizontalPosition: 'end',
+          verticalPosition: 'top',
+          panelClass: ['warning-snackbar']
+        });
+      }
+    } else {
+      this.filteredDocuments.forEach(doc => {
+        doc.selected = false;
+      });
+    }
     
     this.totalDocuments = this.selectedDocuments.length;
     this.cdr.detectChanges();
@@ -263,6 +333,20 @@ export class MassiveDocumentSignature implements OnInit {
   }
 
   async onSignMassive(): Promise<void> {
+    if (this.hasPendingSend) {
+      this.snackBar.open(
+        'Debe enviar los documentos firmados antes de firmar nuevos documentos', 
+        'Cerrar',
+        {
+          duration: 4000,
+          horizontalPosition: 'end',
+          verticalPosition: 'top',
+          panelClass: ['warning-snackbar']
+        }
+      );
+      return;
+    }
+    
     if (!this.selectedRoleState) {
       alert('Por favor, selecciona un rol antes de firmar');
       return;
@@ -301,7 +385,6 @@ export class MassiveDocumentSignature implements OnInit {
         doc.signatureStatus = 'signing';
       });
       this.cdr.detectChanges();
-      console.log('status position', roleToSign.statusPosition);
       const firmaParams: FirmaDigitalParams = {
         location_url_pdf: batchData.zip_url,
         location_logo: `${environment.BACKEND_URL_STORAGE}image_pdf_template/logo_firma_digital.png`,
@@ -316,8 +399,6 @@ export class MassiveDocumentSignature implements OnInit {
         token: ''
       };
 
-      console.log('Iniciando firma masiva con parámetros:', firmaParams);
-
       const signatureResponse = await this.signatureService.firmaDigital(firmaParams).toPromise();
 
       console.log('Respuesta de firma digital:', signatureResponse);
@@ -327,9 +408,13 @@ export class MassiveDocumentSignature implements OnInit {
         doc.signatureStatus = 'success';
         doc.state = doc.state + 1;
         doc.selected = false;
+        this.signedDocumentIds.add(doc.id);
       });
       this.signedDocuments = documentsToSign.length;
+      this.hasPendingSend = true;
+      this.createRoleStateOptions();
       this.onRoleStateChange();
+      this.shouldAutoSend = true;
     } catch (error: any) {
       console.error('Error en firma masiva:', error);
       
@@ -338,7 +423,7 @@ export class MassiveDocumentSignature implements OnInit {
         doc.errorMessage = error.message || 'Error en firma masiva';
       });
       this.errorDocuments = documentsToSign.length;
-
+      this.shouldAutoSend = false;
     } finally {
       this.isSigningInProgress = false;
       this.cdr.detectChanges();
@@ -347,6 +432,10 @@ export class MassiveDocumentSignature implements OnInit {
         `✓ Firmados: ${this.signedDocuments}\n` +
         `✗ Errores: ${this.errorDocuments}`;
       alert(message);
+
+      if (this.signedDocuments > 0) {
+        this.loadUsers();
+      }
     }
   }
 
@@ -390,6 +479,194 @@ export class MassiveDocumentSignature implements OnInit {
       signed: this.signedDocuments > 0,
       signedCount: this.signedDocuments,
       errorCount: this.errorDocuments
+    });
+  }
+
+  private loadUsers(): void {
+    const successDocuments = this.documents.filter(d => d.signatureStatus === 'success');
+    if (successDocuments.length === 0) {
+      return;
+    }
+
+    const documentState = successDocuments[0].state;
+
+    this.userForm.get('userId')?.enable();
+    
+    this.usersService.getUsersSelected(documentState).subscribe({
+      next: (users) => {
+        this.users = users;
+        this.filteredUsers = [...this.users];
+        if (this.users.length > 0 && !this.userForm.get('userId')?.value) {
+          this.userForm.get('userId')?.setValue(this.users[0]);
+        }
+        this.userForm.get('userId')?.markAsUntouched();
+        this.cdr.detectChanges();
+  
+        if (this.shouldAutoSend) {
+          this.handleAutoSend();
+          this.shouldAutoSend = false;
+        }
+      },
+      error: (error) => {
+        console.error('Error al cargar usuarios:', error);
+      }
+    });
+    this.userForm.get('userId')?.valueChanges.pipe(
+      startWith(''),
+      map(value => (typeof value === 'string' ? value : value?.name))
+    ).subscribe(name => {
+      this.filteredUsers = this._filterUsers(name || '');
+    });
+  }
+
+  clearUserSelection(event: Event): void {
+    event.stopPropagation();
+    this.userForm.get('userId')?.setValue('');
+    this.userForm.get('userId')?.markAsUntouched();
+  }
+
+  onUserSelected(user: UserElement): void {
+    this.userForm.get('userId')?.setValue(user);
+  }
+
+  private isUserObjectSelected(): boolean {
+    const value = this.userForm.get('userId')?.value;
+    return value && typeof value === 'object' && value.id !== undefined;
+  }
+
+  displayUser(user: UserElement | null): string {
+    return user ? `${user.persona_name} ${user.last_name} ${user.num_doc} - ${user.email}` : '';
+  }
+
+  private _filterUsers(value: string): UserElement[] {
+    const filterValue = value.toLowerCase();
+    return this.users.filter(user =>
+      user.persona_name.toLowerCase().includes(filterValue) ||
+      user.last_name.toLowerCase().includes(filterValue) ||
+      user.num_doc.toLowerCase().includes(filterValue) ||
+      user.email.toLowerCase().includes(filterValue)
+    );
+  }
+
+  private handleAutoSend(): void {
+    if (this.users.length === 1) {
+      this.userForm.get('userId')?.setValue(this.users[0]);
+      this.onSendConfirm();
+      return;
+    }
+
+    const selected = this.userForm.get('userId')?.value;
+
+    if (!selected || typeof selected !== 'object') {
+      return;
+    }
+
+    const dialogRef = this.dialog.open(AlertConfirm, {
+      width: '450px',
+      data: {
+        title: 'Confirmar envío masivo de documentos',
+        message: `¿Está seguro de enviar ${this.signedDocuments} documento(s) firmado(s) a:`,
+        content: `${selected.persona_name} ${selected.last_name} (${selected.num_doc})`,
+        confirmText: 'Enviar',
+        cancelText: 'Cancelar'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.onSendConfirm();
+      } else {
+        this.userForm.get('userId')?.setValue('');
+        this.shouldAutoSend = false;
+      }
+    });
+  }
+
+  onSend(): void {
+    const selected = this.userForm.get('userId')?.value;
+    if (!this.isUserObjectSelected()) {
+      this.snackBar.open('Debe seleccionar un usuario de la lista', 'Cerrar', {
+        duration: 4000,
+        horizontalPosition: 'end',
+        verticalPosition: 'top',
+        panelClass: ['warning-snackbar']
+      });
+      this.userForm.get('userId')?.setValue('');
+      return;
+    }
+  
+    if (this.users.length > 1) {
+      const dialogRef = this.dialog.open(AlertConfirm, {
+        width: '450px',
+        data: {
+          title: 'Confirmar envío de documento',
+          message: '¿Está seguro de enviar este documento a:',
+          content: `${selected.persona_name} ${selected.last_name} (${selected.num_doc})`,
+          confirmText: 'Enviar',
+          cancelText: 'Cancelar'
+        }
+      });
+  
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.onSendConfirm();
+        }
+      });
+      
+      return;
+    }
+    this.onSendConfirm();
+  }
+  
+  private onSendConfirm(): void {
+    const selectedUser = this.userForm.get('userId')?.value as UserElement;
+    const successfulDocumentIds = this.documents
+      .filter(d => d.signatureStatus === 'success')
+      .map(d => d.id);
+    const formSend = {
+      userId: selectedUser.id,
+      documentIds: successfulDocumentIds
+    };
+
+    this.documentSignatureService.sendDocumentMassive(formSend)
+      .subscribe({
+        next: (response) => {
+        this.snackBar.open(
+          response.message,
+          'Cerrar',
+          {
+            duration: 4000,
+            horizontalPosition: 'end',
+            verticalPosition: 'top',
+            panelClass: ['success-snackbar']
+          }
+        );
+        successfulDocumentIds.forEach(id => {
+          const docIndex = this.documents.findIndex(d => d.id === id);
+          if (docIndex !== -1) {
+            // Opcional: remover completamente del array
+            this.documents.splice(docIndex, 1);
+          }
+        });
+        this.userForm.get('userId')?.setValue('');
+        this.userForm.get('userId')?.disable();
+        this.hasPendingSend = false;
+        this.createRoleStateOptions();
+        this.onRoleStateChange();
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        this.snackBar.open(
+          'Error al enviar el documento',
+          'Cerrar',
+          {
+            duration: 4000,
+            horizontalPosition: 'end',
+            verticalPosition: 'top',
+            panelClass: ['error-snackbar']
+          }
+        );
+      }
     });
   }
 }
