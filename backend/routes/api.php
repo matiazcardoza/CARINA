@@ -140,4 +140,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/reports/save-auth-changes', [ReportController::class, 'saveAuthChanges']);
     Route::post('/reports/download-merged-daily-parts/{serviceId}', [ReportController::class, 'downloadMergedDailyParts']);
     route::post('reports/close-service/{serviceId}', [ReportController::class, 'closeService']);
+
+    //signature
+    Route::post('/signature-password', [SignatureController::class, 'signatureOfPassword']);
+    Route::post('/signature-password-massive', [SignatureController::class, 'signatureOfPasswordMassive']);
 });

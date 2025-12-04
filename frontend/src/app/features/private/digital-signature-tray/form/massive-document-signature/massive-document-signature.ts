@@ -669,4 +669,155 @@ export class MassiveDocumentSignature implements OnInit {
       }
     });
   }
+
+  async onSignPassword(): Promise<void> {
+    if (this.hasPendingSend) {
+      this.snackBar.open(
+        'Debe enviar los documentos firmados antes de firmar nuevos documentos', 
+        'Cerrar',
+        {
+          duration: 4000,
+          horizontalPosition: 'end',
+          verticalPosition: 'top',
+          panelClass: ['warning-snackbar']
+        }
+      );
+      return;
+    }
+
+    if (!this.selectedRoleState) {
+      this.snackBar.open(
+        'Por favor, selecciona un rol antes de firmar',
+        'Cerrar',
+        {
+          duration: 3000,
+          horizontalPosition: 'end',
+          verticalPosition: 'top',
+          panelClass: ['warning-snackbar']
+        }
+      );
+      return;
+    }
+
+    const documentsToSign = this.selectedDocuments;
+    
+    if (documentsToSign.length === 0) {
+      this.snackBar.open(
+        'Por favor, selecciona al menos un documento para firmar',
+        'Cerrar',
+        {
+          duration: 3000,
+          horizontalPosition: 'end',
+          verticalPosition: 'top',
+          panelClass: ['warning-snackbar']
+        }
+      );
+      return;
+    }
+
+    this.isSigningInProgress = true;
+    this.signedDocuments = 0;
+    this.errorDocuments = 0;
+    this.currentSigningIndex = 1;
+    this.shouldAutoSend = true;
+    this.cdr.detectChanges();
+
+    try {
+      // Marcar documentos como "firmando"
+      documentsToSign.forEach(doc => {
+        doc.signatureStatus = 'signing';
+      });
+      this.cdr.detectChanges();
+
+      const documentIds = documentsToSign.map(d => d.id);
+
+      // Realizar la firma con contraseña
+      const response = await this.signatureService
+        .signWithPasswordMassive(documentIds)
+        .toPromise();
+
+      if (response && response.correcto) {
+        // Firma exitosa - actualizar estado de documentos
+        documentsToSign.forEach(doc => {
+          doc.signatureStatus = 'success';
+          doc.state = doc.state + 1; // Incrementar el estado
+          doc.selected = false;
+          this.signedDocumentIds.add(doc.id);
+        });
+        
+        this.signedDocuments = documentsToSign.length;
+        this.hasPendingSend = true;
+
+        // Actualizar opciones disponibles
+        this.createRoleStateOptions();
+        this.onRoleStateChange();
+
+        this.snackBar.open(
+          `${this.signedDocuments} documento(s) firmado(s) correctamente`,
+          'Cerrar',
+          {
+            duration: 4000,
+            horizontalPosition: 'end',
+            verticalPosition: 'top',
+            panelClass: ['success-snackbar']
+          }
+        );
+
+        // Cargar usuarios para envío
+        this.loadUsers();
+        
+      } else {
+        // Error en la respuesta
+        throw new Error(response?.message || 'Error al firmar documentos');
+      }
+
+    } catch (error: any) {
+      console.error('Error en firma por contraseña:', error);
+      
+      // Marcar documentos con error
+      documentsToSign.forEach(doc => {
+        doc.signatureStatus = 'error';
+        doc.errorMessage = error.message || 'Error al firmar con contraseña';
+      });
+      
+      this.errorDocuments = documentsToSign.length;
+      this.shouldAutoSend = false;
+
+      this.snackBar.open(
+        error.message || 'Error al firmar documentos con contraseña',
+        'Cerrar',
+        {
+          duration: 5000,
+          horizontalPosition: 'end',
+          verticalPosition: 'top',
+          panelClass: ['error-snackbar']
+        }
+      );
+
+    } finally {
+      this.isSigningInProgress = false;
+      this.cdr.detectChanges();
+
+      // Mostrar resumen
+      const message = `Proceso completado:\n` +
+        `✓ Firmados: ${this.signedDocuments}\n` +
+        `✗ Errores: ${this.errorDocuments}`;
+      
+      if (this.signedDocuments > 0 || this.errorDocuments > 0) {
+        alert(message);
+      }
+    }
+  }
+
+  canControllerSignWithPassword(): boolean {
+    const isController = this.permissionService.hasRole('Controlador_pd');
+    
+    const isResident = this.permissionService.hasRole('Residente_pd');
+    const isSupervisor = this.permissionService.hasRole('Supervisor_pd');
+    return isController && 
+          !isResident && 
+          !isSupervisor && 
+          this.selectedRoleState !== null &&
+          this.selectedRoleState.role === 'Controlador_pd';
+  }
 }

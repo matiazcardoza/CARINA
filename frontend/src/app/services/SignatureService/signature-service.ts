@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
@@ -18,11 +19,25 @@ export interface FirmaDigitalParams {
   ruta_param?: string;
 }
 
+export interface SignPasswordResponse {
+  correcto: boolean;
+  mensaje: string;
+  document?: any;
+}
+
+export interface SignPasswordMassiveResponse {
+  correcto: boolean;
+  message: string;
+  document?: any;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class SignatureService {
+  private http = inject(HttpClient);
   private apiUrl = 'https://sistemas.regionpuno.gob.pe/firma-api';
+  private backendUrl = environment.BACKEND_URL;
 
   firmaDigital(params: FirmaDigitalParams): Observable<any> {
     return new Observable(observer => {
@@ -92,5 +107,20 @@ export class SignatureService {
       console.error('Error obteniendo páginas del PDF:', error);
       return 1;
     }
+  }
+
+  signWithPassword(documentId: number | null): Observable<SignPasswordResponse> {
+    return this.http.post<SignPasswordResponse>(`${this.backendUrl}/api/signature-password`, { documentId }, {
+        withCredentials: true
+      }
+    );
+  }
+
+  signWithPasswordMassive(documentIds: number[]): Observable<SignPasswordMassiveResponse> {
+    return this.http.post<SignPasswordMassiveResponse>(
+      `${this.backendUrl}/api/signature-password-massive`, 
+      { documentIds }, 
+      { withCredentials: true }
+    );
   }
 }

@@ -61,6 +61,17 @@
       <mat-icon>keyboard_return</mat-icon>
       {{ showReturnSection ? 'Cancelar devolución' : 'Devolver a controlador' }}
     </button>
+
+    <button *ngIf="canControllerSignWithPassword()"
+            mat-raised-button
+            color="warn"
+            [disabled]="isLoading || isSigningInProgress"
+            (click)="onSignPassword()"
+            class="sign-button">
+      <mat-icon>verified_user</mat-icon>
+      Firmar por contraseña
+    </button>
+
     <button *ngIf="shouldShowSignButton()"
           mat-raised-button
           [color]="isSigned ? 'accent' : 'warn'"

@@ -170,6 +170,16 @@
           Cancelar
         </button>
 
+        <button *ngIf="canControllerSignWithPassword()"
+                mat-raised-button
+                color="warn"
+                [disabled]="isLoading || isSigningInProgress || hasPendingSend"
+                (click)="onSignPassword()"
+                class="sign-button">
+          <mat-icon>verified_user</mat-icon>
+          Firmar por contraseña
+        </button>
+
         <button mat-raised-button
                 color="primary"
                 (click)="onSignMassive()"

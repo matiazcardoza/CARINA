@@ -274,8 +274,56 @@ export class DailyWorkSignature {
     return true;
   }
 
-  onSignPassword(){
-    this.signatureService;
+  onSignPassword(): void {
+    this.isSigningInProgress = true;
+    this.shouldAutoSend = true;
+    this.cdr.detectChanges();
+
+    const documentId = this.documentId;
+
+    this.signatureService.signWithPassword(documentId).subscribe({
+      next: (response) => {
+        if (response.correcto) {
+          this.snackBar.open('Documento firmado exitosamente', 'Cerrar', {
+            duration: 4000,
+            horizontalPosition: 'end',
+            verticalPosition: 'top',
+            panelClass: ['success-snackbar']
+          });
+          
+          this.isSigned = true;
+          this.isSigningInProgress = false;
+          this.cdr.detectChanges();
+          
+          // Recargar el documento
+          this.loadPdfDocument();
+        } else {
+          this.snackBar.open(response.mensaje, 'Cerrar', {
+            duration: 4000,
+            horizontalPosition: 'end',
+            verticalPosition: 'top',
+            panelClass: ['error-snackbar']
+          });
+          this.isSigningInProgress = false;
+          this.shouldAutoSend = false;
+        }
+      },
+      error: (error) => {
+        console.error('Error al firmar:', error);
+        const mensaje = error.error?.mensaje || 'Error al firmar el documento';
+        
+        this.snackBar.open(mensaje, 'Cerrar', {
+          duration: 4000,
+          horizontalPosition: 'end',
+          verticalPosition: 'top',
+          panelClass: ['error-snackbar']
+        });
+        
+        this.isSigningInProgress = false;
+        this.shouldAutoSend = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   onSign(): void {

@@ -415,7 +415,15 @@ export class DocumentSignature {
   }
 
   onCancel(): void {
-    this.dialogRef.close(false);
+    if (this.isSigned) {
+      this.dialogRef.close({
+        success: true,
+        signed: true,
+        message: 'Documento firmado correctamente'
+      });
+    } else {
+      this.dialogRef.close(false);
+    }
   }
 
   onSend(): void {
@@ -511,6 +519,9 @@ export class DocumentSignature {
   }
 
   shouldShowSignButton(): boolean {
+    if (this.isSigned) {
+      return false;
+    }
     const userRelevantRoles = this.getUserRelevantRoles();
     if (this.documentState === 0 && userRelevantRoles.includes('Controlador_pd')) {
       return true;
@@ -528,5 +539,67 @@ export class DocumentSignature {
     event.stopPropagation();
     this.userForm.get('userId')?.setValue('');
     this.userForm.get('userId')?.markAsUntouched();
+  }
+
+  onSignPassword(): void {
+    this.isSigningInProgress = true;
+    this.shouldAutoSend = true;
+    this.cdr.detectChanges();
+
+    const documentId = this.documentId;
+
+    this.signatureService.signWithPassword(documentId).subscribe({
+      next: (response) => {
+        if (response.correcto) {
+          this.snackBar.open('Documento firmado exitosamente', 'Cerrar', {
+            duration: 4000,
+            horizontalPosition: 'end',
+            verticalPosition: 'top',
+            panelClass: ['success-snackbar']
+          });
+          
+          this.isSigned = true;
+          this.isSigningInProgress = false;
+          this.cdr.detectChanges();
+          
+          // Recargar el documento
+          this.loadPdfDocument();
+        } else {
+          this.snackBar.open(response.mensaje, 'Cerrar', {
+            duration: 4000,
+            horizontalPosition: 'end',
+            verticalPosition: 'top',
+            panelClass: ['error-snackbar']
+          });
+          this.isSigningInProgress = false;
+          this.shouldAutoSend = false;
+        }
+      },
+      error: (error) => {
+        console.error('Error al firmar:', error);
+        const mensaje = error.error?.mensaje || 'Error al firmar el documento';
+        
+        this.snackBar.open(mensaje, 'Cerrar', {
+          duration: 4000,
+          horizontalPosition: 'end',
+          verticalPosition: 'top',
+          panelClass: ['error-snackbar']
+        });
+        
+        this.isSigningInProgress = false;
+        this.shouldAutoSend = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  canControllerSignWithPassword(): boolean {
+    const userRelevantRoles = this.getUserRelevantRoles();
+    
+    return userRelevantRoles.includes('Controlador_pd') && 
+          !userRelevantRoles.includes('Residente_pd') && 
+          !userRelevantRoles.includes('Supervisor_pd') &&
+          this.canUserSign() &&
+          !this.isSigned;
   }
 }
