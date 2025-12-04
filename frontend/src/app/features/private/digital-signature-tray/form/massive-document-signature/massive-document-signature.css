@@ -204,6 +204,7 @@
   line-height: 1.3;
   word-wrap: break-word;
   word-break: break-word;
+  line-clamp: 1;
 }
 
 .document-date {
