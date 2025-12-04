@@ -101,6 +101,8 @@ export class Reports implements OnInit {
   isLoading = false;
   errorMessage = '';
 
+  isDownloading = false;
+
   // Datos reales de la API
   partesDiariosReales: WorkLogDataElement[] = [];
 
@@ -310,13 +312,16 @@ export class Reports implements OnInit {
   }
 
   downloadAllCompletedDailyParts(serviceId: number) {
+    this.isDownloading = true; 
     this.reportsServicesService.downloadAllCompletedDailyParts(serviceId).subscribe({
       next: (response: Blob) => {
         const fileURL = URL.createObjectURL(response);
         window.open(fileURL, '_blank');
+        this.isDownloading = false; 
       },
       error: () => {
         this.errorMessage = 'Error al generar el PDF. Por favor, intenta nuevamente.';
+        this.isDownloading = false;
       }
     });
   }

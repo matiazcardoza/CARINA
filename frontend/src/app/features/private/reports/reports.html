@@ -173,11 +173,13 @@
               <th mat-header-cell *matHeaderCellDef>Acciones</th>
               <td mat-cell *matCellDef="let parte">
                 <div class="actions-container">
-                    <button mat-icon-button matTooltip="Descargar Todos los partes diarios, Completados"
+                    <button mat-icon-button 
+                            matTooltip="Descargar Todos los partes diarios, Completados"
                             (click)="downloadAllCompletedDailyParts(parte.id)"
+                            [disabled]="isDownloading"
                             style="color: rgb(12, 92, 161);"
                             color="primary">
-                      <mat-icon>cloud_download</mat-icon>
+                      <mat-icon>{{ isDownloading ? 'hourglass_empty' : 'cloud_download' }}</mat-icon>
                     </button>
                     <button mat-icon-button *appHasPermission="'generate_reportes'"
                             matTooltip="Cerrar Servicio"
