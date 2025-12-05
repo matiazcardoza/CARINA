@@ -31,6 +31,7 @@ export interface WorkLogIdElement {
   gasolina?: number;
   end_time: string;
   occurrences: string;
+  num_reg: string;
   state: number;
 }
 
