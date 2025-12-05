@@ -14,7 +14,7 @@ class ServiceLiquidationAdjustment extends Model
     protected $fillable = [
         'service_id',
         'adjusted_data',
-        'adjustment_notes',
+        'num_reg',
         'updated_by'
     ];
 }

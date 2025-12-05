@@ -86,7 +86,7 @@
         }
 
         .numero-cell {
-            width: 100px;
+            width: 150px;
             text-align: center;
             vertical-align: middle;
         }
@@ -336,7 +336,12 @@
                 </td>
 
                 <td class="numero-cell">
-                    <div class="numero-box">C-{{ $serviceId }}</div>
+                    <div class="numero-box">C-{{ str_pad($requestData['record']['num_reg'], 4, '0', STR_PAD_LEFT) ?? $serviceId }}</div>
+                    @if (!$requestData['record']['created_at'])
+                        <div class="numero-box">{{ $serviceId }}</div>
+                    @else
+                        <div class="numero-box">{{ \Carbon\Carbon::parse($requestData['record']['created_at'])->format('Y') }}</div>
+                    @endif
                 </td>
             </tr>
         </table>

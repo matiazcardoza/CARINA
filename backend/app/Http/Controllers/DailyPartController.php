@@ -49,11 +49,19 @@ class DailyPartController extends Controller
 
     function store(Request $request)
     {
+        $lastRecord = DailyPart::whereYear('work_date', date('Y'))
+                    ->whereMonth('work_date', date('m'))
+                    ->orderBy('num_reg', 'desc')
+                    ->first();
+
+        $newNumReg = $lastRecord ? $lastRecord->num_reg + 1 : 1;
+
         $dailyPart = DailyPart::create([
             'service_id' => $request->service_id,
             'shift_id' => ($request->shift_id === 'all') ? null : $request->shift_id,
             'operator_id' => $request->operator_id,
             //'itemPecosa_id' => $request->product_id,
+            'num_reg' => $newNumReg,
             'work_date' => $request->work_date,
             'start_time' => date("H:i", strtotime($request->start_time)),
             'initial_fuel' => $request->initial_fuel,

@@ -86,7 +86,7 @@
         }
 
         .info-cell {
-            width: 120px;
+            width: 170px;
             text-align: right;
             vertical-align: top;
             padding-top: 0;
@@ -103,12 +103,13 @@
         }
 
         .fecha-box {
-            border: 1px solid #0066cc;
-            padding: 4px 6px;
+            border: 2px solid #0066cc;
+            padding: 4px 8px;
             font-weight: bold;
-            font-size: 9px;
+            font-size: 11px;
             color: #0066cc;
             display: inline-block;
+            margin-top: 4px;
         }
 
         .numero-box {
@@ -362,8 +363,8 @@
 
                 <td class="info-cell">
                     <div class="anexo-box">ANEXO N°06</div>
-                    <div class="fecha-box"><span class="info-line">{{ \Carbon\Carbon::now()->format('d/m/Y') }}</span></div>
-                    <div class="numero-box">C-{{ $serviceId }}</div>
+                    <div class="fecha-box"><span class="info-line">{{ \Carbon\Carbon::parse($requestData['record']['created_at'])->format('d/m/Y') ?? \Carbon\Carbon::now()->format('d/m/Y') }}</span></div>
+                    <div class="numero-box">C-{{ str_pad($requestData['record']['num_reg'], 4, '0', STR_PAD_LEFT) ?? $serviceId }}</div>
                 </td>
             </tr>
         </table>

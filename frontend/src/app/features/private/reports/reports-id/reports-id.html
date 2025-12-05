@@ -55,6 +55,28 @@
         </div>
       </div>
 
+      <!-- ACTUALIZACIONES -->
+      <div class="info-card">
+        <div class="info-card-header">
+          <span class="info-icon">📄</span>
+          <h2>Historial Documentario</h2>
+        </div>
+        <div class="info-card-body">
+          <div class="document-status-item" [class.completed]="documentStatus.solicitud">
+            <span class="status-icon">{{ documentStatus.solicitud ? '✓' : '○' }}</span>
+            <span class="status-text">Solicitud de Movilidad</span>
+          </div>
+          <div class="document-status-item" [class.completed]="documentStatus.autorizacion">
+            <span class="status-icon">{{ documentStatus.autorizacion ? '✓' : '○' }}</span>
+            <span class="status-text">Autorización de Servicio</span>
+          </div>
+          <div class="document-status-item" [class.completed]="documentStatus.liquidacion">
+            <span class="status-icon">{{ documentStatus.liquidacion ? '✓' : '○' }}</span>
+            <span class="status-text">Liquidación de Servicio</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Estado de Documentos -->
       <div class="info-card">
         <div class="info-card-header">
@@ -76,7 +98,6 @@
           </div>
         </div>
       </div>
-
     </div>
 
     <!-- Right Panel - Document Preview -->

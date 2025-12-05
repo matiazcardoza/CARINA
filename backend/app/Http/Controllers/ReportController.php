@@ -26,8 +26,8 @@ class ReportController extends Controller
         $equipment->operators = $operators;
 
         //request data
-        $minDate = DailyPart::where('service_id', $serviceId)->min('work_date');
-        $maxDate = DailyPart::where('service_id', $serviceId)->max('Work_date');
+        $minDate = DailyPart::where('service_id', $serviceId)->where('state_valorized', 1)->min('work_date');
+        $maxDate = DailyPart::where('service_id', $serviceId)->where('state_valorized', 1)->max('Work_date');
         $minStartTime = DailyPart::where('service_id', $serviceId)->min('start_time');
         $maxEndTime = DailyPart::where('service_id', $serviceId)->max('end_time');
         $request = [
@@ -140,6 +140,12 @@ class ReportController extends Controller
 
             $auth['is_adjusted'] = true;
             $auth['last_adjustment'] = $adjustment->updated_at;
+            
+            $numReg = [
+                'num_reg' => $adjustment->num_reg,
+                'created_at' => $adjustment->created_at
+            ];
+            $request['record'] = $numReg;
         } else {
             $auth['is_adjusted'] = false;
             $costPerDay = $totals['days_worked'] > 0
@@ -170,6 +176,7 @@ class ReportController extends Controller
 
     public function generateRequest(Request $request)
     {
+        Log::info('este es el request', $request->all());
         $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
         $qr_code = base64_encode("data_qr_example");
         $data = [
@@ -277,10 +284,20 @@ class ReportController extends Controller
                 'auth' => $request->input('auth'),
                 'liquidation' => $request->input('liquidation'),
             ];
-            ServiceLiquidationAdjustment::updateOrCreate(
+            
+            $currentYear = date('Y');
+
+            $lastRecord = ServiceLiquidationAdjustment::whereYear('created_at', $currentYear)
+                    ->orderBy('num_reg', 'desc')
+                    ->first();
+
+            $newNumReg = $lastRecord ? $lastRecord->num_reg + 1 : 1;
+
+            $adjustment = ServiceLiquidationAdjustment::updateOrCreate(
                 ['service_id' => $serviceId],
                 [
                     'adjusted_data' => json_encode($adjustedData),
+                    'num_reg' => $newNumReg,
                     'updated_by' => Auth::id(),
                     'updated_at' => now()
                 ]
@@ -288,7 +305,13 @@ class ReportController extends Controller
 
             return response()->json([
                 'message' => 'Cambios guardados exitosamente',
-                'success' => true
+                'success' => true,
+                'data' => [
+                    'record' => [
+                        'num_reg' => $adjustment->num_reg,
+                        'created_at' => $adjustment->created_at
+                    ]
+                ]
             ], 200);
 
         } catch (\Exception $e) {
@@ -303,145 +326,120 @@ class ReportController extends Controller
     }
 
     public function downloadMergedDailyParts($serviceId)
-{
-    // Obtener documentos
-    $documents = DB::table('documents_daily_parts as ddp')
-        ->join('daily_parts as dp', 'ddp.id', '=', 'dp.document_id')
-        ->where('dp.service_id', $serviceId)
-        ->whereIn('ddp.state', [3])
-        ->select('ddp.id', 'ddp.file_path', 'ddp.created_at', 'dp.work_date')
-        ->groupBy('ddp.id', 'ddp.file_path', 'ddp.created_at', 'dp.work_date')
-        ->orderBy('dp.work_date', 'asc')
-        ->get();
+    {
+        $documents = DB::table('documents_daily_parts as ddp')
+            ->join('daily_parts as dp', 'ddp.id', '=', 'dp.document_id')
+            ->where('dp.service_id', $serviceId)
+            ->whereIn('ddp.state', [3])
+            ->select('ddp.id', 'ddp.file_path', 'ddp.created_at', 'dp.work_date')
+            ->groupBy('ddp.id', 'ddp.file_path', 'ddp.created_at', 'dp.work_date')
+            ->orderBy('dp.work_date', 'asc')
+            ->get();
 
-        if ($documents->isEmpty()) {
-            return response()->json(['ok' => false, 'error' => 'No hay documentos'], 404);
+            if ($documents->isEmpty()) {
+                return response()->json(['ok' => false, 'error' => 'No hay documentos'], 404);
+            }
+            $tempDir = storage_path('app/public/temp_downloads');
+            if (!is_dir($tempDir)) mkdir($tempDir, 0777, true);
+
+        $outputFile = $tempDir . '/unido_' . time() . '.pdf';
+        $inputFiles = [];
+        foreach ($documents as $doc) {
+            $inputFiles[] = storage_path('app/public/' . $doc->file_path);
         }
-        $tempDir = storage_path('app/public/temp_downloads');
-        if (!is_dir($tempDir)) mkdir($tempDir, 0777, true);
+        $pdftk = trim(shell_exec("which pdftk 2>/dev/null"));
+        $qpdf = trim(shell_exec("which qpdf 2>/dev/null"));
+        $gs = trim(shell_exec("which gs 2>/dev/null"));
+        $pdfunite = trim(shell_exec("which pdfunite 2>/dev/null"));
 
-    $outputFile = $tempDir . '/unido_' . time() . '.pdf';
+        $success = false;
+        if ($pdftk && !$success) {
+            $cmd = $pdftk;
+            foreach ($inputFiles as $file) {
+                $cmd .= " " . escapeshellarg($file);
+            }
+            $cmd .= " cat output " . escapeshellarg($outputFile);
 
-    // Rutas de entrada
-    $inputFiles = [];
-    foreach ($documents as $doc) {
-        $inputFiles[] = storage_path('app/public/' . $doc->file_path);
-    }
+            exec($cmd . " 2>&1", $out, $ret);
 
-    // ⭐ DETECTAR HERRAMIENTAS DISPONIBLES (orden de preferencia)
-    $pdftk = trim(shell_exec("which pdftk 2>/dev/null"));
-    $qpdf = trim(shell_exec("which qpdf 2>/dev/null"));
-    $gs = trim(shell_exec("which gs 2>/dev/null"));
-    $pdfunite = trim(shell_exec("which pdfunite 2>/dev/null"));
-
-    $success = false;
-
-    // ═══════════════════════════════════════════════════════════
-    // 🥇 MÉTODO 1: PDFTK (El mejor para preservar contenido)
-    // ═══════════════════════════════════════════════════════════
-    if ($pdftk && !$success) {
-        $cmd = $pdftk;
-        foreach ($inputFiles as $file) {
-            $cmd .= " " . escapeshellarg($file);
+            if ($ret === 0 && file_exists($outputFile)) {
+                $success = true;
+            } else {
+                Log::warning('pdftk falló: ' . implode("\n", $out));
+            }
         }
-        $cmd .= " cat output " . escapeshellarg($outputFile);
+        if ($qpdf && !$success) {
+            $cmd = $qpdf . " --empty --pages";
+            foreach ($inputFiles as $file) {
+                $cmd .= " " . escapeshellarg($file);
+            }
+            $cmd .= " -- " . escapeshellarg($outputFile);
 
-        exec($cmd . " 2>&1", $out, $ret);
+            exec($cmd . " 2>&1", $out, $ret);
 
-        if ($ret === 0 && file_exists($outputFile)) {
-            $success = true;
-        } else {
-            Log::warning('pdftk falló: ' . implode("\n", $out));
+            if ($ret === 0 && file_exists($outputFile)) {
+                $success = true;
+            } else {
+                Log::warning('qpdf falló: ' . implode("\n", $out));
+            }
         }
-    }
+        if ($gs && !$success) {
+            $cmd = $gs . " -dBATCH -dNOPAUSE -dQUIET -dSAFER";
+            $cmd .= " -sDEVICE=pdfwrite";
+            $cmd .= " -dCompatibilityLevel=1.7";
+            $cmd .= " -dPDFSETTINGS=/prepress";
+            $cmd .= " -dEmbedAllFonts=true";
+            $cmd .= " -dSubsetFonts=true";
+            $cmd .= " -dCompressFonts=false";
+            $cmd .= " -dAutoRotatePages=/None";
+            $cmd .= " -dColorImageResolution=300";
+            $cmd .= " -dGrayImageResolution=300";
+            $cmd .= " -dMonoImageResolution=1200";
+            $cmd .= " -dDetectDuplicateImages=true";
+            $cmd .= " -dDownsampleColorImages=false";
+            $cmd .= " -dDownsampleGrayImages=false";
+            $cmd .= " -dDownsampleMonoImages=false";
+            $cmd .= " -sOutputFile=" . escapeshellarg($outputFile);
 
-    // ═══════════════════════════════════════════════════════════
-    // 🥈 MÉTODO 2: QPDF (Muy bueno, alternativa a pdftk)
-    // ═══════════════════════════════════════════════════════════
-    if ($qpdf && !$success) {
-        $cmd = $qpdf . " --empty --pages";
-        foreach ($inputFiles as $file) {
-            $cmd .= " " . escapeshellarg($file);
+            foreach ($inputFiles as $file) {
+                $cmd .= " " . escapeshellarg($file);
+            }
+
+            exec($cmd . " 2>&1", $out, $ret);
+
+            if ($ret === 0 && file_exists($outputFile)) {
+                $success = true;
+            } else {
+                Log::warning('ghostscript falló: ' . implode("\n", $out));
+            }
         }
-        $cmd .= " -- " . escapeshellarg($outputFile);
+        if ($pdfunite && !$success) {
+            $cmd = $pdfunite . ' ';
+            foreach ($inputFiles as $file) {
+                $cmd .= escapeshellarg($file) . ' ';
+            }
+            $cmd .= escapeshellarg($outputFile);
 
-        exec($cmd . " 2>&1", $out, $ret);
+            exec($cmd . " 2>&1", $out, $ret);
 
-        if ($ret === 0 && file_exists($outputFile)) {
-            $success = true;
-        } else {
-            Log::warning('qpdf falló: ' . implode("\n", $out));
+            if ($ret === 0 && file_exists($outputFile)) {
+                $success = true;
+            } else {
+                Log::warning('pdfunite falló: ' . implode("\n", $out));
+            }
         }
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    // 🥉 MÉTODO 3: GHOSTSCRIPT (Con configuración optimizada)
-    // ═══════════════════════════════════════════════════════════
-    if ($gs && !$success) {
-        $cmd = $gs . " -dBATCH -dNOPAUSE -dQUIET -dSAFER";
-        $cmd .= " -sDEVICE=pdfwrite";
-        $cmd .= " -dCompatibilityLevel=1.7";
-        $cmd .= " -dPDFSETTINGS=/prepress"; // Máxima calidad
-        $cmd .= " -dEmbedAllFonts=true";
-        $cmd .= " -dSubsetFonts=true";
-        $cmd .= " -dCompressFonts=false";
-        $cmd .= " -dAutoRotatePages=/None";
-        $cmd .= " -dColorImageResolution=300";
-        $cmd .= " -dGrayImageResolution=300";
-        $cmd .= " -dMonoImageResolution=1200";
-        $cmd .= " -dDetectDuplicateImages=true";
-        $cmd .= " -dDownsampleColorImages=false"; // No reducir calidad de imágenes
-        $cmd .= " -dDownsampleGrayImages=false";
-        $cmd .= " -dDownsampleMonoImages=false";
-        $cmd .= " -sOutputFile=" . escapeshellarg($outputFile);
-
-        foreach ($inputFiles as $file) {
-            $cmd .= " " . escapeshellarg($file);
+        if (!$success) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'No se pudo unir los PDFs. Herramientas probadas: pdftk, qpdf, ghostscript, pdfunite',
+                'available_tools' => [
+                    'pdftk' => !empty($pdftk),
+                    'qpdf' => !empty($qpdf),
+                    'ghostscript' => !empty($gs),
+                    'pdfunite' => !empty($pdfunite)
+                ]
+            ], 500);
         }
-
-        exec($cmd . " 2>&1", $out, $ret);
-
-        if ($ret === 0 && file_exists($outputFile)) {
-            $success = true;
-        } else {
-            Log::warning('ghostscript falló: ' . implode("\n", $out));
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    // 🏅 MÉTODO 4: PDFUNITE (Rápido pero puede perder contenido)
-    // ═══════════════════════════════════════════════════════════
-    if ($pdfunite && !$success) {
-        $cmd = $pdfunite . ' ';
-        foreach ($inputFiles as $file) {
-            $cmd .= escapeshellarg($file) . ' ';
-        }
-        $cmd .= escapeshellarg($outputFile);
-
-        exec($cmd . " 2>&1", $out, $ret);
-
-        if ($ret === 0 && file_exists($outputFile)) {
-            $success = true;
-        } else {
-            Log::warning('pdfunite falló: ' . implode("\n", $out));
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    // ❌ SIN HERRAMIENTAS DISPONIBLES
-    // ═══════════════════════════════════════════════════════════
-    if (!$success) {
-        return response()->json([
-            'ok' => false,
-            'error' => 'No se pudo unir los PDFs. Herramientas probadas: pdftk, qpdf, ghostscript, pdfunite',
-            'available_tools' => [
-                'pdftk' => !empty($pdftk),
-                'qpdf' => !empty($qpdf),
-                'ghostscript' => !empty($gs),
-                'pdfunite' => !empty($pdfunite)
-            ]
-        ], 500);
-    }
 
         return response()->download($outputFile)->deleteFileAfterSend(true);
     }

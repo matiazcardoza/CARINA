@@ -591,19 +591,17 @@ export class ReportsId implements OnInit {
 
     this.reportsServicesService.saveAuthChanges(changesData).subscribe({
       next: (response) => {
-        console.log('Cambios guardados:', response);
-
-        // Actualizar los datos originales con los editados
         this.authData = JSON.parse(JSON.stringify(this.editedAuthData));
-
-        // IMPORTANTE: Resetear TODOS los estados del modo edición
+        if (response.data && response.data.record) {
+          this.requestData.record = response.data.record;
+          console.log('Record actualizado:', this.requestData.record);
+        }
         this.editMode = false;
         this.editedAuthData = null;
         this.hasUnsavedChanges = false;
         this.editingCell = null;
         this.isLoading = false;
 
-        // Forzar la detección de cambios
         this.cdr.detectChanges();
 
         alert('Cambios guardados correctamente');

@@ -21,12 +21,14 @@ class DailyPart extends Model
         'operator_id',
         'description',
         'occurrences',
+        'num_reg',
         'work_date',
         'start_time',
         'end_time',
         'initial_fuel',
         'gasolina',
         'time_worked',
+        'state_valorized',
         'state',
     ];
 
