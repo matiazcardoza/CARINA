@@ -841,3 +841,12 @@
   font-size: 13px;     /* Reducido de 16px */
   text-transform: none; /* Quitar mayúsculas si quieres */
 }
+
+.btn-compact {
+  padding: 10px 20px;
+  font-size: 14px;
+}
+
+.btn-compact .btn-icon {
+  font-size: 18px;
+}

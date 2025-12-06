@@ -156,6 +156,15 @@ export class ReportsId implements OnInit {
     });
   }
 
+  generateDocuments(){
+    this.saveAuthChanges();
+    setTimeout(() => {
+      this.generateRequest();
+      this.generateAuth();
+      this.generateLiquidation();
+    }, 500);
+  }
+
   getBadgeClass(state: number): string {
     switch(state) {
       case 1: return 'badge-seca';
@@ -577,13 +586,15 @@ export class ReportsId implements OnInit {
   }
 
   saveAuthChanges(): void {
-    if (!this.hasUnsavedChanges) return;
+    const authDataToSend = this.editMode && this.editedAuthData 
+      ? this.editedAuthData 
+      : this.authData;
 
     const changesData = {
       serviceId: this.reportId,
       equipment: this.equipmentData,
       request: this.requestData,
-      auth: this.editedAuthData,
+      auth: authDataToSend,
       liquidation: this.liquidationData
     };
 
@@ -594,7 +605,6 @@ export class ReportsId implements OnInit {
         this.authData = JSON.parse(JSON.stringify(this.editedAuthData));
         if (response.data && response.data.record) {
           this.requestData.record = response.data.record;
-          console.log('Record actualizado:', this.requestData.record);
         }
         this.editMode = false;
         this.editedAuthData = null;

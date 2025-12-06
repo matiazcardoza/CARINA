@@ -6,10 +6,14 @@
       <p class="subtitle">Gestión de documentos y reportes</p>
     </div>
     <div class="header-right">
-      <span class="badge badge-id">ID: {{ reportId }}</span>
       <span class="badge" [ngClass]="getBadgeClass(state)">
         {{ getStateText(state) }}
       </span>
+      <button class="btn btn-warning btn-compact" (click)="generateDocuments()">
+        <span class="btn-icon">💰</span>
+        Generar Documentos de Liquidación del servicio
+      </button>
+      
     </div>
   </div>
 
@@ -172,13 +176,6 @@
                     </span>
                 </span>
             </div>
-          </div>
-
-          <div class="document-footer">
-            <button class="btn btn-primary btn-lg" (click)="generateRequest()">
-              <span class="btn-icon">📄</span>
-              Generar Solicitud de Movilidad
-            </button>
           </div>
         </div>
 
@@ -359,13 +356,6 @@
                 </div>
                 </div>
             </div>
-
-            <div class="document-footer">
-                <button class="btn btn-success btn-lg" (click)="generateAuth()">
-                <span class="btn-icon">✅</span>
-                Generar Autorización de Servicio
-                </button>
-            </div>
         </div>
 
         <!-- Liquidación de Servicio Preview -->
@@ -412,13 +402,6 @@
                 <span class="cost-value">{{ liquidationData?.total_in_words || '' }}</span>
               </div>
             </div>
-          </div>
-
-          <div class="document-footer">
-            <button class="btn btn-warning btn-lg" (click)="generateLiquidation()">
-              <span class="btn-icon">💰</span>
-              Generar Liquidación de Servicio
-            </button>
           </div>
         </div>
 
