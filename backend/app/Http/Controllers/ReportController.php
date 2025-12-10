@@ -276,6 +276,7 @@ class ReportController extends Controller
 
     public function saveAuthChanges(Request $request)
     {
+        Log::info('Guardando cambios de autorización para el servicio ID: ' , $request->all());
         try {
             $serviceId = $request->input('serviceId');
             $adjustedData = [
