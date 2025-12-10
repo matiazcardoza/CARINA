@@ -155,7 +155,7 @@ class SignatureController extends Controller
             ], 200);
         } catch (\Exception $e) {
             Log::error('Error crítico en procesamiento masivo: ' . $e->getMessage());
-            
+
             return response()->json([
                 'ok' => false,
                 'error' => 'Error al procesar firma masiva: ' . $e->getMessage()
@@ -221,7 +221,7 @@ class SignatureController extends Controller
             ->join('personas', 'users.id', '=', 'personas.user_id')
             ->select('users.*', 'personas.name as persona_name', 'personas.last_name', 'personas.num_doc')
             ->where('users.id', Auth::id())
-            ->first();  
+            ->first();
 
         Log::info('User: ' . json_encode($user));
         if (!$user || empty($user->num_doc)) {
@@ -257,7 +257,7 @@ class SignatureController extends Controller
         }
 
         $filePath = storage_path('app/public/' . $document->file_path);
-        
+
         if (!file_exists($filePath)) {
             return response()->json(['correcto' => false, 'mensaje' => 'Archivo PDF no encontrado'], 404);
         }
@@ -267,25 +267,20 @@ class SignatureController extends Controller
 
         $drawnPdfPath = tempnam(sys_get_temp_dir(), 'pdf_signed_') . '.pdf';
 
-        $textoFirma = 
+        $textoFirma =
             "Firmado con contraseña por:\n" .
-            $user->persona_name . ' ' . $user->last_name . "\n" . 
+            $user->persona_name . ' ' . $user->last_name . "\n" .
             "(" . ($user->num_doc ?? '') . ")\n" .
             "Cargo: CONTROLADOR\n" .
             "Fecha: " . now()->format('d/m/Y H:i:s');
-        
+
         $posX = 80;
         $posY = 695;
 
         $this->drawOnPdf($tmpPath, $drawnPdfPath, $textoFirma, $posX, $posY);
 
-        $newFileName = pathinfo($document->file_path, PATHINFO_FILENAME) . '_signed_' . time() . '.pdf';
-        $newFilePath = 'daily_parts/' . $newFileName;
-        $destinationPath = storage_path('app/public/' . $newFilePath);
-
+        $destinationPath = storage_path('app/public/' . $document->file_path);
         copy($drawnPdfPath, $destinationPath);
-
-        $document->file_path = $newFilePath;
         $document->state = 1;
         $document->save();
 
@@ -293,7 +288,7 @@ class SignatureController extends Controller
         if (file_exists($drawnPdfPath)) unlink($drawnPdfPath);
 
         return response()->json([
-            'correcto' => true, 
+            'correcto' => true,
             'mensaje' => 'Documento firmado exitosamente',
             'document' => $document
         ]);
@@ -343,7 +338,7 @@ class SignatureController extends Controller
         // Validar que lleguen IDs
         if (!$documentIds || !is_array($documentIds) || count($documentIds) === 0) {
             return response()->json([
-                'correcto' => false, 
+                'correcto' => false,
                 'mensaje' => 'No se recibieron documentos para firmar'
             ], 400);
         }
@@ -353,13 +348,13 @@ class SignatureController extends Controller
             ->join('personas', 'users.id', '=', 'personas.user_id')
             ->select('users.*', 'personas.name as persona_name', 'personas.last_name', 'personas.num_doc')
             ->where('users.id', Auth::id())
-            ->first();  
+            ->first();
 
         Log::info('User signing massive: ' . json_encode($user));
-        
+
         if (!$user || empty($user->num_doc)) {
             return response()->json([
-                'correcto' => false, 
+                'correcto' => false,
                 'mensaje' => 'Usuario inválido'
             ], 401);
         }
@@ -383,25 +378,25 @@ class SignatureController extends Controller
 
             if (!$response->successful()) {
                 return response()->json([
-                    'correcto' => false, 
+                    'correcto' => false,
                     'mensaje' => 'Contraseña incorrecta'
                 ], 401);
             }
         } catch (\Exception $e) {
             Log::error('Error validando contraseña: ' . $e->getMessage());
             return response()->json([
-                'correcto' => false, 
+                'correcto' => false,
                 'mensaje' => 'Error al conectar con API externa'
             ], 500);
         }*/
 
-        $textoFirma = 
+        $textoFirma =
             "Firmado con contraseña por:\n" .
-            $user->persona_name . ' ' . $user->last_name . "\n" . 
+            $user->persona_name . ' ' . $user->last_name . "\n" .
             "(" . ($user->num_doc ?? '') . ")\n" .
             "Cargo: CONTROLADOR\n" .
             "Fecha: " . now()->format('d/m/Y H:i:s');
-        
+
         $posX = 80;
         $posY = 695;
 
@@ -414,7 +409,7 @@ class SignatureController extends Controller
         foreach ($documentIds as $documentId) {
             try {
                 $document = DocumentDailyPart::find($documentId);
-                
+
                 if (!$document) {
                     $errorCount++;
                     $errors[] = [
@@ -425,7 +420,7 @@ class SignatureController extends Controller
                 }
 
                 $filePath = storage_path('app/public/' . $document->file_path);
-                
+
                 if (!file_exists($filePath)) {
                     $errorCount++;
                     $errors[] = [
@@ -444,16 +439,8 @@ class SignatureController extends Controller
                 // Dibujar firma en el PDF
                 $this->drawOnPdf($tmpPath, $drawnPdfPath, $textoFirma, $posX, $posY);
 
-                // Generar nuevo nombre y ruta
-                $newFileName = pathinfo($document->file_path, PATHINFO_FILENAME) . '_signed_' . time() . '_' . $documentId . '.pdf';
-                $newFilePath = 'daily_parts/' . $newFileName;
-                $destinationPath = storage_path('app/public/' . $newFilePath);
-
-                // Copiar archivo firmado a destino final
+                $destinationPath = storage_path('app/public/' . $document->file_path);
                 copy($drawnPdfPath, $destinationPath);
-
-                // Actualizar documento en base de datos
-                $document->file_path = $newFilePath;
                 $document->state = 1; // Cambiar a estado "Firmado por Controlador"
                 $document->save();
 
@@ -483,8 +470,8 @@ class SignatureController extends Controller
         // Preparar respuesta
         $responseData = [
             'correcto' => $signedCount > 0,
-            'mensaje' => $signedCount > 0 
-                ? "{$signedCount} documento(s) firmado(s) exitosamente" 
+            'mensaje' => $signedCount > 0
+                ? "{$signedCount} documento(s) firmado(s) exitosamente"
                 : "No se pudo firmar ningún documento",
             'total_solicitados' => count($documentIds),
             'firmados_exitosamente' => $signedCount,
