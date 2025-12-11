@@ -426,7 +426,7 @@ export class DailyWorkLogForm implements OnInit {
               const dialogRef = this.dialog.open(AlertConfirm, {
                 width: '450px',
                 data: {
-                  title: 'Exedio de días permitidos',
+                  title: 'Exedio límite de días permitidos',
                   message: error.error.message,
                   content: `Recordar siempre tener al día los registros de trabajo. Solo se permiten crear registros con un límite de tiempo de 3 días`,
                   confirmText: 'Aceptar',
