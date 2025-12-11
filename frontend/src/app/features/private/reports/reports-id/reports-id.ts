@@ -1,7 +1,12 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Observable, throwError } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { ReportsServicesService } from '../../../../services/ReportsServicesService/reports-services-service';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { AlertConfirm } from '../../../../components/alert-confirm/alert-confirm';
+import { MatDialog } from '@angular/material/dialog';
 
 export interface LiquidationElement {
   equipment: any | null;
@@ -19,7 +24,7 @@ interface DocumentStatus {
 @Component({
   selector: 'app-reports-id',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatTooltipModule],
   templateUrl: './reports-id.html',
   styleUrl: './reports-id.css'
 })
@@ -45,10 +50,18 @@ export class ReportsId implements OnInit {
     liquidacion: false
   };
 
+  isGeneratingDocs: boolean = false;
+  liquidationSaved: boolean = false;
+
+  adjustmentHistory: any[] = [];
+  selectedAdjustmentId: number | null = null;
+  isHistoryLoading: boolean = false;
+
   constructor(
     private route: ActivatedRoute,
     private reportsServicesService: ReportsServicesService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private dialog: MatDialog
   ) {}
 
   //propiedades de edit
@@ -64,36 +77,88 @@ export class ReportsId implements OnInit {
       console.log('Report ID:', this.reportId);
       console.log('State:', this.state);
     });
+    this.isLoading = true;
     this.loadLiquidationData();
+    this.loadAdjustmentHistory();
   }
 
   loadLiquidationData(): void {
-    console.log('Loading liquidation data for report ID:', this.reportId);
-    Promise.resolve().then(() => {
-      this.isLoading = true;
-      this.error = null;
-      const reportId = this.reportId;
-      console.log('Report ID in function loadLiquidationData:', reportId);
-      this.reportsServicesService.getLiquidationData(reportId)
-        .subscribe({
-          next: (response) => {
-            console.log('Liquidation data response:', response);
-            this.equipmentData = response.equipment;
-            this.requestData = response.request;
-            this.authData = response.auth;
-            this.liquidationData = response.liquidation;
-            console.log('Equipment data:', this.equipmentData);
-            this.isLoading = false;
-            this.cdr.detectChanges();
-          },
-          error: (error) => {
-            console.error('Error loading users:', error);
-            this.error = 'Error al cargar los datos. Por favor, intenta nuevamente.';
-            this.isLoading = false;
-            this.cdr.detectChanges();
-          }
-        });
-    });
+    this.error = null;
+    const reportId = this.reportId;
+    
+    this.reportsServicesService.getLiquidationData(reportId)
+      .subscribe({
+        next: (response) => {
+          console.log('Liquidation data response:', response);
+          this.equipmentData = response.equipment;
+          this.requestData = response.request;
+          this.authData = response.auth;
+          this.liquidationData = response.liquidation;
+          console.log('Equipment data:', this.equipmentData);
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error loading users:', error);
+          this.error = 'Error al cargar los datos. Por favor, intenta nuevamente.';
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  loadAdjustmentHistory(): void {
+    this.isHistoryLoading = true;
+    const serviceId = this.reportId;
+    this.reportsServicesService.getAdjustedLiquidationData(serviceId)
+      .subscribe({
+        next: (history) => {
+          this.adjustmentHistory = history;
+          this.isHistoryLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error loading adjustment history:', error);
+          this.isHistoryLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  loadAdjustmentData(adjustment: any): void {
+    if (this.hasUnsavedChanges) {
+      const confirm = window.confirm(
+        '¿Tienes cambios sin guardar. ¿Deseas descartarlos y cargar este registro?'
+      );
+      if (!confirm) return;
+    }
+    this.selectedAdjustmentId = adjustment.id;
+    const adjustedData = adjustment.adjusted_data;
+    
+    this.equipmentData = adjustedData.equipment;
+    this.requestData = adjustedData.request;
+    console.log('Adjusted auth data to load:', this.requestData);
+    this.authData = adjustedData.auth;
+    this.liquidationData = adjustedData.liquidation;
+    this.editMode = false;
+    this.editedAuthData = null;
+    this.hasUnsavedChanges = false;
+    this.editingCell = null;
+    this.liquidationSaved = true;
+
+    this.cdr.detectChanges();
+  }
+
+  loadCurrentVersion(): void {
+    if (this.hasUnsavedChanges) {
+      const confirm = window.confirm(
+        'Tienes cambios sin guardar. ¿Deseas descartarlos y cargar la versión actual?'
+      );
+      if (!confirm) return;
+    }
+    this.selectedAdjustmentId = null;
+    this.liquidationSaved = false;
+    this.loadLiquidationData();
   }
 
   changeDocument(type: 'solicitud' | 'autorizacion' | 'liquidacion'): void {
@@ -156,13 +221,137 @@ export class ReportsId implements OnInit {
     });
   }
 
-  generateDocuments(){
-    this.saveAuthChanges();
-    setTimeout(() => {
-      this.generateRequest();
-      this.generateAuth();
-      this.generateLiquidation();
-    }, 500);
+  generateDocuments(): void {
+    if (this.editMode) {
+      alert('Debe salir del modo edición antes de generar documentos.');
+      return;
+    }
+
+    if (this.hasUnsavedChanges) {
+      alert('Debe aplicar y guardar los cambios antes de generar documentos.');
+      return;
+    }
+
+    if (!this.liquidationSaved) {
+      alert('Debe guardar la liquidación antes de generar los documentos.');
+      return;
+    }
+
+    this.isGeneratingDocs = true;
+    this.generateRequest();
+    this.generateAuth();
+    this.generateLiquidation();
+    this.isGeneratingDocs = false;
+  }
+
+  saveEditChanges(): void {
+    if (!this.editedAuthData) {
+      alert('No hay cambios para aplicar.');
+      return;
+    }
+    this.authData = JSON.parse(JSON.stringify(this.editedAuthData));
+    this.editMode = false;
+    this.editedAuthData = null;
+    this.editingCell = null;
+    this.hasUnsavedChanges = false;
+    this.liquidationSaved = false;
+    this.cdr.detectChanges();
+    const dialogRef = this.dialog.open(AlertConfirm, {
+      width: '450px',
+      data: {
+        title: 'Cambios aplicados',
+        message: 'Debe guardar la liquidación para que los cambios se reflejen en el documento.',
+        content: `cambios aplicados correctamente.`,
+        confirmText: 'Aceptar',
+        type: 'success'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      // Acción después de cerrar el diálogo si es necesario
+    });
+  }
+
+  cancelEdit(): void {
+    if (this.hasUnsavedChanges) {
+      const confirmar = confirm('Tiene cambios sin aplicar. ¿Desea descartarlos?');
+      if (!confirmar) return;
+    }
+    this.editMode = false;
+    this.editedAuthData = null;
+    this.editingCell = null;
+    this.hasUnsavedChanges = false;
+    this.cdr.detectChanges();
+  }
+
+  saveLiquidation(): void {
+    if (!this.authData) {
+      alert('No hay datos para guardar. Espera a que se carguen los datos.');
+      return;
+    }
+    if (this.editMode) {
+      alert('Debe aplicar o cancelar los cambios en modo edición antes de guardar la liquidación.');
+      return;
+    }
+    if (this.hasUnsavedChanges) {
+      alert('Debe aplicar los cambios en modo edición antes de guardar la liquidación.');
+      return;
+    }
+    if (this.selectedAdjustmentId !== null && this.liquidationSaved) {
+      const confirmar = confirm('¿Desea actualizar el registro seleccionado del historial?');
+      if (!confirmar) return;
+    }
+    if (this.liquidationSaved && this.selectedAdjustmentId === null) {
+      const confirmar = confirm('La liquidación ya está guardada. ¿Desea crear un nuevo registro?');
+      if (!confirmar) return;
+    }
+
+    const changesData = {
+      serviceId: this.reportId,
+      adjustmentId: this.selectedAdjustmentId,
+      equipment: this.equipmentData,
+      request: this.requestData,
+      auth: this.authData,
+      liquidation: this.liquidationData
+    };
+
+    this.isLoading = true;
+
+    this.reportsServicesService.saveAuthChanges(changesData).subscribe({
+      next: (response) => {
+        if (response.data?.record) {
+          this.requestData.record = response.data.record;
+        }
+        if (response.data?.adjustment_id) {
+          this.selectedAdjustmentId = response.data.adjustment_id;
+        }
+        this.liquidationSaved = true;
+        this.isLoading = false;
+        this.loadAdjustmentHistory();
+        this.cdr.detectChanges();
+        const dialogRef = this.dialog.open(AlertConfirm, {
+          width: '450px',
+          data: {
+            title: 'Liquidación guardada',
+            message: 'Ahora puede generar los documentos.',
+            content: `La liquidación ha sido guardada correctamente.`,
+            confirmText: 'Aceptar',
+            type: 'success'
+          }
+        });
+
+        dialogRef.afterClosed().subscribe(result => {
+          // Acción después de cerrar el diálogo si es necesario
+        });
+      },
+      error: (error) => {
+        console.error('Error al guardar liquidación:', error);
+        this.liquidationSaved = false;
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        alert('❌ Error al guardar la liquidación. Por favor, intenta nuevamente.');
+      }
+    });
   }
 
   getBadgeClass(state: number): string {
@@ -201,13 +390,6 @@ export class ReportsId implements OnInit {
   enableEditMode(): void {
     this.editMode = true;
     this.initEditableAuthData();
-  }
-
-  cancelEdit(): void {
-    this.editMode = false;
-    this.editedAuthData = null;
-    this.editingCell = null;
-    this.hasUnsavedChanges = false;
   }
 
   onCellDoubleClick(rowIndex: number, field: string): void {
@@ -255,6 +437,7 @@ export class ReportsId implements OnInit {
     }
 
     this.hasUnsavedChanges = true;
+    this.liquidationSaved = false;
     this.recalculateTotals();
   }
 
@@ -365,6 +548,7 @@ export class ReportsId implements OnInit {
   this.editedAuthData.minDate = newDate.toLocaleDateString('es-PE');
   this.requestData.minDate = this.formatDateForRequest(newDate);
   this.hasUnsavedChanges = true;
+  this.liquidationSaved = false;
   this.updateLiquidationData();
 }
 
@@ -396,6 +580,7 @@ export class ReportsId implements OnInit {
   this.editedAuthData.maxDate = newDate.toLocaleDateString('es-PE');
   this.requestData.maxDate = this.formatDateForRequest(newDate);
   this.hasUnsavedChanges = true;
+  this.liquidationSaved = false;
   this.updateLiquidationData();
 }
 
@@ -427,25 +612,57 @@ export class ReportsId implements OnInit {
   const totalRows = this.editedAuthData.processedData.length;
 
   if (index === 0 || index === totalRows - 1) {
-    if (confirm('¿Está seguro de eliminar esta fila?')) {
-      this.editedAuthData.processedData.splice(index, 1);
-      this.updateDateRanges();
-      this.recalculateTotals();
-      this.hasUnsavedChanges = true;
-    }
-  } else {
-    if (confirm('¿Está seguro de reiniciar esta fila?')) {
-      const row = this.editedAuthData.processedData[index];
-      row.time_worked = '-';
-      row.equivalent_hours = 0.00; // FORZAR decimal
-      row.fuel_consumption = 0.00; // FORZAR decimal
-      row.total_amount = 0.00; // FORZAR decimal
-      row.days_worked = '-';
-      row.has_work = true;
+    const dialogRef = this.dialog.open(AlertConfirm, {
+      width: '450px',
+      data: {
+        title: '¿Está seguro de eliminar esta fila?',
+        message: 'Recordar que esta acción no se puede deshacer',
+        content: `Esta acción eliminará permanentemente la fila seleccionada. ¿Desea continuar?`,
+        confirmText: 'Confirmar',
+        cancelText: 'Cancelar',
+        type: 'danger'
+      }
+    });
 
-      this.recalculateTotals();
-      this.hasUnsavedChanges = true;
-    }
+    dialogRef.afterClosed().subscribe(result => {
+      setTimeout(() => {
+          this.editedAuthData.processedData.splice(index, 1);
+          this.updateDateRanges();
+          this.recalculateTotals();
+          this.hasUnsavedChanges = true;
+          this.liquidationSaved = false;
+          this.cdr.detectChanges();
+        }, 0);
+    });
+  } else {
+    const dialogRef = this.dialog.open(AlertConfirm, {
+      width: '450px',
+      data: {
+        title: '¿Está seguro de reiniciar esta fila?',
+        message: 'Recordar que esta acción no se puede deshacer',
+        content: `Esta acción reiniciara permanentemente la fila seleccionada. ¿Desea continuar?`,
+        confirmText: 'Confirmar',
+        cancelText: 'Cancelar',
+        type: 'danger'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      setTimeout(() => {
+          const row = this.editedAuthData.processedData[index];
+          row.time_worked = '-';
+          row.equivalent_hours = 0.00;
+          row.fuel_consumption = 0.00;
+          row.total_amount = 0.00;
+          row.days_worked = '-';
+          row.has_work = true;
+
+          this.recalculateTotals();
+          this.hasUnsavedChanges = true;
+          this.liquidationSaved = false;
+          this.cdr.detectChanges();
+        }, 0);
+    });
   }
 }
 
@@ -585,13 +802,14 @@ export class ReportsId implements OnInit {
     }
   }
 
-  saveAuthChanges(): void {
+  saveAuthChanges(): Observable<any> {
     const authDataToSend = this.editMode && this.editedAuthData 
       ? this.editedAuthData 
       : this.authData;
 
     const changesData = {
       serviceId: this.reportId,
+      adjustmentId: this.selectedAdjustmentId,
       equipment: this.equipmentData,
       request: this.requestData,
       auth: authDataToSend,
@@ -600,28 +818,53 @@ export class ReportsId implements OnInit {
 
     this.isLoading = true;
 
-    this.reportsServicesService.saveAuthChanges(changesData).subscribe({
-      next: (response) => {
-        this.authData = JSON.parse(JSON.stringify(this.editedAuthData));
+    return this.reportsServicesService.saveAuthChanges(changesData).pipe(
+      tap((response) => {
+        this.authData = JSON.parse(JSON.stringify(this.editedAuthData || this.authData));
+        
         if (response.data && response.data.record) {
           this.requestData.record = response.data.record;
         }
+
+        if (response.data && response.data.adjustment_id) {
+          this.selectedAdjustmentId = response.data.adjustment_id;
+        }
+        
         this.editMode = false;
         this.editedAuthData = null;
         this.hasUnsavedChanges = false;
         this.editingCell = null;
         this.isLoading = false;
-
+        if (!this.isGeneratingDocs) {
+          this.liquidationSaved = true;
+        }
         this.cdr.detectChanges();
 
-        alert('Cambios guardados correctamente');
-      },
-      error: (error) => {
+        if (!this.isGeneratingDocs) {
+          alert('Cambios guardados correctamente');
+        }
+      }),
+      catchError((error) => {
         console.error('Error al guardar cambios:', error);
         this.errorMessage = 'Error al guardar los cambios. Por favor, intenta nuevamente.';
         this.isLoading = false;
+        this.liquidationSaved = false;
         this.cdr.detectChanges();
-      }
-    });
+        return throwError(() => error);
+      })
+    );
+  }
+
+  getGenerateButtonTooltip(): string {
+    if (this.editMode) {
+      return 'Debe salir del modo edición primero';
+    }
+    if (this.hasUnsavedChanges) {
+      return 'Debe aplicar y guardar los cambios antes de generar documentos';
+    }
+    if (!this.liquidationSaved) {
+      return 'Debe guardar la liquidación antes de generar documentos';
+    }
+    return 'Generar documentos PDF';
   }
 }

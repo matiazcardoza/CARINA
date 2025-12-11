@@ -6,15 +6,29 @@
       <p class="subtitle">Gestión de documentos y reportes</p>
     </div>
     <div class="header-right">
-      <span class="badge" [ngClass]="getBadgeClass(state)">
-        {{ getStateText(state) }}
-      </span>
-      <button class="btn btn-warning btn-compact" (click)="generateDocuments()">
-        <span class="btn-icon">💰</span>
-        Generar Documentos de Liquidación del servicio
-      </button>
-      
-    </div>
+    <span class="badge" [ngClass]="getBadgeClass(state)">
+      {{ getStateText(state) }}
+    </span>
+    <button 
+      class="btn btn-success btn-compact" 
+      (click)="saveLiquidation()"
+      [disabled]="isLoading || editMode"
+      [matTooltip]="editMode ? 'Debe salir del modo edición primero' : 'Guardar liquidación en base de datos'"
+      matTooltipPosition="below">
+      <span class="btn-icon">💾</span>
+      Guardar Liquidación
+      <span *ngIf="!liquidationSaved" class="badge-warning">●</span>
+    </button>
+    <button 
+      class="btn btn-warning btn-compact" 
+      (click)="generateDocuments()"
+      [disabled]="!liquidationSaved || isGeneratingDocs || editMode || hasUnsavedChanges"
+      [matTooltip]="getGenerateButtonTooltip()"
+      matTooltipPosition="below">
+      <span class="btn-icon">📄</span>
+      Generar Documentos
+    </button>
+  </div>
   </div>
 
   <!-- Error Message -->
@@ -60,23 +74,43 @@
       </div>
 
       <!-- ACTUALIZACIONES -->
+      <!-- HISTORIAL DOCUMENTARIO -->
       <div class="info-card">
         <div class="info-card-header">
           <span class="info-icon">📄</span>
           <h2>Historial Documentario</h2>
         </div>
         <div class="info-card-body">
-          <div class="document-status-item" [class.completed]="documentStatus.solicitud">
-            <span class="status-icon">{{ documentStatus.solicitud ? '✓' : '○' }}</span>
-            <span class="status-text">Solicitud de Movilidad</span>
+          <!-- Loading State -->
+          <div *ngIf="isHistoryLoading" class="history-loading">
+            <span>Cargando historial...</span>
           </div>
-          <div class="document-status-item" [class.completed]="documentStatus.autorizacion">
-            <span class="status-icon">{{ documentStatus.autorizacion ? '✓' : '○' }}</span>
-            <span class="status-text">Autorización de Servicio</span>
+
+          <!-- Sin registros -->
+          <div *ngIf="!isHistoryLoading && adjustmentHistory.length === 0" class="no-history">
+            <p>No hay registros de ajustes anteriores</p>
           </div>
-          <div class="document-status-item" [class.completed]="documentStatus.liquidacion">
-            <span class="status-icon">{{ documentStatus.liquidacion ? '✓' : '○' }}</span>
-            <span class="status-text">Liquidación de Servicio</span>
+
+          <!-- Lista de ajustes -->
+          <div *ngIf="!isHistoryLoading && adjustmentHistory.length > 0" class="history-list">
+            <!-- Versión Actual (sin ajustes) -->
+            <div 
+              class="history-item-simple" 
+              [class.active]="selectedAdjustmentId === null"
+              (click)="loadCurrentVersion()">
+              <span class="history-date-simple current">ACTUAL</span>
+            </div>
+
+            <!-- Ajustes guardados -->
+            <div 
+              *ngFor="let adjustment of adjustmentHistory"
+              class="history-item-simple"
+              [class.active]="selectedAdjustmentId === adjustment.id"
+              (click)="loadAdjustmentData(adjustment)">
+              <span class="history-date-simple">
+                {{ adjustment.created_at | date:'dd/MM/yyyy' }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -182,29 +216,31 @@
         <!-- Autorización de Servicio Preview -->
         <div class="preview-document" *ngIf="activeDocument === 'autorizacion'">
             <div class="document-header">
-                <h3>REPORTE DIARIO DE AUTORIZACIÓN DE SERVICIO/MAQUINARIA GRP</h3>
-
-                <!-- Botones de control de edición -->
-                <div class="edit-controls">
+              <h3>REPORTE DIARIO DE AUTORIZACIÓN DE SERVICIO/MAQUINARIA GRP</h3>
+              <div class="edit-controls">
                 <button
-                    *ngIf="!editMode"
-                    class="btn btn-secondary"
-                    (click)="enableEditMode()">
-                    <span class="btn-icon">✏️</span>
-                    Editar Datos
+                  *ngIf="!editMode"
+                  class="btn btn-secondary"
+                  (click)="enableEditMode()">
+                  <span class="btn-icon">✏️</span>
+                  Editar Datos
                 </button>
-
                 <div *ngIf="editMode" class="edit-buttons-group">
-                    <button class="btn btn-success" (click)="saveAuthChanges()" [disabled]="!hasUnsavedChanges">
-                    <span class="btn-icon">💾</span>
-                    Guardar Cambios
-                    </button>
-                    <button class="btn btn-danger" (click)="cancelEdit()">
+                  <button 
+                    class="btn btn-success" 
+                    (click)="saveEditChanges()" 
+                    [disabled]="!hasUnsavedChanges">
+                    <span class="btn-icon">✓</span>
+                    Aplicar Cambios
+                  </button>
+                  <button 
+                    class="btn btn-danger" 
+                    (click)="cancelEdit()">
                     <span class="btn-icon">✖️</span>
                     Cancelar
-                    </button>
+                  </button>
                 </div>
-                </div>
+              </div>
             </div>
 
             <div class="document-body">
@@ -302,10 +338,11 @@
                         <!-- Acciones -->
                         <td *ngIf="editMode">
                         <button
-                            class="btn-icon-delete"
-                            (click)="deleteRow(i)"
-                            title="Eliminar fila">
-                            🗑️
+                          class="btn-icon-delete"
+                          (click)="deleteRow(i)"
+                          matTooltip="Eliminar fila"
+                          matTooltipPosition="above">
+                          🗑️
                         </button>
                         </td>
                     </tr>

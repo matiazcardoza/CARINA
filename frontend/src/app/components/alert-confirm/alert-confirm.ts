@@ -32,7 +32,7 @@ export class AlertConfirm {
   ) {
     // Establecer valores por defecto
     this.data.confirmText = this.data.confirmText || 'Confirmar';
-    this.data.cancelText = this.data.cancelText || 'Cancelar';
+    this.data.cancelText = this.data.cancelText;
     this.data.type = this.data.type || 'info';
   }
 

@@ -15,6 +15,25 @@ interface SaveChangesResponse {
   data?: any;
 }
 
+interface AdjustmentHistory {
+  id: number;
+  num_reg: number;
+  created_at: string;
+  updated_at: string;
+  updated_by: number;
+  adjusted_data: {
+    equipment: any;
+    request: any;
+    auth: any;
+    liquidation: any;
+  };
+}
+
+interface AdjustmentHistoryResponse {
+  message: string;
+  data: AdjustmentHistory[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -69,6 +88,15 @@ export class ReportsServicesService {
     return this.http.get<LiquidationApiResponse>(`${this.apiUrl}/api/report-id/liquidation/${id}`, {
       withCredentials: true
     }).pipe(
+      map(response => response.data)
+    );
+  }
+
+  getAdjustedLiquidationData(serviceId: number): Observable<AdjustmentHistory[]> {
+    return this.http.get<AdjustmentHistoryResponse>(
+      `${this.apiUrl}/api/report-id/adjusted-liquidation/${serviceId}`, 
+      { withCredentials: true }
+    ).pipe(
       map(response => response.data)
     );
   }

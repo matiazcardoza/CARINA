@@ -30,12 +30,14 @@
   </mat-dialog-content>
   
   <mat-dialog-actions align="end" class="dialog-actions">
-    <button mat-button 
-            (click)="onCancel()"
-            class="cancel-button">
-      <mat-icon>close</mat-icon>
-      {{ data.cancelText }}
-    </button>
+    @if(this.data.cancelText){
+      <button mat-button 
+              (click)="onCancel()"
+              class="cancel-button">
+        <mat-icon>close</mat-icon>
+        {{ data.cancelText }}
+      </button>
+    }
     
     <button mat-raised-button 
             [color]="getColorByType()"

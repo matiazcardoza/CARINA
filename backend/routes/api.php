@@ -139,7 +139,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/reports/report-generate-valorization', [ReportController::class, 'generateValorization']);
     Route::post('/reports/save-auth-changes', [ReportController::class, 'saveAuthChanges']);
     Route::post('/reports/download-merged-daily-parts/{serviceId}', [ReportController::class, 'downloadMergedDailyParts']);
-    route::post('reports/close-service/{serviceId}', [ReportController::class, 'closeService']);
+    Route::post('/reports/close-service/{serviceId}', [ReportController::class, 'closeService']);
+    Route::get('/report-id/adjusted-liquidation/{serviceId}', [ReportController::class, 'getAdjustedLiquidationData']);
 
     //signature
     Route::post('/signature-password', [SignatureController::class, 'signatureOfPassword']);

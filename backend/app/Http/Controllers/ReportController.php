@@ -128,40 +128,19 @@ class ReportController extends Controller
             'totals'  => $totals,
         ];
 
-        $adjustment = ServiceLiquidationAdjustment::where('service_id', $serviceId)->first();
+        $costPerDay = $totals['days_worked'] > 0
+            ? $totals['total_amount'] / $totals['days_worked']
+            : 0;
 
-        if ($adjustment) {
-            $adjustedData = json_decode($adjustment->adjusted_data, true);
+        $formatter = new \NumberFormatter('es', \NumberFormatter::SPELLOUT);
+        $totalInWords = strtoupper($formatter->format(floor($totals['total_amount'])));
+        $cents = round(($totals['total_amount'] - floor($totals['total_amount'])) * 100);
+        $totalInWordsComplete = $totalInWords . ' CON ' . sprintf('%02d', $cents) . '/100 SOLES';
 
-            $equipment = (object) $adjustedData['equipment'];
-            $request = $adjustedData['request'];
-            $auth = $adjustedData['auth'];
-            $liquidation = $adjustedData['liquidation'];
-
-            $auth['is_adjusted'] = true;
-            $auth['last_adjustment'] = $adjustment->updated_at;
-            
-            $numReg = [
-                'num_reg' => $adjustment->num_reg,
-                'created_at' => $adjustment->created_at
-            ];
-            $request['record'] = $numReg;
-        } else {
-            $auth['is_adjusted'] = false;
-            $costPerDay = $totals['days_worked'] > 0
-                ? $totals['total_amount'] / $totals['days_worked']
-                : 0;
-
-            $formatter = new \NumberFormatter('es', \NumberFormatter::SPELLOUT);
-            $totalInWords = strtoupper($formatter->format(floor($totals['total_amount'])));
-            $cents = round(($totals['total_amount'] - floor($totals['total_amount'])) * 100);
-            $totalInWordsComplete = $totalInWords . ' CON ' . sprintf('%02d', $cents) . '/100 SOLES';
-
-            $liquidation = [
-                'cost_per_day' => round($costPerDay, 2),
-                'total_in_words' => $totalInWordsComplete
-            ];
-        }
+        $liquidation = [
+            'cost_per_day' => round($costPerDay, 2),
+            'total_in_words' => $totalInWordsComplete
+        ];
 
         return response()->json([
             'message' => 'Liquidation data retrieved successfully',
@@ -174,9 +153,37 @@ class ReportController extends Controller
         ], 201);
     }
 
+    public function getAdjustedLiquidationData($serviceId)
+    {
+        $adjustments = ServiceLiquidationAdjustment::where('service_id', $serviceId)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function($adjustment) {
+                $adjustedData = json_decode($adjustment->adjusted_data, true);
+                if (!isset($adjustedData['request']['record'])) {
+                    $adjustedData['request']['record'] = [
+                        'num_reg' => $adjustment->num_reg,
+                        'created_at' => $adjustment->created_at
+                    ];
+                }
+                return [
+                    'id' => $adjustment->id,
+                    'num_reg' => $adjustment->num_reg,
+                    'created_at' => $adjustment->created_at,
+                    'updated_at' => $adjustment->updated_at,
+                    'updated_by' => $adjustment->updated_by,
+                    'adjusted_data' => $adjustedData
+                ];
+            });
+
+        return response()->json([
+            'message' => 'Historial de ajustes obtenido correctamente',
+            'data' => $adjustments
+        ], 200);
+    }
+
     public function generateRequest(Request $request)
     {
-        Log::info('este es el request', $request->all());
         $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
         $qr_code = base64_encode("data_qr_example");
         $data = [
@@ -276,9 +283,10 @@ class ReportController extends Controller
 
     public function saveAuthChanges(Request $request)
     {
-        Log::info('Guardando cambios de autorización para el servicio ID: ' , $request->all());
         try {
             $serviceId = $request->input('serviceId');
+            $adjustmentId = $request->input('adjustmentId');
+
             $adjustedData = [
                 'equipment' => $request->input('equipment'),
                 'request' => $request->input('request'),
@@ -288,21 +296,59 @@ class ReportController extends Controller
             
             $currentYear = date('Y');
 
+            if ($adjustmentId !== null) {
+                $adjustment = ServiceLiquidationAdjustment::find($adjustmentId);
+                $adjustment->update([
+                    'adjusted_data' => json_encode($adjustedData),
+                    'updated_by' => Auth::id(),
+                    'updated_at' => now()
+                ]);
+                return response()->json([
+                    'message' => 'Registro actualizado exitosamente',
+                    'success' => true,
+                    'data' => [
+                        'adjustment_id' => $adjustment->id,
+                        'record' => [
+                            'num_reg' => $adjustment->num_reg,
+                            'created_at' => $adjustment->created_at,
+                            'updated_at' => $adjustment->updated_at
+                        ]
+                    ]
+                ], 200);
+            }
+
             $lastRecord = ServiceLiquidationAdjustment::whereYear('created_at', $currentYear)
                     ->orderBy('num_reg', 'desc')
                     ->first();
 
-            $newNumReg = $lastRecord ? $lastRecord->num_reg + 1 : 1;
+            $latestAdjustment = ServiceLiquidationAdjustment::where('service_id', $serviceId)
+                ->orderBy('created_at', 'desc')
+                ->first();
 
-            $adjustment = ServiceLiquidationAdjustment::updateOrCreate(
-                ['service_id' => $serviceId],
-                [
+            $shouldUpdate = false;
+            if ($latestAdjustment) {
+                $shouldUpdate = $latestAdjustment->updated_at->isSameDay(now());
+            }
+
+            if ($shouldUpdate) {
+                $latestAdjustment->update([
+                    'adjusted_data' => json_encode($adjustedData),
+                    'updated_by' => Auth::id(),
+                    'updated_at' => now()
+                ]);
+                
+                $adjustment = $latestAdjustment;
+            } else {
+                $newNumReg = $lastRecord ? $lastRecord->num_reg + 1 : 1;
+                $adjustment = ServiceLiquidationAdjustment::create([
+                    'service_id' => $serviceId,
                     'adjusted_data' => json_encode($adjustedData),
                     'num_reg' => $newNumReg,
                     'updated_by' => Auth::id(),
+                    'created_at' => now(),
                     'updated_at' => now()
-                ]
-            );
+                ]);
+            }
 
             return response()->json([
                 'message' => 'Cambios guardados exitosamente',

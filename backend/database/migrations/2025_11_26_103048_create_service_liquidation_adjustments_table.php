@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('service_liquidation_adjustments', function (Blueprint $table) {
             $table->id('id');
-            $table->unsignedBigInteger('service_id')->unique();
+            $table->unsignedBigInteger('service_id');
             $table->json('adjusted_data');
             $table->string('num_reg')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
