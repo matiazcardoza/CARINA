@@ -60,9 +60,6 @@ class DailyPartController extends Controller
             ], 422);
         }
 
-
-        exit;
-
         $lastRecord = DailyPart::whereYear('work_date', date('Y'))
                     ->whereMonth('work_date', date('m'))
                     ->orderBy('num_reg', 'desc')
