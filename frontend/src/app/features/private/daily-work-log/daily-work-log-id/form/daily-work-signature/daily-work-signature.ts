@@ -171,6 +171,16 @@ export class DailyWorkSignature {
 
   loadUsers(): void {
     const documentState = this.documentState;
+      if (documentState === 3) {
+      console.log('Documento en estado final, no se cargan usuarios para envío');
+      return;
+    }
+    const requiresSending = documentState === 1 || documentState === 2;
+    
+    if (!requiresSending) {
+      console.log('Estado actual no requiere envío de documento');
+      return;
+    }
     this.usersService.getUsersSelected(documentState).subscribe({
       next: (users) => {
         this.users = users;

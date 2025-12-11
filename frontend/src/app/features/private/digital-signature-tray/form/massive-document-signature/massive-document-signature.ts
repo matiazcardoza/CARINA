@@ -490,6 +490,22 @@ export class MassiveDocumentSignature implements OnInit {
 
     const documentState = successDocuments[0].state;
 
+    if (documentState === 3) {
+      console.log('Documentos en estado final, no se cargan usuarios para envío');
+      this.shouldAutoSend = false;
+      this.hasPendingSend = false;
+      return;
+    }
+    
+    const requiresSending = documentState === 1 || documentState === 2;
+    
+    if (!requiresSending) {
+      console.log('Estado actual no requiere envío de documentos');
+      this.shouldAutoSend = false;
+      this.hasPendingSend = false;
+      return;
+    }
+
     this.userForm.get('userId')?.enable();
     
     this.usersService.getUsersSelected(documentState).subscribe({
