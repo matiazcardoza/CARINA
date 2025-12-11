@@ -103,12 +103,10 @@ export class DailyWorkLogService {
     );
   }
 
-  createWorkLog(workLogData: CreateWorkLogData): Observable<WorkLogElement> {
+  createWorkLog(workLogData: CreateWorkLogData): Observable<SingleApiResponse> {
     return this.http.post<SingleApiResponse>(`${this.apiUrl}/api/daily-work-log`, workLogData, {
       withCredentials: true
-    }).pipe(
-      map(response => response.data)
-    );
+    });
   }
 
   updateWorkLog( workLogData: CreateWorkLogData): Observable<WorkLogElement> {

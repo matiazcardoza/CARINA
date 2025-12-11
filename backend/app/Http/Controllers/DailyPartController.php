@@ -49,6 +49,20 @@ class DailyPartController extends Controller
 
     function store(Request $request)
     {
+        $date = Carbon::now();
+        $dateRegister = Carbon::parse($request->work_date);
+        Log::info("Fecha de registro: " . $dateRegister->toDateString());
+        Log::info("Fecha actual: " . $date->toDateString());
+        if ($dateRegister->lt($date->copy()->subDays(3))) {
+            Log::info("La fecha excede los 3 días permitidos.");
+            return response()->json([
+                'message' => 'El tiempo para registrar esta fecha ha expirado (más de 3 días).'
+            ], 422);
+        }
+
+
+        exit;
+
         $lastRecord = DailyPart::whereYear('work_date', date('Y'))
                     ->whereMonth('work_date', date('m'))
                     ->orderBy('num_reg', 'desc')

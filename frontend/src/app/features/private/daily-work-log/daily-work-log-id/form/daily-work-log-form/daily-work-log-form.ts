@@ -22,6 +22,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { CustomTimePicker } from '../../components/custom-time-picker/custom-time-picker';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { FormsModule } from '@angular/forms';
+import { AlertConfirm } from '../../../../../../components/alert-confirm/alert-confirm';
+import { MatDialog } from '@angular/material/dialog';
 
 export interface DialogData {
   isEdit: boolean;
@@ -90,7 +92,8 @@ export class DailyWorkLogForm implements OnInit {
   constructor(
     public dialogRef: MatDialogRef<DailyWorkLogForm>,
     @Inject(MAT_DIALOG_DATA) public data: DialogData,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private dialog: MatDialog
   ) {
     // Configurar validadores dinámicamente basándose en serviceState
     const productValidators = this.shouldRequireProductFields ? [Validators.required] : [];
@@ -412,17 +415,30 @@ export class DailyWorkLogForm implements OnInit {
         console.log('crear workLogData:', workLogData);
         this.dailyWorkLogService.createWorkLog(workLogData)
           .subscribe({
-            next: (newWorkLog) => {
+            next: (response) => {
               this.isLoading = false;
               this.cdr.detectChanges();
               setTimeout(() => {
-                this.dialogRef.close(newWorkLog);
+                this.dialogRef.close(response.data);
               }, 100);
             },
             error: (error) => {
-              this.isLoading = false;
-              this.cdr.detectChanges();
-              console.error('Error al crear:', error);
+              const dialogRef = this.dialog.open(AlertConfirm, {
+                width: '450px',
+                data: {
+                  title: 'Exedio de días permitidos',
+                  message: error.error.message,
+                  content: `Recordar siempre tener al día los registros de trabajo. Solo se permiten crear registros con un límite de tiempo de 3 días`,
+                  confirmText: 'Aceptar',
+                  type: 'danger'
+                }
+              });
+              
+              dialogRef.afterClosed().subscribe(result => {
+                this.isLoading = false;
+                this.cdr.detectChanges();
+                console.error('Error al crear:', error);
+              });
             }
           });
       }, 0);
