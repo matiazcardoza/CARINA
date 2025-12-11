@@ -137,7 +137,6 @@ export class ReportsId implements OnInit {
     
     this.equipmentData = adjustedData.equipment;
     this.requestData = adjustedData.request;
-    console.log('Adjusted auth data to load:', this.requestData);
     this.authData = adjustedData.auth;
     this.liquidationData = adjustedData.liquidation;
     this.editMode = false;

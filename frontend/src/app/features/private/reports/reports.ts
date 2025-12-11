@@ -32,7 +32,7 @@ import { ReportsId } from './reports-id/reports-id';
 export interface WorkLogDataElement {
   id: number;
   description: string;
-  total_time_worked: string;
+  time_worked: string;
   fuel_consumed: string;
   state: number;
   operator: string;
@@ -139,7 +139,6 @@ export class Reports implements OnInit {
 
   ngOnInit(): void {
     this.loadServices();
-    this.calcularResumenDashboard();
   }
 
   loadServices(): void {
@@ -217,25 +216,6 @@ export class Reports implements OnInit {
     }
   }
 
-  // Método para convertir tiempo trabajado a horas decimales
-  convertirTiempoAHoras(tiempo: string): number {
-    if (!tiempo) return 0;
-
-    const partes = tiempo.split(':');
-    if (partes.length !== 3) return 0;
-
-    const horas = parseInt(partes[0]);
-    const minutos = parseInt(partes[1]);
-    const segundos = parseInt(partes[2]);
-
-    return horas + (minutos / 60) + (segundos / 3600);
-  }
-
-  // Mantener método original para datos falsos del dashboard inicial
-  calcularResumenDashboard(): void {
-    // Este método se mantiene para el dashboard inicial con datos falsos
-    // Se puede eliminar cuando tengas datos reales para el dashboard
-  }
 
   todasLasFirmasCompletas(estadoFirmas: any): boolean {
     return estadoFirmas.controlador && estadoFirmas.residente && estadoFirmas.supervisor;
@@ -281,7 +261,6 @@ export class Reports implements OnInit {
 
   descargarReporte(): void {
     console.log('Descargando reporte...');
-    // Aquí implementarías la funcionalidad de descarga
   }
   limpiarSelector(): void {
     this.searchForm.get('servicioSearch')?.setValue('');
@@ -330,11 +309,10 @@ export class Reports implements OnInit {
     if (confirm('¿Está seguro de que desea cerrar este servicio? Esta acción no se puede deshacer.')) {
       this.reportsServicesService.closeService(serviceId).subscribe({
         next: () => {
-          // Recargar los datos del servicio actualmente seleccionado
           if (this.selectedServicio) {
             this.getDailyPartsData(this.selectedServicio);
           }
-          this.cdr.detectChanges(); // Forzar detección de cambios
+          this.cdr.detectChanges();
         },
         error: (error) => {
           console.error('Error al cerrar servicio:', error);
@@ -345,7 +323,6 @@ export class Reports implements OnInit {
   }
 
   openValorizedDialog(id: number) {
-    // Verificar que existe valorationData antes de abrir el diálogo
     if (!this.valorationData) {
       this.errorMessage = 'No hay datos de valorización disponibles para este servicio.';
       return;
@@ -363,8 +340,8 @@ export class Reports implements OnInit {
       autoFocus: false,
       restoreFocus: false,
       data: {
-        valorationData: this.valorationData,  // Enviar los datos de valorización completos
-        serviceId: id  // Mantener el serviceId por si lo necesitas
+        valorationData: this.valorationData,
+        serviceId: id
       }
     });
 

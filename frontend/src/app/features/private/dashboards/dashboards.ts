@@ -23,21 +23,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { UsersService } from '../../../services/UsersService/users-service';
 
-export interface WorkLogDataElement {
-  id: number;
-  description: string;
-  total_time_worked: string;
-  fuel_consumed: string;
-  state: number;
-  operator: string;
-  created_at: string;
-  updated_at: string;
-  goal_detail: string;
-  goal_project: string;
-  goal_id: number;
-  mechanical_equipment_id: number;
-  order_id: number | null;
-}
+
 
 // Interfaz para datos falsos de firmas y evidencias
 interface ParteDiarioFalso {
@@ -94,7 +80,7 @@ export class Dashboards implements OnInit {
   errorMessage = '';
 
   // Datos reales de la API
-  partesDiariosReales: WorkLogDataElement[] = [];
+
 
   // Datos falsos para firmas y evidencias (temporal)
   datosFalsos: ParteDiarioFalso[] = [
@@ -212,31 +198,6 @@ export class Dashboards implements OnInit {
     return horas + (minutos / 60) + (segundos / 3600);
   }
 
-  // Calcular resumen basado en datos reales
-  calcularResumenDashboardReal(): void {
-    if (this.partesDiariosReales.length === 0) {
-      return;
-    }
-
-    this.resumenDashboard.totalHorasTrabajadas = this.partesDiariosReales
-      .reduce((total, parte) => {
-        return total + this.convertirTiempoAHoras(parte.total_time_worked);
-      }, 0);
-
-    this.resumenDashboard.totalCombustibleConsumido = this.partesDiariosReales
-      .reduce((total, parte) => {
-        return total + parseFloat(parte.fuel_consumed || '0');
-      }, 0);
-
-    // Para los completados usamos datos falsos por ahora
-    this.resumenDashboard.partesCompletados = Math.floor(this.partesDiariosReales.length * 0.7);
-    this.resumenDashboard.partesPendientes = this.partesDiariosReales.length - this.resumenDashboard.partesCompletados;
-
-    this.resumenDashboard.porcentajeEficiencia =
-      this.partesDiariosReales.length > 0
-        ? (this.resumenDashboard.partesCompletados / this.partesDiariosReales.length) * 100
-        : 0;
-  }
 
   // Mantener método original para datos falsos del dashboard inicial
   calcularResumenDashboard(): void {
@@ -285,7 +246,6 @@ export class Dashboards implements OnInit {
   limpiarSelector(): void {
     this.searchForm.get('servicioSearch')?.setValue('');
     this.selectedServicio = null;
-    this.partesDiariosReales = [];
     this.resumenDashboard = {
       totalHorasTrabajadas: 245.5,
       totalCombustibleConsumido: 1250.75,

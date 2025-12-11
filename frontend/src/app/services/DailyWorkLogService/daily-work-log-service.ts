@@ -4,7 +4,7 @@ import { map, Observable } from 'rxjs';
 import { WorkLogElement } from '../../features/private/daily-work-log/daily-work-log';
 import { environment } from '../../../environments/environment';
 import { WorkLogIdElement } from '../../features/private/daily-work-log/daily-work-log-id/daily-work-log-id';
-import { WorkLogDataElement } from '../../features/private/dashboards/dashboards';
+import { WorkLogDataElement } from '../../features/private/reports/reports';
 import { EvidenceDataElement } from '../../features/private/reports/view/view-evidence/view-evidence';
 import { DocumentDailyPartElement } from '../../features/private/daily-work-log/daily-work-log-id/form/daily-work-signature/daily-work-signature';
 

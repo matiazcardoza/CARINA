@@ -140,7 +140,7 @@
               <td mat-cell *matCellDef="let parte">
                 <div class="hours-info">
                   <mat-icon>schedule</mat-icon>
-                  {{ convertirTiempoAHoras(parte.total_time_worked) | number:'1.2-2' }}h
+                  {{ parte.time_worked }} hrs
                 </div>
               </td>
             </ng-container>
