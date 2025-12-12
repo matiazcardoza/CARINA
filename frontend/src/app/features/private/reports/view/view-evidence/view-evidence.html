@@ -2,6 +2,22 @@
   <div class="dialog-header">
     <h2 mat-dialog-title>Evidencias del Servicio</h2>
     <div class="header-actions">
+      <mat-chip-set aria-label="Filtro de valorización">
+        <mat-chip 
+          [class.chip-selected]="currentFilter === 1"
+          (click)="onFilterChange(1)"
+          [disabled]="loading"
+          highlighted>
+          No Valorizados
+        </mat-chip>
+        <mat-chip 
+          [class.chip-selected]="currentFilter === 2"
+          (click)="onFilterChange(2)"
+          [disabled]="loading"
+          highlighted>
+          Valorizados
+        </mat-chip>
+      </mat-chip-set>
       <button mat-icon-button matTooltip="Actualizar partes diarias" (click)="onRefresh()" [disabled]="loading">
         <mat-icon>refresh</mat-icon>
       </button>

@@ -117,48 +117,20 @@ class ServiceController extends Controller
             if ($service->state != 3) {
                 continue;
             }
-            $dailyParts = DailyPart::where('service_id', $service->id)->get();
-            
-            $dateGroups = $dailyParts->groupBy('work_date');
-            $totalSecondsWorked = 0;
-            
-            foreach ($dateGroups as $date => $parts) {
-                $daySeconds = 0;
-                foreach ($parts as $p) {
-                    if ($p->time_worked && str_contains($p->time_worked, ':')) {
-                        [$h, $m, $s] = array_pad(explode(':', $p->time_worked), 3, 0);
-                        $h = is_numeric($h) ? (int)$h : 0;
-                        $m = is_numeric($m) ? (int)$m : 0;
-                        $s = is_numeric($s) ? (int)$s : 0;
-                        $daySeconds += ($h * 3600) + ($m * 60) + $s;
-                    }
-                }
-                $totalSecondsWorked += $daySeconds;
-            }
-            $totalHours = floor($totalSecondsWorked / 3600);
-            $totalMinutes = floor(($totalSecondsWorked % 3600) / 60);
-            $totalTimeFormatted = sprintf('%02d:%02d', $totalHours, $totalMinutes);
-            $totalEquivalentHours = $totalHours + ($totalMinutes / 60);
-            $totalDaysWorked = $dailyParts->pluck('work_date')->unique()->count();
             $adjustment = ServiceLiquidationAdjustment::where('service_id', $service->id)->first();
 
-            if ($adjustment) {
-                $adjustedData = json_decode($adjustment->adjusted_data, true);
-                $equipment = (object) $adjustedData['equipment'];
-                $totalTimeFormatted = $adjustedData['auth']['totals']['time_worked'] ?? '00:00';
-                $totalEquivalentHours = $adjustedData['auth']['totals']['equivalent_hours'] ?? 0;
-                $totalDaysWorked = $adjustedData['auth']['totals']['days_worked'] ?? 0;
-                $costPerHour = $adjustedData['auth']['totals']['cost_per_hour'] ?? 0;
-                $totalAmount = $adjustedData['auth']['totals']['total_amount'] ?? 0;
-                $costPerDay = $adjustedData['liquidation']['cost_per_day'] ?? 0;
-            } else {
-                $equipment = MechanicalEquipment::find($service->mechanical_equipment_id);
-                $operators = Operator::where('service_id', $service->id)->get();
-                $equipment->operators = $operators;
-                $costPerHour = $equipment->cost_hour ?? 0;
-                $totalAmount = $totalEquivalentHours * $costPerHour;
-                $costPerDay = $totalDaysWorked > 0 ? $totalAmount / $totalDaysWorked : 0;
+            if (!$adjustment) {
+                continue;
             }
+            $adjustedData = json_decode($adjustment->adjusted_data, true);
+            $equipment = (object) $adjustedData['equipment'];
+            $totalTimeFormatted = $adjustedData['auth']['totals']['time_worked'] ?? '00:00';
+            $totalEquivalentHours = $adjustedData['auth']['totals']['equivalent_hours'] ?? 0;
+            $totalDaysWorked = $adjustedData['auth']['totals']['days_worked'] ?? 0;
+            $costPerHour = $adjustedData['auth']['totals']['cost_per_hour'] ?? 0;
+            $totalAmount = $adjustedData['auth']['totals']['total_amount'] ?? 0;
+            $costPerDay = $adjustedData['liquidation']['cost_per_day'] ?? 0;
+            
             $service->time_worked = $totalTimeFormatted;
             $machinery[] = [
                 'service_id' => $service->id,
@@ -177,9 +149,6 @@ class ServiceController extends Controller
             'machinery' => $machinery,
             'valoration_amount' => round($totalValorationAmount, 2)
         ];
-
-        Log::info('este es el services', ['services' => $services]);
-        Log::info('este es el valoration', ['valoration' => $valoration]);
 
         return response()->json([
             'message' => 'Daily work log retrieved successfully',

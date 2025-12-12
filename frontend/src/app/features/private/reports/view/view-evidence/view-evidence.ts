@@ -13,6 +13,7 @@ import { DailyWorkLogService } from '../../../../../services/DailyWorkLogService
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ReportsServicesService } from '../../../../../services/ReportsServicesService/reports-services-service';
 import JSZip from 'jszip';
+import { FormsModule } from '@angular/forms';
 
 export interface EvidenceDataElement {
   id: number;
@@ -71,7 +72,8 @@ export interface DialogData {
     MatGridListModule,
     MatExpansionModule,
     MatChipsModule,
-    MatTooltipModule
+    MatTooltipModule,
+    FormsModule
   ],
   templateUrl: './view-evidence.html',
   styleUrl: './view-evidence.css'
@@ -81,6 +83,7 @@ export class ViewEvidence implements OnInit {
   loading = true;
   error = false;
   selectedImage: string | null = null;
+  currentFilter: number = 1;
 
   constructor(
     public dialogRef: MatDialogRef<ViewEvidence>,
@@ -99,7 +102,7 @@ export class ViewEvidence implements OnInit {
     this.error = false;
     this.cdr.markForCheck();
 
-    this.dailyWorkLogService.getEvidenceData(this.data.ServiceId).subscribe({
+    this.dailyWorkLogService.getEvidenceData(this.data.ServiceId, this.currentFilter).subscribe({
       next: (response: any) => {
         console.log('Evidences response:', response);
 
@@ -117,6 +120,13 @@ export class ViewEvidence implements OnInit {
         this.cdr.markForCheck();
       }
     });
+  }
+
+  onFilterChange(filterValue: number): void {
+    if (this.currentFilter !== filterValue) {
+      this.currentFilter = filterValue;
+      this.loadEvidences();
+    }
   }
 
   onDownloadDailyPart(pathDocument: string): void {

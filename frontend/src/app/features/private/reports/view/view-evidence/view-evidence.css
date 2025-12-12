@@ -485,3 +485,45 @@ mat-chip {
   border-radius: 8px;
   margin-bottom: 12px;
 }
+
+/* Estilos específicos solo para el header-actions */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-actions mat-chip-set {
+  margin: 0;
+}
+
+/* Solo chips dentro de header-actions */
+.header-actions mat-chip {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.header-actions mat-chip:hover:not([disabled]) {
+  opacity: 0.85;
+  transform: scale(1.02);
+}
+
+.header-actions mat-chip[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Estilo para chip seleccionado - SOLO en header-actions */
+.header-actions mat-chip.chip-selected {
+  background-color: #c6c971 !important;
+  color: white !important;
+}
+
+.header-actions mat-chip.chip-selected mat-icon {
+  color: white !important;
+}
+
+/* Estilo para chip no seleccionado - SOLO en header-actions */
+.header-actions mat-chip:not(.chip-selected) {
+  background-color: #e0e0e0;
+}

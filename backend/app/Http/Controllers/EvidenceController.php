@@ -9,15 +9,18 @@ use Illuminate\Support\Facades\Log;
 
 class EvidenceController extends Controller
 {
-    function getEvidence($serviceId)
+    function getEvidence($serviceId, Request $request)
     {
+        $stateValorized = $request->query('state_valorized', 1);
         $dailyParts = DailyPart::where('service_id', $serviceId)
+            ->where('state_valorized', $stateValorized)
             ->select(
                 'daily_parts.id',
                 'daily_parts.description',
                 'daily_parts.time_worked',
                 'daily_parts.work_date',
                 'daily_parts.shift_id',
+                'daily_parts.state_valorized',
                 'shifts.name as shift_name',
                 'documents_daily_parts.state',
                 'documents_daily_parts.id as document_id',
@@ -56,7 +59,6 @@ class EvidenceController extends Controller
                 ];
             })->values();
         });
-        Log::info('este es el dailyPartsWithEvidence: ' . $dailyPartsWithEvidence);
 
         return response()->json([
             'message' => 'Evidence fetched successfully',

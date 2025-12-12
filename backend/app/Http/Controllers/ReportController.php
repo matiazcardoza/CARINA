@@ -378,6 +378,7 @@ class ReportController extends Controller
             ->join('daily_parts as dp', 'ddp.id', '=', 'dp.document_id')
             ->where('dp.service_id', $serviceId)
             ->whereIn('ddp.state', [3])
+            ->whereIn('dp.state_valorized', [1])
             ->select('ddp.id', 'ddp.file_path', 'ddp.created_at', 'dp.work_date')
             ->groupBy('ddp.id', 'ddp.file_path', 'ddp.created_at', 'dp.work_date')
             ->orderBy('dp.work_date', 'asc')

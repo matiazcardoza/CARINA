@@ -174,9 +174,10 @@ export class DailyWorkLogService {
     );
   }
 
-  getEvidenceData(serviceId: number): Observable<EvidenceDataElement[]> {
+  getEvidenceData(serviceId: number, stateValorized: number): Observable<EvidenceDataElement[]> {
     return this.http.get<EvidenceDataApiResponse>(`${this.apiUrl}/api/daily-work-evendece/${serviceId}`, {
       withCredentials: true,
+      params: { state_valorized: stateValorized.toString() }
     }).pipe(
       map(response => response.data)
     );

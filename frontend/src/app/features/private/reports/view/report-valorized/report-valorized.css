@@ -1,3 +1,22 @@
+::ng-deep .mat-dialog-container {
+  padding: 0 !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  border-radius: 0 !important;
+}
+
+::ng-deep .mat-mdc-dialog-container,
+::ng-deep .mat-dialog-container,
+::ng-deep .cdk-overlay-pane {
+  border-radius: 0 !important;
+}
+
+::ng-deep .mat-mdc-dialog-surface {
+  border-radius: 0 !important;
+}
+
 .valorized-container {
   display: flex;
   flex-direction: column;
