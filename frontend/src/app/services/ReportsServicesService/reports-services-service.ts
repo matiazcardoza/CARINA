@@ -79,6 +79,12 @@ export class ReportsServicesService {
     );
   }
 
+  saveValorization(valorationData: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/api/reports/save-valoration`, valorationData, {
+      withCredentials: true
+    });
+  }
+
   openDocumentInNewTab(path: string): void {
     const url = `${this.apiUrl}/storage/${path}`;
     window.open(url, '_blank');
@@ -94,7 +100,7 @@ export class ReportsServicesService {
 
   getAdjustedLiquidationData(serviceId: number): Observable<AdjustmentHistory[]> {
     return this.http.get<AdjustmentHistoryResponse>(
-      `${this.apiUrl}/api/report-id/adjusted-liquidation/${serviceId}`, 
+      `${this.apiUrl}/api/report-id/adjusted-liquidation/${serviceId}`,
       { withCredentials: true }
     ).pipe(
       map(response => response.data)

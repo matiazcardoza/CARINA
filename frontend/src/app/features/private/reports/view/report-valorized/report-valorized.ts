@@ -30,10 +30,12 @@ export class ReportValorized implements OnInit {
   valorationData: ValorationData;
   editedValorationAmount: number;
   editedOperators: { [key: number]: string } = {};
-  serviceId: number;
   errorMessage: string | null = null;
 
-  amountPlanilla: number = 0;   // NUEVO
+  amountPlanilla: number = 0;
+
+  valorationSaved: boolean = false;
+  isLoading: boolean = false;
 
   displayedColumns: string[] = [
     'item',
@@ -54,7 +56,6 @@ export class ReportValorized implements OnInit {
     private reportsServicesService: ReportsServicesService
   ) {
     this.valorationData = data.valorationData;
-    this.serviceId = data.serviceId;
     this.editedValorationAmount = data.valorationData.valoration_amount;
 
     this.valorationData.machinery.forEach((machinery, index) => {
@@ -128,6 +129,54 @@ export class ReportValorized implements OnInit {
 
   getPlate(equipment: any): string {
     return equipment?.plate || 'N/A';
+  }
+
+  saveValoration(): void {
+    if (!this.valorationData) {
+      alert('No hay datos para guardar. Espera a que se carguen los datos.');
+      return;
+    }
+    if (this.valorationSaved) {
+      const confirmar = confirm('La valorización ya está guardada. ¿Desea actualizarla?');
+      if (!confirmar) return;
+    }
+    const valorationDataToSend = JSON.parse(JSON.stringify(this.valorationData));
+    valorationDataToSend.machinery.forEach((machinery: any, index: number) => {
+      if (this.editedOperators[index] && machinery.equipment?.operators) {
+        const operatorNames = this.editedOperators[index]
+          .split(',')
+          .map((name: string) => name.trim());
+
+        machinery.equipment.operators = operatorNames.map((name: string, i: number) => ({
+          ...(machinery.equipment.operators[i] || {}),
+          name: name
+        }));
+      }
+    });
+    const changesData = {
+      valorationData: valorationDataToSend,
+      editedValorationAmount: Number(this.editedValorationAmount.toFixed(2)),
+      amountPlanilla: Number(this.amountPlanilla.toFixed(2)),
+      finalAmount: Number((this.editedValorationAmount).toFixed(2))
+    };
+
+    this.isLoading = true;
+
+    this.reportsServicesService.saveValorization(changesData).subscribe({
+      next: (response) => {
+        console.log('Valorización guardada:', response);
+
+        this.valorationSaved = true;
+        this.isLoading = false;
+        alert('✅ Valorización guardada correctamente. Ahora puede generar el documento PDF.');
+      },
+      error: (error) => {
+        console.error('Error al guardar valorización:', error);
+        this.valorationSaved = false;
+        this.isLoading = false;
+        alert('❌ Error al guardar la valorización. Por favor, intenta nuevamente.');
+      }
+    });
   }
 }
 

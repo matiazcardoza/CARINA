@@ -281,168 +281,170 @@ class ReportController extends Controller
         return $pdf->stream('Valoracion-goal.pdf');
     }
 
-        public function saveAuthChanges(Request $request)
-        {
-            Log::info('Saving auth changes', ['request' => $request->all()]);
-            $requestMaxDate = $request->input('request.maxDate');
-            $requestMinDate = $request->input('request.minDate');
-            $serviceId = $request->input('serviceId');
+    public function saveAuthChanges(Request $request)
+    {
+        $requestMaxDate = $request->input('request.maxDate');
+        $requestMinDate = $request->input('request.minDate');
+        $serviceId = $request->input('serviceId');
 
-            $latestAdjustment = ServiceLiquidationAdjustment::where('service_id', $serviceId)
-                    ->orderBy('created_at', 'desc')
-                    ->first();
-            $shouldUpdate = false;
-            if ($latestAdjustment) {
-                $shouldUpdate = $latestAdjustment->updated_at->isSameDay(now());
-                $dataLatestAdjustment = json_decode($latestAdjustment->adjusted_data, true);
-                $latestMaxDate = $dataLatestAdjustment['request']['maxDate'];
-                $latestMinDate = $dataLatestAdjustment['request']['minDate'];
-                $dateLatest = Carbon::parse($latestMaxDate);
-                $dateMinLatest = Carbon::parse($latestMinDate);
-                $dateMinRequest = Carbon::parse($requestMinDate);
-                $dateRequest = Carbon::parse($requestMaxDate);
-            }
+        $latestAdjustment = ServiceLiquidationAdjustment::where('service_id', $serviceId)
+                ->orderBy('created_at', 'desc')
+                ->first();
+        $shouldUpdate = false;
+        if ($latestAdjustment) {
+            $shouldUpdate = $latestAdjustment->updated_at->isSameDay(now());
+            $dataLatestAdjustment = json_decode($latestAdjustment->adjusted_data, true);
+            $latestMaxDate = $dataLatestAdjustment['request']['maxDate'];
+            $latestMinDate = $dataLatestAdjustment['request']['minDate'];
+            $dateLatest = Carbon::parse($latestMaxDate);
+            $dateMinLatest = Carbon::parse($latestMinDate);
+            $dateMinRequest = Carbon::parse($requestMinDate);
+            $dateRequest = Carbon::parse($requestMaxDate);
+        }
 
-            try {
-                $adjustmentId = $request->input('adjustmentId');
+        try {
+            $adjustmentId = $request->input('adjustmentId');
+            $adjustedData = [
+                'equipment' => $request->input('equipment'),
+                'request' => $request->input('request'),
+                'auth' => $request->input('auth'),
+                'liquidation' => $request->input('liquidation'),
+            ];
 
-                $adjustedData = [
-                    'equipment' => $request->input('equipment'),
-                    'request' => $request->input('request'),
-                    'auth' => $request->input('auth'),
-                    'liquidation' => $request->input('liquidation'),
-                ];
+            $currentYear = date('Y');
 
-                $currentYear = date('Y');
+            if ($adjustmentId !== null) {
+                $adjustment = ServiceLiquidationAdjustment::find($adjustmentId);
+                $adjustment->update([
+                    'adjusted_data' => json_encode($adjustedData),
+                    'updated_by' => Auth::id(),
+                    'updated_at' => now()
+                ]);
 
-                if ($adjustmentId !== null) {
-                    $adjustment = ServiceLiquidationAdjustment::find($adjustmentId);
-                    $adjustment->update([
-                        'adjusted_data' => json_encode($adjustedData),
-                        'updated_by' => Auth::id(),
-                        'updated_at' => now()
-                    ]);
-
-                    if ($dateLatest->gt($dateRequest) && $latestAdjustment->id == $adjustmentId) {
-                        $startDate = $dateRequest->copy()->addDay()->toDateString();
-                        $endDate = $dateLatest->toDateString();
-                        DailyPart::where('service_id', $serviceId)
-                            ->whereBetween('work_date', [$startDate, $endDate])
-                            ->update(['state_valorized' => 1]);
-                    } elseif ($dateLatest->lt($dateRequest) && $latestAdjustment->id == $adjustmentId) {
-                        $startDate = $dateLatest->copy()->addDay()->toDateString();
-                        $endDate = $dateRequest->toDateString();
-                        DailyPart::where('service_id', $serviceId)
-                            ->whereBetween('work_date', [$startDate, $endDate])
-                            ->update(['state_valorized' => 2]);
-                    }
-
-                    if ($dateMinLatest->lt($dateMinRequest)) {
-                        $startMinDate = $dateMinLatest->toDateString();
-                        $endMinDate = $dateMinRequest->copy()->subDay()->toDateString();
-                        DailyPart::where('service_id', $serviceId)
-                            ->whereBetween('work_date', [$startMinDate, $endMinDate])
-                            ->update(['state_valorized' => 1]);
-                    } elseif ($dateMinLatest->gt($dateMinRequest)) {
-                        $startMinDate = $dateMinRequest->toDateString();
-                        $endMinDate = $dateMinLatest->toDateString();
-                        DailyPart::where('service_id', $serviceId)
-                            ->whereBetween('work_date', [$startMinDate, $endMinDate])
-                            ->update(['state_valorized' => 2]);
-                    }
-
-                    return response()->json([
-                        'message' => 'Registro actualizado exitosamente',
-                        'success' => true,
-                        'data' => [
-                            'adjustment_id' => $adjustment->id,
-                            'record' => [
-                                'num_reg' => $adjustment->num_reg,
-                                'created_at' => $adjustment->created_at,
-                                'updated_at' => $adjustment->updated_at
-                            ]
-                        ]
-                    ], 200);
+                if ($dateLatest->gt($dateRequest) && $latestAdjustment->id == $adjustmentId) {
+                    $startDate = $dateRequest->copy()->addDay()->toDateString();
+                    $endDate = $dateLatest->toDateString();
+                    DailyPart::where('service_id', $serviceId)
+                        ->whereBetween('work_date', [$startDate, $endDate])
+                        ->update(['state_valorized' => 1]);
+                } elseif ($dateLatest->lt($dateRequest) && $latestAdjustment->id == $adjustmentId) {
+                    $startDate = $dateLatest->copy()->addDay()->toDateString();
+                    $endDate = $dateRequest->toDateString();
+                    DailyPart::where('service_id', $serviceId)
+                        ->whereBetween('work_date', [$startDate, $endDate])
+                        ->update(['state_valorized' => 2]);
                 }
 
-                $lastRecord = ServiceLiquidationAdjustment::whereYear('created_at', $currentYear)
-                        ->orderBy('num_reg', 'desc')
-                        ->first();
-
-                if ($shouldUpdate) {
-                    $latestAdjustment->update([
-                        'adjusted_data' => json_encode($adjustedData),
-                        'updated_by' => Auth::id(),
-                        'updated_at' => now()
-                    ]);
-
-                    if ($dateLatest->gt($dateRequest)) {
-                        $startDate = $dateRequest->copy()->addDay()->toDateString();
-                        $endDate = $dateLatest->toDateString();
-                        DailyPart::where('service_id', $serviceId)
-                            ->whereBetween('work_date', [$startDate, $endDate])
-                            ->update(['state_valorized' => 1]);
-                    } elseif ($dateLatest->lt($dateRequest)) {
-                        $startDate = $dateLatest->copy()->addDay()->toDateString();
-                        $endDate = $dateRequest->toDateString();
-                        DailyPart::where('service_id', $serviceId)
-                            ->whereBetween('work_date', [$startDate, $endDate])
-                            ->update(['state_valorized' => 2]);
-                    }
-
-                    if ($dateMinLatest->lt($dateMinRequest)) {
-                        $startMinDate = $dateMinLatest->toDateString();
-                        $endMinDate = $dateMinRequest->copy()->subDay()->toDateString();
-                        DailyPart::where('service_id', $serviceId)
-                            ->whereBetween('work_date', [$startMinDate, $endMinDate])
-                            ->update(['state_valorized' => 1]);
-                    } elseif ($dateMinLatest->gt($dateMinRequest)) {
-                        $startMinDate = $dateMinRequest->toDateString();
-                        $endMinDate = $dateMinLatest->toDateString();
-                        DailyPart::where('service_id', $serviceId)
-                            ->whereBetween('work_date', [$startMinDate, $endMinDate])
-                            ->update(['state_valorized' => 2]);
-                    }
-
-                    $adjustment = $latestAdjustment;
-                } else {
-                    $newNumReg = $lastRecord ? $lastRecord->num_reg + 1 : 1;
-                    $adjustment = ServiceLiquidationAdjustment::create([
-                        'service_id' => $serviceId,
-                        'adjusted_data' => json_encode($adjustedData),
-                        'num_reg' => $newNumReg,
-                        'updated_by' => Auth::id(),
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ]);
-
+                if ($dateMinLatest->lt($dateMinRequest)) {
+                    $startMinDate = $dateMinLatest->toDateString();
+                    $endMinDate = $dateMinRequest->copy()->subDay()->toDateString();
                     DailyPart::where('service_id', $serviceId)
-                        ->where('state_valorized', 1)
-                        ->where('work_date', '<=', $requestMaxDate)
+                        ->whereBetween('work_date', [$startMinDate, $endMinDate])
+                        ->update(['state_valorized' => 1]);
+                } elseif ($dateMinLatest->gt($dateMinRequest)) {
+                    $startMinDate = $dateMinRequest->toDateString();
+                    $endMinDate = $dateMinLatest->toDateString();
+                    DailyPart::where('service_id', $serviceId)
+                        ->whereBetween('work_date', [$startMinDate, $endMinDate])
                         ->update(['state_valorized' => 2]);
                 }
 
                 return response()->json([
-                    'message' => 'Cambios guardados exitosamente',
+                    'message' => 'Registro actualizado exitosamente',
                     'success' => true,
                     'data' => [
+                        'adjustment_id' => $adjustment->id,
                         'record' => [
                             'num_reg' => $adjustment->num_reg,
-                            'created_at' => $adjustment->created_at
+                            'created_at' => $adjustment->created_at,
+                            'updated_at' => $adjustment->updated_at
                         ]
                     ]
                 ], 200);
-
-            } catch (\Exception $e) {
-                Log::error('Error saving auth changes: ' . $e->getMessage());
-
-                return response()->json([
-                    'message' => 'Error al guardar cambios',
-                    'error' => $e->getMessage(),
-                    'success' => false
-                ], 500);
             }
+
+            $lastRecord = ServiceLiquidationAdjustment::whereYear('created_at', $currentYear)
+                    ->orderBy('num_reg', 'desc')
+                    ->first();
+
+            if ($shouldUpdate) {
+                $latestAdjustment->update([
+                    'adjusted_data' => json_encode($adjustedData),
+                    'updated_by' => Auth::id(),
+                    'updated_at' => now()
+                ]);
+
+                if ($dateLatest->gt($dateRequest)) {
+                    $startDate = $dateRequest->copy()->addDay()->toDateString();
+                    $endDate = $dateLatest->toDateString();
+                    DailyPart::where('service_id', $serviceId)
+                        ->whereBetween('work_date', [$startDate, $endDate])
+                        ->update(['state_valorized' => 1]);
+                } elseif ($dateLatest->lt($dateRequest)) {
+                    $startDate = $dateLatest->copy()->addDay()->toDateString();
+                    $endDate = $dateRequest->toDateString();
+                    DailyPart::where('service_id', $serviceId)
+                        ->whereBetween('work_date', [$startDate, $endDate])
+                        ->update(['state_valorized' => 2]);
+                }
+
+                if ($dateMinLatest->lt($dateMinRequest)) {
+                    $startMinDate = $dateMinLatest->toDateString();
+                    $endMinDate = $dateMinRequest->copy()->subDay()->toDateString();
+                    DailyPart::where('service_id', $serviceId)
+                        ->whereBetween('work_date', [$startMinDate, $endMinDate])
+                        ->update(['state_valorized' => 1]);
+                } elseif ($dateMinLatest->gt($dateMinRequest)) {
+                    $startMinDate = $dateMinRequest->toDateString();
+                    $endMinDate = $dateMinLatest->toDateString();
+                    DailyPart::where('service_id', $serviceId)
+                        ->whereBetween('work_date', [$startMinDate, $endMinDate])
+                        ->update(['state_valorized' => 2]);
+                }
+
+                $adjustment = $latestAdjustment;
+            } else {
+                $newNumReg = $lastRecord ? $lastRecord->num_reg + 1 : 1;
+                $adjustment = ServiceLiquidationAdjustment::create([
+                    'service_id' => $serviceId,
+                    'adjusted_data' => json_encode($adjustedData),
+                    'num_reg' => $newNumReg,
+                    'updated_by' => Auth::id(),
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+
+                DailyPart::where('service_id', $serviceId)
+                    ->where('state_valorized', 1)
+                    ->where('work_date', '<=', $requestMaxDate)
+                    ->update(['state_valorized' => 2]);
+            }
+
+            return response()->json([
+                'message' => 'Cambios guardados exitosamente',
+                'success' => true,
+                'data' => [
+                    'record' => [
+                        'num_reg' => $adjustment->num_reg,
+                        'created_at' => $adjustment->created_at
+                    ]
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Error saving auth changes: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Error al guardar cambios',
+                'error' => $e->getMessage(),
+                'success' => false
+            ], 500);
         }
+    }
+
+    public function saveValoration(Request $request){
+        Log::info('Saving valoration changes', $request->all());
+    }
 
     public function downloadMergedDailyParts($serviceId)
     {
