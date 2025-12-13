@@ -301,12 +301,12 @@ class UserController extends Controller
     public function importUsersSilucia()
     {
         set_time_limit(0);
-        
+
         $url = 'https://sistemas.regionpuno.gob.pe/siluciav2-api/api/personal/lista?rowsPerPage=0&flag=T&idrol=17';
         $response = Http::get($url);
         $responseData = $response->json();
         $personalData = $responseData['data'] ?? [];
-        
+
         $stats = [
             'created' => 0,
             'updated' => 0,
@@ -319,19 +319,19 @@ class UserController extends Controller
                 $cargo = $persona['cargo']['idcargo'] ?? null;
                 $uoperativas = $persona['uoperativas'] ?? [];
                 $rolesArray = $persona['roles'] ?? [];
-                
+
                 $roles = $this->determineRoles($cargo, $uoperativas, $rolesArray);
-                
+
                 if (empty($roles)) {
                     continue;
                 }
 
                 $existingPersona = Persona::where('num_doc', $dni)->first();
-                
+
                 if ($existingPersona) {
                     $user = $existingPersona->user;
                     $user->syncRoles($roles);
-                    
+
                     $stats['updated']++;
                 } else {
                     $user = User::create([
@@ -349,11 +349,11 @@ class UserController extends Controller
                     ]);
 
                     $user->assignRole($roles);
-                    
+
                     $stats['created']++;
                 }
                 $this->syncUserMetas($user->id, $persona['metas'] ?? []);
-                
+
             } catch (\Exception $e) {
                 $stats['errors'][] = [
                     'dni' => $dni ?? 'unknown',
@@ -375,23 +375,23 @@ private function determineRoles($idCargo, $uoperativas, $rolesArray = [])
 {
     $roles = [];
     $uoperIds = collect($uoperativas)->pluck('iduoper')->toArray();
-    
+
     // Verificar unidades operativas
     $hasResidenteUnits = in_array('00106', $uoperIds) || in_array('00107', $uoperIds);
     $hasSupervisorUnits = in_array('00108', $uoperIds);
-    
+
     // REGLA 1: Si tiene cargo de RESIDENTE (5 o 6)
     if (in_array($idCargo, [5, 6])) {
         if ($hasResidenteUnits) {
             $roles[] = 4; // Solo Residente
         }
-    } 
+    }
     // REGLA 2: Si tiene cargo de SUPERVISOR (7 u 8)
     elseif (in_array($idCargo, [7, 8])) {
         if ($hasSupervisorUnits) {
             $roles[] = 5; // Solo Supervisor
         }
-    } 
+    }
     // REGLA 3: Sin cargo definido (null) - asignar según unidades
     else {
         // Prioridad: Supervisor > Residente
@@ -401,7 +401,7 @@ private function determineRoles($idCargo, $uoperativas, $rolesArray = [])
             $roles[] = 4; // Residente
         }
     }
-    
+
     // REGLA 4: Controlador (rol 3) - puede coexistir con cualquier otro rol
     if (!empty($rolesArray)) {
         foreach ($rolesArray as $rol) {
@@ -411,7 +411,7 @@ private function determineRoles($idCargo, $uoperativas, $rolesArray = [])
             }
         }
     }
-    
+
     return array_unique($roles);
 }
 
@@ -427,7 +427,7 @@ private function determineRoles($idCargo, $uoperativas, $rolesArray = [])
         foreach ($metas as $meta) {
             $idMeta = $meta['idmeta'];
             $anio = $meta['anio'] ?? $currentYear;
-            
+
             $incomingMetasIds[] = [
                 'goal_id' => $idMeta,
                 'year' => $anio
@@ -436,7 +436,7 @@ private function determineRoles($idCargo, $uoperativas, $rolesArray = [])
         $existingProjects = Project::where('user_id', $userId)->get();
         $projectsToDelete = $existingProjects->filter(function ($project) use ($incomingMetasIds) {
             return !collect($incomingMetasIds)->contains(function ($incoming) use ($project) {
-                return $incoming['goal_id'] == $project->goal_id && 
+                return $incoming['goal_id'] == $project->goal_id &&
                     $incoming['year'] == $project->year;
             });
         });
@@ -532,8 +532,8 @@ private function determineRoles($idCargo, $uoperativas, $rolesArray = [])
                 ->leftJoin('roles', 'model_has_roles.role_id', '=', 'roles.id')
                 ->leftJoin('personas', 'users.id', '=', 'personas.user_id')
                 ->whereIn('users.id', $userIds)
-                ->where('personas.num_doc', '!=', 'U40098666');
-        
+                ->where('personas.num_doc', '!=', ['U40098666', '01319836']);
+
         switch ($documentState) {
             case 0:
                 return response()->json([
@@ -548,7 +548,7 @@ private function determineRoles($idCargo, $uoperativas, $rolesArray = [])
             }
 
         $users = $query->get();
-        
+
         return response()->json([
             'message' => 'Users retrieved successfully',
             'data' => $users
