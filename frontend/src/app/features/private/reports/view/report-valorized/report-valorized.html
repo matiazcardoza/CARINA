@@ -32,10 +32,11 @@
             <th>TOTAL EN SOLES</th>
             <th>COSTO POR DÍA</th>
             <th>DÍAS TRABAJADOS</th>
+            <th>ACCIONES</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let machinery of valorationData.machinery; let i = index">
+          <tr *ngFor="let machinery of valorationData.machinery; let i = index" [class.deleted-row]="deletedRows.has(i)">
             <td class="text-center">{{ i + 1 }}</td>
             <td>{{ getMachineryName(machinery.equipment) }}</td>
             <td>
@@ -48,6 +49,16 @@
             <td class="text-right highlight">S/. {{ machinery.total_amount | number:'1.2-2' }}</td>
             <td class="text-right">S/. {{ machinery.cost_per_day | number:'1.2-2' }}</td>
             <td class="text-center">{{ machinery.days_worked }}</td>
+            <td class="text-center">
+              <button
+                mat-icon-button
+                color="warn"
+                (click)="deleteRow(i)"
+                [disabled]="deletedRows.has(i)"
+                class="delete-btn">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
           </tr>
 
           <!-- Fila de Totales -->

@@ -37,6 +37,8 @@ export class ReportValorized implements OnInit {
   valorationSaved: boolean = false;
   isLoading: boolean = false;
 
+  deletedRows: Set<number> = new Set();
+
   displayedColumns: string[] = [
     'item',
     'machinery',
@@ -70,18 +72,44 @@ export class ReportValorized implements OnInit {
   // Recalcular automaticamente el total final
   onAmountPlanillaChange(): void {
     if (this.amountPlanilla >= 0) {
-      this.editedValorationAmount =
-        this.valorationData.valoration_amount - this.amountPlanilla;
+      this.editedValorationAmount = Number(
+        (this.valorationData.valoration_amount - this.amountPlanilla).toFixed(2)
+      );
     }
+  }
+
+  deleteRow(index: number): void {
+    const confirmar = confirm('¿Está seguro de eliminar esta fila? Esto actualizará el monto total.');
+    if (confirmar) {
+      this.deletedRows.add(index);
+      this.recalculateTotal();
+    }
+  }
+
+  recalculateTotal(): void {
+    let newTotal = 0;
+    this.valorationData.machinery.forEach((machinery, index) => {
+      if (!this.deletedRows.has(index)) {
+        newTotal += machinery.total_amount;
+      }
+    });
+
+    this.valorationData.valoration_amount = Number(newTotal.toFixed(2));
+    this.onAmountPlanillaChange();
   }
 
   generateValorization(): void {
     const valorationDataSend = JSON.parse(JSON.stringify(this.valorationData));
 
+    valorationDataSend.machinery = valorationDataSend.machinery.filter(
+      (_: any, index: number) => !this.deletedRows.has(index)
+    );
+
     // Aplicar operadores editados
     valorationDataSend.machinery.forEach((machinery: any, index: number) => {
-      if (this.editedOperators[index] && machinery.equipment?.operators) {
-        const operatorNames = this.editedOperators[index]
+      const originalIndex = this.getOriginalIndex(index);
+      if (this.editedOperators[originalIndex] && machinery.equipment?.operators) {
+        const operatorNames = this.editedOperators[originalIndex]
           .split(',')
           .map((name: string) => name.trim());
 
@@ -93,6 +121,7 @@ export class ReportValorized implements OnInit {
     });
 
     // Enviar con EXACTAMENTE 2 DECIMALES
+    valorationDataSend.valoration_amount = Number(this.valorationData.valoration_amount.toFixed(2));
     valorationDataSend.editedValorationAmount = Number(this.editedValorationAmount.toFixed(2));
     valorationDataSend.amountPlanilla = Number(this.amountPlanilla.toFixed(2));
 
@@ -105,6 +134,17 @@ export class ReportValorized implements OnInit {
         this.errorMessage = 'Error al generar el PDF. Por favor, intenta nuevamente.';
       }
     });
+  }
+
+  getOriginalIndex(filteredIndex: number): number {
+    let count = 0;
+    for (let i = 0; i < this.valorationData.machinery.length; i++) {
+      if (!this.deletedRows.has(i)) {
+        if (count === filteredIndex) return i;
+        count++;
+      }
+    }
+    return filteredIndex;
   }
 
   closeDialog(): void {

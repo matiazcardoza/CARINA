@@ -291,12 +291,12 @@ export class Reports implements OnInit {
   }
 
   downloadAllCompletedDailyParts(serviceId: number, stateValorized: number): void {
-    this.isDownloading = true; 
+    this.isDownloading = true;
     this.reportsServicesService.downloadAllCompletedDailyParts(serviceId, stateValorized).subscribe({
       next: (response: Blob) => {
         const fileURL = URL.createObjectURL(response);
         window.open(fileURL, '_blank');
-        this.isDownloading = false; 
+        this.isDownloading = false;
       },
       error: () => {
         this.errorMessage = 'Error al generar el PDF. Por favor, intenta nuevamente.';
@@ -365,6 +365,22 @@ export class Reports implements OnInit {
     });
   }
 
+  getStateClass(state: string | number): string {
+    const stateNum = Number(state);
+    switch (stateNum) {
+      case 1:
+        //operativo
+        return 'status-active';
+      case 2:
+        //mantenimiento
+        return 'status-maintenance';
+      case 3:
+        //inactivo
+        return 'status-inactive';
+      default:
+        return 'status-unknown';
+    }
+  }
 
   navigateToReportsId(id: number, state: number) {
     this.router.navigate(['/reports/reports-id', id, state]);

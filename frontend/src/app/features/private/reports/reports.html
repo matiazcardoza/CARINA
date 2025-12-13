@@ -127,8 +127,9 @@
                 <div class="service-info">
                   <strong>{{ parte.description }}</strong>
                   <div style="color: blueviolet;" class="service-operator">
-                    <mat-icon>person</mat-icon>
-                    
+                    @if (parte.end_date === null){
+                      <span class="status-badge" style="justify-content: center;" [ngClass]="getStateClass(parte.state)">Máquinaria en Apoyo</span>
+                    }
                   </div>
                 </div>
               </td>

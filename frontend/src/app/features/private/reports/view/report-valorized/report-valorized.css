@@ -344,3 +344,22 @@
   background-color: #f7f7f7;
   font-weight: bold;
 }
+
+.deleted-row {
+  opacity: 0.4;
+  text-decoration: line-through;
+  background-color: #ffebee;
+}
+
+.delete-btn {
+  transition: all 0.3s ease;
+}
+
+.delete-btn:hover:not(:disabled) {
+  transform: scale(1.1);
+}
+
+.delete-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
