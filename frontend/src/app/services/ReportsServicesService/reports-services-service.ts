@@ -107,9 +107,8 @@ export class ReportsServicesService {
     );
   }
 
-  downloadAllCompletedDailyParts(serviceId: number): Observable<Blob> {
-    console.log('Downloading all completed daily parts for service ID:', serviceId);
-    return this.http.post(`${this.apiUrl}/api/reports/download-merged-daily-parts/${serviceId}`, {}, {
+  downloadAllCompletedDailyParts(serviceId: number, stateValorized: number): Observable<Blob> {
+    return this.http.post(`${this.apiUrl}/api/reports/download-merged-daily-parts/${serviceId}/${stateValorized}`, {}, {
         responseType: 'blob',
         withCredentials: true
       }

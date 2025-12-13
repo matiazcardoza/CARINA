@@ -290,9 +290,9 @@ export class Reports implements OnInit {
     );
   }
 
-  downloadAllCompletedDailyParts(serviceId: number) {
+  downloadAllCompletedDailyParts(serviceId: number, stateValorized: number): void {
     this.isDownloading = true; 
-    this.reportsServicesService.downloadAllCompletedDailyParts(serviceId).subscribe({
+    this.reportsServicesService.downloadAllCompletedDailyParts(serviceId, stateValorized).subscribe({
       next: (response: Blob) => {
         const fileURL = URL.createObjectURL(response);
         window.open(fileURL, '_blank');

@@ -446,13 +446,13 @@ class ReportController extends Controller
         Log::info('Saving valoration changes', $request->all());
     }
 
-    public function downloadMergedDailyParts($serviceId)
+    public function downloadMergedDailyParts($serviceId, $stateValorized)
     {
         $documents = DB::table('documents_daily_parts as ddp')
             ->join('daily_parts as dp', 'ddp.id', '=', 'dp.document_id')
             ->where('dp.service_id', $serviceId)
             ->whereIn('ddp.state', [3])
-            ->whereIn('dp.state_valorized', [1])
+            ->whereIn('dp.state_valorized', [$stateValorized])
             ->select('ddp.id', 'ddp.file_path', 'ddp.created_at', 'dp.work_date')
             ->groupBy('ddp.id', 'ddp.file_path', 'ddp.created_at', 'dp.work_date')
             ->orderBy('dp.work_date', 'asc')
