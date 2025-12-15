@@ -142,7 +142,18 @@ class ServiceController extends Controller
             $totalAmount = $adjustedData['auth']['totals']['total_amount'] ?? 0;
             $costPerDay = $adjustedData['liquidation']['cost_per_day'] ?? 0;
             
-            $service->time_worked = $totalTimeFormatted;
+            $dailyParts = DailyPart::where('service_id', $service->id)->get();
+                $totalSecondsWorked = 0;
+                foreach ($dailyParts as $part) {
+                    [$h, $m, $s] = array_pad(explode(':', $part->time_worked), 3, 0);
+                    $totalSecondsWorked += ($h * 3600) + ($m * 60) + $s;
+                }
+                
+                $totalHours = floor($totalSecondsWorked / 3600);
+                $totalMinutes = floor(($totalSecondsWorked % 3600) / 60);
+                $totalTimeFormatted = sprintf('%02d:%02d', $totalHours, $totalMinutes); 
+                $service->time_worked = $totalTimeFormatted;
+                
             $machinery[] = [
                 'service_id' => $service->id,
                 'equipment' => $equipment,
