@@ -120,6 +120,17 @@ class ServiceController extends Controller
             $adjustment = ServiceLiquidationAdjustment::where('service_id', $service->id)->first();
 
             if (!$adjustment) {
+                $dailyParts = DailyPart::where('service_id', $service->id)->get();
+                $totalSecondsWorked = 0;
+                foreach ($dailyParts as $part) {
+                    [$h, $m, $s] = array_pad(explode(':', $part->time_worked), 3, 0);
+                    $totalSecondsWorked += ($h * 3600) + ($m * 60) + $s;
+                }
+                
+                $totalHours = floor($totalSecondsWorked / 3600);
+                $totalMinutes = floor(($totalSecondsWorked % 3600) / 60);
+                $totalTimeFormatted = sprintf('%02d:%02d', $totalHours, $totalMinutes); 
+                $service->time_worked = $totalTimeFormatted;
                 continue;
             }
             $adjustedData = json_decode($adjustment->adjusted_data, true);

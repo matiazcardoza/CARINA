@@ -60,12 +60,13 @@ class DailyPartController extends Controller
             ], 422);
         }*/
 
-        $lastRecord = DailyPart::whereYear('work_date', date('Y'))
-                    ->whereMonth('work_date', date('m'))
-                    ->orderBy('num_reg', 'desc')
-                    ->first();
+        $date = Carbon::parse($request->work_date);
 
-        $newNumReg = $lastRecord ? $lastRecord->num_reg + 1 : 1;
+        $lastRecord = DailyPart::whereYear('work_date', $date->year)
+            ->whereMonth('work_date', $date->month)
+            ->max('num_reg');
+
+        $newNumReg = $lastRecord ? $lastRecord + 1 : 1;
 
         $dailyPart = DailyPart::create([
             'service_id' => $request->service_id,
