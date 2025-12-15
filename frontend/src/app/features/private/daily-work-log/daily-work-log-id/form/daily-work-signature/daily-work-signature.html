@@ -57,14 +57,14 @@
      
      <!--<div *appHasRole="'Controlador_pd'"><ng-container *appHasRole="['!Residente_pd', '!Supervisor_pd']">-->
     <ng-container *appHasRole="'Controlador_pd'">
-      <button *ngIf="canUserSign()"
+      <button *ngIf="canControllerSignWithPassword()"
               mat-raised-button
-              [color]="isSigned ? 'accent' : 'warn'"
-              [disabled]="isLoading"
+              color="warn"
+              [disabled]="isLoading || isSigningInProgress"
               (click)="onSignPassword()"
               class="sign-button">
-        <mat-icon>{{ 'verified_user' }}</mat-icon>
-        {{ 'Firmar por contraseña' }}
+        <mat-icon>verified_user</mat-icon>
+        Firmar por contraseña
       </button>
       <button *ngIf="canUserSign()"
               mat-raised-button

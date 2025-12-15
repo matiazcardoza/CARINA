@@ -514,4 +514,14 @@ export class DailyWorkSignature {
     this.userForm.get('userId')?.setValue('');
     this.userForm.get('userId')?.markAsUntouched();
   }
+
+  canControllerSignWithPassword(): boolean {
+    const userRelevantRoles = this.getUserRelevantRoles();
+    
+    return userRelevantRoles.includes('Controlador_pd') && 
+          !userRelevantRoles.includes('Residente_pd') && 
+          !userRelevantRoles.includes('Supervisor_pd') &&
+          this.canUserSign() &&
+          !this.isSigned;
+  }
 }
