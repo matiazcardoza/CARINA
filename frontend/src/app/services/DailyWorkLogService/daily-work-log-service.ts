@@ -63,7 +63,14 @@ export interface ValorationMachinery {
   days_worked: number;
 }
 
+export interface ValorationGoal {
+  goal_id?: number;
+  goal_code?: string;
+  goal_detail: string;
+}
+
 export interface ValorationData {
+  goal: ValorationGoal;
   machinery: ValorationMachinery[];
   valoration_amount: number;
 }

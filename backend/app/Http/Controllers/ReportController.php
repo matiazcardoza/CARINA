@@ -7,6 +7,7 @@ use App\Models\MechanicalEquipment;
 use App\Models\Operator;
 use App\Models\Service;
 use App\Models\ServiceLiquidationAdjustment;
+use App\Models\ValorationAdjustment;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -283,6 +284,12 @@ class ReportController extends Controller
 
     public function saveAuthChanges(Request $request)
     {
+        if($request->input('auth.totals.total_amount') <= 0){
+            return response()->json([
+                'message' => 'no se puede liquidar si el monto total no es un valor valido.',
+                'success' => false
+            ], 400);
+        }
         $requestMaxDate = $request->input('request.maxDate');
         $requestMinDate = $request->input('request.minDate');
         $serviceId = $request->input('serviceId');
@@ -443,7 +450,28 @@ class ReportController extends Controller
     }
 
     public function saveValoration(Request $request){
-        Log::info('Saving valoration changes', $request->all());
+        try{
+            $currentYear = date('Y');
+            $lastRecord = ServiceLiquidationAdjustment::whereYear('created_at', $currentYear)
+                        ->orderBy('num_reg', 'desc')
+                        ->first();
+            $newNumReg = $lastRecord ? $lastRecord->num_reg + 1 : 1;
+            $valorationData = $request->valorationData;
+            ValorationAdjustment::create([
+                'adjusted_data' => json_encode($valorationData),
+                'num_reg' => $newNumReg,
+                'updated_by' => Auth::id()
+            ]);
+        } catch (\Exception $e){
+            Log::error('Error saving valoration changes: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'Error al guardar cambios de valoración',
+                'error' => $e->getMessage(),
+                'success' => false
+            ], 500);
+        }
+        
     }
 
     public function downloadMergedDailyParts($serviceId, $stateValorized)

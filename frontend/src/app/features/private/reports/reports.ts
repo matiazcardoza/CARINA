@@ -177,11 +177,10 @@ export class Reports implements OnInit {
       })
     )
     .subscribe((response: { valoration: ValorationData | null, data: WorkLogDataElement[] }) => {
-      console.log('Datos recibidos:', response);
-      console.log('Valoración:', response.valoration);
 
       this.partesDiariosReales = response.data;
       this.valorationData = response.valoration;
+      console.log('esto es valoration data', this.valorationData);
 
       this.isLoading = false;
       this.cdr.detectChanges();

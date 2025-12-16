@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('valoration_adjustment', function (Blueprint $table) {
             $table->id('id');
+            $table->unsignedBigInteger('goal_id');
             $table->json('adjusted_data');
             $table->string('num_reg')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();

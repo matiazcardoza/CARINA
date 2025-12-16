@@ -4,6 +4,7 @@
     <div class="header-content">
       <h1>CUADRO DE RESUMEN MENSUAL - VALORIZACIÓN</h1>
       <p class="header-subtitle">Reporte de Horas de Maquinarias</p>
+      
     </div>
     <button mat-raised-button color="success" (click)="saveValoration()">
       <mat-icon>save</mat-icon>
@@ -116,6 +117,7 @@
 
   <!-- Footer -->
   <div class="valorized-footer">
+    <span style="font-size: 12px; color: gray">{{ valorationData.goal.goal_detail }}</span>
     <button mat-raised-button color="warn" (click)="closeDialog()">
       <mat-icon>close</mat-icon>
       Cerrar

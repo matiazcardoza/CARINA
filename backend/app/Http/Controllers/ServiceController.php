@@ -153,7 +153,7 @@ class ServiceController extends Controller
                 $totalMinutes = floor(($totalSecondsWorked % 3600) / 60);
                 $totalTimeFormatted = sprintf('%02d:%02d', $totalHours, $totalMinutes); 
                 $service->time_worked = $totalTimeFormatted;
-                
+
             $machinery[] = [
                 'service_id' => $service->id,
                 'equipment' => $equipment,
@@ -167,7 +167,10 @@ class ServiceController extends Controller
             $totalValorationAmount += $totalAmount;
         }
 
+        $goalService = Service::where('goal_id', $idGoal)->first();
+
         $valoration = [
+            'goal' => $goalService,
             'machinery' => $machinery,
             'valoration_amount' => round($totalValorationAmount, 2)
         ];
