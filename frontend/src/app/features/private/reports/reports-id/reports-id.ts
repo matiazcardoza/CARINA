@@ -57,8 +57,8 @@ export class ReportsId implements OnInit {
   selectedAdjustmentId: number | null = null;
   isHistoryLoading: boolean = false;
 
-  constructor(
-    private route: ActivatedRoute,
+  constructor(private route: ActivatedRoute,
+    
     private reportsServicesService: ReportsServicesService,
     private cdr: ChangeDetectorRef,
     private dialog: MatDialog

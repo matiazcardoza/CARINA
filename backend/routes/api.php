@@ -141,6 +141,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/reports/save-valoration', [ReportController::class, 'saveValoration']);
     Route::post('/reports/download-merged-daily-parts/{serviceId}/{stateValorized}', [ReportController::class, 'downloadMergedDailyParts']);
     Route::post('/reports/close-service/{serviceId}', [ReportController::class, 'closeService']);
+    Route::get('/report/valoration/{goalId}', [ReportController::class, 'getValorationData']);
+    Route::get('/report/adjusted-valoration/{goalId}', [ReportController::class, 'getAdjustedValorationData']);
     Route::get('/report-id/adjusted-liquidation/{serviceId}', [ReportController::class, 'getAdjustedLiquidationData']);
 
     //signature

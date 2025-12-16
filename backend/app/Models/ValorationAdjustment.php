@@ -11,6 +11,7 @@ class ValorationAdjustment extends Model
     protected $table = 'valoration_adjustment';
     protected $primaryKey = 'id';
     protected $fillable = [
+        'goal_id',
         'adjusted_data',
         'num_reg',
         'updated_by',

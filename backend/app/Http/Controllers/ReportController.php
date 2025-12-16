@@ -154,9 +154,116 @@ class ReportController extends Controller
         ], 201);
     }
 
+    public function getValorationData($goalId){
+        $services = Service::join('daily_parts', 'services.id', '=', 'daily_parts.service_id')
+                ->where('services.goal_id', $goalId)
+                ->where('services.state_valorized', '!=', 2)
+                ->select('services.*')
+                ->distinct()
+                ->get();
+
+        $machinery = [];
+        $totalValorationAmount = 0;
+
+        foreach ($services as $service) {
+            if ($service->state != 3) {
+                continue;
+            }
+            $adjustment = ServiceLiquidationAdjustment::where('service_id', $service->id)->first();
+
+            if (!$adjustment) {
+                $dailyParts = DailyPart::where('service_id', $service->id)->get();
+                $totalSecondsWorked = 0;
+                foreach ($dailyParts as $part) {
+                    [$h, $m, $s] = array_pad(explode(':', $part->time_worked), 3, 0);
+                    $totalSecondsWorked += ($h * 3600) + ($m * 60) + $s;
+                }
+                
+                $totalHours = floor($totalSecondsWorked / 3600);
+                $totalMinutes = floor(($totalSecondsWorked % 3600) / 60);
+                $totalTimeFormatted = sprintf('%02d:%02d', $totalHours, $totalMinutes); 
+                $service->time_worked = $totalTimeFormatted;
+                continue;
+            }
+            $adjustedData = json_decode($adjustment->adjusted_data, true);
+            $equipment = (object) $adjustedData['equipment'];
+            $totalTimeFormatted = $adjustedData['auth']['totals']['time_worked'] ?? '00:00';
+            $totalEquivalentHours = $adjustedData['auth']['totals']['equivalent_hours'] ?? 0;
+            $totalDaysWorked = $adjustedData['auth']['totals']['days_worked'] ?? 0;
+            $costPerHour = $adjustedData['auth']['totals']['cost_per_hour'] ?? 0;
+            $totalAmount = $adjustedData['auth']['totals']['total_amount'] ?? 0;
+            $costPerDay = $adjustedData['liquidation']['cost_per_day'] ?? 0;
+            
+            $dailyParts = DailyPart::where('service_id', $service->id)->get();
+                $totalSecondsWorked = 0;
+                foreach ($dailyParts as $part) {
+                    [$h, $m, $s] = array_pad(explode(':', $part->time_worked), 3, 0);
+                    $totalSecondsWorked += ($h * 3600) + ($m * 60) + $s;
+                }
+                
+                $totalHours = floor($totalSecondsWorked / 3600);
+                $totalMinutes = floor(($totalSecondsWorked % 3600) / 60);
+                $totalTimeFormatted = sprintf('%02d:%02d', $totalHours, $totalMinutes); 
+                $service->time_worked = $totalTimeFormatted;
+
+            $machinery[] = [
+                'service_id' => $service->id,
+                'equipment' => $equipment,
+                'time_worked' => $totalTimeFormatted,
+                'equivalent_hours' => round($totalEquivalentHours, 2),
+                'cost_per_hour' => $costPerHour,
+                'total_amount' => round($totalAmount, 2),
+                'cost_per_day' => round($costPerDay, 2),
+                'days_worked' => $totalDaysWorked,
+            ];
+            $totalValorationAmount += $totalAmount;
+        }
+
+        $goalService = Service::where('goal_id', $goalId)->first();
+
+        $valoration = [
+            'goal' => $goalService,
+            'machinery' => $machinery,
+            'valoration_amount' => round($totalValorationAmount, 2)
+        ];
+
+        return response()->json([
+            'message' => 'Daily work log retrieved successfully',
+            'data' => $valoration,
+        ]);
+    }
+
     public function getAdjustedLiquidationData($serviceId)
     {
         $adjustments = ServiceLiquidationAdjustment::where('service_id', $serviceId)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function($adjustment) {
+                $adjustedData = json_decode($adjustment->adjusted_data, true);
+                if (!isset($adjustedData['request']['record'])) {
+                    $adjustedData['request']['record'] = [
+                        'num_reg' => $adjustment->num_reg,
+                        'created_at' => $adjustment->created_at
+                    ];
+                }
+                return [
+                    'id' => $adjustment->id,
+                    'num_reg' => $adjustment->num_reg,
+                    'created_at' => $adjustment->created_at,
+                    'updated_at' => $adjustment->updated_at,
+                    'updated_by' => $adjustment->updated_by,
+                    'adjusted_data' => $adjustedData
+                ];
+            });
+
+        return response()->json([
+            'message' => 'Historial de ajustes obtenido correctamente',
+            'data' => $adjustments
+        ], 200);
+    }
+
+    public function getAdjustedValorationData($goalId){
+        $adjustments = ValorationAdjustment::where('goal_id', $goalId)
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function($adjustment) {
@@ -449,15 +556,17 @@ class ReportController extends Controller
         }
     }
 
-    public function saveValoration(Request $request){
+    public function saveValoration(Request $request){   
         try{
+            $goalId = $request->valorationData['goal']['goal_id'];
             $currentYear = date('Y');
-            $lastRecord = ServiceLiquidationAdjustment::whereYear('created_at', $currentYear)
+            $lastRecord = ValorationAdjustment::whereYear('created_at', $currentYear)
                         ->orderBy('num_reg', 'desc')
                         ->first();
             $newNumReg = $lastRecord ? $lastRecord->num_reg + 1 : 1;
             $valorationData = $request->valorationData;
             ValorationAdjustment::create([
+                'goal_id' => $goalId,
                 'adjusted_data' => json_encode($valorationData),
                 'num_reg' => $newNumReg,
                 'updated_by' => Auth::id()
@@ -471,7 +580,6 @@ class ReportController extends Controller
                 'success' => false
             ], 500);
         }
-        
     }
 
     public function downloadMergedDailyParts($serviceId, $stateValorized)

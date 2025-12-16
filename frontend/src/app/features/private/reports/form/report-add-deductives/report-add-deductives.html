@@ -1,0 +1,79 @@
+<div class="dialog-container">
+  <h2 mat-dialog-title>{{ title }}</h2>
+  
+  <mat-dialog-content class="dialog-content">
+    <!-- Formulario para agregar nuevo item -->
+    <div class="add-item-form">
+      <mat-form-field appearance="outline" class="field-nombre">
+        <mat-label>Nombre {{ itemLabel }}</mat-label>
+        <input 
+          matInput 
+          [(ngModel)]="newItem.nombre" 
+          placeholder="Ingrese nombre"
+          (keyup.enter)="agregarItem()">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="field-monto">
+        <mat-label>Monto</mat-label>
+        <input 
+          matInput 
+          type="number" 
+          [(ngModel)]="newItem.monto" 
+          placeholder="0.00"
+          (keyup.enter)="agregarItem()">
+        <span matPrefix>S/&nbsp;</span>
+      </mat-form-field>
+
+      <button 
+        mat-raised-button 
+        color="primary" 
+        (click)="agregarItem()"
+        [disabled]="!newItem.nombre.trim() || newItem.monto <= 0">
+        <mat-icon>add</mat-icon>
+        Agregar {{ itemLabel }}
+      </button>
+    </div>
+
+    <!-- Lista de items agregados -->
+    <div class="items-list" *ngIf="items.length > 0">
+      <h3>{{ itemLabel }}s Agregadas ({{ items.length }})</h3>
+      
+      <div class="item-card" *ngFor="let item of items; let i = index">
+        <div class="item-info">
+          <span class="item-nombre">{{ item.nombre }}</span>
+          <span class="item-monto">S/ {{ item.monto | number:'1.2-2' }}</span>
+        </div>
+        <button 
+          mat-icon-button 
+          color="warn" 
+          (click)="eliminarItem(i)"
+          matTooltip="Eliminar">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+
+      <!-- Total -->
+      <div class="total-section">
+        <span class="total-label">Total:</span>
+        <span class="total-amount">S/ {{ getTotalMonto() | number:'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <!-- Mensaje cuando no hay items -->
+    <div class="empty-state" *ngIf="items.length === 0">
+      <mat-icon>inbox</mat-icon>
+      <p>No hay {{ itemLabel.toLowerCase() }}s agregadas</p>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Cancelar</button>
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="onSave()"
+      [disabled]="items.length === 0">
+      Guardar ({{ items.length }})
+    </button>
+  </mat-dialog-actions>
+</div>

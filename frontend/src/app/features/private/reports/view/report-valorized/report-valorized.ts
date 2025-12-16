@@ -1,15 +1,19 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ValorationData } from '../../../../../services/DailyWorkLogService/daily-work-log-service';
 import { ReportsServicesService } from '../../../../../services/ReportsServicesService/reports-services-service';
+import { ReportAddDeductives } from '../../form/report-add-deductives/report-add-deductives';
 
-export interface DialogData {
-  valorationData: ValorationData;
-  serviceId: number;
+export interface ValorationElement {
+  equipment: any | null;
+  request: any | null;
+  auth: any | null;
+  liquidation: any | null;
 }
 
 @Component({
@@ -17,7 +21,6 @@ export interface DialogData {
   standalone: true,
   imports: [
     CommonModule,
-    MatDialogModule,
     MatButtonModule,
     MatIconModule,
     FormsModule
@@ -27,8 +30,8 @@ export interface DialogData {
 })
 export class ReportValorized implements OnInit {
 
-  valorationData: ValorationData;
-  editedValorationAmount: number;
+  valorationData: ValorationData = {} as ValorationData;
+  editedValorationAmount: number = 0;
   editedOperators: { [key: number]: string } = {};
   errorMessage: string | null = null;
 
@@ -38,6 +41,11 @@ export class ReportValorized implements OnInit {
   isLoading: boolean = false;
 
   deletedRows: Set<number> = new Set();
+  isHistoryLoading: boolean = false;
+  adjustmentHistory: any[] = [];
+  selectedAdjustmentId: number | null = null;
+  error: string | null = null;
+  goalId: number = 0;
 
   displayedColumns: string[] = [
     'item',
@@ -53,20 +61,52 @@ export class ReportValorized implements OnInit {
   ];
 
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: DialogData,
-    private dialogRef: MatDialogRef<ReportValorized>,
-    private reportsServicesService: ReportsServicesService
+    private router: Router,
+    private route: ActivatedRoute,
+    private reportsServicesService: ReportsServicesService,
+    private dialog: MatDialog,
+    private cdr: ChangeDetectorRef
   ) {
-    this.valorationData = data.valorationData;
-    this.editedValorationAmount = data.valorationData.valoration_amount;
+    const navigation = this.router.getCurrentNavigation();
+    if (navigation?.extras.state) {
+      this.valorationData = navigation.extras.state['valorationData'];
+      this.editedValorationAmount = this.valorationData.valoration_amount;
 
-    this.valorationData.machinery.forEach((machinery, index) => {
-      this.editedOperators[index] = this.getOperatorNames(machinery.equipment);
-    });
+      this.valorationData.machinery.forEach((machinery, index) => {
+        this.editedOperators[index] = this.getOperatorNames(machinery.equipment);
+      });
+    }
   }
 
   ngOnInit(): void {
-    console.log('Datos de valorización recibidos:', this.valorationData);
+    this.route.params.subscribe(params => {
+      this.goalId = +params['goalId'];
+      console.log('Report ID:', this.goalId);
+    });
+    this.loadValorizedData();
+    this.loadAdjustmentHistory();
+  }
+
+  loadValorizedData(): void{
+    this.error = null;
+    this.isLoading = true;
+    const goalId = this.goalId;
+
+    this.reportsServicesService.getValorationData(goalId)
+      .subscribe({
+        next: (response) => {
+          console.log('Valoration data response:', response);
+          
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error loading users:', error);
+          this.error = 'Error al cargar los datos. Por favor, intenta nuevamente.';
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
   }
 
   // Recalcular automaticamente el total final
@@ -148,7 +188,7 @@ export class ReportValorized implements OnInit {
   }
 
   closeDialog(): void {
-    this.dialogRef.close();
+    this.router.navigate(['/reports']);
   }
 
   getOperatorNames(equipment: any): string {
@@ -217,6 +257,123 @@ export class ReportValorized implements OnInit {
         alert('❌ Error al guardar la valorización. Por favor, intenta nuevamente.');
       }
     });
+  }
+
+  openDeductivesDialog(isOrder: boolean = false) {
+    const dialogRef = this.dialog.open(ReportAddDeductives, {
+      width: '900px',
+      data: {
+        isOrder: isOrder,
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        console.log('Datos guardados:', result);
+        // result contendrá:
+        // {
+        //   items: DeductiveItem[],
+        //   total: number,
+        //   isOrder: boolean
+        // }
+        
+        // Aquí puedes procesar los datos según necesites
+        if (result.isOrder) {
+          console.log('Órdenes agregadas:', result.items);
+        } else {
+          console.log('Planillas agregadas:', result.items);
+        }
+      }
+    });
+  }
+
+  loadAdjustmentHistory(): void {
+    this.isHistoryLoading = true;
+    const goalId = this.valorationData.goal.goal_id!;
+    this.reportsServicesService.getAdjustedValorationData(goalId)
+      .subscribe({
+        next: (history) => {
+          console.log('Adjustment history loaded:', history);
+          this.adjustmentHistory = history;
+          this.isHistoryLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error loading adjustment history:', error);
+          this.isHistoryLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  loadAdjustmentData(adjustment: any): void {
+    console.log('Loading adjustment data:', adjustment);
+    if (this.deletedRows.size > 0 || this.amountPlanilla !== 0) {
+      const confirmar = confirm(
+        '¿Tienes cambios sin guardar. ¿Deseas descartarlos y cargar este registro?'
+      );
+      if (!confirmar) return;
+    }
+
+    this.selectedAdjustmentId = adjustment.id;
+    const adjustedData = adjustment.adjusted_data;
+    
+    this.valorationData = adjustedData.valorationData;
+    this.editedValorationAmount = adjustedData.editedValorationAmount;
+    this.amountPlanilla = adjustedData.amountPlanilla;
+    
+    if (adjustedData.editedOperators) {
+      this.editedOperators = adjustedData.editedOperators;
+    } else {
+      this.editedOperators = {};
+      this.valorationData.machinery.forEach((machinery, index) => {
+        this.editedOperators[index] = this.getOperatorNames(machinery.equipment);
+      });
+    }
+    
+    this.deletedRows = new Set();
+    this.valorationSaved = true;
+    
+    this.cdr.detectChanges();
+  }
+
+  loadCurrentVersion(): void {
+    if (this.deletedRows.size > 0 || this.amountPlanilla !== 0) {
+      const confirmar = confirm(
+        'Tienes cambios sin guardar. ¿Deseas descartarlos y cargar la versión actual?'
+      );
+      if (!confirmar) return;
+    }
+    
+    this.selectedAdjustmentId = null;
+    this.valorationSaved = false;
+    // CAMBIAR data.valorationData por obtenerlo del state del router
+    const navigation = this.router.getCurrentNavigation();
+    const originalData = navigation?.extras.state?.['valorationData'];
+    
+    this.valorationData = JSON.parse(JSON.stringify(originalData || this.valorationData));
+    this.editedValorationAmount = this.valorationData.valoration_amount;
+    this.amountPlanilla = 0;
+    this.deletedRows = new Set();
+    this.editedOperators = {};
+    this.valorationData.machinery.forEach((machinery, index) => {
+      this.editedOperators[index] = this.getOperatorNames(machinery.equipment);
+    });
+    
+    this.cdr.detectChanges();
+  }
+
+  onVersionChange(): void {
+    if (this.selectedAdjustmentId === null) {
+      this.loadCurrentVersion();
+    } else {
+      const adjustment = this.adjustmentHistory.find(
+        adj => adj.id === this.selectedAdjustmentId
+      );
+      if (adjustment) {
+        this.loadAdjustmentData(adjustment);
+      }
+    }
   }
 }
 

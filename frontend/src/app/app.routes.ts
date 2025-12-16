@@ -15,6 +15,7 @@ import { Roles } from './features/private/roles/roles';
 
 import { Reports } from './features/private/reports/reports';
 import { ReportsId } from './features/private/reports/reports-id/reports-id';
+import { ReportValorized } from './features/private/reports/view/report-valorized/report-valorized';
 
 import { DigitalSignatureTray } from './features/private/digital-signature-tray/digital-signature-tray';
 import { Dashboards } from './features/private/dashboards/dashboards';
@@ -117,6 +118,16 @@ export const routes: Routes = [
                     {
                         path: '',
                         component: Reports
+                    },
+                    {
+                        path: 'valorized/:goalId',
+                        component: ReportValorized,
+                        canActivate: [PermissionGuard],
+                        data: {
+                            permissions: ['generate_reportes'],
+                            checkType: 'any',
+                            redirectTo: '/reports'
+                        }
                     },
                     {
                         path: 'reports-id/:id/:state',

@@ -4,11 +4,29 @@
     <div class="header-content">
       <h1>CUADRO DE RESUMEN MENSUAL - VALORIZACIÓN</h1>
       <p class="header-subtitle">Reporte de Horas de Maquinarias</p>
-      
+    </div>
+    <div class="version-selector">
+      <label for="versionSelect">Versión:</label>
+      <select 
+        id="versionSelect" 
+        [(ngModel)]="selectedAdjustmentId" 
+        (change)="onVersionChange()"
+        [disabled]="isHistoryLoading">
+        <option [ngValue]="null">Actual (Sin guardar)</option>
+        <option 
+          *ngFor="let adjustment of adjustmentHistory" 
+          [ngValue]="adjustment.id">
+          {{ adjustment.created_at | date:'dd/MM/yyyy HH:mm' }}
+        </option>
+      </select>
     </div>
     <button mat-raised-button color="success" (click)="saveValoration()">
       <mat-icon>save</mat-icon>
       Guardar Valorización
+    </button>
+    <button mat-raised-button color="success" (click)="openDeductivesDialog()">
+      <mat-icon>add</mat-icon>
+      Agregar Deductivos
     </button>
     <button mat-icon-button class="close-button" (click)="closeDialog()">
       <mat-icon>close</mat-icon>

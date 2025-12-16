@@ -20,7 +20,6 @@ interface WorkLogIdApiResponse {
 
 interface WorkLogDataApiResponse {
   message: string;
-  valoration: ValorationData;
   data: WorkLogDataElement[];
 }
 
@@ -170,12 +169,11 @@ export class DailyWorkLogService {
     );
   }
 
-  getDailyPartData(codGoal: number): Observable<{ valoration: ValorationData, data: WorkLogDataElement[] }> {
+  getDailyPartData(codGoal: number): Observable<{ data: WorkLogDataElement[] }> {
     return this.http.get<WorkLogDataApiResponse>(`${this.apiUrl}/api/services/daily-parts/${codGoal}`, {
       withCredentials: true,
     }).pipe(
       map(response => ({
-        valoration: response.valoration,
         data: response.data
       }))
     );

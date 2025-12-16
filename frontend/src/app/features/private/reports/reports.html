@@ -27,7 +27,8 @@
     </div>-->
     <div class="action-card" *appHasPermission="'generate_reportes'">
       <button class="btn btn-primary"
-        (click)="openValorizedDialog(1)">
+        (click)="selectedServicio && openValorizedDialog(selectedServicio)"
+        [disabled]="!selectedServicio">
         💰 Valorizar
       </button>
     </div>

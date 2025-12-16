@@ -3,10 +3,16 @@ import { environment } from '../../../environments/environment';
 import { map, Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { LiquidationElement } from '../../features/private/reports/reports-id/reports-id';
+import { ValorationElement } from '../../features/private/reports/view/report-valorized/report-valorized';
 
 interface LiquidationApiResponse {
   message: string;
   data: LiquidationElement;
+}
+
+interface ValorationApiResponse {
+  message: string;
+  data: ValorationElement;
 }
 
 interface SaveChangesResponse {
@@ -29,9 +35,27 @@ interface AdjustmentHistory {
   };
 }
 
+interface AdjustmentHistoryValoration {
+  id: number;
+  num_reg: number;
+  created_at: string;
+  updated_at: string;
+  updated_by: number;
+  valoration_data: {
+    goal: any;
+    machinery: any;
+    valoration_amount: any;
+  };
+}
+
 interface AdjustmentHistoryResponse {
   message: string;
   data: AdjustmentHistory[];
+}
+
+interface AdjustmentHistoryValorationResponse {
+  message: string;
+  data: AdjustmentHistoryValoration[];
 }
 
 @Injectable({
@@ -98,9 +122,26 @@ export class ReportsServicesService {
     );
   }
 
+  getValorationData(goalId: number): Observable<ValorationElement> {
+    return this.http.get<ValorationApiResponse>(`${this.apiUrl}/api/report/valoration/${goalId}`, {
+      withCredentials: true
+    }).pipe(
+      map(response => response.data)
+    );
+  }
+
   getAdjustedLiquidationData(serviceId: number): Observable<AdjustmentHistory[]> {
     return this.http.get<AdjustmentHistoryResponse>(
       `${this.apiUrl}/api/report-id/adjusted-liquidation/${serviceId}`,
+      { withCredentials: true }
+    ).pipe(
+      map(response => response.data)
+    );
+  }
+
+  getAdjustedValorationData(goalId: number): Observable<AdjustmentHistoryValoration[]> {
+    return this.http.get<AdjustmentHistoryValorationResponse>(
+      `${this.apiUrl}/api/report/adjusted-valoration/${goalId}`,
       { withCredentials: true }
     ).pipe(
       map(response => response.data)

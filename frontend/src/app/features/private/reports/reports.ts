@@ -27,8 +27,6 @@ import { HasPermissionDirective } from '../../../shared/directives/permission.di
 import { Router } from '@angular/router';
 import { ReportValorized } from './view/report-valorized/report-valorized';
 
-import { ReportsId } from './reports-id/reports-id';
-
 export interface WorkLogDataElement {
   id: number;
   description: string;
@@ -43,24 +41,6 @@ export interface WorkLogDataElement {
   goal_id: number;
   mechanical_equipment_id: number;
   order_id: number | null;
-}
-
-// Interfaz para datos falsos de firmas y evidencias
-interface ParteDiarioFalso {
-  id: number;
-  estadoFirmas: {
-    controlador: boolean;
-    residente: boolean;
-    supervisor: boolean;
-  };
-}
-
-interface ResumenDashboard {
-  totalHorasTrabajadas: number;
-  totalCombustibleConsumido: number;
-  partesCompletados: number;
-  partesPendientes: number;
-  porcentajeEficiencia: number;
 }
 
 @Component({
@@ -176,11 +156,9 @@ export class Reports implements OnInit {
         return of({ valoration: null, data: [] });
       })
     )
-    .subscribe((response: { valoration: ValorationData | null, data: WorkLogDataElement[] }) => {
+    .subscribe((response: { data: WorkLogDataElement[] }) => {
 
       this.partesDiariosReales = response.data;
-      this.valorationData = response.valoration;
-      console.log('esto es valoration data', this.valorationData);
 
       this.isLoading = false;
       this.cdr.detectChanges();
@@ -321,47 +299,9 @@ export class Reports implements OnInit {
     }
   }
 
-  openValorizedDialog(id: number) {
-    if (!this.valorationData) {
-      this.errorMessage = 'No hay datos de valorización disponibles para este servicio.';
-      return;
-    }
-
-    const dialogRef = this.dialog.open(ReportValorized, {
-      width: '100vw',
-      height: '100vh',
-      maxWidth: '100vw',
-      maxHeight: '100vh',
-      panelClass: ['maximized-dialog-panel', 'no-scroll-dialog'],
-      disableClose: false,
-      hasBackdrop: true,
-      backdropClass: 'maximized-dialog-backdrop',
-      autoFocus: false,
-      restoreFocus: false,
-      data: {
-        valorationData: this.valorationData,
-        serviceId: id
-      }
-    });
-
-    // Bloquea el scroll del body y html
-    setTimeout(() => {
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
-    }, 0);
-
-    dialogRef.afterClosed().subscribe(() => {
-      // Restaurar scroll
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-
-      // Recargar datos si es necesario
-      if (this.selectedServicio) {
-        this.getDailyPartsData(this.selectedServicio);
-      }
-
-      this.cdr.detectChanges();
-    });
+  openValorizedDialog(servicio: WorkLogElement) {
+    const goalId = servicio.goal_id;  
+    this.router.navigate(['/reports/valorized/', goalId]);
   }
 
   getStateClass(state: string | number): string {
