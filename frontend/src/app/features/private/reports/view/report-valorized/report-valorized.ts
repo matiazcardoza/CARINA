@@ -10,10 +10,9 @@ import { ReportsServicesService } from '../../../../../services/ReportsServicesS
 import { ReportAddDeductives } from '../../form/report-add-deductives/report-add-deductives';
 
 export interface ValorationElement {
-  equipment: any | null;
-  request: any | null;
-  auth: any | null;
-  liquidation: any | null;
+  goal: any | null;
+  machinery: any | null;
+  valoration_amount: number;
 }
 
 @Component({
@@ -30,7 +29,9 @@ export interface ValorationElement {
 })
 export class ReportValorized implements OnInit {
 
-  valorationData: ValorationData = {} as ValorationData;
+  goalData: any = null;
+  machinery: any[] = [];
+  valorationAmount: number = 0;
   editedValorationAmount: number = 0;
   editedOperators: { [key: number]: string } = {};
   errorMessage: string | null = null;
@@ -66,25 +67,16 @@ export class ReportValorized implements OnInit {
     private reportsServicesService: ReportsServicesService,
     private dialog: MatDialog,
     private cdr: ChangeDetectorRef
-  ) {
-    const navigation = this.router.getCurrentNavigation();
-    if (navigation?.extras.state) {
-      this.valorationData = navigation.extras.state['valorationData'];
-      this.editedValorationAmount = this.valorationData.valoration_amount;
-
-      this.valorationData.machinery.forEach((machinery, index) => {
-        this.editedOperators[index] = this.getOperatorNames(machinery.equipment);
-      });
-    }
-  }
+  ) {}
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
       this.goalId = +params['goalId'];
       console.log('Report ID:', this.goalId);
+      
+      // Cargar datos después de obtener el ID
+      this.loadValorizedData();
     });
-    this.loadValorizedData();
-    this.loadAdjustmentHistory();
   }
 
   loadValorizedData(): void{
@@ -96,7 +88,9 @@ export class ReportValorized implements OnInit {
       .subscribe({
         next: (response) => {
           console.log('Valoration data response:', response);
-          
+          this.goalData = response.goal;
+          this.machinery = response.machinery;
+          this.valorationAmount = response.valoration_amount;
           this.isLoading = false;
           this.cdr.detectChanges();
         },
@@ -113,7 +107,7 @@ export class ReportValorized implements OnInit {
   onAmountPlanillaChange(): void {
     if (this.amountPlanilla >= 0) {
       this.editedValorationAmount = Number(
-        (this.valorationData.valoration_amount - this.amountPlanilla).toFixed(2)
+        (this.valorationAmount - this.amountPlanilla).toFixed(2)
       );
     }
   }
@@ -128,18 +122,22 @@ export class ReportValorized implements OnInit {
 
   recalculateTotal(): void {
     let newTotal = 0;
-    this.valorationData.machinery.forEach((machinery, index) => {
+    this.machinery.forEach((machinery, index) => {
       if (!this.deletedRows.has(index)) {
         newTotal += machinery.total_amount;
       }
     });
 
-    this.valorationData.valoration_amount = Number(newTotal.toFixed(2));
+    this.valorationAmount = Number(newTotal.toFixed(2));
     this.onAmountPlanillaChange();
   }
 
   generateValorization(): void {
-    const valorationDataSend = JSON.parse(JSON.stringify(this.valorationData));
+    const valorationDataSend = {
+      goal: this.goalData,
+      machinery: JSON.parse(JSON.stringify(this.machinery)),
+      valoration_amount: this.valorationAmount
+    };
 
     valorationDataSend.machinery = valorationDataSend.machinery.filter(
       (_: any, index: number) => !this.deletedRows.has(index)
@@ -160,12 +158,15 @@ export class ReportValorized implements OnInit {
       }
     });
 
-    // Enviar con EXACTAMENTE 2 DECIMALES
-    valorationDataSend.valoration_amount = Number(this.valorationData.valoration_amount.toFixed(2));
-    valorationDataSend.editedValorationAmount = Number(this.editedValorationAmount.toFixed(2));
-    valorationDataSend.amountPlanilla = Number(this.amountPlanilla.toFixed(2));
+    valorationDataSend.valoration_amount = Number(this.valorationAmount.toFixed(2));
+    
+    const finalData = {
+      ...valorationDataSend,
+      editedValorationAmount: Number(this.editedValorationAmount.toFixed(2)),
+      amountPlanilla: Number(this.amountPlanilla.toFixed(2))
+    };
 
-    this.reportsServicesService.generateValorization(valorationDataSend).subscribe({
+    this.reportsServicesService.generateValorization(finalData).subscribe({
       next: (response: Blob) => {
         const fileURL = URL.createObjectURL(response);
         window.open(fileURL, '_blank');
@@ -178,7 +179,7 @@ export class ReportValorized implements OnInit {
 
   getOriginalIndex(filteredIndex: number): number {
     let count = 0;
-    for (let i = 0; i < this.valorationData.machinery.length; i++) {
+    for (let i = 0; i < this.machinery.length; i++) {
       if (!this.deletedRows.has(i)) {
         if (count === filteredIndex) return i;
         count++;
@@ -212,15 +213,22 @@ export class ReportValorized implements OnInit {
   }
 
   saveValoration(): void {
-    if (!this.valorationData) {
+    if (!this.goalData) {
       alert('No hay datos para guardar. Espera a que se carguen los datos.');
       return;
     }
+    
     if (this.valorationSaved) {
       const confirmar = confirm('La valorización ya está guardada. ¿Desea actualizarla?');
       if (!confirmar) return;
     }
-    const valorationDataToSend = JSON.parse(JSON.stringify(this.valorationData));
+    
+    const valorationDataToSend = {
+      goal: this.goalData,
+      machinery: JSON.parse(JSON.stringify(this.machinery)),
+      valoration_amount: this.valorationAmount
+    };
+    
     valorationDataToSend.machinery.forEach((machinery: any, index: number) => {
       if (this.editedOperators[index] && machinery.equipment?.operators) {
         const operatorNames = this.editedOperators[index]
@@ -233,11 +241,12 @@ export class ReportValorized implements OnInit {
         }));
       }
     });
+    
     const changesData = {
       valorationData: valorationDataToSend,
       editedValorationAmount: Number(this.editedValorationAmount.toFixed(2)),
       amountPlanilla: Number(this.amountPlanilla.toFixed(2)),
-      finalAmount: Number((this.editedValorationAmount).toFixed(2))
+      finalAmount: Number(this.editedValorationAmount.toFixed(2))
     };
 
     this.isLoading = true;
@@ -245,7 +254,6 @@ export class ReportValorized implements OnInit {
     this.reportsServicesService.saveValorization(changesData).subscribe({
       next: (response) => {
         console.log('Valorización guardada:', response);
-
         this.valorationSaved = true;
         this.isLoading = false;
         alert('✅ Valorización guardada correctamente. Ahora puede generar el documento PDF.');
@@ -287,10 +295,15 @@ export class ReportValorized implements OnInit {
     });
   }
 
-  loadAdjustmentHistory(): void {
+  lloadAdjustmentHistory(): void {
+    if (!this.goalData?.goal_id) {
+      console.warn('No goal_id available yet');
+      return;
+    }
+    
     this.isHistoryLoading = true;
-    const goalId = this.valorationData.goal.goal_id!;
-    this.reportsServicesService.getAdjustedValorationData(goalId)
+    
+    this.reportsServicesService.getAdjustedValorationData(this.goalData.goal_id)
       .subscribe({
         next: (history) => {
           console.log('Adjustment history loaded:', history);
@@ -310,7 +323,7 @@ export class ReportValorized implements OnInit {
     console.log('Loading adjustment data:', adjustment);
     if (this.deletedRows.size > 0 || this.amountPlanilla !== 0) {
       const confirmar = confirm(
-        '¿Tienes cambios sin guardar. ¿Deseas descartarlos y cargar este registro?'
+        'Tienes cambios sin guardar. ¿Deseas descartarlos y cargar este registro?'
       );
       if (!confirmar) return;
     }
@@ -318,7 +331,9 @@ export class ReportValorized implements OnInit {
     this.selectedAdjustmentId = adjustment.id;
     const adjustedData = adjustment.adjusted_data;
     
-    this.valorationData = adjustedData.valorationData;
+    this.goalData = adjustedData.valorationData.goal;
+    this.machinery = adjustedData.valorationData.machinery;
+    this.valorationAmount = adjustedData.valorationData.valoration_amount;
     this.editedValorationAmount = adjustedData.editedValorationAmount;
     this.amountPlanilla = adjustedData.amountPlanilla;
     
@@ -326,7 +341,7 @@ export class ReportValorized implements OnInit {
       this.editedOperators = adjustedData.editedOperators;
     } else {
       this.editedOperators = {};
-      this.valorationData.machinery.forEach((machinery, index) => {
+      this.machinery.forEach((machinery, index) => {
         this.editedOperators[index] = this.getOperatorNames(machinery.equipment);
       });
     }
@@ -347,20 +362,9 @@ export class ReportValorized implements OnInit {
     
     this.selectedAdjustmentId = null;
     this.valorationSaved = false;
-    // CAMBIAR data.valorationData por obtenerlo del state del router
-    const navigation = this.router.getCurrentNavigation();
-    const originalData = navigation?.extras.state?.['valorationData'];
     
-    this.valorationData = JSON.parse(JSON.stringify(originalData || this.valorationData));
-    this.editedValorationAmount = this.valorationData.valoration_amount;
-    this.amountPlanilla = 0;
-    this.deletedRows = new Set();
-    this.editedOperators = {};
-    this.valorationData.machinery.forEach((machinery, index) => {
-      this.editedOperators[index] = this.getOperatorNames(machinery.equipment);
-    });
-    
-    this.cdr.detectChanges();
+    // Recargar datos desde el servidor
+    this.loadValorizedData();
   }
 
   onVersionChange(): void {
