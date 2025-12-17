@@ -5,32 +5,50 @@
       <h1>CUADRO DE RESUMEN MENSUAL - VALORIZACIÓN</h1>
       <p class="header-subtitle">Reporte de Horas de Maquinarias</p>
     </div>
-    <div class="version-selector">
-      <label for="versionSelect">Versión:</label>
-      <select 
-        id="versionSelect" 
-        [(ngModel)]="selectedAdjustmentId" 
-        (change)="onVersionChange()"
-        [disabled]="isHistoryLoading">
-        <option [ngValue]="null">Actual (Sin guardar)</option>
-        <option 
-          *ngFor="let adjustment of adjustmentHistory" 
-          [ngValue]="adjustment.id">
-          {{ adjustment.created_at | date:'dd/MM/yyyy HH:mm' }}
-        </option>
-      </select>
+    
+    <div class="header-actions">
+      <div class="version-selector">
+        <label for="versionSelect">Versión:</label>
+        <select 
+          id="versionSelect" 
+          [(ngModel)]="selectedAdjustmentId" 
+          (change)="onVersionChange()"
+          [disabled]="isHistoryLoading">
+          <option [ngValue]="null">Actual</option>
+          <option 
+            *ngFor="let adjustment of adjustmentHistory" 
+            [ngValue]="adjustment.id">
+            {{ adjustment.created_at | date:'dd/MM/yyyy' }}
+          </option>
+        </select>
+      </div>
+      
+      <button 
+        class="btn btn-success" 
+        (click)="saveValoration()"
+        [disabled]="isLoading"
+        title="Guardar valorización en base de datos">
+        💾 Guardar Valorización
+        <span *ngIf="hasUnsavedChanges" class="badge-warning">●</span>
+      </button>
+      
+      <button
+        class="btn btn-info"
+        [matMenuTriggerFor]="deductivesMenu"
+        [disabled]="isLoading">
+        ➕ Agregar Deductivos
+      </button>
+
+      <mat-menu #deductivesMenu="matMenu">
+        <button mat-menu-item (click)="openDeductivesDialog(true)">
+          📦 Deductivo por Orden
+        </button>
+        <button mat-menu-item (click)="openDeductivesDialog(false)">
+          📄 Deductivo por Planilla
+        </button>
+      </mat-menu>
+
     </div>
-    <button mat-raised-button color="success" (click)="saveValoration()">
-      <mat-icon>save</mat-icon>
-      Guardar Valorización
-    </button>
-    <button mat-raised-button color="success" (click)="openDeductivesDialog()">
-      <mat-icon>add</mat-icon>
-      Agregar Deductivos
-    </button>
-    <button mat-icon-button class="close-button" (click)="closeDialog()">
-      <mat-icon>close</mat-icon>
-    </button>
   </div>
 
   <!-- Main Content -->
@@ -55,7 +73,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let machinery of valorationData.machinery; let i = index" [class.deleted-row]="deletedRows.has(i)">
+          <tr *ngFor="let machinery of machinery; let i = index" [class.deleted-row]="deletedRows.has(i)">
             <td class="text-center">{{ i + 1 }}</td>
             <td>{{ getMachineryName(machinery.equipment) }}</td>
             <td>
@@ -84,7 +102,7 @@
           <tr class="total-row">
             <td colspan="7" class="text-right"><strong>TOTAL</strong></td>
             <td class="text-right total-amount">
-              <strong>S/. {{ valorationData.valoration_amount | number:'1.2-2' }}</strong>
+              <strong>S/. {{ valorationAmount | number:'1.2-2' }}</strong>
             </td>
             <td colspan="2"></td>
           </tr>
@@ -135,14 +153,20 @@
 
   <!-- Footer -->
   <div class="valorized-footer">
-    <span style="font-size: 12px; color: gray">{{ valorationData.goal.goal_detail }}</span>
-    <button mat-raised-button color="warn" (click)="closeDialog()">
-      <mat-icon>close</mat-icon>
-      Cerrar
+    <span *ngIf="goalData" class="footer-info">
+      {{ goalData.goal_detail }}
+    </span>
+    <button 
+      class="btn btn-danger" 
+      (click)="closeDialog()">
+      ✕ Cerrar
     </button>
-    <button mat-raised-button color="primary" (click)="generateValorization()">
-      <mat-icon>picture_as_pdf</mat-icon>
-      Generar Valorización
+    <button 
+      class="btn btn-primary" 
+      (click)="generateValorization()"
+      [disabled]="!valorationSaved || hasUnsavedChanges"
+      [title]="getGenerateButtonTooltip()">
+      📄 Generar Valorización
     </button>
   </div>
 

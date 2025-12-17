@@ -14,7 +14,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use setasign\Fpdi\Fpdi;
 
 class ReportController extends Controller
 {
@@ -268,8 +267,8 @@ class ReportController extends Controller
             ->get()
             ->map(function($adjustment) {
                 $adjustedData = json_decode($adjustment->adjusted_data, true);
-                if (!isset($adjustedData['request']['record'])) {
-                    $adjustedData['request']['record'] = [
+                if (!isset($adjustedData['record'])) {
+                    $adjustedData['record'] = [
                         'num_reg' => $adjustment->num_reg,
                         'created_at' => $adjustment->created_at
                     ];
@@ -333,7 +332,6 @@ class ReportController extends Controller
 
     public function generateLiquidation(Request $request)
     {
-
         $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
         $qr_code = base64_encode("data_qr_example");
 
@@ -374,6 +372,7 @@ class ReportController extends Controller
         $editedValorationAmount = $request->input('editedValorationAmount');
         $amountPlanilla = $request->input('amountPlanilla');
         $data = [
+            'record' => $request->record,
             'editedValorationAmount' => $editedValorationAmount,
             'amountPlanilla' => $amountPlanilla,
             'goalDetail' => $goalDetail,
@@ -406,7 +405,7 @@ class ReportController extends Controller
                 ->first();
         $shouldUpdate = false;
         if ($latestAdjustment) {
-            $shouldUpdate = $latestAdjustment->updated_at->isSameDay(now());
+            $shouldUpdate = $latestAdjustment->created_at->isSameDay(now());
             $dataLatestAdjustment = json_decode($latestAdjustment->adjusted_data, true);
             $latestMaxDate = $dataLatestAdjustment['request']['maxDate'];
             $latestMinDate = $dataLatestAdjustment['request']['minDate'];
@@ -556,21 +555,66 @@ class ReportController extends Controller
         }
     }
 
-    public function saveValoration(Request $request){   
+    public function saveValoration(Request $request){
+        if ($request->input('valorationData.valoration_amount') <= 0){
+            return response()->json([
+                'message' => 'no se puede valorar si el monto total no es un valor valido.',
+                'success' => false
+            ], 400);
+        }
+        $adjustmentId = $request->input('adjustmentId');
+        $goalId = $request->input('goalId');
         try{
-            $goalId = $request->valorationData['goal']['goal_id'];
+            $lastValorization = ValorationAdjustment::where('goal_id', $goalId)
+                                ->orderBy('created_at', 'desc')
+                                ->first();
+
+            $shouldUpdate = false;
+            if ($lastValorization) {
+                $shouldUpdate = $lastValorization->created_at->isSameDay(now());
+            }
+
             $currentYear = date('Y');
             $lastRecord = ValorationAdjustment::whereYear('created_at', $currentYear)
                         ->orderBy('num_reg', 'desc')
                         ->first();
             $newNumReg = $lastRecord ? $lastRecord->num_reg + 1 : 1;
             $valorationData = $request->valorationData;
-            ValorationAdjustment::create([
-                'goal_id' => $goalId,
-                'adjusted_data' => json_encode($valorationData),
-                'num_reg' => $newNumReg,
-                'updated_by' => Auth::id()
-            ]);
+
+            if ($adjustmentId !== null){
+                $adjustment = ValorationAdjustment::find($adjustmentId);
+                $adjustment->update([
+                    'adjusted_data' => json_encode($valorationData),
+                    'updated_by' => Auth::id(),
+                    'updated_at' => now()
+                ]);
+            } elseif ($shouldUpdate) {
+                $adjustment = $lastValorization;
+                $adjustment->update([
+                    'adjusted_data' => json_encode($valorationData),
+                    'updated_by' => Auth::id(),
+                    'updated_at' => now()
+                ]);
+            } else {
+                $adjustment = ValorationAdjustment::create([
+                    'goal_id' => $goalId,
+                    'adjusted_data' => json_encode($valorationData),
+                    'num_reg' => $newNumReg,
+                    'updated_by' => Auth::id()
+                ]);
+            }
+
+            return response()->json([
+                'message' => 'Cambios guardados exitosamente',
+                'success' => true,
+                'data' => [
+                    'record' => [
+                        'num_reg' => $adjustment->num_reg,
+                        'created_at' => $adjustment->created_at
+                    ]
+                ]
+            ], 200);
+
         } catch (\Exception $e){
             Log::error('Error saving valoration changes: ' . $e->getMessage());
 

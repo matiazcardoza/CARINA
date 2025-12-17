@@ -5,9 +5,9 @@ import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { ValorationData } from '../../../../../services/DailyWorkLogService/daily-work-log-service';
 import { ReportsServicesService } from '../../../../../services/ReportsServicesService/reports-services-service';
 import { ReportAddDeductives } from '../../form/report-add-deductives/report-add-deductives';
+import { MatMenuModule } from '@angular/material/menu';
 
 export interface ValorationElement {
   goal: any | null;
@@ -22,7 +22,8 @@ export interface ValorationElement {
     CommonModule,
     MatButtonModule,
     MatIconModule,
-    FormsModule
+    FormsModule,
+    MatMenuModule
   ],
   templateUrl: './report-valorized.html',
   styleUrl: './report-valorized.css'
@@ -39,6 +40,7 @@ export class ReportValorized implements OnInit {
   amountPlanilla: number = 0;
 
   valorationSaved: boolean = false;
+  hasUnsavedChanges: boolean = false;
   isLoading: boolean = false;
 
   deletedRows: Set<number> = new Set();
@@ -47,6 +49,7 @@ export class ReportValorized implements OnInit {
   selectedAdjustmentId: number | null = null;
   error: string | null = null;
   goalId: number = 0;
+  record: any = null;
 
   displayedColumns: string[] = [
     'item',
@@ -72,10 +75,8 @@ export class ReportValorized implements OnInit {
   ngOnInit(): void {
     this.route.params.subscribe(params => {
       this.goalId = +params['goalId'];
-      console.log('Report ID:', this.goalId);
-      
-      // Cargar datos después de obtener el ID
       this.loadValorizedData();
+      this.loadAdjustmentHistory();
     });
   }
 
@@ -91,6 +92,11 @@ export class ReportValorized implements OnInit {
           this.goalData = response.goal;
           this.machinery = response.machinery;
           this.valorationAmount = response.valoration_amount;
+          this.editedValorationAmount = this.valorationAmount;
+          this.editedOperators = {};
+          this.machinery.forEach((machinery, index) => {
+            this.editedOperators[index] = this.getOperatorNames(machinery.equipment);
+          });
           this.isLoading = false;
           this.cdr.detectChanges();
         },
@@ -109,6 +115,8 @@ export class ReportValorized implements OnInit {
       this.editedValorationAmount = Number(
         (this.valorationAmount - this.amountPlanilla).toFixed(2)
       );
+      this.hasUnsavedChanges = true;
+      this.valorationSaved = false;
     }
   }
 
@@ -117,6 +125,8 @@ export class ReportValorized implements OnInit {
     if (confirmar) {
       this.deletedRows.add(index);
       this.recalculateTotal();
+      this.hasUnsavedChanges = true;
+      this.valorationSaved = false;
     }
   }
 
@@ -133,7 +143,18 @@ export class ReportValorized implements OnInit {
   }
 
   generateValorization(): void {
+
+    if (!this.valorationSaved) {
+      alert('Debe guardar la valorización antes de generar el documento.');
+      return;
+    }
+    
+    if (this.hasUnsavedChanges) {
+      alert('Debe guardar los cambios antes de generar el documento.');
+      return;
+    }
     const valorationDataSend = {
+      record: this.record,
       goal: this.goalData,
       machinery: JSON.parse(JSON.stringify(this.machinery)),
       valoration_amount: this.valorationAmount
@@ -218,8 +239,13 @@ export class ReportValorized implements OnInit {
       return;
     }
     
-    if (this.valorationSaved) {
-      const confirmar = confirm('La valorización ya está guardada. ¿Desea actualizarla?');
+    if (this.selectedAdjustmentId !== null && this.valorationSaved) {
+      const confirmar = confirm('¿Desea actualizar el registro seleccionado del historial?');
+      if (!confirmar) return;
+    }
+    
+    if (this.valorationSaved && this.selectedAdjustmentId === null) {
+      const confirmar = confirm('La valorización ya está guardada. ¿Desea crear un nuevo registro?');
       if (!confirmar) return;
     }
     
@@ -243,20 +269,33 @@ export class ReportValorized implements OnInit {
     });
     
     const changesData = {
+      goalId: this.goalId,
+      adjustmentId: this.selectedAdjustmentId,
       valorationData: valorationDataToSend,
       editedValorationAmount: Number(this.editedValorationAmount.toFixed(2)),
       amountPlanilla: Number(this.amountPlanilla.toFixed(2)),
-      finalAmount: Number(this.editedValorationAmount.toFixed(2))
+      finalAmount: Number(this.editedValorationAmount.toFixed(2)),
+      editedOperators: this.editedOperators,
+      deletedRows: Array.from(this.deletedRows)
     };
 
     this.isLoading = true;
 
     this.reportsServicesService.saveValorization(changesData).subscribe({
       next: (response) => {
-        console.log('Valorización guardada:', response);
+        console.log('Valoration saved response:', response);
+        if (response.data?.adjustment_id) {
+          this.selectedAdjustmentId = response.data.adjustment_id;
+        }
+        if (response.data?.record) {
+          this.record = response.data.record;
+        }
         this.valorationSaved = true;
+        this.hasUnsavedChanges = false;
         this.isLoading = false;
-        alert('✅ Valorización guardada correctamente. Ahora puede generar el documento PDF.');
+        this.loadAdjustmentHistory();
+        this.cdr.detectChanges();
+        alert('✅ Valorización guardada correctamente.');
       },
       error: (error) => {
         console.error('Error al guardar valorización:', error);
@@ -295,15 +334,15 @@ export class ReportValorized implements OnInit {
     });
   }
 
-  lloadAdjustmentHistory(): void {
-    if (!this.goalData?.goal_id) {
+  loadAdjustmentHistory(): void {
+    const goalId = this.goalId;
+    if (!this.goalId) {
       console.warn('No goal_id available yet');
       return;
     }
-    
     this.isHistoryLoading = true;
     
-    this.reportsServicesService.getAdjustedValorationData(this.goalData.goal_id)
+    this.reportsServicesService.getAdjustedValorationData(goalId)
       .subscribe({
         next: (history) => {
           console.log('Adjustment history loaded:', history);
@@ -320,8 +359,7 @@ export class ReportValorized implements OnInit {
   }
 
   loadAdjustmentData(adjustment: any): void {
-    console.log('Loading adjustment data:', adjustment);
-    if (this.deletedRows.size > 0 || this.amountPlanilla !== 0) {
+    if (this.hasUnsavedChanges) {
       const confirmar = confirm(
         'Tienes cambios sin guardar. ¿Deseas descartarlos y cargar este registro?'
       );
@@ -331,11 +369,12 @@ export class ReportValorized implements OnInit {
     this.selectedAdjustmentId = adjustment.id;
     const adjustedData = adjustment.adjusted_data;
     
-    this.goalData = adjustedData.valorationData.goal;
-    this.machinery = adjustedData.valorationData.machinery;
-    this.valorationAmount = adjustedData.valorationData.valoration_amount;
-    this.editedValorationAmount = adjustedData.editedValorationAmount;
-    this.amountPlanilla = adjustedData.amountPlanilla;
+    this.record = adjustedData.record;
+    this.goalData = adjustedData.goal;
+    this.machinery = adjustedData.machinery;
+    this.valorationAmount = adjustedData.valoration_amount;
+    this.editedValorationAmount = adjustedData.editedValorationAmount || adjustedData.valoration_amount;
+    this.amountPlanilla = adjustedData.amountPlanilla || 0;
     
     if (adjustedData.editedOperators) {
       this.editedOperators = adjustedData.editedOperators;
@@ -346,14 +385,19 @@ export class ReportValorized implements OnInit {
       });
     }
     
-    this.deletedRows = new Set();
+    if (adjustedData.deletedRows && Array.isArray(adjustedData.deletedRows)) {
+      this.deletedRows = new Set(adjustedData.deletedRows);
+    } else {
+      this.deletedRows = new Set();
+    }
     this.valorationSaved = true;
+    this.hasUnsavedChanges = false;
     
     this.cdr.detectChanges();
   }
 
   loadCurrentVersion(): void {
-    if (this.deletedRows.size > 0 || this.amountPlanilla !== 0) {
+    if (this.hasUnsavedChanges) {
       const confirmar = confirm(
         'Tienes cambios sin guardar. ¿Deseas descartarlos y cargar la versión actual?'
       );
@@ -362,6 +406,10 @@ export class ReportValorized implements OnInit {
     
     this.selectedAdjustmentId = null;
     this.valorationSaved = false;
+    this.hasUnsavedChanges = false;
+
+    this.deletedRows.clear();
+    this.amountPlanilla = 0;
     
     // Recargar datos desde el servidor
     this.loadValorizedData();
@@ -378,6 +426,16 @@ export class ReportValorized implements OnInit {
         this.loadAdjustmentData(adjustment);
       }
     }
+  }
+
+  getGenerateButtonTooltip(): string {
+    if (!this.valorationSaved) {
+      return 'Debe guardar la valorización primero';
+    }
+    if (this.hasUnsavedChanges) {
+      return 'Debe guardar los cambios antes de generar el documento';
+    }
+    return 'Generar documento PDF de valorización';
   }
 }
 

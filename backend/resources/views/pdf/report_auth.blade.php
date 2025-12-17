@@ -236,7 +236,6 @@
         }
 
         .currency {
-            font-family: monospace;
         }
     </style>
 </head>

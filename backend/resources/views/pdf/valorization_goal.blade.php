@@ -208,7 +208,34 @@
         }
 
         .currency {
-            font-family: monospace;
+            
+        }
+
+        .info-cell {
+            width: 170px;
+            text-align: right;
+            vertical-align: top;
+            padding-top: 0;
+        }
+
+        .fecha-box {
+            border: 2px solid #0066cc;
+            padding: 4px 8px;
+            font-weight: bold;
+            font-size: 11px;
+            color: #0066cc;
+            display: inline-block;
+            margin-top: 4px;
+        }
+
+        .numero-box {
+            border: 2px solid #0066cc;
+            padding: 4px 8px;
+            font-weight: bold;
+            font-size: 11px;
+            color: #0066cc;
+            display: inline-block;
+            margin-top: 4px;
         }
     </style>
 </head>
@@ -226,6 +253,11 @@
                     <h1>GOBIERNO REGIONAL DE PUNO</h1>
                     <h2>OFICINA REGIONAL DE ADMINISTRACIÓN</h2>
                     <h2>OFICINA DE EQUIPO MECÁNICO</h2>
+                </td>
+
+                <td class="info-cell">
+                    <div class="fecha-box"><span class="info-line">{{ \Carbon\Carbon::parse($record['created_at'])->format('d/m/Y') ?? \Carbon\Carbon::now()->format('d/m/Y') }}</span></div>
+                    <div class="numero-box">C-{{ str_pad($record['num_reg'], 4, '0', STR_PAD_LEFT) ?? $serviceId }}</div>
                 </td>
             </tr>
         </table>

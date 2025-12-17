@@ -326,7 +326,6 @@
         }
 
         .currency {
-            font-family: monospace;
             font-weight: bold;
         }
 

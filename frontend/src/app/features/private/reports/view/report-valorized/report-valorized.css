@@ -1,22 +1,3 @@
-::ng-deep .mat-dialog-container {
-  padding: 0 !important;
-  max-width: 100vw !important;
-  max-height: 100vh !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  border-radius: 0 !important;
-}
-
-::ng-deep .mat-mdc-dialog-container,
-::ng-deep .mat-dialog-container,
-::ng-deep .cdk-overlay-pane {
-  border-radius: 0 !important;
-}
-
-::ng-deep .mat-mdc-dialog-surface {
-  border-radius: 0 !important;
-}
-
 .valorized-container {
   display: flex;
   flex-direction: column;
@@ -30,10 +11,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 40px;
+  padding: 16px 40px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .header-content h1 {
@@ -212,9 +199,10 @@
 /* Footer */
 .valorized-footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   gap: 16px;
-  padding: 10px 40px;
+  padding: 16px 40px;
   background: white;
   border-top: 2px solid #e9ecef;
   box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.05);
@@ -227,6 +215,18 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-radius: 8px;
+}
+
+.footer-info {
+  font-size: 12px;
+  color: #6c757d;
+  font-weight: 500;
+  flex: 1;
+}
+
+.valorized-footer .btn {
+  padding: 12px 28px;
+  font-size: 15px;
 }
 
 /* Scrollbar personalizado */
@@ -367,38 +367,37 @@
 .version-selector {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-right: 12px;
+  gap: 8px;
 }
 
 .version-selector label {
-  font-weight: 500;
-  color: #555;
-  font-size: 12px;
+  font-weight: 600;
+  font-size: 13px;
   white-space: nowrap;
+  color: white;
 }
 
 .version-selector select {
-  padding: 4px 8px;
-  border: 1px solid #ddd;
-  border-radius: 3px;
-  background-color: white;
-  font-size: 12px;
-  min-width: 140px;
-  max-width: 180px;
+  padding: 6px 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.95);
+  font-size: 13px;
+  min-width: 100px;
   cursor: pointer;
-  transition: all 0.2s;
-  height: 28px;
+  transition: all 0.3s ease;
+  font-weight: 500;
 }
 
 .version-selector select:hover {
-  border-color: #999;
+  border-color: rgba(255, 255, 255, 0.6);
+  background-color: white;
 }
 
 .version-selector select:focus {
   outline: none;
-  border-color: #1976d2;
-  box-shadow: 0 0 0 1px rgba(25, 118, 210, 0.2);
+  border-color: white;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
 }
 
 .version-selector select:disabled {
@@ -411,4 +410,84 @@
 .version-selector select option {
   padding: 4px 8px;
   font-size: 12px;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  white-space: nowrap;
+}
+
+.btn:hover:not([disabled]) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.btn:active:not([disabled]) {
+  transform: translateY(0);
+}
+
+.btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  color: white;
+  position: relative;
+}
+
+.btn-info {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  color: white;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #FFD93D 0%, #FFA500 100%);
+  color: #8B4000;
+}
+
+.btn-close {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 10px 16px;
+  font-size: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-close:hover:not([disabled]) {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Badge de advertencia */
+.badge-warning {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #ff9800;
+  border-radius: 50%;
+  margin-left: 5px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
