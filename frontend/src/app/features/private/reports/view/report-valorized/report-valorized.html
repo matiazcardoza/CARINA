@@ -36,15 +36,23 @@
         class="btn btn-info"
         [matMenuTriggerFor]="deductivesMenu"
         [disabled]="isLoading">
-        ➕ Agregar Deductivos
+        <span *ngIf="deductivesOrder.length === 0 && deductivesSheet.length === 0">
+          ➕ Agregar Deductivos
+        </span>
+        <span *ngIf="deductivesOrder.length > 0 || deductivesSheet.length > 0">
+          ✏️ Editar Deductivos
+          <span class="badge-info">{{ (deductivesOrder.length || 0) + (deductivesSheet.length || 0) }}</span>
+        </span>
       </button>
 
       <mat-menu #deductivesMenu="matMenu">
         <button mat-menu-item (click)="openDeductivesDialog(true)">
-          📦 Deductivo por Orden
+          <span *ngIf="deductivesOrder.length === 0">📦 Agregar Deductivo por Orden</span>
+          <span *ngIf="deductivesOrder.length > 0">✏️ Editar Deductivo por Orden ({{ deductivesOrder.length }})</span>
         </button>
         <button mat-menu-item (click)="openDeductivesDialog(false)">
-          📄 Deductivo por Planilla
+          <span *ngIf="deductivesSheet.length === 0">📄 Agregar Deductivo por Planilla</span>
+          <span *ngIf="deductivesSheet.length > 0">✏️ Editar Deductivo por Planilla ({{ deductivesSheet.length }})</span>
         </button>
       </mat-menu>
 
@@ -107,20 +115,7 @@
             <td colspan="2"></td>
           </tr>
 
-          <!-- NUEVO: INPUT DE PLANILLA -->
-          <tr class="planilla-row">
-            <td colspan="7" class="text-right"><strong>MONTO PLANILLA</strong></td>
-            <td class="text-right">
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                class="editable-input planilla-input"
-                [(ngModel)]="amountPlanilla"
-                (input)="onAmountPlanillaChange()">
-            </td>
-            <td colspan="2"></td>
-          </tr>
+          
 
         </tbody>
       </table>
@@ -131,20 +126,36 @@
       <div class="summary-card">
         <h3>RESUMEN</h3>
 
-        <div class="summary-item-large">
-          <span class="summary-label">MONTO TOTAL DE VALORIZACIÓN (FINAL):</span>
-          <span class="summary-value">
-            S/.
-            <input
-              type="number"
-              class="editable-input editable-total"
-              [value]="editedValorationAmount"
-              readonly>
+        <!-- Monto Total de Valorización -->
+        <div class="summary-item">
+          <span class="summary-label">MONTO TOTAL DE VALORIZACIÓN:</span>
+          <span class="summary-value-regular">
+            S/. {{ valorationAmount | number:'1.2-2' }}
           </span>
         </div>
 
-        <div class="summary-note">
-          <p>Pago a operadores de maquinaria pesada del GRP, según Planilla</p>
+        <!-- Deductivo por Planilla (si existe) -->
+        <div class="summary-item deductive-item" *ngIf="amountSheets > 0">
+          <span class="summary-label-deductive">Pago a operadores de maquinaria pesada del GRP, según Planilla</span>
+          <span class="summary-value-deductive">
+            S/. {{ amountSheets | number:'1.2-2' }}
+          </span>
+        </div>
+
+        <!-- Deductivo por Orden (si existe) -->
+        <div class="summary-item deductive-item" *ngIf="amountOrders > 0">
+          <span class="summary-label-deductive">Pago a operadores de maquinaria pesada del GRP, según Orden</span>
+          <span class="summary-value-deductive">
+            S/. {{ amountOrders | number:'1.2-2' }}
+          </span>
+        </div>
+
+        <!-- Total Final -->
+        <div class="summary-item-large">
+          <span class="summary-label">TOTAL A PAGAR:</span>
+          <span class="summary-value">
+            S/. {{ finalTotal | number:'1.2-2' }}
+          </span>
         </div>
       </div>
     </div>

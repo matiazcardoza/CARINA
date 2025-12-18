@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id('id');
             $table->unsignedBigInteger('goal_id');
             $table->json('adjusted_data');
+            $table->json('deductive_order')->nullable();
+            $table->json('deductive_sheet')->nullable();
             $table->string('num_reg')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();

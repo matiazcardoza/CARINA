@@ -37,7 +37,8 @@ export class ReportValorized implements OnInit {
   editedOperators: { [key: number]: string } = {};
   errorMessage: string | null = null;
 
-  amountPlanilla: number = 0;
+  amountSheets: number = 0;
+  amountOrders: number = 0;
 
   valorationSaved: boolean = false;
   hasUnsavedChanges: boolean = false;
@@ -50,6 +51,9 @@ export class ReportValorized implements OnInit {
   error: string | null = null;
   goalId: number = 0;
   record: any = null;
+
+  deductivesOrder: any[] = [];
+  deductivesSheet: any[] = [];
 
   displayedColumns: string[] = [
     'item',
@@ -111,13 +115,16 @@ export class ReportValorized implements OnInit {
 
   // Recalcular automaticamente el total final
   onAmountPlanillaChange(): void {
-    if (this.amountPlanilla >= 0) {
-      this.editedValorationAmount = Number(
-        (this.valorationAmount - this.amountPlanilla).toFixed(2)
-      );
-      this.hasUnsavedChanges = true;
-      this.valorationSaved = false;
-    }
+    const totalDeductions = this.amountSheets + this.amountOrders;
+    this.editedValorationAmount = Number(
+      (this.finalTotal - totalDeductions).toFixed(2)
+    );
+    this.hasUnsavedChanges = true;
+    this.valorationSaved = false;
+  }
+
+  get finalTotal(): number {
+    return Number((this.valorationAmount - this.amountSheets - this.amountOrders).toFixed(2));
   }
 
   deleteRow(index: number): void {
@@ -184,7 +191,7 @@ export class ReportValorized implements OnInit {
     const finalData = {
       ...valorationDataSend,
       editedValorationAmount: Number(this.editedValorationAmount.toFixed(2)),
-      amountPlanilla: Number(this.amountPlanilla.toFixed(2))
+      amountPlanilla: Number(this.amountSheets.toFixed(2))
     };
 
     this.reportsServicesService.generateValorization(finalData).subscribe({
@@ -252,7 +259,8 @@ export class ReportValorized implements OnInit {
     const valorationDataToSend = {
       goal: this.goalData,
       machinery: JSON.parse(JSON.stringify(this.machinery)),
-      valoration_amount: this.valorationAmount
+      valoration_amount: this.valorationAmount,
+      valoration_amount_final: this.finalTotal
     };
     
     valorationDataToSend.machinery.forEach((machinery: any, index: number) => {
@@ -272,8 +280,14 @@ export class ReportValorized implements OnInit {
       goalId: this.goalId,
       adjustmentId: this.selectedAdjustmentId,
       valorationData: valorationDataToSend,
+      deductives: {
+        deductive_order: this.deductivesOrder,
+        amountOrders: Number(this.amountOrders.toFixed(2)),
+        deductive_sheet: this.deductivesSheet,
+        amountSheets: Number(this.amountSheets.toFixed(2))
+      },
       editedValorationAmount: Number(this.editedValorationAmount.toFixed(2)),
-      amountPlanilla: Number(this.amountPlanilla.toFixed(2)),
+      amountPlanilla: Number(this.amountSheets.toFixed(2)),
       finalAmount: Number(this.editedValorationAmount.toFixed(2)),
       editedOperators: this.editedOperators,
       deletedRows: Array.from(this.deletedRows)
@@ -307,29 +321,34 @@ export class ReportValorized implements OnInit {
   }
 
   openDeductivesDialog(isOrder: boolean = false) {
+    console.log('este es el deductivesOrder', this.deductivesOrder);
+    console.log('este es el deductivesSheet', this.deductivesSheet);
     const dialogRef = this.dialog.open(ReportAddDeductives, {
-      width: '900px',
+      width: '1500px',
+      maxWidth: '95vw',
       data: {
         isOrder: isOrder,
+        items: isOrder ? this.deductivesOrder : this.deductivesSheet,
       }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         console.log('Datos guardados:', result);
-        // result contendrá:
-        // {
-        //   items: DeductiveItem[],
-        //   total: number,
-        //   isOrder: boolean
-        // }
-        
-        // Aquí puedes procesar los datos según necesites
-        if (result.isOrder) {
-          console.log('Órdenes agregadas:', result.items);
-        } else {
-          console.log('Planillas agregadas:', result.items);
-        }
+        setTimeout(() => {
+          if (result.isOrder) {
+            this.deductivesOrder = result.items;
+            this.amountOrders = result.total;
+            console.log('Órdenes agregadas:', this.deductivesOrder);
+          } else {
+            this.deductivesSheet = result.items;
+            console.log('Planillas agregadas:', this.deductivesSheet);
+            this.amountSheets = result.total;
+          }
+          
+          this.onAmountPlanillaChange();
+          this.cdr.detectChanges();
+        }, 0);
       }
     });
   }
@@ -374,7 +393,19 @@ export class ReportValorized implements OnInit {
     this.machinery = adjustedData.machinery;
     this.valorationAmount = adjustedData.valoration_amount;
     this.editedValorationAmount = adjustedData.editedValorationAmount || adjustedData.valoration_amount;
-    this.amountPlanilla = adjustedData.amountPlanilla || 0;
+    this.amountSheets = adjustedData.deductives?.deductive_sheet?.amount_sheets || 0;
+    this.amountOrders = adjustedData.deductives?.deductive_order?.amount_orders || 0;
+
+    this.deductivesOrder = adjustedData.deductives?.deductive_order?.deductive_order || [];
+    this.deductivesSheet = adjustedData.deductives?.deductive_sheet?.deductive_sheet || [];
+
+    if (adjustedData.valoration_amount_final !== undefined && adjustedData.valoration_amount_final !== null) {
+      this.editedValorationAmount = adjustedData.valoration_amount_final;
+    } else {
+      this.editedValorationAmount = Number(
+        (this.valorationAmount - this.amountSheets - this.amountOrders).toFixed(2)
+      );
+    }
     
     if (adjustedData.editedOperators) {
       this.editedOperators = adjustedData.editedOperators;
@@ -409,9 +440,10 @@ export class ReportValorized implements OnInit {
     this.hasUnsavedChanges = false;
 
     this.deletedRows.clear();
-    this.amountPlanilla = 0;
-    
-    // Recargar datos desde el servidor
+    this.amountSheets = 0;
+    this.amountOrders = 0;
+    this.deductivesOrder = [];
+    this.deductivesSheet = [];
     this.loadValorizedData();
   }
 

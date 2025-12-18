@@ -13,6 +13,8 @@ class ValorationAdjustment extends Model
     protected $fillable = [
         'goal_id',
         'adjusted_data',
+        'deductive_order',
+        'deductive_sheet',
         'num_reg',
         'updated_by',
     ];

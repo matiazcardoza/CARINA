@@ -2,13 +2,14 @@
   <h2 mat-dialog-title>{{ title }}</h2>
   
   <mat-dialog-content class="dialog-content">
-    <!-- Formulario para agregar nuevo item -->
-    <div class="add-item-form">
+    
+    <!-- FORMULARIO PARA ÓRDENES -->
+    <div class="add-item-form" *ngIf="data.isOrder">
       <mat-form-field appearance="outline" class="field-nombre">
         <mat-label>Nombre {{ itemLabel }}</mat-label>
         <input 
           matInput 
-          [(ngModel)]="newItem.nombre" 
+          [(ngModel)]="newOrder.nombre" 
           placeholder="Ingrese nombre"
           (keyup.enter)="agregarItem()">
       </mat-form-field>
@@ -18,7 +19,7 @@
         <input 
           matInput 
           type="number" 
-          [(ngModel)]="newItem.monto" 
+          [(ngModel)]="newOrder.monto" 
           placeholder="0.00"
           (keyup.enter)="agregarItem()">
         <span matPrefix>S/&nbsp;</span>
@@ -28,17 +29,67 @@
         mat-raised-button 
         color="primary" 
         (click)="agregarItem()"
-        [disabled]="!newItem.nombre.trim() || newItem.monto <= 0">
+        [disabled]="!isFormValid()">
         <mat-icon>add</mat-icon>
         Agregar {{ itemLabel }}
       </button>
     </div>
 
-    <!-- Lista de items agregados -->
-    <div class="items-list" *ngIf="items.length > 0">
-      <h3>{{ itemLabel }}s Agregadas ({{ items.length }})</h3>
+    <!-- FORMULARIO PARA PLANILLAS (4 CAMPOS EN UNA FILA) -->
+    <div class="add-item-form planilla-form" *ngIf="!data.isOrder">
+      <mat-form-field appearance="fill" class="field-quarter">
+        <mat-label>Nombres</mat-label>
+        <input 
+          matInput 
+          [(ngModel)]="newPayroll.nombres" 
+          placeholder="Ingrese nombres"
+          (keyup.enter)="agregarItem()">
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="field-quarter">
+        <mat-label>Apellidos</mat-label>
+        <input 
+          matInput 
+          [(ngModel)]="newPayroll.apellidos" 
+          placeholder="Ingrese apellidos"
+          (keyup.enter)="agregarItem()">
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="field-quarter">
+        <mat-label>Cargo</mat-label>
+        <input 
+          matInput 
+          [(ngModel)]="newPayroll.cargo" 
+          placeholder="Ingrese cargo"
+          (keyup.enter)="agregarItem()">
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="field-quarter">
+        <mat-label>Monto Pago</mat-label>
+        <input 
+          matInput 
+          type="number" 
+          [(ngModel)]="newPayroll.montoPago" 
+          placeholder="0.00"
+          (keyup.enter)="agregarItem()">
+        <span matPrefix>S/&nbsp;</span>
+      </mat-form-field>
+
+      <button 
+        mat-raised-button 
+        color="primary" 
+        (click)="agregarItem()"
+        [disabled]="!isFormValid()">
+        <mat-icon>add</mat-icon>
+        Agregar
+      </button>
+    </div>
+
+    <!-- LISTA DE ÓRDENES AGREGADAS -->
+    <div class="items-list" *ngIf="data.isOrder && orderItems.length > 0">
+      <h3>{{ itemLabel }}s Agregadas ({{ orderItems.length }})</h3>
       
-      <div class="item-card" *ngFor="let item of items; let i = index">
+      <div class="item-card" *ngFor="let item of orderItems; let i = index">
         <div class="item-info">
           <span class="item-nombre">{{ item.nombre }}</span>
           <span class="item-monto">S/ {{ item.monto | number:'1.2-2' }}</span>
@@ -52,14 +103,55 @@
         </button>
       </div>
 
-      <!-- Total -->
       <div class="total-section">
         <span class="total-label">Total:</span>
         <span class="total-amount">S/ {{ getTotalMonto() | number:'1.2-2' }}</span>
       </div>
     </div>
 
-    <!-- Mensaje cuando no hay items -->
+    <!-- LISTA DE PLANILLAS AGREGADAS -->
+    <div class="items-list" *ngIf="!data.isOrder && payrollItems.length > 0">
+      <h3>{{ itemLabel }}s Agregadas ({{ payrollItems.length }})</h3>
+      
+      <!-- Tabla de planillas -->
+      <div class="table-container">
+        <table class="payroll-table">
+          <thead>
+            <tr>
+              <th class="col-item">ÍTEM</th>
+              <th class="col-name">NOMBRES Y APELLIDOS</th>
+              <th class="col-cargo">CARGO</th>
+              <th class="col-monto">PAGO</th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of payrollItems; let i = index">
+              <td class="col-item">{{ i + 1 }}</td>
+              <td class="col-name">{{ item.nombres }} {{ item.apellidos }}</td>
+              <td class="col-cargo">{{ item.cargo }}</td>
+              <td class="col-monto">S/ {{ item.montoPago | number:'1.2-2' }}</td>
+              <td class="col-actions">
+                <button 
+                  mat-icon-button 
+                  color="warn" 
+                  (click)="eliminarItem(i)"
+                  matTooltip="Eliminar">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="total-section">
+        <span class="total-label">Total:</span>
+        <span class="total-amount">S/ {{ getTotalMonto() | number:'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <!-- MENSAJE CUANDO NO HAY ITEMS -->
     <div class="empty-state" *ngIf="items.length === 0">
       <mat-icon>inbox</mat-icon>
       <p>No hay {{ itemLabel.toLowerCase() }}s agregadas</p>

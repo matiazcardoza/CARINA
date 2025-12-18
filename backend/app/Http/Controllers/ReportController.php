@@ -168,7 +168,9 @@ class ReportController extends Controller
             if ($service->state != 3) {
                 continue;
             }
-            $adjustment = ServiceLiquidationAdjustment::where('service_id', $service->id)->first();
+            $adjustment = ServiceLiquidationAdjustment::where('service_id', $service->id)
+                    ->orderBy('created_at', 'desc')
+                    ->first();
 
             if (!$adjustment) {
                 $dailyParts = DailyPart::where('service_id', $service->id)->get();
@@ -267,6 +269,15 @@ class ReportController extends Controller
             ->get()
             ->map(function($adjustment) {
                 $adjustedData = json_decode($adjustment->adjusted_data, true);
+
+                $deductiveOrder = json_decode($adjustment->deductive_order, true);
+                $deductiveSheet = json_decode($adjustment->deductive_sheet, true);
+
+                $adjustedData['deductives'] = [
+                    'deductive_order' => $deductiveOrder ?? [],
+                    'deductive_sheet' => $deductiveSheet ?? [],
+                ];
+
                 if (!isset($adjustedData['record'])) {
                     $adjustedData['record'] = [
                         'num_reg' => $adjustment->num_reg,
@@ -564,6 +575,19 @@ class ReportController extends Controller
         }
         $adjustmentId = $request->input('adjustmentId');
         $goalId = $request->input('goalId');
+        $deductives = $request->input('deductives');
+        if ($deductives['deductive_order']){
+            $deductiveOrder =[
+                'deductive_order' => $deductives['deductive_order'],
+                'amount_orders' => $deductives['amountOrders']
+            ];
+        }
+        if ($deductives['deductive_sheet']){
+            $deductiveSheet =[
+                'deductive_sheet' => $deductives['deductive_sheet'],
+                'amount_sheets' => $deductives['amountSheets']
+            ];
+        }
         try{
             $lastValorization = ValorationAdjustment::where('goal_id', $goalId)
                                 ->orderBy('created_at', 'desc')
@@ -585,6 +609,12 @@ class ReportController extends Controller
                 $adjustment = ValorationAdjustment::find($adjustmentId);
                 $adjustment->update([
                     'adjusted_data' => json_encode($valorationData),
+                    'deductive_order' => !empty($deductiveOrder)
+                                            ? $deductiveOrder
+                                            : null,
+                    'deductive_sheet' => !empty($deductiveSheet)
+                                            ? $deductiveSheet
+                                            : null,
                     'updated_by' => Auth::id(),
                     'updated_at' => now()
                 ]);
@@ -592,6 +622,12 @@ class ReportController extends Controller
                 $adjustment = $lastValorization;
                 $adjustment->update([
                     'adjusted_data' => json_encode($valorationData),
+                    'deductive_order' => !empty($deductiveOrder)
+                                            ? $deductiveOrder
+                                            : null,
+                    'deductive_sheet' => !empty($deductiveSheet)
+                                            ? $deductiveSheet
+                                            : null,
                     'updated_by' => Auth::id(),
                     'updated_at' => now()
                 ]);
@@ -599,6 +635,12 @@ class ReportController extends Controller
                 $adjustment = ValorationAdjustment::create([
                     'goal_id' => $goalId,
                     'adjusted_data' => json_encode($valorationData),
+                    'deductive_order' => !empty($deductiveOrder)
+                                            ? $deductiveOrder
+                                            : null,
+                    'deductive_sheet' => !empty($deductiveSheet)
+                                            ? $deductiveSheet
+                                            : null,
                     'num_reg' => $newNumReg,
                     'updated_by' => Auth::id()
                 ]);

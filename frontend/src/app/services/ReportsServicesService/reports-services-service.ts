@@ -45,6 +45,7 @@ interface AdjustmentHistoryValoration {
     goal: any;
     machinery: any;
     valoration_amount: any;
+    deductives?: any;
   };
 }
 
