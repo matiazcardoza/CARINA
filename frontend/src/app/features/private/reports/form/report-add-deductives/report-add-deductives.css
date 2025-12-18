@@ -336,3 +336,135 @@
     width: 40px;
   }
 }
+
+/* Formulario de búsqueda de órdenes */
+.search-order-form {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.field-numero {
+  flex: 2;
+  min-width: 200px;
+}
+
+.field-anio {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* Mensaje de error */
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #ffebee;
+  color: #c62828;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  border-left: 4px solid #c62828;
+}
+
+.error-message mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
+
+/* Resultados de búsqueda */
+.search-results {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.search-results h3 {
+  color: #424242;
+  font-size: 16px;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.result-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  margin-bottom: 12px;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+  transition: all 0.2s;
+}
+
+.result-card:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-color: #1976d2;
+}
+
+.result-info {
+  flex: 1;
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.result-numero {
+  font-weight: 600;
+  color: #1976d2;
+  font-size: 16px;
+}
+
+.result-precio {
+  font-weight: 700;
+  color: #2e7d32;
+  font-size: 18px;
+}
+
+.result-details {
+  font-size: 13px;
+  color: #666;
+}
+
+.result-details p {
+  margin: 4px 0;
+}
+
+.result-details strong {
+  color: #424242;
+}
+
+.col-numero {
+  width: 15%;
+  font-weight: 600;
+  color: #1976d2;
+}
+
+/* Responsive para búsqueda */
+@media (max-width: 600px) {
+  .search-order-form {
+    flex-direction: column;
+  }
+  
+  .field-numero,
+  .field-anio {
+    width: 100%;
+  }
+  
+  .result-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .result-card button {
+    margin-top: 12px;
+  }
+}

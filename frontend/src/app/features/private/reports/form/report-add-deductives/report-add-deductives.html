@@ -3,36 +3,74 @@
   
   <mat-dialog-content class="dialog-content">
     
-    <!-- FORMULARIO PARA ÓRDENES -->
-    <div class="add-item-form" *ngIf="data.isOrder">
-      <mat-form-field appearance="outline" class="field-nombre">
-        <mat-label>Nombre {{ itemLabel }}</mat-label>
-        <input 
-          matInput 
-          [(ngModel)]="newOrder.nombre" 
-          placeholder="Ingrese nombre"
-          (keyup.enter)="agregarItem()">
-      </mat-form-field>
+    <!-- FORMULARIO PARA ÓRDENES - BÚSQUEDA -->
+    <div *ngIf="data.isOrder">
+      <!-- Formulario de búsqueda -->
+            <!-- Formulario de búsqueda -->
+      <form [formGroup]="orderForm" class="search-order-form">
+        <mat-form-field appearance="fill" class="field-numero">
+          <mat-label>Número de Orden</mat-label>
+          <input 
+            matInput 
+            formControlName="numeroOrden"
+            placeholder="Ej: 00345"
+            maxlength="5"
+            (keyup.enter)="searchOrder()">
+          <mat-hint>5 dígitos</mat-hint>
+        </mat-form-field>
 
-      <mat-form-field appearance="outline" class="field-monto">
-        <mat-label>Monto</mat-label>
-        <input 
-          matInput 
-          type="number" 
-          [(ngModel)]="newOrder.monto" 
-          placeholder="0.00"
-          (keyup.enter)="agregarItem()">
-        <span matPrefix>S/&nbsp;</span>
-      </mat-form-field>
+        <mat-form-field appearance="fill" class="field-anio">
+          <mat-label>Año</mat-label>
+          <input 
+            matInput 
+            formControlName="anio"
+            placeholder="Ej: 2024"
+            maxlength="4"
+            readonly
+            (keyup.enter)="searchOrder()">
+        </mat-form-field>
 
-      <button 
-        mat-raised-button 
-        color="primary" 
-        (click)="agregarItem()"
-        [disabled]="!isFormValid()">
-        <mat-icon>add</mat-icon>
-        Agregar {{ itemLabel }}
-      </button>
+        <button 
+          mat-raised-button 
+          color="primary" 
+          (click)="searchOrder()"
+          [disabled]="orderForm.invalid || isSearching"
+          type="button">
+          <mat-icon>{{ isSearching ? 'hourglass_empty' : 'search' }}</mat-icon>
+          {{ isSearching ? 'Buscando...' : 'Buscar' }}
+        </button>
+      </form>
+
+      <!-- Mensaje de error -->
+      <div class="error-message" *ngIf="numeroOrdenErrors">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ numeroOrdenErrors }}</span>
+      </div>
+
+      <!-- Resultados de búsqueda -->
+      <div class="search-results" *ngIf="orderData.length > 0">
+        <h3>Resultados de Búsqueda ({{ orderData.length }})</h3>
+        
+        <div class="result-card" *ngFor="let orden of orderData">
+          <div class="result-info">
+            <div class="result-header">
+              <span class="result-numero">Orden #{{ orden.numero }}</span>
+              <span class="result-precio">S/ {{ orden.precio | number:'1.2-2' }}</span>
+            </div>
+            <div class="result-details">
+              <p><strong>RUC:</strong> {{ orden.ruc }}</p>
+              <p><strong>Razón Social:</strong> {{ orden.rsocial }}</p>
+            </div>
+          </div>
+          <button 
+            mat-raised-button 
+            color="accent"
+            (click)="agregarOrdenBuscada(orden)">
+            <mat-icon>add_circle</mat-icon>
+            Agregar
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- FORMULARIO PARA PLANILLAS (4 CAMPOS EN UNA FILA) -->
@@ -86,21 +124,41 @@
     </div>
 
     <!-- LISTA DE ÓRDENES AGREGADAS -->
+      <!-- LISTA DE ÓRDENES AGREGADAS -->
     <div class="items-list" *ngIf="data.isOrder && orderItems.length > 0">
-      <h3>{{ itemLabel }}s Agregadas ({{ orderItems.length }})</h3>
+      <h3>Órdenes Agregadas ({{ orderItems.length }})</h3>
       
-      <div class="item-card" *ngFor="let item of orderItems; let i = index">
-        <div class="item-info">
-          <span class="item-nombre">{{ item.nombre }}</span>
-          <span class="item-monto">S/ {{ item.monto | number:'1.2-2' }}</span>
-        </div>
-        <button 
-          mat-icon-button 
-          color="warn" 
-          (click)="eliminarItem(i)"
-          matTooltip="Eliminar">
-          <mat-icon>delete</mat-icon>
-        </button>
+      <div class="table-container">
+        <table class="payroll-table">
+          <thead>
+            <tr>
+              <th class="col-item">ÍTEM</th>
+              <th class="col-numero">N° ORDEN</th>
+              <th>RUC</th>
+              <th>RAZÓN SOCIAL</th>
+              <th class="col-monto">PRECIO</th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of orderItems; let i = index">
+              <td class="col-item">{{ i + 1 }}</td>
+              <td class="col-numero">{{ item.numero }}</td>
+              <td>{{ item.ruc }}</td>
+              <td>{{ item.rsocial }}</td>
+              <td class="col-monto">S/ {{ item.precio | number:'1.2-2' }}</td>
+              <td class="col-actions">
+                <button 
+                  mat-icon-button 
+                  color="warn" 
+                  (click)="eliminarItem(i)"
+                  matTooltip="Eliminar">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <div class="total-section">

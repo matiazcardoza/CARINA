@@ -1,16 +1,34 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { ReportsServicesService } from '../../../../../services/ReportsServicesService/reports-services-service';
+
+interface OrderDetail {
+  idservicio: number;
+  ruc : string;
+  rsocial : string;
+  numero: string;
+  precio: number;
+}
+
+interface OrderResponse {
+  current_page: number;
+  data: OrderDetail[];
+  total: number;
+}
 
 // Interfaz para órdenes (mantiene estructura original)
 interface OrderItem {
-  nombre: string;
-  monto: number;
+  idservicio: number;
+  ruc: string;
+  rsocial: string;
+  numero: string;
+  precio: number;
 }
 
 // Interfaz para planillas (con los 4 campos requeridos)
@@ -32,6 +50,7 @@ interface DialogData {
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     MatDialogModule,
     MatButtonModule,
     MatInputModule,
@@ -46,21 +65,83 @@ export class ReportAddDeductives {
   orderItems: OrderItem[] = [];
   payrollItems: PayrollItem[] = [];
 
+  orderForm!: FormGroup;
+  orderData: OrderDetail[] = [];
+  numeroOrdenErrors: string = '';
+  isSearching: boolean = false;
+
   // Formularios separados
-  newOrder: OrderItem = { nombre: '', monto: 0 };
   newPayroll: PayrollItem = { nombres: '', apellidos: '', cargo: '', montoPago: 0 };
 
   constructor(
+    private fb: FormBuilder,
+    private reportsServicesService: ReportsServicesService,
+    private cdr: ChangeDetectorRef,
     public dialogRef: MatDialogRef<ReportAddDeductives>,
     @Inject(MAT_DIALOG_DATA) public data: DialogData
-  ) {}
+  ) {
+    const currentYear = new Date().getFullYear();
+    this.orderForm = this.fb.group({
+      numeroOrden: ['', [
+        Validators.required, 
+        Validators.pattern(/^\d{5}$/),
+        Validators.minLength(5),
+        Validators.maxLength(5)
+      ]],
+      anio: [currentYear, [Validators.required, Validators.pattern(/^\d{4}$/)]]
+    });
+  }
 
   ngOnInit(): void {
     if (this.data.isOrder) {
       this.orderItems = [...(this.data.items as OrderItem[])];
     } else {
-      console.log('Payroll items:', this.data.items);
       this.payrollItems = [...(this.data.items as PayrollItem[])];
+    }
+  }
+
+  searchOrder(): void {
+    this.numeroOrdenErrors = '';
+    
+    if (this.orderForm.invalid) {
+      this.numeroOrdenErrors = 'Por favor complete todos los campos correctamente.';
+      return;
+    }
+
+    const numeroOrden = this.orderForm.get('numeroOrden')?.value;
+    const anio = this.orderForm.get('anio')?.value;
+    
+    this.isSearching = true;
+    this.cdr.detectChanges(); // Fuerza la detección de cambios
+
+    this.reportsServicesService.getOrderByNumber(numeroOrden, anio).subscribe({
+      next: (response: OrderResponse) => {
+        this.isSearching = false;
+        if (response.data && response.data.length > 0) {
+          this.orderData = response.data;
+          this.numeroOrdenErrors = '';
+        } else {
+          this.numeroOrdenErrors = 'No se encontraron datos para esta orden.';
+          this.orderData = [];
+        }
+        this.cdr.detectChanges(); // Fuerza la detección de cambios
+      },
+      error: (err) => {
+        this.isSearching = false;
+        console.error('Error al buscar la orden:', err);
+        this.numeroOrdenErrors = 'Ocurrió un error al buscar la orden. Intente de nuevo.';
+        this.orderData = [];
+        this.cdr.detectChanges(); // Fuerza la detección de cambios
+      }
+    });
+  }
+
+  agregarOrdenBuscada(orden: OrderDetail): void {
+    const existe = this.orderItems.some(item => item.idservicio === orden.idservicio);
+    if (!existe) {
+      this.orderItems.push({ ...orden });
+      this.orderData = [];
+      this.orderForm.reset();
     }
   }
 
@@ -78,14 +159,7 @@ export class ReportAddDeductives {
   }
 
   agregarItem(): void {
-    if (this.data.isOrder) {
-      // Validación para órdenes
-      if (this.newOrder.nombre.trim() && this.newOrder.monto > 0) {
-        this.orderItems.push({ ...this.newOrder });
-        this.newOrder = { nombre: '', monto: 0 };
-      }
-    } else {
-      // Validación para planillas (todos los campos requeridos)
+    if (!this.data.isOrder) {
       if (this.newPayroll.nombres.trim() && 
           this.newPayroll.apellidos.trim() && 
           this.newPayroll.cargo.trim() && 
@@ -106,7 +180,7 @@ export class ReportAddDeductives {
 
   getTotalMonto(): number {
     if (this.data.isOrder) {
-      return this.orderItems.reduce((sum, item) => sum + item.monto, 0);
+      return this.orderItems.reduce((sum, item) => sum + item.precio, 0);
     } else {
       return this.payrollItems.reduce((sum, item) => sum + item.montoPago, 0);
     }
@@ -115,7 +189,7 @@ export class ReportAddDeductives {
   // Validación para habilitar el botón agregar
   isFormValid(): boolean {
     if (this.data.isOrder) {
-      return this.newOrder.nombre.trim() !== '' && this.newOrder.monto > 0;
+      return false; // Ya no se usa este método para órdenes
     } else {
       return this.newPayroll.nombres.trim() !== '' && 
              this.newPayroll.apellidos.trim() !== '' && 

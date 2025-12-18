@@ -333,14 +333,18 @@
                     <td class="summary-label">MONTO TOTAL DE VALORIZACIÓN</td>
                     <td class="summary-value currency">S/. {{ number_format($amountValoration, 2) }}</td>
                 </tr>
-                <tr>
-                    <td class="summary-label">Pago de operadores de maquinaria pesada del GRP, según Planilla</td>
-                    <td class="summary-value currency">S/. {{ number_format($amountSheets ?? 0, 2) }}</td>
-                </tr>
-                <tr>
-                    <td class="summary-label">Pago de operadores de maquinaria pesada del GRP, según Orden</td>
-                    <td class="summary-value currency">S/. {{ number_format($amountOrders ?? 0, 2) }}</td>
-                </tr>
+                @if($amountSheets)
+                    <tr>
+                        <td class="summary-label">Pago de operadores de maquinaria pesada del GRP, según Planilla</td>
+                        <td class="summary-value currency">S/. {{ number_format($amountSheets ?? 0, 2) }}</td>
+                    </tr>
+                @endif
+                @if($amountOrders)
+                    <tr>
+                        <td class="summary-label">Pago de operadores de maquinaria pesada del GRP, según Orden</td>
+                        <td class="summary-value currency">S/. {{ number_format($amountOrders ?? 0, 2) }}</td>
+                    </tr>
+                @endif
                 <tr>
                     <td class="summary-label"><strong>TOTAL A PAGAR</strong></td>
                     <td class="summary-value currency"><strong><span>S/. {{ number_format($amountFinal, 2) }}</span></strong></td>

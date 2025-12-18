@@ -162,4 +162,9 @@ export class ReportsServicesService {
       withCredentials: true
     });
   }
+
+  getOrderByNumber(orderNumber: string, anio: string): Observable<any> {
+    const apiUrl = `https://sistemas.regionpuno.gob.pe/siluciav2-api/api/ordenserviciodetallado?anio=${anio}&numero=${orderNumber}`;
+    return this.http.get<any>(apiUrl);
+  }
 }
