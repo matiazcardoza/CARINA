@@ -14,6 +14,7 @@ interface OrderDetail {
   rsocial : string;
   numero: string;
   precio: number;
+  cantidad: number;
 }
 
 interface OrderResponse {
@@ -28,7 +29,7 @@ interface OrderItem {
   ruc: string;
   rsocial: string;
   numero: string;
-  precio: number;
+  monto: number;
 }
 
 // Interfaz para planillas (con los 4 campos requeridos)
@@ -139,7 +140,16 @@ export class ReportAddDeductives {
   agregarOrdenBuscada(orden: OrderDetail): void {
     const existe = this.orderItems.some(item => item.idservicio === orden.idservicio);
     if (!existe) {
-      this.orderItems.push({ ...orden });
+      // Calcular el monto como precio * cantidad
+      const monto = orden.precio * orden.cantidad;
+      
+      this.orderItems.push({ 
+        idservicio: orden.idservicio,
+        ruc: orden.ruc,
+        rsocial: orden.rsocial,
+        numero: orden.numero,
+        monto: monto  // Aquí guardamos el monto calculado
+      });
       this.orderData = [];
       this.orderForm.reset();
     }
@@ -180,7 +190,7 @@ export class ReportAddDeductives {
 
   getTotalMonto(): number {
     if (this.data.isOrder) {
-      return this.orderItems.reduce((sum, item) => sum + item.precio, 0);
+      return this.orderItems.reduce((sum, item) => sum + item.monto, 0);
     } else {
       return this.payrollItems.reduce((sum, item) => sum + item.montoPago, 0);
     }

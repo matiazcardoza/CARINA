@@ -55,7 +55,7 @@
           <div class="result-info">
             <div class="result-header">
               <span class="result-numero">Orden #{{ orden.numero }}</span>
-              <span class="result-precio">S/ {{ orden.precio | number:'1.2-2' }}</span>
+              <span class="result-precio">S/ {{ (orden.precio * orden.cantidad) | number:'1.2-2' }}</span>
             </div>
             <div class="result-details">
               <p><strong>RUC:</strong> {{ orden.ruc }}</p>
@@ -146,7 +146,7 @@
               <td class="col-numero">{{ item.numero }}</td>
               <td>{{ item.ruc }}</td>
               <td>{{ item.rsocial }}</td>
-              <td class="col-monto">S/ {{ item.precio | number:'1.2-2' }}</td>
+              <td class="col-monto">S/ {{ item.monto | number:'1.2-2' }}</td>
               <td class="col-actions">
                 <button 
                   mat-icon-button 
