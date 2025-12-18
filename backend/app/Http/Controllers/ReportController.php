@@ -179,10 +179,10 @@ class ReportController extends Controller
                     [$h, $m, $s] = array_pad(explode(':', $part->time_worked), 3, 0);
                     $totalSecondsWorked += ($h * 3600) + ($m * 60) + $s;
                 }
-                
+
                 $totalHours = floor($totalSecondsWorked / 3600);
                 $totalMinutes = floor(($totalSecondsWorked % 3600) / 60);
-                $totalTimeFormatted = sprintf('%02d:%02d', $totalHours, $totalMinutes); 
+                $totalTimeFormatted = sprintf('%02d:%02d', $totalHours, $totalMinutes);
                 $service->time_worked = $totalTimeFormatted;
                 continue;
             }
@@ -194,17 +194,17 @@ class ReportController extends Controller
             $costPerHour = $adjustedData['auth']['totals']['cost_per_hour'] ?? 0;
             $totalAmount = $adjustedData['auth']['totals']['total_amount'] ?? 0;
             $costPerDay = $adjustedData['liquidation']['cost_per_day'] ?? 0;
-            
+
             $dailyParts = DailyPart::where('service_id', $service->id)->get();
                 $totalSecondsWorked = 0;
                 foreach ($dailyParts as $part) {
                     [$h, $m, $s] = array_pad(explode(':', $part->time_worked), 3, 0);
                     $totalSecondsWorked += ($h * 3600) + ($m * 60) + $s;
                 }
-                
+
                 $totalHours = floor($totalSecondsWorked / 3600);
                 $totalMinutes = floor(($totalSecondsWorked % 3600) / 60);
-                $totalTimeFormatted = sprintf('%02d:%02d', $totalHours, $totalMinutes); 
+                $totalTimeFormatted = sprintf('%02d:%02d', $totalHours, $totalMinutes);
                 $service->time_worked = $totalTimeFormatted;
 
             $machinery[] = [
@@ -380,12 +380,16 @@ class ReportController extends Controller
         $logoPath = storage_path('app/public/image_pdf_template/logo_grp.png');
         $qr_code = base64_encode("data_qr_example");
         $valorationData = $request->json()->all();
-        $editedValorationAmount = $request->input('editedValorationAmount');
-        $amountPlanilla = $request->input('amountPlanilla');
+        $amountValoration = $request->input('valoration_amount');
+        $amountFinal = $request->input('amountFinal');
+        $amountOrders = $request->input('amountOrders');
+        $amountSheets = $request->input('amountSheets');
         $data = [
             'record' => $request->record,
-            'editedValorationAmount' => $editedValorationAmount,
-            'amountPlanilla' => $amountPlanilla,
+            'amountValoration' => $amountValoration,
+            'amountFinal' => $amountFinal,
+            'amountOrders' => $amountOrders,
+            'amountSheets'=> $amountSheets,
             'goalDetail' => $goalDetail,
             'mes' => $mes,
             'logoPath' => $logoPath,
@@ -573,21 +577,28 @@ class ReportController extends Controller
                 'success' => false
             ], 400);
         }
+
         $adjustmentId = $request->input('adjustmentId');
         $goalId = $request->input('goalId');
         $deductives = $request->input('deductives');
-        if ($deductives['deductive_order']){
-            $deductiveOrder =[
+
+        $deductiveOrder = null;
+        $deductiveSheet = null;
+
+        if (!empty($deductives['deductive_order'])){
+            $deductiveOrder = json_encode([
                 'deductive_order' => $deductives['deductive_order'],
                 'amount_orders' => $deductives['amountOrders']
-            ];
+            ]);
         }
-        if ($deductives['deductive_sheet']){
-            $deductiveSheet =[
+
+        if (!empty($deductives['deductive_sheet'])){
+            $deductiveSheet = json_encode([
                 'deductive_sheet' => $deductives['deductive_sheet'],
                 'amount_sheets' => $deductives['amountSheets']
-            ];
+            ]);
         }
+
         try{
             $lastValorization = ValorationAdjustment::where('goal_id', $goalId)
                                 ->orderBy('created_at', 'desc')
@@ -609,12 +620,8 @@ class ReportController extends Controller
                 $adjustment = ValorationAdjustment::find($adjustmentId);
                 $adjustment->update([
                     'adjusted_data' => json_encode($valorationData),
-                    'deductive_order' => !empty($deductiveOrder)
-                                            ? $deductiveOrder
-                                            : null,
-                    'deductive_sheet' => !empty($deductiveSheet)
-                                            ? $deductiveSheet
-                                            : null,
+                    'deductive_order' => $deductiveOrder,
+                    'deductive_sheet' => $deductiveSheet,
                     'updated_by' => Auth::id(),
                     'updated_at' => now()
                 ]);
@@ -622,12 +629,8 @@ class ReportController extends Controller
                 $adjustment = $lastValorization;
                 $adjustment->update([
                     'adjusted_data' => json_encode($valorationData),
-                    'deductive_order' => !empty($deductiveOrder)
-                                            ? $deductiveOrder
-                                            : null,
-                    'deductive_sheet' => !empty($deductiveSheet)
-                                            ? $deductiveSheet
-                                            : null,
+                    'deductive_order' => $deductiveOrder,
+                    'deductive_sheet' => $deductiveSheet,
                     'updated_by' => Auth::id(),
                     'updated_at' => now()
                 ]);
@@ -635,12 +638,8 @@ class ReportController extends Controller
                 $adjustment = ValorationAdjustment::create([
                     'goal_id' => $goalId,
                     'adjusted_data' => json_encode($valorationData),
-                    'deductive_order' => !empty($deductiveOrder)
-                                            ? $deductiveOrder
-                                            : null,
-                    'deductive_sheet' => !empty($deductiveSheet)
-                                            ? $deductiveSheet
-                                            : null,
+                    'deductive_order' => $deductiveOrder,
+                    'deductive_sheet' => $deductiveSheet,
                     'num_reg' => $newNumReg,
                     'updated_by' => Auth::id()
                 ]);
@@ -667,7 +666,6 @@ class ReportController extends Controller
             ], 500);
         }
     }
-
     public function downloadMergedDailyParts($serviceId, $stateValorized)
     {
         $documents = DB::table('documents_daily_parts as ddp')

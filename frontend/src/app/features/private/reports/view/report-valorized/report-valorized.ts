@@ -155,7 +155,7 @@ export class ReportValorized implements OnInit {
       alert('Debe guardar la valorización antes de generar el documento.');
       return;
     }
-    
+
     if (this.hasUnsavedChanges) {
       alert('Debe guardar los cambios antes de generar el documento.');
       return;
@@ -187,11 +187,12 @@ export class ReportValorized implements OnInit {
     });
 
     valorationDataSend.valoration_amount = Number(this.valorationAmount.toFixed(2));
-    
+
     const finalData = {
       ...valorationDataSend,
-      editedValorationAmount: Number(this.editedValorationAmount.toFixed(2)),
-      amountPlanilla: Number(this.amountSheets.toFixed(2))
+      amountOrders: Number(this.amountOrders.toFixed(2)),
+      amountSheets: Number(this.amountSheets.toFixed(2)),
+      amountFinal: Number(this.finalTotal.toFixed(2))
     };
 
     this.reportsServicesService.generateValorization(finalData).subscribe({
@@ -245,24 +246,24 @@ export class ReportValorized implements OnInit {
       alert('No hay datos para guardar. Espera a que se carguen los datos.');
       return;
     }
-    
+
     if (this.selectedAdjustmentId !== null && this.valorationSaved) {
       const confirmar = confirm('¿Desea actualizar el registro seleccionado del historial?');
       if (!confirmar) return;
     }
-    
+
     if (this.valorationSaved && this.selectedAdjustmentId === null) {
       const confirmar = confirm('La valorización ya está guardada. ¿Desea crear un nuevo registro?');
       if (!confirmar) return;
     }
-    
+
     const valorationDataToSend = {
       goal: this.goalData,
       machinery: JSON.parse(JSON.stringify(this.machinery)),
       valoration_amount: this.valorationAmount,
       valoration_amount_final: this.finalTotal
     };
-    
+
     valorationDataToSend.machinery.forEach((machinery: any, index: number) => {
       if (this.editedOperators[index] && machinery.equipment?.operators) {
         const operatorNames = this.editedOperators[index]
@@ -275,7 +276,7 @@ export class ReportValorized implements OnInit {
         }));
       }
     });
-    
+
     const changesData = {
       goalId: this.goalId,
       adjustmentId: this.selectedAdjustmentId,
@@ -287,7 +288,6 @@ export class ReportValorized implements OnInit {
         amountSheets: Number(this.amountSheets.toFixed(2))
       },
       editedValorationAmount: Number(this.editedValorationAmount.toFixed(2)),
-      amountPlanilla: Number(this.amountSheets.toFixed(2)),
       finalAmount: Number(this.editedValorationAmount.toFixed(2)),
       editedOperators: this.editedOperators,
       deletedRows: Array.from(this.deletedRows)
@@ -345,7 +345,7 @@ export class ReportValorized implements OnInit {
             console.log('Planillas agregadas:', this.deductivesSheet);
             this.amountSheets = result.total;
           }
-          
+
           this.onAmountPlanillaChange();
           this.cdr.detectChanges();
         }, 0);
@@ -360,7 +360,7 @@ export class ReportValorized implements OnInit {
       return;
     }
     this.isHistoryLoading = true;
-    
+
     this.reportsServicesService.getAdjustedValorationData(goalId)
       .subscribe({
         next: (history) => {
@@ -387,7 +387,7 @@ export class ReportValorized implements OnInit {
 
     this.selectedAdjustmentId = adjustment.id;
     const adjustedData = adjustment.adjusted_data;
-    
+
     this.record = adjustedData.record;
     this.goalData = adjustedData.goal;
     this.machinery = adjustedData.machinery;
@@ -406,7 +406,7 @@ export class ReportValorized implements OnInit {
         (this.valorationAmount - this.amountSheets - this.amountOrders).toFixed(2)
       );
     }
-    
+
     if (adjustedData.editedOperators) {
       this.editedOperators = adjustedData.editedOperators;
     } else {
@@ -415,7 +415,7 @@ export class ReportValorized implements OnInit {
         this.editedOperators[index] = this.getOperatorNames(machinery.equipment);
       });
     }
-    
+
     if (adjustedData.deletedRows && Array.isArray(adjustedData.deletedRows)) {
       this.deletedRows = new Set(adjustedData.deletedRows);
     } else {
@@ -423,7 +423,7 @@ export class ReportValorized implements OnInit {
     }
     this.valorationSaved = true;
     this.hasUnsavedChanges = false;
-    
+
     this.cdr.detectChanges();
   }
 
@@ -434,7 +434,7 @@ export class ReportValorized implements OnInit {
       );
       if (!confirmar) return;
     }
-    
+
     this.selectedAdjustmentId = null;
     this.valorationSaved = false;
     this.hasUnsavedChanges = false;

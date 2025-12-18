@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('daily_parts', function (Blueprint $table) {
+            $table->decimal('gasolina', 10, 2)->nullable()->after('initial_fuel');
             $table->unsignedBigInteger('shift_id')->nullable()->after('movement_kardex_id');
             $table->unsignedBigInteger('operator_id')->nullable()->after('shift_id');
             $table->foreign('operator_id')->references('id')->on('operators')->onDelete('cascade')->onUpdate('cascade');
