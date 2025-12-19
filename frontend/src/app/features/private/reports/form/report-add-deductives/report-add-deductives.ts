@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
 import { ReportsServicesService } from '../../../../../services/ReportsServicesService/reports-services-service';
 
 interface OrderDetail {
@@ -37,6 +38,7 @@ interface PayrollItem {
   nombres: string;
   apellidos: string;
   cargo: string;
+  mes: number;
   montoPago: number;
 }
 
@@ -56,7 +58,8 @@ interface DialogData {
     MatButtonModule,
     MatInputModule,
     MatFormFieldModule,
-    MatIconModule
+    MatIconModule,
+    MatSelectModule
   ],
   templateUrl: './report-add-deductives.html',
   styleUrl: './report-add-deductives.css'
@@ -72,7 +75,22 @@ export class ReportAddDeductives {
   isSearching: boolean = false;
 
   // Formularios separados
-  newPayroll: PayrollItem = { nombres: '', apellidos: '', cargo: '', montoPago: 0 };
+  newPayroll: PayrollItem = { nombres: '', apellidos: '', cargo: '', mes: new Date().getMonth() + 1, montoPago: 0 };
+
+  meses = [
+    { id: 1, nombre: 'Enero' },
+    { id: 2, nombre: 'Febrero' },
+    { id: 3, nombre: 'Marzo' },
+    { id: 4, nombre: 'Abril' },
+    { id: 5, nombre: 'Mayo' },
+    { id: 6, nombre: 'Junio' },
+    { id: 7, nombre: 'Julio' },
+    { id: 8, nombre: 'Agosto' },
+    { id: 9, nombre: 'Septiembre' },
+    { id: 10, nombre: 'Octubre' },
+    { id: 11, nombre: 'Noviembre' },
+    { id: 12, nombre: 'Diciembre' }
+  ];
 
   constructor(
     private fb: FormBuilder,
@@ -173,9 +191,10 @@ export class ReportAddDeductives {
       if (this.newPayroll.nombres.trim() && 
           this.newPayroll.apellidos.trim() && 
           this.newPayroll.cargo.trim() && 
+          this.newPayroll.mes > 0 &&
           this.newPayroll.montoPago > 0) {
         this.payrollItems.push({ ...this.newPayroll });
-        this.newPayroll = { nombres: '', apellidos: '', cargo: '', montoPago: 0 };
+        this.newPayroll = { nombres: '', apellidos: '', cargo: '', mes: new Date().getMonth() + 1, montoPago: 0 };
       }
     }
   }
@@ -204,6 +223,7 @@ export class ReportAddDeductives {
       return this.newPayroll.nombres.trim() !== '' && 
              this.newPayroll.apellidos.trim() !== '' && 
              this.newPayroll.cargo.trim() !== '' && 
+             this.newPayroll.mes > 0 &&
              this.newPayroll.montoPago > 0;
     }
   }

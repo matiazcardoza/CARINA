@@ -115,6 +115,8 @@ export class ReportValorized implements OnInit {
 
   // Recalcular automaticamente el total final
   onAmountPlanillaChange(): void {
+    this.amountSheets = this.deductivesSheet.reduce((sum, item) => sum + item.montoPago, 0);
+  
     const totalDeductions = this.amountSheets + this.amountOrders;
     this.editedValorationAmount = Number(
       (this.finalTotal - totalDeductions).toFixed(2)
@@ -124,7 +126,7 @@ export class ReportValorized implements OnInit {
   }
 
   get finalTotal(): number {
-    return Number((this.valorationAmount - this.amountSheets - this.amountOrders).toFixed(2));
+    return Number((this.valorationAmount - this.getTotalSheets() - this.amountOrders).toFixed(2));
   }
 
   deleteRow(index: number): void {
@@ -191,7 +193,7 @@ export class ReportValorized implements OnInit {
     const finalData = {
       ...valorationDataSend,
       amountOrders: Number(this.amountOrders.toFixed(2)),
-      amountSheets: Number(this.amountSheets.toFixed(2)),
+      monthlySummary: this.getMonthlySheetSummary(),
       amountFinal: Number(this.finalTotal.toFixed(2))
     };
 
@@ -285,7 +287,7 @@ export class ReportValorized implements OnInit {
         deductive_order: this.deductivesOrder,
         amountOrders: Number(this.amountOrders.toFixed(2)),
         deductive_sheet: this.deductivesSheet,
-        amountSheets: Number(this.amountSheets.toFixed(2))
+        monthlySummary: this.getMonthlySheetSummary()
       },
       editedValorationAmount: Number(this.editedValorationAmount.toFixed(2)),
       finalAmount: Number(this.editedValorationAmount.toFixed(2)),
@@ -377,6 +379,10 @@ export class ReportValorized implements OnInit {
       });
   }
 
+  getTotalSheets(): number {
+    return this.deductivesSheet.reduce((sum, item) => sum + item.montoPago, 0);
+  }
+
   loadAdjustmentData(adjustment: any): void {
     if (this.hasUnsavedChanges) {
       const confirmar = confirm(
@@ -393,7 +399,7 @@ export class ReportValorized implements OnInit {
     this.machinery = adjustedData.machinery;
     this.valorationAmount = adjustedData.valoration_amount;
     this.editedValorationAmount = adjustedData.editedValorationAmount || adjustedData.valoration_amount;
-    this.amountSheets = adjustedData.deductives?.deductive_sheet?.amount_sheets || 0;
+    //this.amountSheets = adjustedData.deductives?.deductive_sheet?.amount_sheets || 0;
     this.amountOrders = adjustedData.deductives?.deductive_order?.amount_orders || 0;
 
     this.deductivesOrder = adjustedData.deductives?.deductive_order?.deductive_order || [];
@@ -403,7 +409,7 @@ export class ReportValorized implements OnInit {
       this.editedValorationAmount = adjustedData.valoration_amount_final;
     } else {
       this.editedValorationAmount = Number(
-        (this.valorationAmount - this.amountSheets - this.amountOrders).toFixed(2)
+        (this.valorationAmount - this.getTotalSheets() - this.amountOrders).toFixed(2)
       );
     }
 
@@ -440,7 +446,7 @@ export class ReportValorized implements OnInit {
     this.hasUnsavedChanges = false;
 
     this.deletedRows.clear();
-    this.amountSheets = 0;
+    //this.amountSheets = 0;
     this.amountOrders = 0;
     this.deductivesOrder = [];
     this.deductivesSheet = [];
@@ -468,6 +474,36 @@ export class ReportValorized implements OnInit {
       return 'Debe guardar los cambios antes de generar el documento';
     }
     return 'Generar documento PDF de valorización';
+  }
+
+  getMonthlySheetSummary(): { mes: number, nombreMes: string, total: number }[] {
+    if (!this.deductivesSheet || this.deductivesSheet.length === 0) {
+      return [];
+    }
+
+    const mesesNombres = [
+      'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+      'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
+    ];
+
+    // Agrupar por mes
+    const monthlyTotals = this.deductivesSheet.reduce((acc, item) => {
+      const mes = item.mes;
+      if (!acc[mes]) {
+        acc[mes] = 0;
+      }
+      acc[mes] += item.montoPago;
+      return acc;
+    }, {} as { [key: number]: number });
+
+    // Convertir a array y ordenar por mes
+    return Object.keys(monthlyTotals)
+      .map(mes => ({
+        mes: Number(mes),
+        nombreMes: mesesNombres[Number(mes) - 1],
+        total: Number(monthlyTotals[Number(mes)].toFixed(2))
+      }))
+      .sort((a, b) => a.mes - b.mes);
   }
 }
 

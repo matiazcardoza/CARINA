@@ -383,13 +383,13 @@ class ReportController extends Controller
         $amountValoration = $request->input('valoration_amount');
         $amountFinal = $request->input('amountFinal');
         $amountOrders = $request->input('amountOrders');
-        $amountSheets = $request->input('amountSheets');
+        $monthlySummary = $request->input('monthlySummary');
         $data = [
             'record' => $request->record,
             'amountValoration' => $amountValoration,
             'amountFinal' => $amountFinal,
             'amountOrders' => $amountOrders,
-            'amountSheets'=> $amountSheets,
+            'monthlySummary'=> $monthlySummary,
             'goalDetail' => $goalDetail,
             'mes' => $mes,
             'logoPath' => $logoPath,
@@ -595,7 +595,7 @@ class ReportController extends Controller
         if (!empty($deductives['deductive_sheet'])){
             $deductiveSheet = json_encode([
                 'deductive_sheet' => $deductives['deductive_sheet'],
-                'amount_sheets' => $deductives['amountSheets']
+                'monthlySummary'  => $deductives['monthlySummary']
             ]);
         }
 

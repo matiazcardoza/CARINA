@@ -26,7 +26,6 @@
             formControlName="anio"
             placeholder="Ej: 2024"
             maxlength="4"
-            readonly
             (keyup.enter)="searchOrder()">
         </mat-form-field>
 
@@ -73,9 +72,9 @@
       </div>
     </div>
 
-    <!-- FORMULARIO PARA PLANILLAS (4 CAMPOS EN UNA FILA) -->
+    <!-- FORMULARIO PARA PLANILLAS (5 CAMPOS EN UNA FILA) -->
     <div class="add-item-form planilla-form" *ngIf="!data.isOrder">
-      <mat-form-field appearance="fill" class="field-quarter">
+      <mat-form-field appearance="fill" class="field-fifth">
         <mat-label>Nombres</mat-label>
         <input 
           matInput 
@@ -84,7 +83,7 @@
           (keyup.enter)="agregarItem()">
       </mat-form-field>
 
-      <mat-form-field appearance="fill" class="field-quarter">
+      <mat-form-field appearance="fill" class="field-fifth">
         <mat-label>Apellidos</mat-label>
         <input 
           matInput 
@@ -93,7 +92,7 @@
           (keyup.enter)="agregarItem()">
       </mat-form-field>
 
-      <mat-form-field appearance="fill" class="field-quarter">
+      <mat-form-field appearance="fill" class="field-fifth">
         <mat-label>Cargo</mat-label>
         <input 
           matInput 
@@ -102,7 +101,17 @@
           (keyup.enter)="agregarItem()">
       </mat-form-field>
 
-      <mat-form-field appearance="fill" class="field-quarter">
+      <!-- NUEVO CAMPO DE MES -->
+      <mat-form-field appearance="fill" class="field-fifth">
+        <mat-label>Mes</mat-label>
+        <mat-select [(ngModel)]="newPayroll.mes">
+          <mat-option *ngFor="let mes of meses" [value]="mes.id">
+            {{ mes.nombre }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="field-fifth">
         <mat-label>Monto Pago</mat-label>
         <input 
           matInput 
@@ -168,10 +177,10 @@
     </div>
 
     <!-- LISTA DE PLANILLAS AGREGADAS -->
+    <!-- LISTA DE PLANILLAS AGREGADAS -->
     <div class="items-list" *ngIf="!data.isOrder && payrollItems.length > 0">
       <h3>{{ itemLabel }}s Agregadas ({{ payrollItems.length }})</h3>
       
-      <!-- Tabla de planillas -->
       <div class="table-container">
         <table class="payroll-table">
           <thead>
@@ -179,6 +188,7 @@
               <th class="col-item">ÍTEM</th>
               <th class="col-name">NOMBRES Y APELLIDOS</th>
               <th class="col-cargo">CARGO</th>
+              <th class="col-mes">MES</th> <!-- NUEVA COLUMNA -->
               <th class="col-monto">PAGO</th>
               <th class="col-actions"></th>
             </tr>
@@ -188,6 +198,7 @@
               <td class="col-item">{{ i + 1 }}</td>
               <td class="col-name">{{ item.nombres }} {{ item.apellidos }}</td>
               <td class="col-cargo">{{ item.cargo }}</td>
+              <td class="col-mes">{{ meses[item.mes - 1].nombre }}</td> <!-- NUEVA CELDA -->
               <td class="col-monto">S/ {{ item.montoPago | number:'1.2-2' }}</td>
               <td class="col-actions">
                 <button 

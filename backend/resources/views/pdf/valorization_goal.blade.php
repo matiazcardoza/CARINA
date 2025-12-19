@@ -163,7 +163,7 @@
         }
 
         .summary-table {
-            width: 50%;
+            width: 70%;
             border-collapse: collapse;
             margin: 0 auto;
         }
@@ -178,7 +178,7 @@
             background-color: #E7E6E6;
             font-weight: bold;
             font-size: 9px;
-            width: 60%;
+            width: 70%;
             text-align: left;
             padding-left: 10px;
         }
@@ -333,11 +333,13 @@
                     <td class="summary-label">MONTO TOTAL DE VALORIZACIÓN</td>
                     <td class="summary-value currency">S/. {{ number_format($amountValoration, 2) }}</td>
                 </tr>
-                @if($amountSheets)
-                    <tr>
-                        <td class="summary-label">Pago de operadores de maquinaria pesada del GRP, según Planilla</td>
-                        <td class="summary-value currency">S/. {{ number_format($amountSheets ?? 0, 2) }}</td>
-                    </tr>
+                @if(isset($monthlySummary) && count($monthlySummary) > 0)
+                    @foreach($monthlySummary as $monthData)
+                        <tr>
+                            <td class="summary-label">Pago a operadores de maquinaria pesada del GRP, según Planilla mes de {{ strtoupper($monthData['nombreMes']) }}</td>
+                            <td class="summary-value currency">S/. {{ number_format($monthData['total'], 2) }}</td>
+                        </tr>
+                    @endforeach
                 @endif
                 @if($amountOrders)
                     <tr>

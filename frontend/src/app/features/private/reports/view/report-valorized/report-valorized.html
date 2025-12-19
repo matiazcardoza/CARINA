@@ -135,12 +135,16 @@
         </div>
 
         <!-- Deductivo por Planilla (si existe) -->
-        <div class="summary-item deductive-item" *ngIf="amountSheets > 0">
-          <span class="summary-label-deductive">Pago a operadores de maquinaria pesada del GRP, según Planilla</span>
-          <span class="summary-value-deductive">
-            S/. {{ amountSheets | number:'1.2-2' }}
-          </span>
-        </div>
+        <ng-container *ngIf="getMonthlySheetSummary().length > 0">
+          <div class="summary-item deductive-item" *ngFor="let monthData of getMonthlySheetSummary()">
+            <span class="summary-label-deductive">
+              Pago a operadores de maquinaria pesada del GRP, según Planilla mes de {{ monthData.nombreMes }}
+            </span>
+            <span class="summary-value-deductive">
+              S/. {{ monthData.total | number:'1.2-2' }}
+            </span>
+          </div>
+        </ng-container>
 
         <!-- Deductivo por Orden (si existe) -->
         <div class="summary-item deductive-item" *ngIf="amountOrders > 0">
