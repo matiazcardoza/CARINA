@@ -134,12 +134,12 @@ export class DocumentSignature {
       console.log('Documento en estado final, no se cargan usuarios para envío');
       return;
     }
-    
+
     // Solo cargar usuarios si el estado actual requiere envío:
     // Estado 1: Controlador envía a Residente
     // Estado 2: Residente envía a Supervisor
     const requiresSending = documentState === 1 || documentState === 2;
-    
+
     if (!requiresSending) {
       console.log('Estado actual no requiere envío de documento');
       return;
@@ -260,7 +260,9 @@ export class DocumentSignature {
             this.documentState = data.state || 0;
             this.numberOfPages = data.pages || 0;
             console.log('Estado del documento:', this.documentState);
-            if (this.documentState !== 0) {this.loadUsers();};
+            if (this.shouldLoadUsersForCurrentState()) {
+              this.loadUsers();
+            }
             const fullPdfUrl = `${environment.BACKEND_URL_STORAGE}${pdfPath}?timestamp=${new Date().getTime()}`;
             this.pdfUrlString = fullPdfUrl;
             this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fullPdfUrl);
@@ -280,6 +282,42 @@ export class DocumentSignature {
       });
   }
 
+  private shouldLoadUsersForCurrentState(): boolean {
+    const userRelevantRoles = this.getUserRelevantRoles();
+    if (this.documentState === 0) {
+      return false;
+    }
+    if (this.documentState === 3) {
+      return false;
+    }
+    if (this.documentState === 1) {
+      if (userRelevantRoles.includes('Controlador_pd')) {
+        return true;
+      }
+      if (userRelevantRoles.includes('Residente_pd') && !this.isSigned) {
+        return false;
+      }
+      if (userRelevantRoles.includes('Residente_pd') && this.isSigned) {
+        return true;
+      }
+      if (userRelevantRoles.includes('Supervisor_pd')) {
+        return true;
+      }
+    }
+    if (this.documentState === 2) {
+      if (userRelevantRoles.includes('Residente_pd')) {
+        return true;
+      }
+      if (userRelevantRoles.includes('Supervisor_pd') && !this.isSigned) {
+        return false;
+      }
+      if (userRelevantRoles.includes('Supervisor_pd') && this.isSigned) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private getUserRelevantRoles(): string[] {
     const relevantRoles = ['Controlador_pd', 'Residente_pd', 'Supervisor_pd'];
     return relevantRoles.filter(role => this.permissionService.hasRole(role));
@@ -287,16 +325,16 @@ export class DocumentSignature {
 
   private getRoleToSignByDocumentState(): { roleId: number; roleName: string; statusPosition: string } | null {
     const userRelevantRoles = this.getUserRelevantRoles();
-    
+
     console.log('Estado del documento:', this.documentState);
     console.log('Roles relevantes del usuario:', userRelevantRoles);
 
-    const hasBothSupervisorAndController = 
-    userRelevantRoles.includes('Supervisor_pd') && 
+    const hasBothSupervisorAndController =
+    userRelevantRoles.includes('Supervisor_pd') &&
     userRelevantRoles.includes('Controlador_pd');
 
-    const hasBothResidenteAndController = 
-    userRelevantRoles.includes('Residente_pd') && 
+    const hasBothResidenteAndController =
+    userRelevantRoles.includes('Residente_pd') &&
     userRelevantRoles.includes('Controlador_pd');
 
     switch (this.documentState) {
@@ -358,7 +396,7 @@ export class DocumentSignature {
 
   canUserSign(): boolean {
     const roleToSign = this.getRoleToSignByDocumentState();
-    
+
     if (!roleToSign) {
       console.log('El usuario no puede firmar en este estado');
       return false;
@@ -407,6 +445,7 @@ export class DocumentSignature {
           this.isSigned = true;
           this.isSigningInProgress = false;
           this.signatureData = response;
+          this.loadUsers();
           this.cdr.detectChanges();
           this.loadPdfDocument();
         },
@@ -470,7 +509,7 @@ export class DocumentSignature {
           this.onSendConfirm();
         }
       });
-      
+
       return;
     }
     this.onSendConfirm();
@@ -571,11 +610,12 @@ export class DocumentSignature {
             verticalPosition: 'top',
             panelClass: ['success-snackbar']
           });
-          
+
           this.isSigned = true;
           this.isSigningInProgress = false;
+          this.loadUsers();
           this.cdr.detectChanges();
-          
+
           // Recargar el documento
           this.loadPdfDocument();
         } else {
@@ -592,14 +632,14 @@ export class DocumentSignature {
       error: (error) => {
         console.error('Error al firmar:', error);
         const mensaje = error.error?.mensaje || 'Error al firmar el documento';
-        
+
         this.snackBar.open(mensaje, 'Cerrar', {
           duration: 4000,
           horizontalPosition: 'end',
           verticalPosition: 'top',
           panelClass: ['error-snackbar']
         });
-        
+
         this.isSigningInProgress = false;
         this.shouldAutoSend = false;
         this.cdr.detectChanges();
@@ -609,9 +649,9 @@ export class DocumentSignature {
 
   canControllerSignWithPassword(): boolean {
     const userRelevantRoles = this.getUserRelevantRoles();
-    
-    return userRelevantRoles.includes('Controlador_pd') && 
-          !userRelevantRoles.includes('Residente_pd') && 
+
+    return userRelevantRoles.includes('Controlador_pd') &&
+          !userRelevantRoles.includes('Residente_pd') &&
           !userRelevantRoles.includes('Supervisor_pd') &&
           this.canUserSign() &&
           !this.isSigned;

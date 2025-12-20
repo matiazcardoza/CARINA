@@ -508,7 +508,7 @@ private function determineRoles($idCargo, $uoperativas, $rolesArray = [])
     public function getUserSelect($documentState){
         if (Auth::id() == 1) {
             $goalIds = Project::pluck('goal_id')->toArray();
-            //$goalIds = [888];
+            //$goalIds = [801];
         } else {
             $goalIds = Project::where('user_id', Auth::id())
                         ->pluck('goal_id')

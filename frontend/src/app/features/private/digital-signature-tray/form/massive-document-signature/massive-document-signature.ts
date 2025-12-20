@@ -412,9 +412,9 @@ export class MassiveDocumentSignature implements OnInit {
       });
       this.signedDocuments = documentsToSign.length;
       this.hasPendingSend = true;
+      this.shouldAutoSend = true;
       this.createRoleStateOptions();
       this.onRoleStateChange();
-      this.shouldAutoSend = true;
     } catch (error: any) {
       console.error('Error en firma masiva:', error);
       
@@ -424,6 +424,7 @@ export class MassiveDocumentSignature implements OnInit {
       });
       this.errorDocuments = documentsToSign.length;
       this.shouldAutoSend = false;
+      this.hasPendingSend = false;
     } finally {
       this.isSigningInProgress = false;
       this.cdr.detectChanges();
@@ -497,6 +498,13 @@ export class MassiveDocumentSignature implements OnInit {
       return;
     }
     
+    if (!this.shouldLoadUsersForMassiveSignature(documentState)) {
+      console.log('El usuario actual no debe ver usuarios en este estado');
+      this.shouldAutoSend = false;
+      this.hasPendingSend = false;
+      return;
+    }
+
     const requiresSending = documentState === 1 || documentState === 2;
     
     if (!requiresSending) {
@@ -533,6 +541,49 @@ export class MassiveDocumentSignature implements OnInit {
     ).subscribe(name => {
       this.filteredUsers = this._filterUsers(name || '');
     });
+  }
+
+  private shouldLoadUsersForMassiveSignature(documentState: number): boolean {
+    const userRelevantRoles = this.getUserRelevantRoles();
+    if (documentState === 0) {
+      console.log('Documentos sin firmar, no se cargan usuarios');
+      return false;
+    }
+    if (documentState === 3) {
+      console.log('Documentos completamente firmados, no hay más envíos');
+      return false;
+    }
+    if (documentState === 1) {
+      if (userRelevantRoles.includes('Controlador_pd')) {
+        console.log('Controlador puede ver usuarios en estado 1');
+        return true;
+      }
+      if (userRelevantRoles.includes('Residente_pd') || userRelevantRoles.includes('Supervisor_pd')) {
+        if (this.hasPendingSend) {
+          console.log('Residente/Supervisor puede ver usuarios después de firmar');
+          return true;
+        } else {
+          console.log('Residente/Supervisor NO debe ver usuarios antes de firmar');
+          return false;
+        }
+      }
+    }
+    if (documentState === 2) {
+      if (userRelevantRoles.includes('Residente_pd')) {
+        console.log('Residente puede ver usuarios en estado 2');
+        return true;
+      }
+      if (userRelevantRoles.includes('Supervisor_pd')) {
+        if (this.hasPendingSend) {
+          console.log('Supervisor puede ver usuarios después de firmar');
+          return true;
+        } else {
+          console.log('Supervisor NO debe ver usuarios antes de firmar');
+          return false;
+        }
+      }
+    }
+    return false;
   }
 
   clearUserSelection(event: Event): void {
@@ -763,6 +814,7 @@ export class MassiveDocumentSignature implements OnInit {
         
         this.signedDocuments = documentsToSign.length;
         this.hasPendingSend = true;
+        this.shouldAutoSend = true;
 
         // Actualizar opciones disponibles
         this.createRoleStateOptions();
@@ -798,6 +850,7 @@ export class MassiveDocumentSignature implements OnInit {
       
       this.errorDocuments = documentsToSign.length;
       this.shouldAutoSend = false;
+      this.hasPendingSend = false;
 
       this.snackBar.open(
         error.message || 'Error al firmar documentos con contraseña',
