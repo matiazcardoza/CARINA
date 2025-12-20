@@ -65,10 +65,17 @@ class ReportController extends Controller
             if ($parts->count() > 0) {
                 $daySeconds = 0;
                 $dayFuel    = 0;
+                $shiftsDetail = [];
                 foreach ($parts as $p) {
                     [$h, $m, $s] = array_pad(explode(':', $p->time_worked), 3, 0);
                     $daySeconds += ($h * 3600) + ($m * 60) + $s;
                     $dayFuel    += $p->initial_fuel ?? 0;
+
+                    $shiftName = $p->shift_id == 1 ? 'Mañana' : 'Tarde';
+                    $shiftsDetail[] = [
+                        'shift_name' => $shiftName,
+                        'time_worked' => $p->time_worked
+                    ];
                 }
                 $hours = floor($daySeconds / 3600);
                 $minutes = floor(($daySeconds % 3600) / 60);
@@ -79,6 +86,7 @@ class ReportController extends Controller
                 $processedData[] = [
                     'date' => Carbon::parse($date)->format('d/m/Y'),
                     'time_worked' => $timeWorkedFormatted,
+                    'shifts_detail' => $shiftsDetail,
                     'equivalent_hours' => round($equivalentHours, 2),
                     'fuel_consumption' => $dayFuel,
                     'days_worked' => 1,

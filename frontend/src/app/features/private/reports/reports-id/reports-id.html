@@ -302,12 +302,16 @@
 
                         <!-- HM Trabajadas (editable) -->
                         <td
-                        [contentEditable]="editMode"
-                        [class.editable]="editMode"
-                        (dblclick)="onCellDoubleClick(i, 'time_worked')"
-                        (blur)="updateCellValue(i, 'time_worked', $event)"
-                        [attr.data-field]="'time_worked'">
-                        {{ dia.time_worked }}
+                          [contentEditable]="editMode"
+                          [class.editable]="editMode"
+                          [class.multi-shift]="hasMultipleShifts(dia)"
+                          (dblclick)="onCellDoubleClick(i, 'time_worked')"
+                          (blur)="updateCellValue(i, 'time_worked', $event)"
+                          [attr.data-field]="'time_worked'"
+                          [matTooltip]="getShiftTooltip(dia)"
+                          [matTooltipDisabled]="!hasMultipleShifts(dia)"
+                          matTooltipPosition="above">
+                          {{ dia.time_worked }}
                         </td>
 
                         <!-- HM Equivalente (calculado) -->

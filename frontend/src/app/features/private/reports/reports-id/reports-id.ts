@@ -866,4 +866,19 @@ export class ReportsId implements OnInit {
     }
     return 'Generar documentos PDF';
   }
+
+  getShiftTooltip(dia: any): string {
+    if (!dia.shifts_detail || dia.shifts_detail.length <= 1) {
+      return ''; // No mostrar tooltip si solo hay un turno o ninguno
+    }
+    
+    // Formatear con saltos de línea para MatTooltip
+    return dia.shifts_detail
+      .map((shift: any) => `${shift.shift_name}: ${shift.time_worked}`)
+      .join('\n');
+  }
+
+  hasMultipleShifts(dia: any): boolean {
+    return dia.shifts_detail && dia.shifts_detail.length > 1;
+  }
 }
