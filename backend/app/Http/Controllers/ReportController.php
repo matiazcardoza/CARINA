@@ -663,11 +663,11 @@ class ReportController extends Controller
             $deletedLiquidationIds = array_diff($originalLiquidationIds, $activeLiquidationIds);
             if (!empty($deletedLiquidationIds)) {
                 ServiceLiquidationAdjustment::whereIn('id', $deletedLiquidationIds)
-                    ->update(['state_valorized' => 2]);
+                    ->update(['state_valorized' => 1]);
             }
             if (!empty($activeLiquidationIds)) {
                 ServiceLiquidationAdjustment::whereIn('id', $activeLiquidationIds)
-                    ->update(['state_valorized' => 1]);
+                    ->update(['state_valorized' => 2]);
             }
 
             DB::commit();
