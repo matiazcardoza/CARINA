@@ -217,6 +217,7 @@ class ReportController extends Controller
                 $service->time_worked = $totalTimeFormatted;
 
             $machinery[] = [
+                'liquidationId' => $adjustment->id,
                 'service_id' => $service->id,
                 'equipment' => $equipment,
                 'time_worked' => $totalTimeFormatted,
@@ -591,6 +592,9 @@ class ReportController extends Controller
         $goalId = $request->input('goalId');
         $deductives = $request->input('deductives');
 
+        $activeLiquidationIds = $request->input('liquidationIds', []);
+        $originalLiquidationIds = $request->input('originalLiquidationIds', []);
+
         $deductiveOrder = null;
         $deductiveSheet = null;
 
@@ -609,6 +613,8 @@ class ReportController extends Controller
         }
 
         try{
+            DB::beginTransaction();
+
             $lastValorization = ValorationAdjustment::where('goal_id', $goalId)
                                 ->orderBy('created_at', 'desc')
                                 ->first();
@@ -654,6 +660,18 @@ class ReportController extends Controller
                 ]);
             }
 
+            $deletedLiquidationIds = array_diff($originalLiquidationIds, $activeLiquidationIds);
+            if (!empty($deletedLiquidationIds)) {
+                ServiceLiquidationAdjustment::whereIn('id', $deletedLiquidationIds)
+                    ->update(['state_valorized' => 2]);
+            }
+            if (!empty($activeLiquidationIds)) {
+                ServiceLiquidationAdjustment::whereIn('id', $activeLiquidationIds)
+                    ->update(['state_valorized' => 1]);
+            }
+
+            DB::commit();
+
             return response()->json([
                 'message' => 'Cambios guardados exitosamente',
                 'success' => true,
@@ -675,6 +693,7 @@ class ReportController extends Controller
             ], 500);
         }
     }
+
     public function downloadMergedDailyParts($serviceId, $stateValorized)
     {
         $documents = DB::table('documents_daily_parts as ddp')

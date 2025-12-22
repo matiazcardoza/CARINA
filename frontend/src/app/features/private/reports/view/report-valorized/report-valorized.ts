@@ -55,6 +55,8 @@ export class ReportValorized implements OnInit {
   deductivesOrder: any[] = [];
   deductivesSheet: any[] = [];
 
+  originalLiquidationIds: number[] = [];
+
   displayedColumns: string[] = [
     'item',
     'machinery',
@@ -97,6 +99,11 @@ export class ReportValorized implements OnInit {
           this.machinery = response.machinery;
           this.valorationAmount = response.valoration_amount;
           this.editedValorationAmount = this.valorationAmount;
+
+          this.originalLiquidationIds = this.machinery
+            .map(m => m.liquidationId)
+            .filter(id => id != null);
+
           this.editedOperators = {};
           this.machinery.forEach((machinery, index) => {
             this.editedOperators[index] = this.getOperatorNames(machinery.equipment);
@@ -279,6 +286,10 @@ export class ReportValorized implements OnInit {
       }
     });
 
+    const activeLiquidationIds = this.machinery
+      .map((m, index) => !this.deletedRows.has(index) ? m.liquidationId : null)
+      .filter(id => id != null);
+
     const changesData = {
       goalId: this.goalId,
       adjustmentId: this.selectedAdjustmentId,
@@ -292,7 +303,9 @@ export class ReportValorized implements OnInit {
       editedValorationAmount: Number(this.editedValorationAmount.toFixed(2)),
       finalAmount: Number(this.editedValorationAmount.toFixed(2)),
       editedOperators: this.editedOperators,
-      deletedRows: Array.from(this.deletedRows)
+      deletedRows: Array.from(this.deletedRows),
+      liquidationIds: activeLiquidationIds,
+      originalLiquidationIds: this.originalLiquidationIds
     };
 
     this.isLoading = true;

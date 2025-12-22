@@ -15,6 +15,7 @@ class ServiceLiquidationAdjustment extends Model
         'service_id',
         'adjusted_data',
         'num_reg',
-        'updated_by'
+        'updated_by',
+        'state_valorized'
     ];
 }
