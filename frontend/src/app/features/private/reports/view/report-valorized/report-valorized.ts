@@ -266,12 +266,18 @@ export class ReportValorized implements OnInit {
       if (!confirmar) return;
     }
 
+    
+
     const valorationDataToSend = {
       goal: this.goalData,
       machinery: JSON.parse(JSON.stringify(this.machinery)),
       valoration_amount: this.valorationAmount,
       valoration_amount_final: this.finalTotal
     };
+
+    valorationDataToSend.machinery = valorationDataToSend.machinery.filter(
+      (_: any, index: number) => !this.deletedRows.has(index)
+    );
 
     valorationDataToSend.machinery.forEach((machinery: any, index: number) => {
       if (this.editedOperators[index] && machinery.equipment?.operators) {
