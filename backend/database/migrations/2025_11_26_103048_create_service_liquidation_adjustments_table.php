@@ -17,6 +17,7 @@ return new class extends Migration
             $table->json('adjusted_data');
             $table->unsignedInteger('num_reg')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
+            $table->integer('state_valorized')->default(1);
             $table->foreign('service_id')->references('id')->on('services')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
         });

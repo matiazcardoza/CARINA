@@ -177,6 +177,7 @@ class ReportController extends Controller
                 continue;
             }
             $adjustment = ServiceLiquidationAdjustment::where('service_id', $service->id)
+                    ->where('state_valorized', '!=', 2)
                     ->orderBy('created_at', 'desc')
                     ->first();
 
