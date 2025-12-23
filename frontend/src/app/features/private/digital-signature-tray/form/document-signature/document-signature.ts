@@ -291,7 +291,7 @@ export class DocumentSignature {
       return false;
     }
     if (this.documentState === 1) {
-      if (userRelevantRoles.includes('Controlador_pd')) {
+      if (this.hasOnlyControllerRole()) {
         return true;
       }
       if (userRelevantRoles.includes('Residente_pd') && !this.isSigned) {
@@ -316,6 +316,12 @@ export class DocumentSignature {
       }
     }
     return false;
+  }
+
+  private hasOnlyControllerRole(): boolean {
+    const userRelevantRoles = this.getUserRelevantRoles();
+    return userRelevantRoles.length === 1 && 
+          userRelevantRoles.includes('Controlador_pd');
   }
 
   private getUserRelevantRoles(): string[] {
