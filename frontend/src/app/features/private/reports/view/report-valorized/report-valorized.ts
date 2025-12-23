@@ -208,7 +208,9 @@ export class ReportValorized implements OnInit {
       next: (response: Blob) => {
         const fileURL = URL.createObjectURL(response);
         window.open(fileURL, '_blank');
-        this.generateDeductives();
+        if(this.deductivesSheet.length > 0){
+          this.generateDeductives();
+        }
       },
       error: () => {
         this.errorMessage = 'Error al generar el PDF. Por favor, intenta nuevamente.';
@@ -219,7 +221,8 @@ export class ReportValorized implements OnInit {
   generateDeductives(): void {
     const deductivesData = {
       deductivesSheet: this.deductivesSheet,
-      goalId: this.goalId
+      goalId: this.goalId,
+      record: this.record
     };
     console.log('deductivesData', deductivesData);
     this.reportsServicesService.generateDeductives(deductivesData).subscribe({

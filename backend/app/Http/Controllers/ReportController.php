@@ -423,7 +423,7 @@ class ReportController extends Controller
         ];
 
         $service = Service::where('goal_id', $request->goalId)->first();
-
+        Log::info('record', $request->record);
         $deductivosPorMes = [];
         foreach ($deductivesSheet as $item) {
             $mes = $item['mes'];
@@ -443,6 +443,7 @@ class ReportController extends Controller
 
         $data = [
             'service' => $service,
+            'record' => $request->record,
             'deductivosPorMes' => $deductivosPorMes,
             'totalGeneral' => array_sum(array_column($deductivosPorMes, 'total'))
         ];

@@ -148,7 +148,7 @@
     @foreach($deductivosPorMes as $mesData)
         <div class="mes-section">
             <div class="mes-title">
-                MES DE {{ $mesData['nombreMes'] }} DEL 2025
+                MES DE {{ $mesData['nombreMes'] }} DEL {{ \Carbon\Carbon::parse($record['created_at'])->year }}
             </div>
 
             <table>
@@ -170,7 +170,7 @@
                         </tr>
                     @endforeach
                     <tr class="total-row">
-                        <td colspan="3" class="text-right"><strong>PAGO TOTAL - MES {{ $mesData['nombreMes'] }} 2025</strong></td>
+                        <td colspan="3" class="text-right"><strong>PAGO TOTAL - MES {{ $mesData['nombreMes'] }} {{ \Carbon\Carbon::parse($record['created_at'])->year }}</strong></td>
                         <td class="text-right"><strong>S/ {{ number_format($mesData['total'], 2) }}</strong></td>
                     </tr>
                 </tbody>
