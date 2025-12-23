@@ -413,6 +413,46 @@ class ReportController extends Controller
         return $pdf->stream('Valoracion-goal.pdf');
     }
 
+    public function generateDeductives(Request $request)
+    {
+        $deductivesSheet = $request->input('deductivesSheet', []);
+        $mesesNombres = [
+            1 => 'ENERO', 2 => 'FEBRERO', 3 => 'MARZO', 4 => 'ABRIL',
+            5 => 'MAYO', 6 => 'JUNIO', 7 => 'JULIO', 8 => 'AGOSTO',
+            9 => 'SEPTIEMBRE', 10 => 'OCTUBRE', 11 => 'NOVIEMBRE', 12 => 'DICIEMBRE'
+        ];
+
+        $service = Service::where('goal_id', $request->goalId)->first();
+
+        $deductivosPorMes = [];
+        foreach ($deductivesSheet as $item) {
+            $mes = $item['mes'];
+            if (!isset($deductivosPorMes[$mes])) {
+                $deductivosPorMes[$mes] = [
+                    'mes' => $mes,
+                    'nombreMes' => $mesesNombres[$mes] ?? 'DESCONOCIDO',
+                    'items' => [],
+                    'total' => 0
+                ];
+            }
+            $deductivosPorMes[$mes]['items'][] = $item;
+            $deductivosPorMes[$mes]['total'] += $item['montoPago'];
+        }
+
+        ksort($deductivosPorMes);
+
+        $data = [
+            'service' => $service,
+            'deductivosPorMes' => $deductivosPorMes,
+            'totalGeneral' => array_sum(array_column($deductivosPorMes, 'total'))
+        ];
+
+        $pdf = Pdf::loadView('pdf.deductives_sheet', $data);
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf->stream('Deductivos-Planillas.pdf');
+    }
+
     public function saveAuthChanges(Request $request)
     {
         if($request->input('auth.totals.total_amount') <= 0){

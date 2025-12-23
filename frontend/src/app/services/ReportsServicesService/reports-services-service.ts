@@ -94,6 +94,12 @@ export class ReportsServicesService {
       withCredentials: true
     });
   }
+  generateDeductives(deductivesData: any): Observable<Blob> {
+    return this.http.post(`${this.apiUrl}/api/reports/report-generate-deductives`, deductivesData, {
+      responseType: 'blob',
+      withCredentials: true
+    });
+  }
 
   saveAuthChanges(changesData: {serviceId: number; equipment: any; request: any; auth: any; liquidation: any;
   }): Observable<SaveChangesResponse> {

@@ -208,6 +208,24 @@ export class ReportValorized implements OnInit {
       next: (response: Blob) => {
         const fileURL = URL.createObjectURL(response);
         window.open(fileURL, '_blank');
+        this.generateDeductives();
+      },
+      error: () => {
+        this.errorMessage = 'Error al generar el PDF. Por favor, intenta nuevamente.';
+      }
+    });
+  }
+
+  generateDeductives(): void {
+    const deductivesData = {
+      deductivesSheet: this.deductivesSheet,
+      goalId: this.goalId
+    };
+    console.log('deductivesData', deductivesData);
+    this.reportsServicesService.generateDeductives(deductivesData).subscribe({
+      next: (response: Blob) => {
+        const fileURL = URL.createObjectURL(response);
+        window.open(fileURL, '_blank');
       },
       error: () => {
         this.errorMessage = 'Error al generar el PDF. Por favor, intenta nuevamente.';
