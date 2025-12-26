@@ -532,7 +532,7 @@ private function determineRoles($idCargo, $uoperativas, $rolesArray = [])
                 ->leftJoin('roles', 'model_has_roles.role_id', '=', 'roles.id')
                 ->leftJoin('personas', 'users.id', '=', 'personas.user_id')
                 ->whereIn('users.id', $userIds)
-                ->whereNotIn('personas.num_doc', ['U40098666', '01319836']);
+                ->whereNotIn('personas.num_doc', ['U40098666', '01319836', '42288933']);
 
         switch ($documentState) {
             case 0:
