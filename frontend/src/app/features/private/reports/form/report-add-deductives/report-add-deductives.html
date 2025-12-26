@@ -8,6 +8,15 @@
       <!-- Formulario de búsqueda -->
             <!-- Formulario de búsqueda -->
       <form [formGroup]="orderForm" class="search-order-form">
+        <!-- NUEVO CAMPO DE TIPO DE ORDEN -->
+        <mat-form-field appearance="fill" class="field-tipo">
+          <mat-label>Tipo de Orden</mat-label>
+          <mat-select formControlName="tipoOrden">
+            <mat-option value="servicio">Orden de Servicio</mat-option>
+            <mat-option value="compra">Orden de Compra</mat-option>
+          </mat-select>
+        </mat-form-field>
+
         <mat-form-field appearance="fill" class="field-numero">
           <mat-label>Número de Orden</mat-label>
           <input 
@@ -57,6 +66,7 @@
               <span class="result-precio">S/ {{ (orden.precio * orden.cantidad) | number:'1.2-2' }}</span>
             </div>
             <div class="result-details">
+              <p><strong>{{ orden.item }}</strong></p>
               <p><strong>RUC:</strong> {{ orden.ruc }}</p>
               <p><strong>Razón Social:</strong> {{ orden.rsocial }}</p>
             </div>
@@ -142,9 +152,10 @@
           <thead>
             <tr>
               <th class="col-item">ÍTEM</th>
-              <th class="col-numero">N° ORDEN</th>
+              <th>N° ORDEN</th>
               <th>RUC</th>
               <th>RAZÓN SOCIAL</th>
+              <th>DESCRIPCIÓN</th>
               <th class="col-monto">PRECIO</th>
               <th class="col-actions"></th>
             </tr>
@@ -155,6 +166,7 @@
               <td class="col-numero">{{ item.numero }}</td>
               <td>{{ item.ruc }}</td>
               <td>{{ item.rsocial }}</td>
+              <td>{{ item.item }}</td>
               <td class="col-monto">S/ {{ item.monto | number:'1.2-2' }}</td>
               <td class="col-actions">
                 <button 

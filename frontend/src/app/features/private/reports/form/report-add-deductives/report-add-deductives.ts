@@ -10,12 +10,16 @@ import { MatSelectModule } from '@angular/material/select';
 import { ReportsServicesService } from '../../../../../services/ReportsServicesService/reports-services-service';
 
 interface OrderDetail {
-  idservicio: number;
-  ruc : string;
-  rsocial : string;
+  idservicio?: number;      // Para orden de servicio
+  idserviciodet?: number;   // ID único para orden de servicio
+  idcompra?: number;        // Para orden de compra
+  idcompradet?: number;     // ID único para orden de compra
+  ruc: string;
+  rsocial: string;
   numero: string;
   precio: number;
   cantidad: number;
+  item: string;
 }
 
 interface OrderResponse {
@@ -26,11 +30,14 @@ interface OrderResponse {
 
 // Interfaz para órdenes (mantiene estructura original)
 interface OrderItem {
-  idservicio: number;
+  idservicio?: number;      // Para orden de servicio
+  idserviciodet?: number;   // ID único para orden de servicio
+  idcompradet?: number;     // ID único para orden de compra
   ruc: string;
   rsocial: string;
   numero: string;
   monto: number;
+  item?: string;
 }
 
 // Interfaz para planillas (con los 4 campos requeridos)
@@ -74,6 +81,8 @@ export class ReportAddDeductives {
   numeroOrdenErrors: string = '';
   isSearching: boolean = false;
 
+  tipoOrden: 'servicio' | 'compra' = 'servicio';
+
   // Formularios separados
   newPayroll: PayrollItem = { nombres: '', apellidos: '', cargo: '', mes: new Date().getMonth() + 1, montoPago: 0 };
 
@@ -101,6 +110,7 @@ export class ReportAddDeductives {
   ) {
     const currentYear = new Date().getFullYear();
     this.orderForm = this.fb.group({
+      tipoOrden: ['servicio', Validators.required],
       numeroOrden: ['', [
         Validators.required, 
         Validators.pattern(/^\d{5}$/),
@@ -129,12 +139,14 @@ export class ReportAddDeductives {
 
     const numeroOrden = this.orderForm.get('numeroOrden')?.value;
     const anio = this.orderForm.get('anio')?.value;
+    const tipoOrden = this.orderForm.get('tipoOrden')?.value;
     
     this.isSearching = true;
     this.cdr.detectChanges(); // Fuerza la detección de cambios
 
-    this.reportsServicesService.getOrderByNumber(numeroOrden, anio).subscribe({
+    this.reportsServicesService.getOrderByNumber(numeroOrden, anio, tipoOrden).subscribe({
       next: (response: OrderResponse) => {
+        console.log(response);
         this.isSearching = false;
         if (response.data && response.data.length > 0) {
           this.orderData = response.data;
@@ -156,20 +168,43 @@ export class ReportAddDeductives {
   }
 
   agregarOrdenBuscada(orden: OrderDetail): void {
-    const existe = this.orderItems.some(item => item.idservicio === orden.idservicio);
+    const tipoOrden = this.orderForm.get('tipoOrden')?.value;
+    const uniqueId = tipoOrden === 'servicio' ? orden.idserviciodet : orden.idcompradet;
+    const existe = this.orderItems.some(item => {
+      const itemUniqueId = tipoOrden === 'servicio' ? item.idserviciodet : item.idcompradet;
+      return itemUniqueId === uniqueId;
+    });
+    
     if (!existe) {
-      // Calcular el monto como precio * cantidad
       const monto = orden.precio * orden.cantidad;
       
-      this.orderItems.push({ 
-        idservicio: orden.idservicio,
+      const nuevoItem = { 
+        idservicio: tipoOrden === 'servicio' ? orden.idservicio : orden.idcompra,
+        idserviciodet: orden.idserviciodet,
+        idcompradet: orden.idcompradet,
         ruc: orden.ruc,
         rsocial: orden.rsocial,
         numero: orden.numero,
-        monto: monto  // Aquí guardamos el monto calculado
+        monto: monto,
+        item: orden.item
+      };
+      
+      this.orderItems.push(nuevoItem);
+      const longitudAntes = this.orderData.length;
+      this.orderData = this.orderData.filter(item => {
+        const itemUniqueId = tipoOrden === 'servicio' ? item.idserviciodet : item.idcompradet;
+        return itemUniqueId !== uniqueId;
       });
-      this.orderData = [];
-      this.orderForm.reset();
+      
+      const longitudDespues = this.orderData.length;
+      console.log(`Ítems en orderData: ${longitudAntes} -> ${longitudDespues}`);
+      if (this.orderData.length === 0) {
+        this.orderForm.reset({
+          tipoOrden: 'servicio',
+          numeroOrden: '',
+          anio: new Date().getFullYear()
+        });
+      }
     }
   }
 
