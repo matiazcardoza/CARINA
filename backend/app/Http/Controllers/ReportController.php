@@ -22,7 +22,9 @@ class ReportController extends Controller
         //eqwuipment data
         $service = Service::find($serviceId);
         $equipment = MechanicalEquipment::find($service->mechanical_equipment_id);
-        $operators = Operator::where('service_id', $serviceId)->get();
+        $operators = Operator::where('service_id', $serviceId)
+                    ->where('state', 1)
+                    ->get();
         $equipment->operators = $operators;
 
         //request data
