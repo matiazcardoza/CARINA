@@ -451,7 +451,6 @@ export class DocumentSignature {
           this.isSigned = true;
           this.isSigningInProgress = false;
           this.signatureData = response;
-          this.loadUsers();
           this.cdr.detectChanges();
           this.loadPdfDocument();
         },
