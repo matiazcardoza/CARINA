@@ -7,7 +7,6 @@
     <style>
         /* Reset básico optimizado para PDF */
         * {
-            margin: 2px, 15px, 15px, 15px;
             padding: 0;
             box-sizing: border-box;
         }
@@ -674,7 +673,7 @@
                 @endforeach
 
                 {{-- Rellenar filas vacías hasta completar 7 filas --}}
-                @for($i = count($dailyPart); $i < 7; $i++)
+                @for($i = count($dailyPart); $i < 4; $i++)
                     <tr class="work-row">
                         <td></td>
                         <td></td>

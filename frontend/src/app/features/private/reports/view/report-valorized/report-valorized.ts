@@ -220,6 +220,7 @@ export class ReportValorized implements OnInit {
 
   generateDeductives(): void {
     const deductivesData = {
+      deductivesOrder: this.deductivesOrder,
       deductivesSheet: this.deductivesSheet,
       goalId: this.goalId,
       record: this.record
