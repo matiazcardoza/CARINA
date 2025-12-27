@@ -416,79 +416,74 @@ class ReportController extends Controller
     }
 
     public function generateDeductives(Request $request)
-{
-    Log::info('este es el request', $request->all());
-    
-    $deductivesSheet = $request->input('deductivesSheet', []);
-    $deductivesOrder = $request->input('deductivesOrder', []);
-    
-    $mesesNombres = [
-        1 => 'ENERO', 2 => 'FEBRERO', 3 => 'MARZO', 4 => 'ABRIL',
-        5 => 'MAYO', 6 => 'JUNIO', 7 => 'JULIO', 8 => 'AGOSTO',
-        9 => 'SEPTIEMBRE', 10 => 'OCTUBRE', 11 => 'NOVIEMBRE', 12 => 'DICIEMBRE'
-    ];
-
-    $service = Service::where('goal_id', $request->goalId)->first();
-    
-    // Procesar deductivos de planillas
-    $deductivosPorMes = [];
-    $totalPlanillas = 0;
-    
-    foreach ($deductivesSheet as $item) {
-        $mes = $item['mes'];
-        if (!isset($deductivosPorMes[$mes])) {
-            $deductivosPorMes[$mes] = [
-                'mes' => $mes,
-                'nombreMes' => $mesesNombres[$mes] ?? 'DESCONOCIDO',
-                'items' => [],
-                'total' => 0
-            ];
-        }
-        $deductivosPorMes[$mes]['items'][] = $item;
-        $deductivosPorMes[$mes]['total'] += $item['montoPago'];
-    }
-    
-    ksort($deductivosPorMes);
-    $totalPlanillas = array_sum(array_column($deductivosPorMes, 'total'));
-    
-    // Procesar deductivos de órdenes (agrupar por proveedor y número)
-    $deductivosOrdenes = [];
-    $totalOrdenes = 0;
-    
-    foreach ($deductivesOrder as $item) {
-        $key = $item['ruc'] . '-' . $item['numero'];
+    {
+        $deductivesSheet = $request->input('deductivesSheet', []);
+        $deductivesOrder = $request->input('deductivesOrder', []);
         
-        if (!isset($deductivosOrdenes[$key])) {
-            $deductivosOrdenes[$key] = [
-                'ruc' => $item['ruc'],
-                'rsocial' => $item['rsocial'],
-                'numero' => $item['numero'],
-                'items' => [],
-                'total' => 0
-            ];
+        $mesesNombres = [
+            1 => 'ENERO', 2 => 'FEBRERO', 3 => 'MARZO', 4 => 'ABRIL',
+            5 => 'MAYO', 6 => 'JUNIO', 7 => 'JULIO', 8 => 'AGOSTO',
+            9 => 'SEPTIEMBRE', 10 => 'OCTUBRE', 11 => 'NOVIEMBRE', 12 => 'DICIEMBRE'
+        ];
+
+        $service = Service::where('goal_id', $request->goalId)->first();
+        
+        $deductivosPorMes = [];
+        $totalPlanillas = 0;
+        
+        foreach ($deductivesSheet as $item) {
+            $mes = $item['mes'];
+            if (!isset($deductivosPorMes[$mes])) {
+                $deductivosPorMes[$mes] = [
+                    'mes' => $mes,
+                    'nombreMes' => $mesesNombres[$mes] ?? 'DESCONOCIDO',
+                    'items' => [],
+                    'total' => 0
+                ];
+            }
+            $deductivosPorMes[$mes]['items'][] = $item;
+            $deductivosPorMes[$mes]['total'] += $item['montoPago'];
         }
         
-        $deductivosOrdenes[$key]['items'][] = $item;
-        $deductivosOrdenes[$key]['total'] += $item['monto'];
-        $totalOrdenes += $item['monto'];
+        ksort($deductivosPorMes);
+        $totalPlanillas = array_sum(array_column($deductivosPorMes, 'total'));
+        $deductivosOrdenes = [];
+        $totalOrdenes = 0;
+        
+        foreach ($deductivesOrder as $item) {
+            $key = $item['ruc'] . '-' . $item['numero'];
+            
+            if (!isset($deductivosOrdenes[$key])) {
+                $deductivosOrdenes[$key] = [
+                    'ruc' => $item['ruc'],
+                    'rsocial' => $item['rsocial'],
+                    'numero' => $item['numero'],
+                    'items' => [],
+                    'total' => 0
+                ];
+            }
+            
+            $deductivosOrdenes[$key]['items'][] = $item;
+            $deductivosOrdenes[$key]['total'] += $item['monto'];
+            $totalOrdenes += $item['monto'];
+        }
+        
+        $data = [
+            'service' => $service,
+            'record' => $request->record,
+            'deductivosPorMes' => $deductivosPorMes,
+            'totalPlanillas' => $totalPlanillas,
+            'deductivosOrdenes' => array_values($deductivosOrdenes),
+            'totalOrdenes' => $totalOrdenes,
+            'tienePlanillas' => !empty($deductivesSheet),
+            'tieneOrdenes' => !empty($deductivesOrder)
+        ];
+
+        $pdf = Pdf::loadView('pdf.deductives_combined', $data);
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf->stream('Deductivos-Completo.pdf');
     }
-    
-    $data = [
-        'service' => $service,
-        'record' => $request->record,
-        'deductivosPorMes' => $deductivosPorMes,
-        'totalPlanillas' => $totalPlanillas,
-        'deductivosOrdenes' => array_values($deductivosOrdenes),
-        'totalOrdenes' => $totalOrdenes,
-        'tienePlanillas' => !empty($deductivesSheet),
-        'tieneOrdenes' => !empty($deductivesOrder)
-    ];
-
-    $pdf = Pdf::loadView('pdf.deductives_combined', $data);
-    $pdf->setPaper('A4', 'portrait');
-
-    return $pdf->stream('Deductivos-Completo.pdf');
-}
 
     public function saveAuthChanges(Request $request)
     {
