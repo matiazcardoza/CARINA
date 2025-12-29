@@ -343,7 +343,7 @@
                 @endif
                 @if($amountOrders)
                     <tr>
-                        <td class="summary-label">Pago de operadores de maquinaria pesada del GRP, según Orden</td>
+                        <td class="summary-label">Pago por concepto de ordenes de COMPRA o SERVICIO</td>
                         <td class="summary-value currency">S/. {{ number_format($amountOrders ?? 0, 2) }}</td>
                     </tr>
                 @endif
