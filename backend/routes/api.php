@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ApiResponseController;
 use App\Http\Controllers\DailyPartController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\EvidenceController;
@@ -21,6 +22,7 @@ use SebastianBergmann\CodeCoverage\Report\Xml\Report;
 Route::post('/signature-document/{documentId}/{roleId}', [SignatureController::class, 'storeSignature']);
 Route::post('/signature-document/process-massive/{batchId}/{roleId}', [SignatureController::class, 'processMassiveSignatureResponse']);
 Route::get('/dailyParts-Pendings', [DailyPartController::class, 'getdailyPartsPendings']);
+Route::get('/Equipment-consultation/{plate}', [ApiResponseController::class, 'consultEquipment']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {
@@ -118,9 +120,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/mechanical-equipment', [MechanicalEquipmentController::class, 'update']);
     Route::delete('/mechanical-equipment/{id}', [MechanicalEquipmentController::class, 'destroy']);
     Route::post('/mechanical-equipment/support-machinery', [MechanicalEquipmentController::class, 'supportMachinery']);
-
-    //products
-    Route::get('/products-select', [ProductController::class, 'consultaProductSelect']);
 
     //shifts
     Route::get('/shifts-select', [ShiftsController::class, 'consultaShifts']);
