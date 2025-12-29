@@ -10,8 +10,9 @@ class ApiResponseController extends Controller
 {
     public function consultEquipment(string $plate)
     {
-        $equipment = MechanicalEquipment::where('plate', $plate)->first()
-            ?? EquipmentOrder::where('plate', $plate)->first();
+        $plate = strtoupper(preg_replace('/\s+/', '', $plate));
+        $equipment = MechanicalEquipment::whereRaw('UPPER(plate) = ?', [$plate])->first()
+                ?? EquipmentOrder::whereRaw('UPPER(plate) = ?', [$plate])->first();
 
         if (!$equipment) {
             return response()->json([
