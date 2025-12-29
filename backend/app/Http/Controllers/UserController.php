@@ -320,8 +320,7 @@ class UserController extends Controller
                 $uoperativas = $persona['uoperativas'] ?? [];
                 $rolesArray = $persona['roles'] ?? [];
 
-                $roles = $this->determineRoles($cargo, $uoperativas, $rolesArray, $dni);
-                //$roles = $this->determineRoles($cargo, $uoperativas, $rolesArray);
+                $roles = $this->determineRoles($cargo, $uoperativas, $rolesArray);
 
                 if (empty($roles)) {
                     continue;
@@ -370,90 +369,40 @@ class UserController extends Controller
     }
 
     // SOLO REEMPLAZAR LA FUNCIÓN determineRoles()
-// Las demás funciones permanecen exactamente igual
+    // Las demás funciones permanecen exactamente igual
 
-/*private function determineRoles($idCargo, $uoperativas, $rolesArray = [])
-{
-    $roles = [];
-    $uoperIds = collect($uoperativas)->pluck('iduoper')->toArray();
-
-    // Verificar unidades operativas
-    $hasResidenteUnits = in_array('00106', $uoperIds) || in_array('00107', $uoperIds);
-    $hasSupervisorUnits = in_array('00108', $uoperIds);
-
-    // REGLA 1: Si tiene cargo de RESIDENTE (5 o 6)
-    if (in_array($idCargo, [5, 6])) {
-        if ($hasResidenteUnits) {
-            $roles[] = 4; // Solo Residente
-        }
-    }
-    // REGLA 2: Si tiene cargo de SUPERVISOR (7 u 8)
-    elseif (in_array($idCargo, [7, 8])) {
-        if ($hasSupervisorUnits) {
-            $roles[] = 5; // Solo Supervisor
-        }
-    }
-    // REGLA 3: Sin cargo definido (null) - asignar según unidades
-    else {
-        // Prioridad: Supervisor > Residente
-        if ($hasSupervisorUnits) {
-            $roles[] = 5; // Supervisor
-        } elseif ($hasResidenteUnits) {
-            $roles[] = 4; // Residente
-        }
-    }
-
-    // REGLA 4: Controlador (rol 3) - puede coexistir con cualquier otro rol
-    if (!empty($rolesArray)) {
-        foreach ($rolesArray as $rol) {
-            if ($rol['idrol'] == '34') {
-                $roles[] = 3;
-                break;
-            }
-        }
-    }
-
-    return array_unique($roles);
-}*/
-
-    private function determineRoles($idCargo, $uoperativas, $rolesArray = [], $dni = null)
+    private function determineRoles($idCargo, $uoperativas, $rolesArray = [])
     {
         $roles = [];
+        $uoperIds = collect($uoperativas)->pluck('iduoper')->toArray();
 
-        // --- EXCEPCIÓN ESPECIAL PARA DNI ESPECÍFICO ---
-        if ($dni === '02161200') {
-            $roles = [4, 5]; // Asigna directamente Residente (4) y Supervisor (5)
-        } 
+        // Verificar unidades operativas
+        $hasResidenteUnits = in_array('00106', $uoperIds) || in_array('00107', $uoperIds);
+        $hasSupervisorUnits = in_array('00108', $uoperIds);
+
+        // REGLA 1: Si tiene cargo de RESIDENTE (5 o 6)
+        if (in_array($idCargo, [5, 6])) {
+            if ($hasResidenteUnits) {
+                $roles[] = 4; // Solo Residente
+            }
+        }
+        // REGLA 2: Si tiene cargo de SUPERVISOR (7 u 8)
+        elseif (in_array($idCargo, [7, 8])) {
+            if ($hasSupervisorUnits) {
+                $roles[] = 5; // Solo Supervisor
+            }
+        }
+        // REGLA 3: Sin cargo definido (null) - asignar según unidades
         else {
-            // --- LÓGICA NORMAL PARA LOS DEMÁS ---
-            $uoperIds = collect($uoperativas)->pluck('iduoper')->toArray();
-
-            $hasResidenteUnits = in_array('00106', $uoperIds) || in_array('00107', $uoperIds);
-            $hasSupervisorUnits = in_array('00108', $uoperIds);
-
-            // REGLA 1: Si tiene cargo de RESIDENTE (5 o 6)
-            if (in_array($idCargo, [5, 6])) {
-                if ($hasResidenteUnits) {
-                    $roles[] = 4;
-                }
-            }
-            // REGLA 2: Si tiene cargo de SUPERVISOR (7 u 8)
-            elseif (in_array($idCargo, [7, 8])) {
-                if ($hasSupervisorUnits) {
-                    $roles[] = 5;
-                }
-            }
-            // REGLA 3: Sin cargo definido o cargos distintos
-            else {
-                if ($hasSupervisorUnits) {
-                    $roles[] = 5;
-                } elseif ($hasResidenteUnits) {
-                    $roles[] = 4;
-                }
+            // Prioridad: Supervisor > Residente
+            if ($hasSupervisorUnits) {
+                $roles[] = 5; // Supervisor
+            } elseif ($hasResidenteUnits) {
+                $roles[] = 4; // Residente
             }
         }
 
-        // REGLA 4: Controlador (rol 3) - Se aplica a todos, incluido el DNI especial
+        // REGLA 4: Controlador (rol 3) - puede coexistir con cualquier otro rol
         if (!empty($rolesArray)) {
             foreach ($rolesArray as $rol) {
                 if ($rol['idrol'] == '34') {
